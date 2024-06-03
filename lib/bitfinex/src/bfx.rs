@@ -726,3 +726,72 @@ pub async fn get_user_info(config: &Config) -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[derive(Debug, Deserialize)]
+enum Scope {
+    #[serde(rename = "account")]
+    Account,
+    #[serde(rename = "history")]
+    History,
+    #[serde(rename = "orders")]
+    Orders,
+    #[serde(rename = "positions")]
+    Positions,
+    #[serde(rename = "funding")]
+    Funding,
+    #[serde(rename = "settings")]
+    Settings,
+    #[serde(rename = "wallets")]
+    Wallets,
+    #[serde(rename = "withdraw")]
+    Withdraw,
+    #[serde(rename = "ui_withdraw")]
+    UiWithdraw,
+    #[serde(rename = "bfxpay")]
+    BfxPay,
+}
+
+#[derive(Serialize)]
+struct BodyKeyPermissions {}
+
+#[derive(Debug, Deserialize)]
+struct KeyPermission {
+    scope: Scope,
+    read: i32,
+    write: i32,
+}
+
+#[derive(Debug, Deserialize)]
+struct RawKeyPermissions(Vec<KeyPermission>);
+
+pub async fn get_key_permissions(config: &Config) -> Result<(), Box<dyn Error>> {
+    let api_path = "v2/auth/r/permissions";
+
+    let nonce = get_nonce()?;
+
+    let body: BodyKeyPermissions = BodyKeyPermissions {};
+
+    let sign_output = sign(&body, &api_path, &nonce, config)?;
+    let SignOutput {
+        signature,
+        body_json,
+    } = sign_output;
+
+    let client = Client::new();
+    let res = client
+        .post(format!("{BITFINEX_BASE_URL}/{}", api_path))
+        .header("Content-Type", "application/json")
+        .header("bfx-nonce", &nonce)
+        .header("bfx-apikey", &config.key)
+        .header("bfx-signature", signature)
+        .body(body_json)
+        .send()
+        .await?;
+
+    let json: serde_json::Value = res.json().await?;
+    println!("{:?}", json);
+    let raw_key_permissions: RawKeyPermissions = serde_json::from_value(json)?;
+    println!("{:?}", raw_key_permissions);
+
+    Ok(())
+}

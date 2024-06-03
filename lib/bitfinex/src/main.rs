@@ -31,6 +31,7 @@ enum Commands {
     GetTransactions { currency: Option<String> },
     CreateAddress,
     GetUserInfo,
+    KeyPermissions,
     WithdrawUsdtTrx { amount: Decimal, address: String },
     Connect { url: String },
 }
@@ -67,6 +68,11 @@ async fn main() -> Result<()> {
         Commands::WithdrawUsdtTrx { amount, address } => {
             println!("withdraw usdt over tron");
             let _txs = bfx::withdraw_usdt_trx(&config, amount, address).await;
+        }
+        Commands::KeyPermissions => {
+            println!("key permissions");
+            let _key_permissions = bfx::get_key_permissions(&config).await;
+            println!("{:?}", _key_permissions);
         }
         Commands::Connect { url } => {
             let url = url::Url::parse(&url).unwrap();
