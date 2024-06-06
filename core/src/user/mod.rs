@@ -87,4 +87,12 @@ impl Users {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn list(
+        &self,
+        first: usize,
+        after: Option<UserId>,
+    ) -> Result<(Vec<User>, bool), UserError> {
+        self.repo.list(first, after).await
+    }
 }

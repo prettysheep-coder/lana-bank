@@ -61,4 +61,32 @@ impl UserRepo {
         settings.events.persist(db).await?;
         Ok(())
     }
+
+    pub async fn list(
+        &self,
+        first: usize,
+        after: Option<UserId>,
+    ) -> Result<(Vec<User>, bool), UserError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"WITH anchor AS (
+                 SELECT created_at FROM users WHERE id = $1 LIMIT 1
+               )
+            SELECT a.id, e.sequence, e.event,
+                      a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM users a
+            JOIN user_events e ON a.id = e.id
+            WHERE (
+                    $1 IS NOT NULL AND a.created_at < (SELECT created_at FROM anchor)
+                    OR $1 IS NULL)
+            ORDER BY a.created_at DESC, a.id, e.sequence
+            LIMIT $2"#,
+            after as Option<UserId>,
+            first as i64 + 1,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let res = EntityEvents::load_n::<User>(rows, first)?;
+        Ok(res)
+    }
 }

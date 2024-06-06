@@ -1,9 +1,10 @@
-use async_graphql::*;
+use async_graphql::{types::connection::*, *};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     app::LavaApp,
     ledger::user::UserLedgerAccountIds,
-    primitives::{Satoshis, UsdCents},
+    primitives::{Satoshis, UsdCents, UserId},
     server::shared::primitives::UUID,
 };
 
@@ -115,5 +116,35 @@ impl From<crate::withdraw::Withdraw> for WithdrawalSettlePayload {
         Self {
             withdrawal: Withdrawal::from(withdrawal),
         }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct UserByCreatedAtCursor {
+    pub id: UserId,
+}
+
+impl CursorType for UserByCreatedAtCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        use base64::{engine::general_purpose, Engine as _};
+        let json = serde_json::to_string(&self).expect("could not serialize token");
+        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        use base64::{engine::general_purpose, Engine as _};
+        let bytes = general_purpose::STANDARD_NO_PAD
+            .decode(s.as_bytes())
+            .map_err(|e| e.to_string())?;
+        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).map_err(|e| e.to_string())
+    }
+}
+
+impl From<UserId> for UserByCreatedAtCursor {
+    fn from(id: UserId) -> Self {
+        Self { id }
     }
 }

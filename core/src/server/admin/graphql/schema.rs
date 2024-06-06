@@ -1,4 +1,4 @@
-use async_graphql::*;
+use async_graphql::{types::connection::*, *};
 
 use super::{fixed_term_loan::*, user::*};
 use crate::{
@@ -40,6 +40,35 @@ impl Query {
             return Ok(Some(loans.into_iter().map(FixedTermLoan::from).collect()));
         }
         Ok(None)
+    }
+
+    async fn users(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> Result<Connection<UserByCreatedAtCursor, User, EmptyFields, EmptyFields>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let (users, has_next_page) = app
+                    .users()
+                    .list(first, after.map(|after: UserByCreatedAtCursor| after.id))
+                    .await?;
+                let mut connection = Connection::new(false, has_next_page);
+                connection.edges.extend(users.into_iter().map(|user| {
+                    let cursor = UserByCreatedAtCursor::from(user.id);
+                    Edge::new(cursor, User::from(user))
+                }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }
 
