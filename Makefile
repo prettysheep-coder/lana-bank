@@ -35,7 +35,7 @@ e2e: clean-deps start-deps build
 configure-docker-in-ci:
 	echo 'y' | gcloud auth configure-docker
 
-e2e-in-ci: configure-docker-in-ci bump-cala-docker-image e2e
+e2e-in-ci: bump-cala-docker-image e2e
 
 public-sdl:
 	SQLX_OFFLINE=true cargo run --bin write_public_sdl > core/src/server/public/schema.graphql
@@ -52,7 +52,7 @@ bump-cala-docker-image:
 
 bump-cala: bump-cala-docker-image bump-cala-schema
 
-test-in-ci: configure-docker-in-ci start-deps
+test-in-ci: start-deps
 	sleep 2
 	cd core && cargo sqlx migrate run
 	cargo nextest run --verbose --locked
