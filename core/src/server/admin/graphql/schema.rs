@@ -56,15 +56,20 @@ impl Query {
             None,
             |after, _, first, _| async move {
                 let first = first.expect("First always exists");
-                let (users, has_next_page) = app
+                let res = app
                     .users()
-                    .list(first, after.map(|after: UserByCreatedAtCursor| after.id))
+                    .list(crate::query::PaginatedQueryArgs {
+                        first,
+                        after: after.map(crate::user::UserByCreatedAtCursor::from),
+                    })
                     .await?;
-                let mut connection = Connection::new(false, has_next_page);
-                connection.edges.extend(users.into_iter().map(|user| {
-                    let cursor = UserByCreatedAtCursor::from(user.id);
-                    Edge::new(cursor, User::from(user))
-                }));
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|user| {
+                        let cursor = UserByCreatedAtCursor::from(user.id);
+                        Edge::new(cursor, User::from(user))
+                    }));
                 Ok::<_, async_graphql::Error>(connection)
             },
         )

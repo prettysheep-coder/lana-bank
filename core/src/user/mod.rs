@@ -1,3 +1,4 @@
+mod cursor;
 mod entity;
 pub mod error;
 mod repo;
@@ -8,6 +9,7 @@ use crate::{
     primitives::{Satoshis, UsdCents, UserId},
 };
 
+pub use cursor::*;
 pub use entity::*;
 use error::UserError;
 pub use repo::UserRepo;
@@ -90,9 +92,8 @@ impl Users {
 
     pub async fn list(
         &self,
-        first: usize,
-        after: Option<UserId>,
-    ) -> Result<(Vec<User>, bool), UserError> {
-        self.repo.list(first, after).await
+        query: crate::query::PaginatedQueryArgs<UserByCreatedAtCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<User, UserByCreatedAtCursor>, UserError> {
+        self.repo.list(query).await
     }
 }

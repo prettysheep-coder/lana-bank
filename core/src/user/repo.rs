@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use super::{entity::*, error::*};
+use super::{cursor::*, entity::*, error::*};
 use crate::{entity::*, primitives::*};
 
 #[derive(Clone)]
@@ -64,9 +64,8 @@ impl UserRepo {
 
     pub async fn list(
         &self,
-        first: usize,
-        after: Option<UserId>,
-    ) -> Result<(Vec<User>, bool), UserError> {
+        query: crate::query::PaginatedQueryArgs<UserByCreatedAtCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<User, UserByCreatedAtCursor>, UserError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"WITH anchor AS (
@@ -81,12 +80,20 @@ impl UserRepo {
                     OR $1 IS NULL)
             ORDER BY a.created_at DESC, a.id, e.sequence
             LIMIT $2"#,
-            after as Option<UserId>,
-            first as i64 + 1,
+            query.after.as_ref().map(|c| c.id) as Option<UserId>,
+            query.first as i64 + 1
         )
         .fetch_all(&self.pool)
         .await?;
-        let res = EntityEvents::load_n::<User>(rows, first)?;
-        Ok(res)
+        let (entities, has_next_page) = EntityEvents::load_n::<User>(rows, query.first)?;
+        let mut end_cursor = None;
+        if let Some(last) = entities.last() {
+            end_cursor = Some(UserByCreatedAtCursor { id: last.id });
+        }
+        Ok(crate::query::PaginatedQueryRet {
+            entities,
+            has_next_page,
+            end_cursor,
+        })
     }
 }

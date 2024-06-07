@@ -148,3 +148,9 @@ impl From<UserId> for UserByCreatedAtCursor {
         Self { id }
     }
 }
+
+impl From<UserByCreatedAtCursor> for crate::user::UserByCreatedAtCursor {
+    fn from(cursor: UserByCreatedAtCursor) -> Self {
+        Self { id: cursor.id }
+    }
+}
