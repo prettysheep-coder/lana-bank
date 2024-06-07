@@ -3,12 +3,16 @@ use serde::{Deserialize, Serialize};
 use super::{User, UserId};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UserByCreatedAtCursor {
+pub struct UserByNameCursor {
+    pub name: String,
     pub id: UserId,
 }
 
-impl From<&User> for UserByCreatedAtCursor {
+impl From<&User> for UserByNameCursor {
     fn from(values: &User) -> Self {
-        Self { id: values.id }
+        Self {
+            name: values.bitfinex_username.clone(),
+            id: values.id,
+        }
     }
 }

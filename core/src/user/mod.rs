@@ -92,8 +92,8 @@ impl Users {
 
     pub async fn list(
         &self,
-        query: crate::query::PaginatedQueryArgs<UserByCreatedAtCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<User, UserByCreatedAtCursor>, UserError> {
+        query: crate::query::PaginatedQueryArgs<UserByNameCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<User, UserByNameCursor>, UserError> {
         self.repo.list(query).await
     }
 }

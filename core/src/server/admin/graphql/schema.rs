@@ -47,7 +47,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> Result<Connection<UserByCreatedAtCursor, User, EmptyFields, EmptyFields>> {
+    ) -> Result<Connection<UserByNameCursor, User, EmptyFields, EmptyFields>> {
         let app = ctx.data_unchecked::<LavaApp>();
         query(
             after,
@@ -60,14 +60,15 @@ impl Query {
                     .users()
                     .list(crate::query::PaginatedQueryArgs {
                         first,
-                        after: after.map(crate::user::UserByCreatedAtCursor::from),
+                        after: after.map(crate::user::UserByNameCursor::from),
                     })
                     .await?;
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|user| {
-                        let cursor = UserByCreatedAtCursor::from(user.id);
+                        let cursor =
+                            UserByNameCursor::from((user.id, user.bitfinex_username.as_ref()));
                         Edge::new(cursor, User::from(user))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

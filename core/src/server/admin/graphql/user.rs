@@ -120,11 +120,12 @@ impl From<crate::withdraw::Withdraw> for WithdrawalSettlePayload {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(super) struct UserByCreatedAtCursor {
+pub(super) struct UserByNameCursor {
+    pub name: String,
     pub id: UserId,
 }
 
-impl CursorType for UserByCreatedAtCursor {
+impl CursorType for UserByNameCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -143,14 +144,20 @@ impl CursorType for UserByCreatedAtCursor {
     }
 }
 
-impl From<UserId> for UserByCreatedAtCursor {
-    fn from(id: UserId) -> Self {
-        Self { id }
+impl From<(UserId, &str)> for UserByNameCursor {
+    fn from((id, name): (UserId, &str)) -> Self {
+        Self {
+            id,
+            name: name.to_string(),
+        }
     }
 }
 
-impl From<UserByCreatedAtCursor> for crate::user::UserByCreatedAtCursor {
-    fn from(cursor: UserByCreatedAtCursor) -> Self {
-        Self { id: cursor.id }
+impl From<UserByNameCursor> for crate::user::UserByNameCursor {
+    fn from(cursor: UserByNameCursor) -> Self {
+        Self {
+            id: cursor.id,
+            name: cursor.name,
+        }
     }
 }
