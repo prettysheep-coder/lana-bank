@@ -1,0 +1,103 @@
+mutation BalanceSheetCreate($journalId: UUID!) {
+  balanceSheet {
+    balanceSheetCreate(
+      input: {
+        journalId: $journalId
+      }
+    ) {
+      balanceSheet {
+        assets {
+          accountSetId
+        }
+        liabilities {
+          accountSetId
+        }
+        schedule1 {
+          accountSetId
+        }
+        schedule2 {
+          accountSetId
+        }
+        schedule3 {
+          accountSetId
+        }
+        schedule4 {
+          accountSetId
+        }
+        schedule5 {
+          accountSetId
+        }
+        schedule6 {
+          accountSetId
+        }
+        schedule7 {
+          accountSetId
+        }
+        schedule8 {
+          accountSetId
+        }
+        schedule9 {
+          accountSetId
+        }
+        schedule10 {
+          accountSetId
+        }
+        schedule11 {
+          accountSetId
+        }
+        schedule12 {
+          accountSetId
+        }
+      }
+    }
+  }
+}
+
+query BalanceSheet($journalId: UUID!) {
+  balanceSheet {
+    balanceSheet(journalId: $journalId) {
+      assets {
+        accountSetId
+      }
+      liabilities {
+        accountSetId
+      }
+      schedule1 {
+        accountSetId
+      }
+      schedule2 {
+        accountSetId
+      }
+      schedule3 {
+        accountSetId
+      }
+      schedule4 {
+        accountSetId
+      }
+      schedule5 {
+        accountSetId
+      }
+      schedule6 {
+        accountSetId
+      }
+      schedule7 {
+        accountSetId
+      }
+      schedule8 {
+        accountSetId
+      }
+      schedule9 {
+        accountSetId
+      }
+      schedule10 {
+        accountSetId
+      }
+      schedule11 {
+        accountSetId
+      }
+      schedule12 {
+        accountSetId
+      }
+    }
+  }
+}

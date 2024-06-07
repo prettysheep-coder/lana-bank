@@ -7,6 +7,22 @@ use graphql_client::GraphQLQuery;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/balance-sheet.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BalanceSheetCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/balance-sheet.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BalanceSheet;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/accounts.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

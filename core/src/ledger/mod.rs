@@ -30,6 +30,7 @@ impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
+        // let balance_sheet_ids = Self::initialize_balance_sheet(journal_id).await?;
         Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })

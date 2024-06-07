@@ -28,6 +28,12 @@ impl CalaClient {
         CalaClient { client, url }
     }
 
+    // pub async fn find_balance_sheet<T: From<balance_sheet::BalanceSheet>>(
+    //     &self,
+    //     journal_id: Uuid,
+    // ) -> Result<T, CalaError> {
+    // }
+
     #[instrument(name = "lava.ledger.cala.find_journal_by_id", skip(self), err)]
     pub async fn find_journal_by_id(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
         let variables = journal_by_id::Variables { id };
