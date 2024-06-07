@@ -27,7 +27,7 @@ pub enum DebitOrCredit {
 }
 
 pub use cala_types::primitives::{
-    AccountId as LedgerAccountId, Currency, DebitOrCredit as LedgerDebitOrCredit,
+    AccountId as LedgerAccountId, AccountSetId, Currency, DebitOrCredit as LedgerDebitOrCredit,
     JournalId as LedgerJournalId, TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
 
