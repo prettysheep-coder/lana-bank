@@ -15,7 +15,7 @@ use crate::primitives::{
     Satoshis, UsdCents,
 };
 
-use cala::*;
+pub use cala::*;
 pub use config::*;
 use error::*;
 use fixed_term_loan::*;
@@ -23,7 +23,7 @@ use user::*;
 
 #[derive(Clone)]
 pub struct Ledger {
-    pub cala: CalaClient,
+    cala: CalaClient,
 }
 
 impl Ledger {

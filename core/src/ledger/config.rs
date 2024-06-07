@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct LedgerConfig {
     #[serde(default = "default_cala_url")]
-    pub(super) cala_url: String,
+    pub cala_url: String,
 }
 
 impl Default for LedgerConfig {
