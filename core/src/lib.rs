@@ -31,6 +31,7 @@ pub mod query {
     pub struct PaginatedQueryRet<T, C> {
         pub entities: Vec<T>,
         pub has_next_page: bool,
+        pub has_previous_page: bool,
         pub end_cursor: Option<C>,
     }
 }

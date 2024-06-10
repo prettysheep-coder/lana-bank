@@ -66,6 +66,10 @@ impl UserRepo {
         &self,
         query: crate::query::PaginatedQueryArgs<UserByNameCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<User, UserByNameCursor>, UserError> {
+        let mut has_previous_page = true;
+        if query.after.is_none() {
+            has_previous_page = false;
+        }
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"
@@ -99,6 +103,7 @@ impl UserRepo {
             entities,
             has_next_page,
             end_cursor,
+            has_previous_page,
         })
     }
 }

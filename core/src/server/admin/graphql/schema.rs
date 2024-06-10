@@ -63,7 +63,7 @@ impl Query {
                         after: after.map(crate::user::UserByNameCursor::from),
                     })
                     .await?;
-                let mut connection = Connection::new(false, res.has_next_page);
+                let mut connection = Connection::new(res.has_previous_page, res.has_next_page);
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|user| {
