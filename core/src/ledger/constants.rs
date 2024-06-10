@@ -4,6 +4,11 @@ use uuid::{uuid, Uuid};
 pub(super) const CORE_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
 // Accounts
+pub(super) const BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID: Uuid =
+    uuid!("00000000-0000-0000-0000-100000000002");
+pub(super) const BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_NAME: &str = "Bank Off-Balance-Sheet Omnibus";
+
+// Accounts
 pub(super) const BANK_OFF_BALANCE_SHEET_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
 pub(super) const BANK_OFF_BALANCE_SHEET_NAME: &str = "Bank Off-Balance-Sheet Omnibus";
 pub(super) const BANK_OFF_BALANCE_SHEET_CODE: &str = "BANK.OFF_BALANCE_SHEET";

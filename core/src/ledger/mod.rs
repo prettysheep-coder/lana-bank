@@ -10,8 +10,8 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId,
-    Satoshis, UsdCents,
+    FixedTermLoanId, LedgerAccountId, LedgerAccountSetId, LedgerDebitOrCredit, LedgerTxId,
+    LedgerTxTemplateId, Satoshis, UsdCents,
 };
 
 use cala::*;
@@ -30,6 +30,7 @@ impl Ledger {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
+        Self::initialize_global_account_sets(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
@@ -314,6 +315,50 @@ impl Ledger {
         Ok(())
     }
 
+    async fn initialize_global_account_sets(cala: &CalaClient) -> Result<(), LedgerError> {
+        Self::assert_debit_account_set_exists(
+            cala,
+            constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
+            constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_NAME,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    async fn assert_account_set_exists(
+        normal_balance_type: LedgerDebitOrCredit,
+        cala: &CalaClient,
+        account_set_id: LedgerAccountSetId,
+        name: &str,
+    ) -> Result<LedgerAccountSetId, LedgerError> {
+        if let Ok(Some(id)) = cala.find_account_set_by_id(account_set_id.to_owned()).await {
+            return Ok(id);
+        }
+
+        let err = match cala
+            .create_account_set(account_set_id, name.to_owned(), normal_balance_type)
+            .await
+        {
+            Ok(id) => return Ok(id),
+            Err(e) => e,
+        };
+
+        cala.find_account_set_by_id(account_set_id.to_owned())
+            .await
+            .map_err(|_| err)?
+            .ok_or_else(|| LedgerError::CouldNotAssertAccountSetExists)
+    }
+
+    async fn assert_debit_account_set_exists(
+        cala: &CalaClient,
+        account_set_id: LedgerAccountSetId,
+        name: &str,
+    ) -> Result<LedgerAccountSetId, LedgerError> {
+        Self::assert_account_set_exists(LedgerDebitOrCredit::Debit, cala, account_set_id, name)
+            .await
+    }
+
     async fn assert_account_exists(
         normal_balance_type: LedgerDebitOrCredit,
         cala: &CalaClient,
@@ -346,7 +391,7 @@ impl Ledger {
         cala.find_account_by_external_id(external_id.to_owned())
             .await
             .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
+            .ok_or_else(|| LedgerError::CouldNotAssertAccountExists)
     }
 
     async fn assert_credit_account_exists(

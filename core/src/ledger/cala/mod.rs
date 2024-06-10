@@ -9,7 +9,9 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::primitives::{LedgerAccountId, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId};
+use crate::primitives::{
+    LedgerAccountId, LedgerAccountSetId, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId,
+};
 
 use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
 
@@ -50,6 +52,48 @@ impl CalaClient {
             .data
             .map(|d| LedgerJournalId::from(d.journal_create.journal.journal_id))
             .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.create_account_set", skip(self), err)]
+    pub async fn create_account_set(
+        &self,
+        account_set_id: LedgerAccountSetId,
+        name: String,
+        normal_balance_type: LedgerDebitOrCredit,
+    ) -> Result<LedgerAccountSetId, CalaError> {
+        let variables = account_set_create::Variables {
+            input: account_set_create::AccountSetCreateInput {
+                journal_id: super::constants::CORE_JOURNAL_ID,
+                account_set_id: Uuid::from(account_set_id),
+                name,
+                normal_balance_type: match normal_balance_type {
+                    LedgerDebitOrCredit::Credit => account_set_create::DebitOrCredit::CREDIT,
+                    LedgerDebitOrCredit::Debit => account_set_create::DebitOrCredit::DEBIT,
+                },
+                description: None,
+                metadata: None,
+            },
+        };
+        let response =
+            Self::traced_gql_request::<AccountSetCreate, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| LedgerAccountSetId::from(d.account_set_create.account_set.account_set_id))
+            .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.find_account_set_by_id", skip(self, id), err)]
+    pub async fn find_account_set_by_id<T: From<account_set_by_id::AccountSetByIdAccountSet>>(
+        &self,
+        id: impl Into<Uuid>,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = account_set_by_id::Variables { id: id.into() };
+        let response =
+            Self::traced_gql_request::<AccountSetById, _>(&self.client, &self.url, variables)
+                .await?;
+
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
