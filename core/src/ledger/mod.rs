@@ -12,8 +12,9 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType,
-    LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
+    BfxIntegrationId, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId,
+    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis,
+    UsdCents,
 };
 
 use cala::*;
@@ -31,6 +32,7 @@ impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
+        Self::initialize_bfx_integrations(&cala, config.bfx_key, config.bfx_secret).await?;
         Self::initialize_global_account_sets(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
@@ -695,5 +697,19 @@ impl Ledger {
             .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
             .await
             .map_err(|_| err)?)
+    }
+
+    async fn initialize_bfx_integrations(
+        cala: &CalaClient,
+        key: String,
+        secret: String,
+    ) -> Result<BfxIntegrationId, LedgerError> {
+        Ok(cala
+            .create_bfx_integration(
+                constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME.to_string(),
+                key,
+                secret,
+            )
+            .await?)
     }
 }

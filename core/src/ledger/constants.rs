@@ -26,3 +26,7 @@ pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 pub(super) const COMPLETE_LOAN_CODE: &str = "COMPLETE_LOAN";
 pub(super) const INITIATE_WITHDRAWAL_FROM_CHECKING_CODE: &str = "INITIATE_WITHDRAWAL_FROM_CHECKING";
 pub(super) const SETTLE_WITHDRAWAL_FROM_CHECKING_CODE: &str = "SETTLE_WITHDRAWAL_FROM_CHECKING";
+
+// Integrations
+pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME: &str =
+    "Off-Balance-Sheet Bitfinex Integration";
