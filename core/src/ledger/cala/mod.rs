@@ -10,8 +10,8 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::primitives::{
-    LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit,
-    LedgerJournalId, LedgerTxId,
+    BfxAddressType, BfxIntegrationId, LedgerAccountId, LedgerAccountSetId,
+    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId,
 };
 
 use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
@@ -737,6 +737,70 @@ impl CalaClient {
             .map(|d| d.post_transaction.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
+    }
+
+    #[instrument(name = "lava.ledger.cala.create_bfx_integration", skip(self), err)]
+    pub async fn create_bfx_integration(
+        &self,
+        name: String,
+        key: String,
+        secret: String,
+    ) -> Result<BfxIntegrationId, CalaError> {
+        let variables = bfx_integration_create::Variables {
+            input: bfx_integration_create::BfxIntegrationCreateInput {
+                name,
+                key,
+                secret,
+                description: None,
+            },
+        };
+        let response =
+            Self::traced_gql_request::<BfxIntegrationCreate, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| {
+                BfxIntegrationId::from(d.bitfinex.integration_create.integration.integration_id)
+            })
+            .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_bfx_address_backed_account",
+        skip(self),
+        err
+    )]
+    pub async fn create_bfx_address_backed_account(
+        &self,
+        integration_id: BfxIntegrationId,
+        address_type: BfxAddressType,
+        account_id: LedgerAccountId,
+        name: String,
+        code: String,
+        credit_account_id: LedgerAccountId,
+    ) -> Result<String, CalaError> {
+        let variables = bfx_address_backed_account_create::Variables {
+            input: bfx_address_backed_account_create::AddressBackedAccountCreateInput {
+                account_id: account_id.into(),
+                integration_id: integration_id.into(),
+                type_: address_type.into(),
+                deposit_journal_id: super::constants::CORE_JOURNAL_ID,
+                deposit_credit_account_id: credit_account_id.into(),
+                name,
+                code,
+                account_set_ids: None,
+            },
+        };
+        let response = Self::traced_gql_request::<BfxAddressBackedAccountCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+        response
+            .data
+            .map(|d| d.bitfinex.address_backed_account_create.address)
+            .ok_or(CalaError::MissingDataField)
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

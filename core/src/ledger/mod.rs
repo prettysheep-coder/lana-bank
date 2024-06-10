@@ -1,4 +1,5 @@
 mod account_set;
+mod bitfinex;
 mod cala;
 mod config;
 mod constants;

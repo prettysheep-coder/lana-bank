@@ -220,6 +220,22 @@ pub struct PostRecordPaymentTransaction;
 )]
 pub struct FixedTermLoanBalance;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bitfinex.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxIntegrationCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bitfinex.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxAddressBackedAccountCreate;
+
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
 type Decimal = rust_decimal::Decimal;
