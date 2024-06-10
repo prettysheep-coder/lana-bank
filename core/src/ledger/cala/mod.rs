@@ -10,7 +10,8 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::primitives::{
-    LedgerAccountId, LedgerAccountSetId, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId,
+    LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit,
+    LedgerJournalId, LedgerTxId,
 };
 
 use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
@@ -80,6 +81,29 @@ impl CalaClient {
         response
             .data
             .map(|d| LedgerAccountSetId::from(d.account_set_create.account_set.account_set_id))
+            .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.add_to_account_set", skip(self), err)]
+    pub async fn add_to_account_set(
+        &self,
+        account_set_id: LedgerAccountSetId,
+        member_id: LedgerAccountId,
+        member_type: LedgerAccountSetMemberType,
+    ) -> Result<LedgerAccountSetId, CalaError> {
+        let variables = add_to_account_set::Variables {
+            input: add_to_account_set::AddToAccountSetInput {
+                account_set_id: account_set_id.into(),
+                member_id: member_id.into(),
+                member_type: member_type.into(),
+            },
+        };
+        let response =
+            Self::traced_gql_request::<AddToAccountSet, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| LedgerAccountSetId::from(d.add_to_account_set.account_set.account_set_id))
             .ok_or(CalaError::MissingDataField)
     }
 

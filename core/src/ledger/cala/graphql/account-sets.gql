@@ -6,6 +6,14 @@ mutation AccountSetCreate($input: AccountSetCreateInput!) {
   }
 }
 
+mutation AddToAccountSet($input: AddToAccountSetInput!) {
+  addToAccountSet(input: $input) {
+    accountSet {
+      accountSetId
+    }
+  }
+}
+
 query AccountSetById($id: UUID!) {
   accountSet(id: $id) {
     accountSetId

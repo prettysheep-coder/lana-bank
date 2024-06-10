@@ -11,8 +11,8 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerAccountSetId, LedgerDebitOrCredit, LedgerTxId,
-    LedgerTxTemplateId, Satoshis, UsdCents,
+    FixedTermLoanId, LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType,
+    LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
 };
 
 use cala::*;
@@ -30,8 +30,8 @@ impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
-        Self::initialize_global_accounts(&cala).await?;
         Self::initialize_global_account_sets(&cala).await?;
+        Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
@@ -304,6 +304,13 @@ impl Ledger {
         )
         .await?;
 
+        Self::add_account_to_account_set(
+            cala,
+            constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
+            constants::BANK_OFF_BALANCE_SHEET_ID.into(),
+        )
+        .await?;
+
         Self::assert_debit_account_exists(
             cala,
             constants::BANK_USDT_CASH_ID.into(),
@@ -358,6 +365,20 @@ impl Ledger {
     ) -> Result<LedgerAccountSetId, LedgerError> {
         Self::assert_account_set_exists(LedgerDebitOrCredit::Debit, cala, account_set_id, name)
             .await
+    }
+
+    async fn add_account_to_account_set(
+        cala: &CalaClient,
+        account_set_id: LedgerAccountSetId,
+        account_id: LedgerAccountId,
+    ) -> Result<LedgerAccountSetId, LedgerError> {
+        Ok(cala
+            .add_to_account_set(
+                account_set_id,
+                account_id,
+                LedgerAccountSetMemberType::Account,
+            )
+            .await?)
     }
 
     async fn assert_account_exists(
