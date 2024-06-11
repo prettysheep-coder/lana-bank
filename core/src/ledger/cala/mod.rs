@@ -84,18 +84,17 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.add_to_account_set", skip(self), err)]
-    pub async fn add_to_account_set(
+    #[instrument(name = "lava.ledger.cala.add_account_to_account_set", skip(self), err)]
+    pub async fn add_account_to_account_set(
         &self,
         account_set_id: LedgerAccountSetId,
         member_id: LedgerAccountId,
-        member_type: LedgerAccountSetMemberType,
     ) -> Result<LedgerAccountSetId, CalaError> {
         let variables = add_to_account_set::Variables {
             input: add_to_account_set::AddToAccountSetInput {
                 account_set_id: account_set_id.into(),
                 member_id: member_id.into(),
-                member_type: member_type.into(),
+                member_type: LedgerAccountSetMemberType::Account.into(),
             },
         };
         let response =

@@ -15,8 +15,7 @@ use tracing::instrument;
 
 use crate::primitives::{
     BfxAddressType, BfxIntegrationId, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId,
-    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis,
-    UsdCents,
+    LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
 };
 
 use cala::*;
@@ -395,11 +394,7 @@ impl Ledger {
         }
 
         let err = match cala
-            .add_to_account_set(
-                account_set_id,
-                account_id,
-                LedgerAccountSetMemberType::Account,
-            )
+            .add_account_to_account_set(account_set_id, account_id)
             .await
         {
             Ok(id) => return Ok(id),
