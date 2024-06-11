@@ -682,7 +682,7 @@ impl CalaClient {
         Ok(())
     }
 
-    #[instrument(name = "lava.ledger.cala.create_bfx_integration", skip(self), err)]
+    // TODO: instrument and handle sensitive params
     pub async fn create_bfx_integration(
         &self,
         integration_id: BfxIntegrationId,
