@@ -803,6 +803,15 @@ impl Ledger {
         )
         .await?;
 
+        Self::assert_bfx_integration_exists(
+            cala,
+            constants::BITFINEX_USER_CHECKING_INTEGRATION_ID.into(),
+            constants::BITFINEX_USER_CHECKING_INTEGRATION_NAME,
+            key,
+            secret,
+        )
+        .await?;
+
         Ok(())
     }
 }
