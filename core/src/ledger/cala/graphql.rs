@@ -223,7 +223,7 @@ pub struct FixedTermLoanBalance;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/bitfinex.gql",
+    query_path = "src/ledger/cala/graphql/bfx-integration.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct BfxIntegrationCreate;
@@ -231,7 +231,15 @@ pub struct BfxIntegrationCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/bitfinex.gql",
+    query_path = "src/ledger/cala/graphql/bfx-integration.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxIntegrationById;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bfx-address-backed-account.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct BfxAddressBackedAccountCreate;

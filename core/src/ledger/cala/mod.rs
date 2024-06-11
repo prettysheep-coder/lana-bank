@@ -742,12 +742,15 @@ impl CalaClient {
     #[instrument(name = "lava.ledger.cala.create_bfx_integration", skip(self), err)]
     pub async fn create_bfx_integration(
         &self,
+        integration_id: BfxIntegrationId,
         name: String,
         key: String,
         secret: String,
     ) -> Result<BfxIntegrationId, CalaError> {
         let variables = bfx_integration_create::Variables {
             input: bfx_integration_create::BfxIntegrationCreateInput {
+                integration_id: integration_id.into(),
+                journal_id: super::constants::CORE_JOURNAL_ID,
                 name,
                 key,
                 secret,
@@ -766,6 +769,28 @@ impl CalaClient {
     }
 
     #[instrument(
+        name = "lava.ledger.cala.find_bfx_integration_by_id",
+        skip(self, id),
+        err
+    )]
+    pub async fn find_bfx_integration_by_id<
+        T: From<bfx_integration_by_id::BfxIntegrationByIdBitfinexIntegration>,
+    >(
+        &self,
+        id: impl Into<Uuid>,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = bfx_integration_by_id::Variables { id: id.into() };
+        let response =
+            Self::traced_gql_request::<BfxIntegrationById, _>(&self.client, &self.url, variables)
+                .await?;
+
+        Ok(response
+            .data
+            .and_then(|d| d.bitfinex.integration)
+            .map(T::from))
+    }
+
+    #[instrument(
         name = "lava.ledger.cala.create_bfx_address_backed_account",
         skip(self),
         err
@@ -778,13 +803,12 @@ impl CalaClient {
         name: String,
         code: String,
         credit_account_id: LedgerAccountId,
-    ) -> Result<String, CalaError> {
+    ) -> Result<LedgerAccountId, CalaError> {
         let variables = bfx_address_backed_account_create::Variables {
             input: bfx_address_backed_account_create::AddressBackedAccountCreateInput {
                 account_id: account_id.into(),
                 integration_id: integration_id.into(),
                 type_: address_type.into(),
-                deposit_journal_id: super::constants::CORE_JOURNAL_ID,
                 deposit_credit_account_id: credit_account_id.into(),
                 name,
                 code,
@@ -799,7 +823,13 @@ impl CalaClient {
         .await?;
         response
             .data
-            .map(|d| d.bitfinex.address_backed_account_create.address)
+            .map(|d| {
+                d.bitfinex
+                    .address_backed_account_create
+                    .account
+                    .account_id
+                    .into()
+            })
             .ok_or(CalaError::MissingDataField)
     }
 

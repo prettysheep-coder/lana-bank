@@ -10,6 +10,8 @@ pub enum LedgerError {
     CouldNotAssertAccountSetExists,
     #[error("LedgerError - CouldNotAssertTxTemplateExists")]
     CouldNotAssertTxTemplateExists,
+    #[error("LedgerError - CouldNotAssertBfxIntegrationExists")]
+    CouldNotAssertBfxIntegrationExists,
     #[error("LedgerError - CouldNotInitializeJournal")]
     CouldNotInitializeJournal,
     #[error("LedgerError - AccountNotFound")]

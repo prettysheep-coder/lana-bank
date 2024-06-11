@@ -1,0 +1,12 @@
+mutation BfxAddressBackedAccountCreate(
+  $input: AddressBackedAccountCreateInput!
+) {
+  bitfinex {
+    addressBackedAccountCreate(input: $input) {
+      address
+      account {
+        accountId
+      }
+    }
+  }
+}

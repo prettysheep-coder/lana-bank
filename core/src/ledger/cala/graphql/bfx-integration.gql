@@ -8,15 +8,10 @@ mutation BfxIntegrationCreate($input: BfxIntegrationCreateInput!) {
   }
 }
 
-mutation BfxAddressBackedAccountCreate(
-  $input: AddressBackedAccountCreateInput!
-) {
+query BfxIntegrationById($id: UUID!) {
   bitfinex {
-    addressBackedAccountCreate(input: $input) {
-      address
-      account {
-        accountId
-      }
+    integration(id: $id) {
+      integrationId
     }
   }
 }

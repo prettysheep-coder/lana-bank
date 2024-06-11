@@ -1,3 +1,4 @@
+mod account;
 mod account_set;
 mod bitfinex;
 mod cala;
@@ -12,7 +13,7 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxIntegrationId, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId,
+    BfxAddressType, BfxIntegrationId, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId,
     LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis,
     UsdCents,
 };
@@ -32,7 +33,7 @@ impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
-        Self::initialize_bfx_integrations(&cala, config.bfx_key, config.bfx_secret).await?;
+        Self::initialize_bfx_integrations(&cala, &config.bfx_key, &config.bfx_secret).await?;
         Self::initialize_global_account_sets(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
@@ -75,6 +76,15 @@ impl Ledger {
             &format!("USERS.CHECKING.{}", bitfinex_username),
             &format!("USERS.CHECKING.{}", bitfinex_username),
             &format!("usr:bfx-{}:checking", bitfinex_username),
+        )
+        .await?;
+
+        Self::assert_address_backed_debit_account_exists(
+            &self.cala,
+            account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
+            &format!("BANK.USER_CHECKING.{}", bitfinex_username),
+            &format!("BANK.USER_CHECKING.{}", bitfinex_username),
+            account_ids.checking_id,
         )
         .await?;
 
@@ -455,6 +465,38 @@ impl Ledger {
         .await
     }
 
+    async fn assert_address_backed_debit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        credit_account_id: LedgerAccountId,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        if let Ok(Some(id)) = cala.find_account_by_id(account_id).await {
+            return Ok(id);
+        }
+
+        let err = match cala
+            .create_bfx_address_backed_account(
+                constants::BITFINEX_USER_CHECKING_INTEGRATION_ID.into(),
+                BfxAddressType::Tron,
+                account_id,
+                name.to_owned(),
+                code.to_owned(),
+                credit_account_id,
+            )
+            .await
+        {
+            Ok(id) => return Ok(id),
+            Err(e) => e,
+        };
+
+        cala.find_account_by_id(account_id)
+            .await
+            .map_err(|_| err)?
+            .ok_or_else(|| LedgerError::CouldNotAssertAccountExists)
+    }
+
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_pledge_unallocated_collateral_tx_template_exists(
             cala,
@@ -699,17 +741,55 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
+    async fn assert_bfx_integration_exists(
+        cala: &CalaClient,
+        bfx_integration_id: BfxIntegrationId,
+        name: &str,
+        key: &str,
+        secret: &str,
+    ) -> Result<BfxIntegrationId, LedgerError> {
+        if let Ok(Some(id)) = cala
+            .find_bfx_integration_by_id::<BfxIntegrationId>(bfx_integration_id.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let err = match cala
+            .create_bfx_integration(
+                bfx_integration_id,
+                name.to_string(),
+                key.to_string(),
+                secret.to_string(),
+            )
+            .await
+        {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        cala.find_bfx_integration_by_id::<BfxIntegrationId>(bfx_integration_id.to_owned())
+            .await
+            .map_err(|_| err)?
+            .ok_or_else(|| LedgerError::CouldNotAssertBfxIntegrationExists)
+    }
+
     async fn initialize_bfx_integrations(
         cala: &CalaClient,
-        key: String,
-        secret: String,
-    ) -> Result<BfxIntegrationId, LedgerError> {
-        Ok(cala
-            .create_bfx_integration(
-                constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME.to_string(),
-                key,
-                secret,
-            )
-            .await?)
+        key: &str,
+        secret: &str,
+    ) -> Result<(), LedgerError> {
+        Self::assert_bfx_integration_exists(
+            cala,
+            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
+            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME,
+            key,
+            secret,
+        )
+        .await?;
+
+        Ok(())
     }
 }

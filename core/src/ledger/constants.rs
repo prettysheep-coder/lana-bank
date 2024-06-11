@@ -3,10 +3,16 @@ use uuid::{uuid, Uuid};
 // Journal
 pub(super) const CORE_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
-// Accounts
+// Account Sets
 pub(super) const BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID: Uuid =
     uuid!("00000000-0000-0000-0000-100000000002");
 pub(super) const BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_NAME: &str = "Bank Off-Balance-Sheet Omnibus";
+
+// Integrations
+pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID: Uuid =
+    uuid!("00000000-0000-0000-0000-200000000002");
+pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME: &str =
+    "Off-Balance-Sheet Bitfinex Integration";
 
 // Accounts
 pub(super) const BANK_OFF_BALANCE_SHEET_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
@@ -26,7 +32,3 @@ pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 pub(super) const COMPLETE_LOAN_CODE: &str = "COMPLETE_LOAN";
 pub(super) const INITIATE_WITHDRAWAL_FROM_CHECKING_CODE: &str = "INITIATE_WITHDRAWAL_FROM_CHECKING";
 pub(super) const SETTLE_WITHDRAWAL_FROM_CHECKING_CODE: &str = "SETTLE_WITHDRAWAL_FROM_CHECKING";
-
-// Integrations
-pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME: &str =
-    "Off-Balance-Sheet Bitfinex Integration";
