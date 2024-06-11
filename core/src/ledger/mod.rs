@@ -10,6 +10,7 @@ pub mod primitives;
 mod tx_template;
 pub mod user;
 
+use account::LedgerAccount;
 use tracing::instrument;
 
 use crate::primitives::{
@@ -386,25 +387,33 @@ impl Ledger {
         account_set_id: LedgerAccountSetId,
         account_id: LedgerAccountId,
     ) -> Result<LedgerAccountSetId, LedgerError> {
-        // TODO: Refactor this to find first instead of checking error
-        let account_set_id_result = cala
+        if let Ok(Some(ledger_account)) = cala.find_account_by_id::<LedgerAccount>(account_id).await
+        {
+            if ledger_account.account_set_ids.contains(&account_set_id) {
+                return Ok(account_set_id);
+            }
+        }
+
+        let err = match cala
             .add_to_account_set(
                 account_set_id,
                 account_id,
                 LedgerAccountSetMemberType::Account,
             )
-            .await;
+            .await
+        {
+            Ok(id) => return Ok(id),
+            Err(e) => e,
+        };
 
-        match account_set_id_result {
-            Ok(account_set_id) => Ok(account_set_id),
-            Err(e) => {
-                if e.to_string()
-                    .contains("duplicate key value violates unique constraint")
-                {
-                    return Ok(account_set_id);
-                }
-                Err(e.into())
-            }
+        match cala
+            .find_account_by_id::<LedgerAccount>(account_id)
+            .await
+            .map_err(|_| err)
+        {
+            Ok(Some(_)) => Ok(account_set_id),
+            Ok(None) => Err(LedgerError::CouldNotAssertAccountIsMemberOfAccountSet),
+            Err(e) => Err(e)?,
         }
     }
 

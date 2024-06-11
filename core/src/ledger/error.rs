@@ -8,6 +8,8 @@ pub enum LedgerError {
     CouldNotAssertAccountExists,
     #[error("LedgerError - CouldNotAssertAccountSetExists")]
     CouldNotAssertAccountSetExists,
+    #[error("LedgerError - CouldNotAssertAccountIsMemberOfAccountSet")]
+    CouldNotAssertAccountIsMemberOfAccountSet,
     #[error("LedgerError - CouldNotAssertTxTemplateExists")]
     CouldNotAssertTxTemplateExists,
     #[error("LedgerError - CouldNotAssertBfxIntegrationExists")]
