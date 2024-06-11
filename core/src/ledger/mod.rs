@@ -11,6 +11,7 @@ mod tx_template;
 pub mod user;
 
 use account::LedgerAccount;
+use bitfinex::BfxIntegration;
 use tracing::instrument;
 
 use crate::primitives::{
@@ -777,11 +778,11 @@ impl Ledger {
         key: &str,
         secret: &str,
     ) -> Result<BfxIntegrationId, LedgerError> {
-        if let Ok(Some(id)) = cala
-            .find_bfx_integration_by_id::<BfxIntegrationId>(bfx_integration_id.to_owned())
+        if let Ok(Some(bfx_integration)) = cala
+            .find_bfx_integration_by_id::<BfxIntegration>(bfx_integration_id.to_owned())
             .await
         {
-            return Ok(id);
+            return Ok(bfx_integration.id);
         }
 
         let err = match cala
@@ -793,16 +794,17 @@ impl Ledger {
             )
             .await
         {
-            Ok(id) => {
-                return Ok(id);
+            Ok(bfx_integration) => {
+                return Ok(bfx_integration.id);
             }
             Err(e) => e,
         };
 
-        cala.find_bfx_integration_by_id::<BfxIntegrationId>(bfx_integration_id.to_owned())
+        cala.find_bfx_integration_by_id::<BfxIntegration>(bfx_integration_id.to_owned())
             .await
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertBfxIntegrationExists)
+            .map(|bfx_integration| bfx_integration.id)
     }
 
     async fn initialize_bfx_integrations(

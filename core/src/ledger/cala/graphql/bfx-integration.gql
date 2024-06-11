@@ -3,6 +3,8 @@ mutation BfxIntegrationCreate($input: BfxIntegrationCreateInput!) {
     integrationCreate(input: $input) {
       integration {
         integrationId
+        omnibusAccountSetId
+        withdrawalAccountId
       }
     }
   }
@@ -12,6 +14,8 @@ query BfxIntegrationById($id: UUID!) {
   bitfinex {
     integration(id: $id) {
       integrationId
+      omnibusAccountSetId
+      withdrawalAccountId
     }
   }
 }

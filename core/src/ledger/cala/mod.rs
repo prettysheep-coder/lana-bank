@@ -14,7 +14,9 @@ use crate::primitives::{
     LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId,
 };
 
-use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
+use super::{
+    bitfinex::BfxIntegration, fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds,
+};
 
 use error::*;
 use graphql::*;
@@ -689,7 +691,7 @@ impl CalaClient {
         name: String,
         key: String,
         secret: String,
-    ) -> Result<BfxIntegrationId, CalaError> {
+    ) -> Result<BfxIntegration, CalaError> {
         let variables = bfx_integration_create::Variables {
             input: bfx_integration_create::BfxIntegrationCreateInput {
                 integration_id: integration_id.into(),
@@ -705,9 +707,7 @@ impl CalaClient {
                 .await?;
         response
             .data
-            .map(|d| {
-                BfxIntegrationId::from(d.bitfinex.integration_create.integration.integration_id)
-            })
+            .map(|d| BfxIntegration::from(d.bitfinex.integration_create.integration))
             .ok_or(CalaError::MissingDataField)
     }
 
