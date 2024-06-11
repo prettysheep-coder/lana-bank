@@ -496,7 +496,7 @@ impl Ledger {
 
         let err = match cala
             .create_bfx_address_backed_account(
-                constants::BITFINEX_USER_CHECKING_INTEGRATION_ID.into(),
+                constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
                 BfxAddressType::Tron,
                 account_id,
                 name.to_owned(),
@@ -783,8 +783,8 @@ impl Ledger {
 
         Self::assert_bfx_integration_exists(
             cala,
-            constants::BITFINEX_USER_CHECKING_INTEGRATION_ID.into(),
-            constants::BITFINEX_USER_CHECKING_INTEGRATION_NAME,
+            constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+            constants::BITFINEX_USDT_CASH_INTEGRATION_NAME,
             key,
             secret,
         )

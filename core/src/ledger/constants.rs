@@ -13,10 +13,9 @@ pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID: Uuid =
     uuid!("00000000-0000-0000-0000-200000000001");
 pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_NAME: &str =
     "Off-Balance-Sheet Bitfinex Integration";
-pub(super) const BITFINEX_USER_CHECKING_INTEGRATION_ID: Uuid =
+pub(super) const BITFINEX_USDT_CASH_INTEGRATION_ID: Uuid =
     uuid!("00000000-0000-0000-0000-200000000002");
-pub(super) const BITFINEX_USER_CHECKING_INTEGRATION_NAME: &str =
-    "User Checking Bitfinex Integration";
+pub(super) const BITFINEX_USDT_CASH_INTEGRATION_NAME: &str = "Usdt Cash Bitfinex Integration";
 
 // Accounts
 pub(super) const BANK_OFF_BALANCE_SHEET_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
