@@ -36,7 +36,6 @@ type LoanOutstanding {
 
 type Mutation {
 	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
-	userDeposit(input: UserDepositInput!): UserDepositPayload!
 	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
 }
 
@@ -108,16 +107,6 @@ type UserConnection {
 	A list of nodes.
 	"""
 	nodes: [User!]!
-}
-
-input UserDepositInput {
-	userId: UUID!
-	amount: UsdCents!
-	reference: String!
-}
-
-type UserDepositPayload {
-	user: User!
 }
 
 """

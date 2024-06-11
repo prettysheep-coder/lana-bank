@@ -6,7 +6,7 @@ mod repo;
 use crate::{
     entity::*,
     ledger::*,
-    primitives::{Satoshis, UsdCents, UserId},
+    primitives::{Satoshis, UserId},
 };
 
 pub use cursor::*;
@@ -66,19 +66,6 @@ impl Users {
                 amount,
                 reference,
             )
-            .await?;
-        Ok(user)
-    }
-
-    pub async fn deposit_checking_for_user(
-        &self,
-        user_id: UserId,
-        amount: UsdCents,
-        reference: String,
-    ) -> Result<User, UserError> {
-        let user = self.repo.find_by_id(user_id).await?;
-        self.ledger
-            .deposit_checking_for_user(user.account_ids.checking_id, amount, reference)
             .await?;
         Ok(user)
     }
