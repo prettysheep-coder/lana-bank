@@ -70,14 +70,15 @@ impl Ledger {
         )
         .await?;
 
-        let unallocated_collateral_address = Self::assert_address_backed_debit_account_exists(
-            &self.cala,
-            account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
-            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            account_ids.checking_id,
-        )
-        .await?;
+        let unallocated_collateral_address =
+            Self::assert_off_balance_sheet_address_backed_debit_account_exists(
+                &self.cala,
+                account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
+                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
+                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
+                account_ids.checking_id,
+            )
+            .await?;
 
         Self::assert_credit_account_exists(
             &self.cala,
@@ -88,7 +89,7 @@ impl Ledger {
         )
         .await?;
 
-        let checking_address = Self::assert_address_backed_debit_account_exists(
+        let checking_address = Self::assert_usdt_cash_address_backed_debit_account_exists(
             &self.cala,
             account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
             &format!("BANK.USER_CHECKING.{}", bitfinex_username),
@@ -484,6 +485,7 @@ impl Ledger {
     }
 
     async fn assert_address_backed_debit_account_exists(
+        integration_id: BfxIntegrationId,
         cala: &CalaClient,
         account_id: LedgerAccountId,
         name: &str,
@@ -496,7 +498,7 @@ impl Ledger {
 
         let err = match cala
             .create_bfx_address_backed_account(
-                constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+                integration_id,
                 BfxAddressType::Tron,
                 account_id,
                 name.to_owned(),
@@ -514,6 +516,42 @@ impl Ledger {
             Ok(None) => Err(LedgerError::CouldNotAssertAccountExists),
             Err(_) => Err(err)?,
         }
+    }
+
+    async fn assert_off_balance_sheet_address_backed_debit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        credit_account_id: LedgerAccountId,
+    ) -> Result<String, LedgerError> {
+        Self::assert_address_backed_debit_account_exists(
+            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
+            cala,
+            account_id,
+            name,
+            code,
+            credit_account_id,
+        )
+        .await
+    }
+
+    async fn assert_usdt_cash_address_backed_debit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        credit_account_id: LedgerAccountId,
+    ) -> Result<String, LedgerError> {
+        Self::assert_address_backed_debit_account_exists(
+            constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+            cala,
+            account_id,
+            name,
+            code,
+            credit_account_id,
+        )
+        .await
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
