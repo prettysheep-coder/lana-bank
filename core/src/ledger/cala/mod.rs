@@ -805,7 +805,7 @@ impl CalaClient {
         credit_account_id: LedgerAccountId,
     ) -> Result<LedgerAccountId, CalaError> {
         let variables = bfx_address_backed_account_create::Variables {
-            input: bfx_address_backed_account_create::AddressBackedAccountCreateInput {
+            input: bfx_address_backed_account_create::BfxAddressBackedAccountCreateInput {
                 account_id: account_id.into(),
                 integration_id: integration_id.into(),
                 type_: address_type.into(),

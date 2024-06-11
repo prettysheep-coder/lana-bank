@@ -1,8 +1,21 @@
 mutation BfxAddressBackedAccountCreate(
-  $input: AddressBackedAccountCreateInput!
+  $input: BfxAddressBackedAccountCreateInput!
 ) {
   bitfinex {
     addressBackedAccountCreate(input: $input) {
+      account {
+        address
+        account {
+          accountId
+        }
+      }
+    }
+  }
+}
+
+query BfxAddressBackedAccount($id: UUID!) {
+  bitfinex {
+    addressBackedAccount(id: $id) {
       address
       account {
         accountId
