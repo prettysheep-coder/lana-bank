@@ -317,7 +317,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::add_account_to_account_set(
+        Self::assert_account_in_account_set(
             cala,
             constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
             constants::BANK_OFF_BALANCE_SHEET_ID.into(),
@@ -380,18 +380,31 @@ impl Ledger {
             .await
     }
 
-    async fn add_account_to_account_set(
+    async fn assert_account_in_account_set(
         cala: &CalaClient,
         account_set_id: LedgerAccountSetId,
         account_id: LedgerAccountId,
     ) -> Result<LedgerAccountSetId, LedgerError> {
-        Ok(cala
+        // TODO: Refactor this to find first instead of checking error
+        let account_set_id_result = cala
             .add_to_account_set(
                 account_set_id,
                 account_id,
                 LedgerAccountSetMemberType::Account,
             )
-            .await?)
+            .await;
+
+        match account_set_id_result {
+            Ok(account_set_id) => Ok(account_set_id),
+            Err(e) => {
+                if e.to_string()
+                    .contains("duplicate key value violates unique constraint")
+                {
+                    return Ok(account_set_id);
+                }
+                Err(e.into())
+            }
+        }
     }
 
     async fn assert_account_exists(
