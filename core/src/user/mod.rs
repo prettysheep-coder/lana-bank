@@ -37,7 +37,7 @@ impl Users {
 
     pub async fn create_user(&self, bitfinex_username: String) -> Result<User, UserError> {
         let id = UserId::new();
-        let ledger_account_ids = self
+        let (ledger_account_ids, ledger_account_addresses) = self
             .ledger
             .create_accounts_for_user(&bitfinex_username)
             .await?;
@@ -45,6 +45,7 @@ impl Users {
             .id(id)
             .bitfinex_username(bitfinex_username)
             .account_ids(ledger_account_ids)
+            .account_addresses(ledger_account_addresses)
             .build()
             .expect("Could not build User");
 

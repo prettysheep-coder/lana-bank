@@ -803,7 +803,7 @@ impl CalaClient {
         name: String,
         code: String,
         credit_account_id: LedgerAccountId,
-    ) -> Result<LedgerAccountId, CalaError> {
+    ) -> Result<String, CalaError> {
         let variables = bfx_address_backed_account_create::Variables {
             input: bfx_address_backed_account_create::BfxAddressBackedAccountCreateInput {
                 account_id: account_id.into(),
@@ -823,14 +823,29 @@ impl CalaClient {
         .await?;
         response
             .data
-            .map(|d| {
-                d.bitfinex
-                    .address_backed_account_create
-                    .account
-                    .account_id
-                    .into()
-            })
+            .map(|d| d.bitfinex.address_backed_account_create.account.address)
             .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.find_account_by_id", skip(self, id), err)]
+    pub async fn find_address_backed_account_by_id<
+        T: From<bfx_address_backed_account_by_id::BfxAddressBackedAccountByIdBitfinexAddressBackedAccount>,
+    >(
+        &self,
+        id: impl Into<Uuid>,
+    ) -> Result<Option<T>, CalaError>{
+        let variables = bfx_address_backed_account_by_id::Variables { id: id.into() };
+        let response = Self::traced_gql_request::<BfxAddressBackedAccountById, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        Ok(response
+            .data
+            .and_then(|d| d.bitfinex.address_backed_account)
+            .map(T::from))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

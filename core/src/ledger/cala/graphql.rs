@@ -250,7 +250,7 @@ pub struct BfxAddressBackedAccountCreate;
     query_path = "src/ledger/cala/graphql/bfx-address-backed-account.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct BfxAddressBackedAccount;
+pub struct BfxAddressBackedAccountById;
 
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;

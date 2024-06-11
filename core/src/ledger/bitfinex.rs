@@ -16,3 +16,13 @@ impl From<bfx_integration_by_id::BfxIntegrationByIdBitfinexIntegration> for BfxI
         Self::from(bfx_integration.integration_id)
     }
 }
+
+impl From<bfx_address_backed_account_by_id::BfxAddressBackedAccountByIdBitfinexAddressBackedAccount>
+    for String
+{
+    fn from(
+        account: bfx_address_backed_account_by_id::BfxAddressBackedAccountByIdBitfinexAddressBackedAccount,
+    ) -> Self {
+        account.address
+    }
+}

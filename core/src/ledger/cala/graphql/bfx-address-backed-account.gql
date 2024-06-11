@@ -13,7 +13,7 @@ mutation BfxAddressBackedAccountCreate(
   }
 }
 
-query BfxAddressBackedAccount($id: UUID!) {
+query BfxAddressBackedAccountById($id: UUID!) {
   bitfinex {
     addressBackedAccount(id: $id) {
       address

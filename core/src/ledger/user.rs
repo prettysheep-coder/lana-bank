@@ -8,6 +8,7 @@ pub struct UserLedgerAccountIds {
     pub unallocated_collateral_id: LedgerAccountId,
     pub checking_id: LedgerAccountId,
     pub bank_checking_id: LedgerAccountId,
+    pub bank_unallocated_collateral_id: LedgerAccountId,
 }
 
 impl UserLedgerAccountIds {
@@ -17,8 +18,15 @@ impl UserLedgerAccountIds {
             unallocated_collateral_id: LedgerAccountId::new(),
             checking_id: LedgerAccountId::new(),
             bank_checking_id: LedgerAccountId::new(),
+            bank_unallocated_collateral_id: LedgerAccountId::new(),
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserLedgerAccountAddresses {
+    pub checking_address: String,
+    pub unallocated_collateral_address: String,
 }
 
 pub struct UserBalance {

@@ -59,7 +59,7 @@ impl Ledger {
     pub async fn create_accounts_for_user(
         &self,
         bitfinex_username: &str,
-    ) -> Result<UserLedgerAccountIds, LedgerError> {
+    ) -> Result<(UserLedgerAccountIds, UserLedgerAccountAddresses), LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
         Self::assert_credit_account_exists(
             &self.cala,
@@ -67,6 +67,15 @@ impl Ledger {
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
+        )
+        .await?;
+
+        let unallocated_collateral_address = Self::assert_address_backed_debit_account_exists(
+            &self.cala,
+            account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
+            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
+            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
+            account_ids.checking_id,
         )
         .await?;
 
@@ -79,7 +88,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::assert_address_backed_debit_account_exists(
+        let checking_address = Self::assert_address_backed_debit_account_exists(
             &self.cala,
             account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
             &format!("BANK.USER_CHECKING.{}", bitfinex_username),
@@ -88,7 +97,12 @@ impl Ledger {
         )
         .await?;
 
-        Ok(account_ids)
+        let account_addresses = UserLedgerAccountAddresses {
+            checking_address,
+            unallocated_collateral_address,
+        };
+
+        Ok((account_ids, account_addresses))
     }
 
     #[instrument(name = "lava.ledger.deposit_checking_for_user", skip(self), err)]
@@ -484,9 +498,9 @@ impl Ledger {
         name: &str,
         code: &str,
         credit_account_id: LedgerAccountId,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        if let Ok(Some(id)) = cala.find_account_by_id(account_id).await {
-            return Ok(id);
+    ) -> Result<String, LedgerError> {
+        if let Ok(Some(address)) = cala.find_address_backed_account_by_id(account_id).await {
+            return Ok(address);
         }
 
         let err = match cala
@@ -500,14 +514,15 @@ impl Ledger {
             )
             .await
         {
-            Ok(id) => return Ok(id),
+            Ok(address) => return Ok(address),
             Err(e) => e,
         };
 
-        cala.find_account_by_id(account_id)
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountExists)
+        match cala.find_address_backed_account_by_id(account_id).await {
+            Ok(Some(address)) => Ok(address),
+            Ok(None) => Err(LedgerError::CouldNotAssertAccountExists),
+            Err(_) => Err(err)?,
+        }
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
