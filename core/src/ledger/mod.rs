@@ -327,7 +327,7 @@ impl Ledger {
         Ok(())
     }
 
-    async fn assert_account_set_exists(
+    async fn _assert_account_set_exists(
         normal_balance_type: LedgerDebitOrCredit,
         cala: &CalaClient,
         account_set_id: LedgerAccountSetId,
@@ -351,16 +351,16 @@ impl Ledger {
             .ok_or_else(|| LedgerError::CouldNotAssertAccountSetExists)
     }
 
-    async fn assert_debit_account_set_exists(
+    async fn _assert_debit_account_set_exists(
         cala: &CalaClient,
         account_set_id: LedgerAccountSetId,
         name: &str,
     ) -> Result<LedgerAccountSetId, LedgerError> {
-        Self::assert_account_set_exists(LedgerDebitOrCredit::Debit, cala, account_set_id, name)
+        Self::_assert_account_set_exists(LedgerDebitOrCredit::Debit, cala, account_set_id, name)
             .await
     }
 
-    async fn assert_account_in_account_set(
+    async fn _assert_account_in_account_set(
         cala: &CalaClient,
         account_set_id: LedgerAccountSetId,
         account_id: LedgerAccountId,
