@@ -2,10 +2,11 @@ pub mod graphql;
 
 mod config;
 
-use async_graphql::*;
+use async_graphql::{EmptySubscription, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
+use uuid::Uuid;
 
 use crate::app::LavaApp;
 
@@ -29,6 +30,16 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
     Ok(())
 }
 
+pub struct ClientContext {
+    pub client_id: Option<Uuid>,
+}
+
+impl ClientContext {
+    pub fn new(client_id: Option<Uuid>) -> Self {
+        ClientContext { client_id }
+    }
+}
+
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
@@ -36,7 +47,15 @@ pub async fn graphql_handler(
 ) -> GraphQLResponse {
     lava_tracing::http::extract_tracing(&headers);
     let req = req.into_inner();
-    schema.execute(req).await.into()
+
+    let client_id = headers
+        .get("X-CLIENT-ID")
+        .and_then(|header| header.to_str().ok())
+        .and_then(|id_str| Uuid::parse_str(id_str).ok());
+
+    let context = ClientContext::new(client_id);
+
+    schema.execute(req.data(context)).await.into()
 }
 
 async fn playground() -> impl axum::response::IntoResponse {
