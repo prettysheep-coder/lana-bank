@@ -35,7 +35,7 @@ type LoanOutstanding {
 }
 
 type Mutation {
-	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
+	dummy: Boolean!
 }
 
 """
@@ -85,6 +85,8 @@ scalar UsdCents
 type User {
 	userId: UUID!
 	bitfinexUsername: String!
+	btcDepositAddress: String!
+	ustDepositAddress: String!
 	balance: UserBalance!
 }
 
@@ -120,21 +122,6 @@ type UserEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
-}
-
-type Withdrawal {
-	withdrawalId: UUID!
-	userId: UUID!
-	amount: UsdCents!
-}
-
-input WithdrawalSettleInput {
-	withdrawalId: UUID!
-	reference: String!
-}
-
-type WithdrawalSettlePayload {
-	withdrawal: Withdrawal!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

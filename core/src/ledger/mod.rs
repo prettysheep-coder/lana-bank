@@ -76,7 +76,7 @@ impl Ledger {
                 account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
                 &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
                 &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-                account_ids.checking_id,
+                account_ids.unallocated_collateral_id,
             )
             .await?;
 
