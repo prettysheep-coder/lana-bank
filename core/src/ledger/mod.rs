@@ -464,6 +464,7 @@ impl Ledger {
 
     async fn assert_address_backed_debit_account_exists(
         integration_id: BfxIntegrationId,
+        address_type: BfxAddressType,
         cala: &CalaClient,
         account_id: LedgerAccountId,
         name: &str,
@@ -477,7 +478,7 @@ impl Ledger {
         let err = match cala
             .create_bfx_address_backed_account(
                 integration_id,
-                BfxAddressType::Tron,
+                address_type,
                 account_id,
                 name.to_owned(),
                 code.to_owned(),
@@ -505,6 +506,7 @@ impl Ledger {
     ) -> Result<String, LedgerError> {
         Self::assert_address_backed_debit_account_exists(
             constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
+            BfxAddressType::Bitcoin,
             cala,
             account_id,
             name,
@@ -523,6 +525,7 @@ impl Ledger {
     ) -> Result<String, LedgerError> {
         Self::assert_address_backed_debit_account_exists(
             constants::BITFINEX_USDT_CASH_INTEGRATION_ID.into(),
+            BfxAddressType::Tron,
             cala,
             account_id,
             name,
