@@ -3,11 +3,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{
-    entity::*,
-    ledger::*,
-    primitives::{Satoshis, UserId},
-};
+use crate::{entity::*, ledger::*, primitives::UserId};
 
 pub use cursor::*;
 pub use entity::*;
@@ -50,23 +46,6 @@ impl Users {
             .expect("Could not build User");
 
         let EntityUpdate { entity: user, .. } = self.repo.create(new_user).await?;
-        Ok(user)
-    }
-
-    pub async fn pledge_unallocated_collateral_for_user(
-        &self,
-        user_id: UserId,
-        amount: Satoshis,
-        reference: String,
-    ) -> Result<User, UserError> {
-        let user = self.repo.find_by_id(user_id).await?;
-        self.ledger
-            .pledge_collateral_for_user(
-                user.account_ids.unallocated_collateral_id,
-                amount,
-                reference,
-            )
-            .await?;
         Ok(user)
     }
 

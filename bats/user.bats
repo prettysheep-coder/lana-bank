@@ -32,24 +32,6 @@ teardown_file() {
   cache_value 'user.id' "$user_id"
 }
 
-@test "user: can pledge unallocated collateral" {
-  user_id=$(read_value 'user.id')
-  variables=$(
-    jq -n \
-      --arg userId "$user_id" \
-    '{
-      input: {
-        userId: $userId,
-        amount: 1000000000,
-        reference: ("pledge-" + $userId)
-      }
-    }'
-  )
-  exec_admin_graphql 'pledge-unallocated-collateral' "$variables"
-  sats=$(graphql_output '.data.userPledgeCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
-  [[ "$sats" == "1000000000" ]] || exit 1;
-}
-
 @test "user: can deposit" {
   username=$(random_uuid)
   variables=$(

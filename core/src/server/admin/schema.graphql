@@ -35,7 +35,6 @@ type LoanOutstanding {
 }
 
 type Mutation {
-	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
 	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
 }
 
@@ -121,16 +120,6 @@ type UserEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
-}
-
-input UserPledgeCollateralInput {
-	userId: UUID!
-	amount: Satoshis!
-	reference: String!
-}
-
-type UserPledgeCollateralPayload {
-	user: User!
 }
 
 type Withdrawal {

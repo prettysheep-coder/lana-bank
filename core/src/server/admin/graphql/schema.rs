@@ -82,24 +82,6 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    pub async fn user_pledge_collateral(
-        &self,
-        ctx: &Context<'_>,
-        input: UserPledgeCollateralInput,
-    ) -> async_graphql::Result<UserPledgeCollateralPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        println!("user_pledge_collateral");
-        Ok(UserPledgeCollateralPayload::from(
-            app.users()
-                .pledge_unallocated_collateral_for_user(
-                    UserId::from(input.user_id),
-                    input.amount,
-                    input.reference,
-                )
-                .await?,
-        ))
-    }
-
     pub async fn withdrawal_settle(
         &self,
         ctx: &Context<'_>,
