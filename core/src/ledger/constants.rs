@@ -3,11 +3,6 @@ use uuid::{uuid, Uuid};
 // Journal
 pub(super) const CORE_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
-// Account Sets
-pub(super) const BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID: Uuid =
-    uuid!("00000000-0000-0000-0000-100000000002");
-pub(super) const BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_NAME: &str = "Bank Off-Balance-Sheet Omnibus";
-
 // Integrations
 pub(super) const BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID: Uuid =
     uuid!("00000000-0000-0000-0000-200000000001");
@@ -18,10 +13,6 @@ pub(super) const BITFINEX_USDT_CASH_INTEGRATION_ID: Uuid =
 pub(super) const BITFINEX_USDT_CASH_INTEGRATION_NAME: &str = "Usdt Cash Bitfinex Integration";
 
 // Accounts
-pub(super) const BANK_OFF_BALANCE_SHEET_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
-pub(super) const BANK_OFF_BALANCE_SHEET_NAME: &str = "Bank Off-Balance-Sheet Omnibus";
-pub(super) const BANK_OFF_BALANCE_SHEET_CODE: &str = "BANK.OFF_BALANCE_SHEET";
-
 pub(super) const BANK_USDT_CASH_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
 pub(super) const BANK_USDT_CASH_NAME: &str = "Bank USDT Cash";
 pub(super) const BANK_USDT_CASH_CODE: &str = "BANK.USDT_CASH";

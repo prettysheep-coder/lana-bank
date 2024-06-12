@@ -35,7 +35,6 @@ impl Ledger {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
         Self::initialize_bfx_integrations(&cala, &config.bfx_key, &config.bfx_secret).await?;
-        Self::initialize_global_account_sets(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
@@ -81,6 +80,14 @@ impl Ledger {
             )
             .await?;
 
+        // FIXME: assert is in off-balance-sheet integration omnibus
+        // Self::assert_account_in_account_set(
+        //     cala,
+        //     constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
+        //     account_ids.bank_unallocated_collateral_id,
+        // )
+        // .await?;
+
         Self::assert_credit_account_exists(
             &self.cala,
             account_ids.checking_id,
@@ -98,6 +105,14 @@ impl Ledger {
             account_ids.checking_id,
         )
         .await?;
+
+        // FIXME: assert is in usdt-cash integration omnibus
+        // Self::assert_account_in_account_set(
+        //     cala,
+        //     constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
+        //     account_ids.bank_checking_id,
+        // )
+        // .await?;
 
         let account_addresses = UserLedgerAccountAddresses {
             checking_address,
@@ -311,39 +326,14 @@ impl Ledger {
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_debit_account_exists(
-            cala,
-            constants::BANK_OFF_BALANCE_SHEET_ID.into(),
-            constants::BANK_OFF_BALANCE_SHEET_NAME,
-            constants::BANK_OFF_BALANCE_SHEET_CODE,
-            &constants::BANK_OFF_BALANCE_SHEET_ID.to_string(),
-        )
-        .await?;
-
-        Self::assert_account_in_account_set(
-            cala,
-            constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
-            constants::BANK_OFF_BALANCE_SHEET_ID.into(),
-        )
-        .await?;
-
+        // FIXME: Reconcile this with the existing withdraw mutations and the new
+        //        bfx-integration withdrawal_accounts created
         Self::assert_debit_account_exists(
             cala,
             constants::BANK_USDT_CASH_ID.into(),
             constants::BANK_USDT_CASH_NAME,
             constants::BANK_USDT_CASH_CODE,
             &constants::BANK_USDT_CASH_ID.to_string(),
-        )
-        .await?;
-
-        Ok(())
-    }
-
-    async fn initialize_global_account_sets(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_debit_account_set_exists(
-            cala,
-            constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
-            constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_NAME,
         )
         .await?;
 
