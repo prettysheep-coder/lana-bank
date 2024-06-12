@@ -9,7 +9,6 @@ import {
 } from "@/components/primitive/table"
 import { PageHeading } from "@/components/page-heading"
 import { getUserByUserId } from "@/lib/graphql/query/get-user-by-userid"
-import { UserActions } from "@/components/user-action"
 import { getLoansForUser } from "@/lib/graphql/query/get-loans-for-user"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
@@ -50,7 +49,6 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
                   <p className="text-sm text-textColor-secondary">{userId}</p>
                 </div>
               </CardTitle>
-              <UserActions userId={userId} />
             </div>
             <Separator />
           </CardHeader>
