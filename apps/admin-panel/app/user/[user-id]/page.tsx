@@ -85,6 +85,14 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
                   label="Uncollected Collateral Settled (BTC)"
                   value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
                 />
+                <DetailItem
+                  label="BTC Deposit Address"
+                  value={userDetails.user.btcDepositAddress}
+                />
+                <DetailItem
+                  label="UST Deposit Address"
+                  value={userDetails.user.ustDepositAddress}
+                />
               </DetailsGroup>
             </CardContent>
           </Card>
