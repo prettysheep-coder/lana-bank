@@ -8,7 +8,7 @@ use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 use uuid::Uuid;
 
-use crate::app::LavaApp;
+use crate::{app::LavaApp, primitives::UserId};
 
 pub use config::*;
 
@@ -31,11 +31,11 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
 }
 
 pub struct UserContext {
-    pub user_id: Option<Uuid>,
+    pub user_id: Option<UserId>,
 }
 
 impl UserContext {
-    pub fn new(user_id: Option<Uuid>) -> Self {
+    pub fn new(user_id: Option<UserId>) -> Self {
         Self { user_id }
     }
 }
@@ -51,7 +51,8 @@ pub async fn graphql_handler(
     let user_id = headers
         .get("X-USER-ID")
         .and_then(|header| header.to_str().ok())
-        .and_then(|id_str| Uuid::parse_str(id_str).ok());
+        .and_then(|id_str| Uuid::parse_str(id_str).ok())
+        .map(UserId::from);
 
     let context = UserContext::new(user_id);
 

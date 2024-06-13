@@ -63,9 +63,7 @@ pub async fn auth_callback(
         }
     };
 
-    let user_result = app.users().create_user(id, email).await;
-
-    match user_result {
+    match app.users().create_user(id, email).await {
         Ok(user) => ResponsePayload {
             identity: { IdentityPayload { id: user.id } },
         }

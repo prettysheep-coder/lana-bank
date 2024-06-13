@@ -36,7 +36,7 @@ impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<User>> {
         let user_id = match ctx.data_unchecked::<UserContext>().user_id {
             None => return Err("Unauthorized".into()),
-            Some(id) => UserId::from(id),
+            Some(id) => id,
         };
 
         let app = ctx.data_unchecked::<LavaApp>();
@@ -57,7 +57,7 @@ impl Mutation {
     ) -> async_graphql::Result<WithdrawalInitiatePayload> {
         let user_id = match ctx.data_unchecked::<UserContext>().user_id {
             None => return Err("Unauthorized".into()),
-            Some(id) => UserId::from(id),
+            Some(id) => id,
         };
 
         let app = ctx.data_unchecked::<LavaApp>();
@@ -76,7 +76,7 @@ impl Mutation {
     ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
         let user_id = match ctx.data_unchecked::<UserContext>().user_id {
             None => return Err("Unauthorized".into()),
-            Some(id) => UserId::from(id),
+            Some(id) => id,
         };
 
         let app = ctx.data_unchecked::<LavaApp>();
