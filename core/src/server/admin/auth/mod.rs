@@ -56,7 +56,7 @@ pub async fn auth_callback(
     println!("Received auth callback with payload: {:?}", payload);
 
     let email = payload.email;
-    let id = match Uuid::parse_str(&payload.identity_id) {
+    let id = match payload.identity_id.parse() {
         Ok(uuid) => uuid,
         Err(error) => {
             println!("Error parsing identity_id: {:?}", error);
