@@ -6,10 +6,9 @@ use axum::{
     Extension, Router,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use uuid::Uuid;
 
-use crate::app::LavaApp;
+use crate::{app::LavaApp, primitives::UserId};
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
 pub struct AuthCallbackPayload {
@@ -18,12 +17,12 @@ pub struct AuthCallbackPayload {
     flow_type: String,
     identity_id: String,
     schema_id: String,
-    transient_payload: Value,
+    transient_payload: serde_json::Value,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct IdentityPayload {
-    id: String,
+    id: UserId,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -33,7 +32,14 @@ pub struct ResponsePayload {
 
 impl IntoResponse for ResponsePayload {
     fn into_response(self) -> Response {
-        let body = serde_json::to_string(&self).unwrap();
+        let body = match serde_json::to_string(&self) {
+            Ok(value) => value,
+            Err(error) => {
+                println!("Error serializing response payload: {:?}", error);
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
+                    .into_response();
+            }
+        };
 
         Response::builder()
             .status(StatusCode::OK)
@@ -58,15 +64,11 @@ pub async fn auth_callback(
         }
     };
 
-    let user_result = app.users().create_user(id, email.clone()).await;
+    let user_result = app.users().create_user(id, email).await;
 
     match user_result {
         Ok(user) => ResponsePayload {
-            identity: {
-                IdentityPayload {
-                    id: user.id.to_string(),
-                }
-            },
+            identity: { IdentityPayload { id: user.id } },
         }
         .into_response(),
 
