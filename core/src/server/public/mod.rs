@@ -30,13 +30,13 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
     Ok(())
 }
 
-pub struct ClientContext {
-    pub client_id: Option<Uuid>,
+pub struct UserContext {
+    pub user_id: Option<Uuid>,
 }
 
-impl ClientContext {
-    pub fn new(client_id: Option<Uuid>) -> Self {
-        ClientContext { client_id }
+impl UserContext {
+    pub fn new(user_id: Option<Uuid>) -> Self {
+        Self { user_id }
     }
 }
 
@@ -48,12 +48,12 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let req = req.into_inner();
 
-    let client_id = headers
-        .get("X-CLIENT-ID")
+    let user_id = headers
+        .get("X-USER-ID")
         .and_then(|header| header.to_str().ok())
         .and_then(|id_str| Uuid::parse_str(id_str).ok());
 
-    let context = ClientContext::new(client_id);
+    let context = UserContext::new(user_id);
 
     schema.execute(req.data(context)).await.into()
 }

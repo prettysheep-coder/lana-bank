@@ -5,7 +5,7 @@ use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
     server::{
-        public::ClientContext,
+        public::UserContext,
         shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
     },
 };
@@ -34,13 +34,13 @@ impl Query {
     }
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<User>> {
-        let client_id = match ctx.data_unchecked::<ClientContext>().client_id {
+        let user_id = match ctx.data_unchecked::<UserContext>().user_id {
             None => return Err("Unauthorized".into()),
             Some(id) => UserId::from(id),
         };
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.users().find_by_id(client_id).await?;
+        let user = app.users().find_by_id(user_id).await?;
 
         Ok(user.map(User::from))
     }
@@ -55,7 +55,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: WithdrawalInitiateInput,
     ) -> async_graphql::Result<WithdrawalInitiatePayload> {
-        let client_id = match ctx.data_unchecked::<ClientContext>().client_id {
+        let user_id = match ctx.data_unchecked::<UserContext>().user_id {
             None => return Err("Unauthorized".into()),
             Some(id) => UserId::from(id),
         };
@@ -64,7 +64,7 @@ impl Mutation {
 
         let withdraw = app
             .withdraws()
-            .initiate(client_id, input.amount, input.destination, input.reference)
+            .initiate(user_id, input.amount, input.destination, input.reference)
             .await?;
 
         Ok(WithdrawalInitiatePayload::from(withdraw))
@@ -74,16 +74,13 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
-        let client_id = match ctx.data_unchecked::<ClientContext>().client_id {
+        let user_id = match ctx.data_unchecked::<UserContext>().user_id {
             None => return Err("Unauthorized".into()),
             Some(id) => UserId::from(id),
         };
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app
-            .fixed_term_loans()
-            .create_loan_for_user(client_id)
-            .await?;
+        let loan = app.fixed_term_loans().create_loan_for_user(user_id).await?;
         Ok(FixedTermLoanCreatePayload::from(loan))
     }
 

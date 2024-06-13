@@ -44,7 +44,7 @@ mutators:
     enabled: true
     config:
       headers:
-        X-CLIENT-ID: "{{ .Subject }}"
+        X-USER-ID: "{{ .Subject }}"
 
   noop:
     enabled: true

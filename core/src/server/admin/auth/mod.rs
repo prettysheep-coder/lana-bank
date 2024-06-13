@@ -6,7 +6,6 @@ use axum::{
     Extension, Router,
 };
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{app::LavaApp, primitives::UserId};
 

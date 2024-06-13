@@ -31,4 +31,4 @@
     - handler: header
       config:
         headers:
-          X-CLIENT-ID: "{{ .Subject }}"
+          X-USER-ID: "{{ .Subject }}"
