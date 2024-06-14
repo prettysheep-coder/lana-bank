@@ -26,16 +26,6 @@ wait_for_interest() {
 
 @test "fixed-term-loan: loan lifecycle" {
   username=$(random_uuid)
-  variables=$(
-    jq -n \
-      --arg username "$username" \
-    '{
-      input: {
-        bitfinexUsername: $username,
-      }
-    }'
-  )
-
   token=$(create_user)
   cache_value "alice" "$token"
 

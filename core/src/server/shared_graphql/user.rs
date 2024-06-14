@@ -4,6 +4,8 @@ use crate::{app::LavaApp, ledger, primitives::UsdCents, server::shared_graphql::
 
 use super::objects::{BtcBalance, UsdBalance};
 
+use super::fixed_term_loan::FixedTermLoan;
+
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct User {
@@ -21,6 +23,21 @@ impl User {
         let app = ctx.data_unchecked::<LavaApp>();
         let balance = app.ledger().get_user_balance(self.account_ids).await?;
         Ok(UserBalance::from(balance))
+    }
+
+    async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<FixedTermLoan>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user_id = self.user_id.clone().into();
+
+        let loans: Vec<FixedTermLoan> = app
+            .fixed_term_loans()
+            .list_for_user(user_id)
+            .await?
+            .into_iter()
+            .map(FixedTermLoan::from)
+            .collect();
+
+        Ok(loans)
     }
 }
 
