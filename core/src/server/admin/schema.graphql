@@ -62,7 +62,6 @@ type PageInfo {
 type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
-	loansForUser(userId: UUID!): [FixedTermLoan!]
 	users(first: Int!, after: String): UserConnection!
 }
 

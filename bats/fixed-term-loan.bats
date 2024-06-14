@@ -144,6 +144,5 @@ wait_for_interest() {
 
   exec_graphql 'alice' 'me'
   btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
-  echo $(graphql_output)
   [[ "$btc_balance" == 1000000000 ]] || exit 1
 }
