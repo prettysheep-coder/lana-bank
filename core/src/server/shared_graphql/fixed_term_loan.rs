@@ -3,6 +3,7 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger,
+    primitives::UserId,
     server::shared_graphql::{primitives::*, user::User},
 };
 
@@ -29,7 +30,7 @@ impl FixedTermLoan {
 
     async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.users().find_by_id(self.user_id.clone().into()).await?;
+        let user = app.users().find_by_id(UserId::from(&self.user_id)).await?;
 
         match user {
             Some(user) => Ok(User::from(user)),

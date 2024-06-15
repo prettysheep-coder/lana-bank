@@ -1,5 +1,6 @@
 use async_graphql::*;
 
+use crate::primitives::UserId;
 use crate::{app::LavaApp, ledger, primitives::UsdCents, server::shared_graphql::primitives::UUID};
 
 use super::objects::{BtcBalance, UsdBalance};
@@ -27,11 +28,10 @@ impl User {
 
     async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<FixedTermLoan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let user_id = self.user_id.clone().into();
 
         let loans: Vec<FixedTermLoan> = app
             .fixed_term_loans()
-            .list_for_user(user_id)
+            .list_for_user(UserId::from(&self.user_id))
             .await?
             .into_iter()
             .map(FixedTermLoan::from)

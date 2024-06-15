@@ -16,7 +16,7 @@ impl<T: Into<uuid::Uuid>> From<T> for UUID {
 }
 impl From<&UUID> for FixedTermLoanId {
     fn from(uuid: &UUID) -> Self {
-        FixedTermLoanId::from(uuid.0)
+        Self::from(uuid.0)
     }
 }
 impl From<UUID> for FixedTermLoanId {
@@ -29,7 +29,11 @@ impl From<UUID> for UserId {
         Self::from(uuid.0)
     }
 }
-
+impl From<&UUID> for UserId {
+    fn from(uuid: &UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 impl From<UUID> for WithdrawId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)
