@@ -9,7 +9,6 @@ use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{app::LavaApp, primitives::UserId};
 
@@ -64,8 +63,8 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let user_id = match Uuid::parse_str(&jwt_claims.sub) {
-        Ok(user_id) => UserId::from(user_id),
+    let user_id: UserId = match jwt_claims.sub.parse() {
+        Ok(user_id) => user_id,
         Err(_) => {
             let error = ServerError::new("Invalid user id", None);
             let response = async_graphql::Response::from_errors(vec![error]);
