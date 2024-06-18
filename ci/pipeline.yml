@@ -82,7 +82,7 @@ groups:
   - #@ build_app_edge_image_name("admin-panel")
 
 jobs:
-- #@ rust_check_code()
+- #@ on_nix_host("check-code", "make check-code")
 - #@ on_nix_host("integration-tests", "make test-in-ci")
 - #@ on_nix_host("bats-tests", "make e2e-in-ci")
 - #@ build_edge_image()
@@ -369,7 +369,6 @@ resources:
     private_key: #@ data.values.github_private_key
 
 - #@ pipeline_tasks_resource()
-- #@ slack_resource()
 - #@ edge_image_resource(publicRepo=False)
 - #@ version_resource()
 - #@ gh_release_resource()
