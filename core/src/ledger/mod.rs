@@ -140,7 +140,7 @@ impl Ledger {
             .cala
             .execute_bfx_withdrawal(
                 withdrawal_id,
-                constants::BITFINEX_BANK_RESERVE_INTEGRATION_ID.into(),
+                constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
                 amount.to_usd(),
                 BfxWithdrawalMethod::TronUsdt,
                 tron_usdt_address,
@@ -464,7 +464,7 @@ impl Ledger {
         credit_account_id: LedgerAccountId,
     ) -> Result<String, LedgerError> {
         Self::assert_address_backed_debit_account_exists(
-            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
+            constants::OFF_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
             BfxAddressType::Bitcoin,
             cala,
             account_id,
@@ -483,7 +483,7 @@ impl Ledger {
         credit_account_id: LedgerAccountId,
     ) -> Result<String, LedgerError> {
         Self::assert_address_backed_debit_account_exists(
-            constants::BITFINEX_BANK_RESERVE_INTEGRATION_ID.into(),
+            constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
             BfxAddressType::Tron,
             cala,
             account_id,
