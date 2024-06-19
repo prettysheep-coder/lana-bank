@@ -107,6 +107,24 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
+    pub async fn create_user_accounts(
+        &self,
+        user_account_ids: UserLedgerAccountIds,
+    ) -> Result<LedgerAccountId, CalaError> {
+        // let variables = create_user_accounts::Variables {
+        //     on_balance_sheet_account_id: user_account_ids.on_balance_sheet_deposit_account_id,
+        // };
+        // let response =
+        //     Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
+        //         .await?;
+        // response
+        //     .data
+        //     .map(|d| LedgerAccountId::from(d.account_create.account.account_id))
+        //     .ok_or(CalaError::MissingDataField)
+        unimplemented!()
+    }
+
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
@@ -184,8 +202,8 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = user_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
-            unallocated_collateral_id: Uuid::from(account_ids.unallocated_collateral_id),
-            checking_id: Uuid::from(account_ids.checking_id),
+            unallocated_collateral_id: Uuid::from(account_ids.off_balance_sheet_deposit_account_id),
+            checking_id: Uuid::from(account_ids.on_balance_sheet_deposit_account_id),
         };
         let response =
             Self::traced_gql_request::<UserBalance, _>(&self.client, &self.url, variables).await?;
@@ -375,10 +393,12 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
+            unallocated_collateral_account: user_account_ids
+                .off_balance_sheet_deposit_account_id
+                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             collateral_amount,
             principal_amount,
             external_id,
@@ -408,9 +428,11 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_complete_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
+            unallocated_collateral_account: user_account_ids
+                .off_balance_sheet_deposit_account_id
+                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             payment_amount,
             collateral_amount,
@@ -524,7 +546,7 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             payment_amount,
             external_id,
@@ -558,7 +580,7 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             payment_amount,
             external_id,

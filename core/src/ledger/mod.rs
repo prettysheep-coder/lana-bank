@@ -61,7 +61,7 @@ impl Ledger {
         let id = user_id.to_string();
         Self::assert_credit_account_exists(
             &self.cala,
-            account_ids.unallocated_collateral_id,
+            account_ids.off_balance_sheet_deposit_account_id,
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", id),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", id),
             &format!("usr:bfx-{}:unallocated_collateral", id),
@@ -74,7 +74,7 @@ impl Ledger {
                 account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
                 &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
                 &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
-                account_ids.unallocated_collateral_id,
+                account_ids.off_balance_sheet_deposit_account_id,
             )
             .await?;
 
@@ -88,7 +88,7 @@ impl Ledger {
 
         Self::assert_credit_account_exists(
             &self.cala,
-            account_ids.checking_id,
+            account_ids.on_balance_sheet_deposit_account_id,
             &format!("USERS.CHECKING.{}", id),
             &format!("USERS.CHECKING.{}", id),
             &format!("usr:bfx-{}:checking", id),
@@ -100,7 +100,7 @@ impl Ledger {
             account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
             &format!("BANK.USER_CHECKING.{}", id),
             &format!("BANK.USER_CHECKING.{}", id),
-            account_ids.checking_id,
+            account_ids.on_balance_sheet_deposit_account_id,
         )
         .await?;
 

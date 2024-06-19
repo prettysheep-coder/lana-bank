@@ -5,8 +5,8 @@ use super::{cala::graphql::*, primitives::LayeredUsdBalance};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct UserLedgerAccountIds {
-    pub unallocated_collateral_id: LedgerAccountId,
-    pub checking_id: LedgerAccountId,
+    pub off_balance_sheet_deposit_account_id: LedgerAccountId,
+    pub on_balance_sheet_deposit_account_id: LedgerAccountId,
     pub bank_checking_id: LedgerAccountId,
     pub bank_unallocated_collateral_id: LedgerAccountId,
 }
@@ -15,8 +15,8 @@ impl UserLedgerAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            unallocated_collateral_id: LedgerAccountId::new(),
-            checking_id: LedgerAccountId::new(),
+            off_balance_sheet_deposit_account_id: LedgerAccountId::new(),
+            on_balance_sheet_deposit_account_id: LedgerAccountId::new(),
             bank_checking_id: LedgerAccountId::new(),
             bank_unallocated_collateral_id: LedgerAccountId::new(),
         }

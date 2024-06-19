@@ -1,0 +1,33 @@
+mutation CreateUserAccounts(
+  $onBalanceSheetAccountId: UUID!
+  $onBalanceSheetAccountCode: String!
+  $userDepositAccountSetId: UUID!
+  $tronAccountId: UUID!
+) {
+  onBalanceSheet: accountCreate(input: {
+    accountId: $onBalanceSheetAccountId
+    code: $onBalanceSheetAccountCode
+    name: "User deposit"
+    accountSetIds: [$userDepositAccountSetId]
+  }) {
+    account {
+      accountId
+    }
+  }
+  tron_address: bitfinex {
+    addressBackedAccountCreate(input: {
+      integrationId:  "00000000-0000-0000-0000-200000000000"
+      type: "TRON"
+      name: "User tron income"
+      accountId: $tronAccountId
+      accountId: $tronAccountCode
+    }) {
+      account {
+        address
+        account {
+          accountId
+        }
+      }
+    }
+  }
+}
