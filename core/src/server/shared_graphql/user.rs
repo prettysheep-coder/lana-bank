@@ -45,8 +45,8 @@ impl From<crate::user::User> for User {
     fn from(user: crate::user::User) -> Self {
         User {
             user_id: UUID::from(user.id),
-            btc_deposit_address: user.account_addresses.unallocated_collateral_address,
-            ust_deposit_address: user.account_addresses.checking_address,
+            btc_deposit_address: user.account_addresses.btc_address,
+            ust_deposit_address: user.account_addresses.tron_usdt_address,
             email: user.email,
             account_ids: user.account_ids,
         }

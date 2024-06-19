@@ -25,8 +25,8 @@ impl UserLedgerAccountIds {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserLedgerAccountAddresses {
-    pub checking_address: String,
-    pub unallocated_collateral_address: String,
+    pub tron_usdt_address: String,
+    pub btc_address: String,
 }
 
 pub struct UserBalance {

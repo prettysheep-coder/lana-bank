@@ -14,7 +14,10 @@ use crate::primitives::{
     LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
 };
 
-use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
+use super::{
+    fixed_term_loan::FixedTermLoanAccountIds,
+    user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
+};
 
 use error::*;
 use graphql::*;
@@ -110,14 +113,21 @@ impl CalaClient {
     #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
     pub async fn create_user_accounts(
         &self,
+        user_id: Uuid,
         user_account_ids: UserLedgerAccountIds,
-    ) -> Result<LedgerAccountId, CalaError> {
-        // let variables = create_user_accounts::Variables {
-        //     on_balance_sheet_account_id: user_account_ids.on_balance_sheet_deposit_account_id,
-        // };
-        // let response =
-        //     Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
-        //         .await?;
+    ) -> Result<UserLedgerAccountAddresses, CalaError> {
+        let variables = create_user_accounts::Variables {
+            on_balance_sheet_account_id: Uuid::from(
+                user_account_ids.on_balance_sheet_deposit_account_id,
+            ),
+            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
+            tron_account_id: Uuid::new_v4(),
+            user_deposit_account_set_id:
+                super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
+        };
+        let response =
+            Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
+                .await?;
         // response
         //     .data
         //     .map(|d| LedgerAccountId::from(d.account_create.account.account_id))

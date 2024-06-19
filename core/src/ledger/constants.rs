@@ -9,6 +9,10 @@ pub(super) const ON_BALANCE_SHEET_BFX_INTEGRATION_ID: Uuid =
 pub(super) const OFF_BALANCE_SHEET_BFX_INTEGRATION_ID: Uuid =
     uuid!("10000000-0000-0000-0000-200000000000");
 
+// AccountSets
+pub(super) const ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID: Uuid =
+    uuid!("00000000-0000-0000-0000-300000000000");
+
 // Accounts
 pub(super) const _BANK_USDT_CASH_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
 

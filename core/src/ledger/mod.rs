@@ -113,8 +113,8 @@ impl Ledger {
         // .await?;
 
         let account_addresses = UserLedgerAccountAddresses {
-            checking_address,
-            unallocated_collateral_address,
+            tron_usdt_address,
+            btc_address,
         };
 
         Ok((account_ids, account_addresses))
