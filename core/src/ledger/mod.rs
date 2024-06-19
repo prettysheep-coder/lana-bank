@@ -16,7 +16,7 @@ use tracing::instrument;
 use crate::primitives::{
     BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId,
     LedgerAccountSetId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
-    WithdrawId,
+    UserId, WithdrawId,
 };
 
 use cala::*;
@@ -55,15 +55,16 @@ impl Ledger {
     )]
     pub async fn create_accounts_for_user(
         &self,
-        bitfinex_username: &str,
+        user_id: UserId,
     ) -> Result<(UserLedgerAccountIds, UserLedgerAccountAddresses), LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
+        let id = user_id.to_string();
         Self::assert_credit_account_exists(
             &self.cala,
             account_ids.unallocated_collateral_id,
-            &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
+            &format!("USERS.UNALLOCATED_COLLATERAL.{}", id),
+            &format!("USERS.UNALLOCATED_COLLATERAL.{}", id),
+            &format!("usr:bfx-{}:unallocated_collateral", id),
         )
         .await?;
 
@@ -71,8 +72,8 @@ impl Ledger {
             Self::assert_off_balance_sheet_address_backed_debit_account_exists(
                 &self.cala,
                 account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
-                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
+                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
+                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
                 account_ids.unallocated_collateral_id,
             )
             .await?;
@@ -88,17 +89,17 @@ impl Ledger {
         Self::assert_credit_account_exists(
             &self.cala,
             account_ids.checking_id,
-            &format!("USERS.CHECKING.{}", bitfinex_username),
-            &format!("USERS.CHECKING.{}", bitfinex_username),
-            &format!("usr:bfx-{}:checking", bitfinex_username),
+            &format!("USERS.CHECKING.{}", id),
+            &format!("USERS.CHECKING.{}", id),
+            &format!("usr:bfx-{}:checking", id),
         )
         .await?;
 
         let checking_address = Self::assert_bank_deposit_address_backed_debit_account_exists(
             &self.cala,
             account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
-            &format!("BANK.USER_CHECKING.{}", bitfinex_username),
-            &format!("BANK.USER_CHECKING.{}", bitfinex_username),
+            &format!("BANK.USER_CHECKING.{}", id),
+            &format!("BANK.USER_CHECKING.{}", id),
             account_ids.checking_id,
         )
         .await?;
