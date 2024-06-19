@@ -128,11 +128,13 @@ impl CalaClient {
         let response =
             Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
                 .await?;
-        // response
-        //     .data
-        //     .map(|d| LedgerAccountId::from(d.account_create.account.account_id))
-        //     .ok_or(CalaError::MissingDataField)
-        unimplemented!()
+        response
+            .data
+            .map(|d| UserLedgerAccountAddresses {
+                tron_usdt_address: d.tron_address.address_backed_account_create.account.address,
+                btc_address: String::new(),
+            })
+            .ok_or(CalaError::MissingDataField)
     }
 
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]

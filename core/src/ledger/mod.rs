@@ -68,15 +68,14 @@ impl Ledger {
         )
         .await?;
 
-        let unallocated_collateral_address =
-            Self::assert_off_balance_sheet_address_backed_debit_account_exists(
-                &self.cala,
-                account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
-                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
-                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
-                account_ids.off_balance_sheet_deposit_account_id,
-            )
-            .await?;
+        let btc_address = Self::assert_off_balance_sheet_address_backed_debit_account_exists(
+            &self.cala,
+            account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
+            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
+            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
+            account_ids.off_balance_sheet_deposit_account_id,
+        )
+        .await?;
 
         // FIXME: assert is in off-balance-sheet integration omnibus
         // Self::assert_account_in_account_set(
@@ -95,7 +94,7 @@ impl Ledger {
         )
         .await?;
 
-        let checking_address = Self::assert_bank_deposit_address_backed_debit_account_exists(
+        let tron_usdt_address = Self::assert_bank_deposit_address_backed_debit_account_exists(
             &self.cala,
             account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
             &format!("BANK.USER_CHECKING.{}", id),
