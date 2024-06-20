@@ -4,6 +4,10 @@ mutation CreateUserAccounts(
   $userDepositAccountSetId: UUID!
   $tronAccountId: UUID!
   $tronAccountCode: String!
+  $offBalanceSheetAccountId: UUID!
+  $offBalanceSheetAccountCode: String!
+  $btcAccountId: UUID!
+  $btcAccountCode: String!
 ) {
   onBalanceSheet: accountCreate(input: {
     accountId: $onBalanceSheetAccountId
@@ -23,6 +27,32 @@ mutation CreateUserAccounts(
       type: "TRX"
       name: "User tron income"
       depositCreditAccountId: $onBalanceSheetAccountId
+    }) {
+      account {
+        address
+        account {
+          accountId
+        }
+      }
+    }
+  }
+  offBalanceSheet: accountCreate(input: {
+    accountId: $offBalanceSheetAccountId
+    code: $offBalanceSheetAccountCode
+    name: "User deposit off balance sheet"
+  }) {
+    account {
+      accountId
+    }
+  }
+  btc_address: bitfinex {
+    addressBackedAccountCreate(input: {
+      integrationId:  "10000000-0000-0000-0000-200000000000"
+      accountId: $btcAccountId
+      code: $btcAccountCode
+      type: "BTC"
+      name: "User btc income"
+      depositCreditAccountId: $offBalanceSheetAccountId
     }) {
       account {
         address

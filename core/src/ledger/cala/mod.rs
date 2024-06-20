@@ -126,6 +126,12 @@ impl CalaClient {
             tron_account_code: format!("ASSETS.TRON.{}", user_id),
             user_deposit_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
+            off_balance_sheet_account_id: Uuid::from(
+                user_account_ids.off_balance_sheet_deposit_account_id,
+            ),
+            off_balance_sheet_account_code: format!("USERS.OFF_BALANCE_SHEET.{}", user_id),
+            btc_account_id: Uuid::new_v4(),
+            btc_account_code: format!("ASSETS.BTC.{}", user_id),
         };
         let response =
             Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
