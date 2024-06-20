@@ -10,12 +10,11 @@ pub mod primitives;
 mod tx_template;
 pub mod user;
 
-use account::LedgerAccount;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId, LedgerDebitOrCredit,
-    LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents, UserId, WithdrawId,
+    BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId,
+    Satoshis, UsdCents, UserId, WithdrawId,
 };
 
 use cala::*;
@@ -198,70 +197,6 @@ impl Ledger {
             .create_loan_accounts(loan_id, loan_account_ids)
             .await?;
         Ok(())
-    }
-
-    async fn _assert_account_set_exists(
-        normal_balance_type: LedgerDebitOrCredit,
-        cala: &CalaClient,
-        account_set_id: LedgerAccountSetId,
-        name: &str,
-    ) -> Result<LedgerAccountSetId, LedgerError> {
-        if let Ok(Some(id)) = cala.find_account_set_by_id(account_set_id.to_owned()).await {
-            return Ok(id);
-        }
-
-        let err = match cala
-            .create_account_set(account_set_id, name.to_owned(), normal_balance_type)
-            .await
-        {
-            Ok(id) => return Ok(id),
-            Err(e) => e,
-        };
-
-        cala.find_account_set_by_id(account_set_id.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountSetExists)
-    }
-
-    async fn _assert_debit_account_set_exists(
-        cala: &CalaClient,
-        account_set_id: LedgerAccountSetId,
-        name: &str,
-    ) -> Result<LedgerAccountSetId, LedgerError> {
-        Self::_assert_account_set_exists(LedgerDebitOrCredit::Debit, cala, account_set_id, name)
-            .await
-    }
-
-    async fn _assert_account_in_account_set(
-        cala: &CalaClient,
-        account_set_id: LedgerAccountSetId,
-        account_id: LedgerAccountId,
-    ) -> Result<LedgerAccountSetId, LedgerError> {
-        if let Ok(Some(ledger_account)) = cala.find_account_by_id::<LedgerAccount>(account_id).await
-        {
-            if ledger_account.account_set_ids.contains(&account_set_id) {
-                return Ok(account_set_id);
-            }
-        }
-
-        let err = match cala
-            .add_account_to_account_set(account_set_id, account_id)
-            .await
-        {
-            Ok(id) => return Ok(id),
-            Err(e) => e,
-        };
-
-        match cala
-            .find_account_by_id::<LedgerAccount>(account_id)
-            .await
-            .map_err(|_| err)
-        {
-            Ok(Some(_)) => Ok(account_set_id),
-            Ok(None) => Err(LedgerError::CouldNotAssertAccountIsMemberOfAccountSet),
-            Err(e) => Err(e)?,
-        }
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
