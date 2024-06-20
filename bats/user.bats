@@ -25,6 +25,9 @@ teardown_file() {
   cache_value "alice" "$token"
 
   exec_graphql 'alice' 'me'
+  echo $(graphql_output)
+  user_id=$(graphql_output '.data.me.userId')
+  [[ "$user_id" != "null" ]] || exit 1
 
   btc_address=$(graphql_output '.data.me.btcDepositAddress')
   cache_value 'user.btc' "$btc_address"
@@ -50,6 +53,8 @@ teardown_file() {
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == 1000000 ]] || exit 1
+
+  assert_assets_liabilities
 }
 
 @test "user: can withdraw" {
@@ -72,6 +77,6 @@ teardown_file() {
   exec_graphql 'alice' 'me'
   checking_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$checking_balance" == 850000 ]] || exit 1
-  # encumbered_checking_balance=$(graphql_output '.data.me.balance.checking.pending.usdBalance')
-  # [[ "$encumbered_checking_balance" == 150000 ]] || exit 1
+
+  assert_assets_liabilities
 }
