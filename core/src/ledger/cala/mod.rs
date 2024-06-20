@@ -113,14 +113,14 @@ impl CalaClient {
     #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
     pub async fn create_user_accounts(
         &self,
-        user_id: Uuid,
+        user_id: impl Into<Uuid> + std::fmt::Debug,
         user_account_ids: UserLedgerAccountIds,
     ) -> Result<UserLedgerAccountAddresses, CalaError> {
         let variables = create_user_accounts::Variables {
             on_balance_sheet_account_id: Uuid::from(
                 user_account_ids.on_balance_sheet_deposit_account_id,
             ),
-            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
+            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id.into()),
             tron_account_id: Uuid::new_v4(),
             user_deposit_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,

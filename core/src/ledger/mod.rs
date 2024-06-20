@@ -58,65 +58,8 @@ impl Ledger {
         user_id: UserId,
     ) -> Result<(UserLedgerAccountIds, UserLedgerAccountAddresses), LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
-        let id = user_id.to_string();
-        Self::assert_credit_account_exists(
-            &self.cala,
-            account_ids.off_balance_sheet_deposit_account_id,
-            &format!("USERS.UNALLOCATED_COLLATERAL.{}", id),
-            &format!("USERS.UNALLOCATED_COLLATERAL.{}", id),
-            &format!("usr:bfx-{}:unallocated_collateral", id),
-        )
-        .await?;
-
-        let btc_address = Self::assert_off_balance_sheet_address_backed_debit_account_exists(
-            &self.cala,
-            account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
-            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
-            &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", id),
-            account_ids.off_balance_sheet_deposit_account_id,
-        )
-        .await?;
-
-        // FIXME: assert is in off-balance-sheet integration omnibus
-        // Self::assert_account_in_account_set(
-        //     cala,
-        //     constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
-        //     account_ids.bank_unallocated_collateral_id,
-        // )
-        // .await?;
-
-        Self::assert_credit_account_exists(
-            &self.cala,
-            account_ids.on_balance_sheet_deposit_account_id,
-            &format!("USERS.CHECKING.{}", id),
-            &format!("USERS.CHECKING.{}", id),
-            &format!("usr:bfx-{}:checking", id),
-        )
-        .await?;
-
-        let tron_usdt_address = Self::assert_bank_deposit_address_backed_debit_account_exists(
-            &self.cala,
-            account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
-            &format!("BANK.USER_CHECKING.{}", id),
-            &format!("BANK.USER_CHECKING.{}", id),
-            account_ids.on_balance_sheet_deposit_account_id,
-        )
-        .await?;
-
-        // FIXME: assert is in usdt-cash integration omnibus
-        // Self::assert_account_in_account_set(
-        //     cala,
-        //     constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
-        //     account_ids.bank_checking_id,
-        // )
-        // .await?;
-
-        let account_addresses = UserLedgerAccountAddresses {
-            tron_usdt_address,
-            btc_address,
-        };
-
-        Ok((account_ids, account_addresses))
+        let addresses = self.cala.create_user_accounts(user_id, account_ids).await?;
+        Ok((account_ids, addresses))
     }
 
     #[instrument(name = "lava.ledger.add_equity", skip(self), err)]
