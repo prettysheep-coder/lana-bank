@@ -222,8 +222,12 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = user_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
-            unallocated_collateral_id: Uuid::from(account_ids.off_balance_sheet_deposit_account_id),
-            checking_id: Uuid::from(account_ids.on_balance_sheet_deposit_account_id),
+            off_balance_sheet_account_id: Uuid::from(
+                account_ids.off_balance_sheet_deposit_account_id,
+            ),
+            on_balance_sheet_account_id: Uuid::from(
+                account_ids.on_balance_sheet_deposit_account_id,
+            ),
         };
         let response =
             Self::traced_gql_request::<UserBalance, _>(&self.client, &self.url, variables).await?;
