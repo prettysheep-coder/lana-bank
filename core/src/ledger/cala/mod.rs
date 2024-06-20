@@ -161,6 +161,7 @@ impl CalaClient {
             collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
             outstanding_account_id: Uuid::from(outstanding_account_id),
             outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
+            loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
         };

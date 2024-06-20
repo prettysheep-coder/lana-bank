@@ -5,6 +5,7 @@ mutation CreateLoanAccounts(
   $outstandingAccountCode: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
+  $loansAccountSetId: UUID!
 ) {
   collateral: accountCreate(input: {
     accountId: $collateralAccountId
@@ -19,6 +20,8 @@ mutation CreateLoanAccounts(
     accountId: $outstandingAccountId
     code: $outstandingAccountCode
     name: "Loan Outstanding"
+    normalBalanceType: "DEBIT"
+    accountSetIds: [$loansAccountSetId]
   }) {
     account {
       accountId
