@@ -25,9 +25,10 @@ resource "cala_account_set_member_account_set" "bfx_deposits" {
 }
 
 resource "cala_account_set" "fixed_term_loans" {
-  id         = "00000000-0000-0000-0000-900000000001"
-  journal_id = cala_journal.journal.id
-  name       = "Fixed term loans"
+  id                  = "00000000-0000-0000-0000-900000000001"
+  journal_id          = cala_journal.journal.id
+  name                = "Fixed term loans"
+  normal_balance_type = "DEBIT"
 }
 
 resource "cala_account_set_member_account_set" "loans" {
