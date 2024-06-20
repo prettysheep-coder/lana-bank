@@ -6,6 +6,8 @@ export const getSession = async ({ cookie }: { cookie: string }) => {
       cookie,
     })
   } catch (error) {
-    return error instanceof Error ? error : new Error("Something went wrong, please try again.")
+    return error instanceof Error
+      ? error
+      : new Error("Something went wrong, please try again.")
   }
 }
