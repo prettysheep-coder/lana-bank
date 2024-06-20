@@ -84,6 +84,8 @@ wait_for_interest() {
   interest_balance=$(read_value 'interest_incurred')
   [[ "$interest_balance" == "2" ]] || exit 1
 
+  assert_assets_liabilities
+
   outstanding_before=$(read_value 'outstanding')
   variables=$(
     jq -n \
@@ -124,6 +126,8 @@ wait_for_interest() {
   exec_graphql 'alice' 'record-payment' "$variables"
   outstanding=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding" == "0" ]] || exit 1
+
+  assert_assets_liabilities
 
   variables=$(
     jq -n \

@@ -164,6 +164,7 @@ impl CalaClient {
             loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
+            interest_revenue_account_set_id: super::constants::INTEREST_REVENUE_ACCOUNT_SET_ID,
         };
         let response =
             Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
