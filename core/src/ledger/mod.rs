@@ -192,39 +192,11 @@ impl Ledger {
     pub async fn create_accounts_for_loan(
         &self,
         loan_id: FixedTermLoanId,
-        FixedTermLoanAccountIds {
-            collateral_account_id,
-            outstanding_account_id,
-            interest_income_account_id,
-        }: FixedTermLoanAccountIds,
+        loan_account_ids: FixedTermLoanAccountIds,
     ) -> Result<(), LedgerError> {
-        Self::assert_credit_account_exists(
-            &self.cala,
-            collateral_account_id,
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_debit_account_exists(
-            &self.cala,
-            outstanding_account_id,
-            &format!("LOAN.OUTSTANDING.{}", loan_id),
-            &format!("LOAN.OUTSTANDING.{}", loan_id),
-            &format!("LOAN.OUTSTANDING.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_credit_account_exists(
-            &self.cala,
-            interest_income_account_id,
-            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-        )
-        .await?;
-
+        self.cala
+            .create_loan_accounts(loan_id, loan_account_ids)
+            .await?;
         Ok(())
     }
 
@@ -290,77 +262,6 @@ impl Ledger {
             Ok(None) => Err(LedgerError::CouldNotAssertAccountIsMemberOfAccountSet),
             Err(e) => Err(e)?,
         }
-    }
-
-    async fn assert_account_exists(
-        normal_balance_type: LedgerDebitOrCredit,
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        external_id: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        if let Ok(Some(id)) = cala
-            .find_account_by_external_id(external_id.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let err = match cala
-            .create_account(
-                account_id,
-                normal_balance_type,
-                name.to_owned(),
-                code.to_owned(),
-                external_id.to_owned(),
-            )
-            .await
-        {
-            Ok(id) => return Ok(id),
-            Err(e) => e,
-        };
-
-        cala.find_account_by_external_id(external_id.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountExists)
-    }
-
-    async fn assert_credit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        external_id: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        Self::assert_account_exists(
-            LedgerDebitOrCredit::Credit,
-            cala,
-            account_id,
-            name,
-            code,
-            external_id,
-        )
-        .await
-    }
-
-    async fn assert_debit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        external_id: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        Self::assert_account_exists(
-            LedgerDebitOrCredit::Debit,
-            cala,
-            account_id,
-            name,
-            code,
-            external_id,
-        )
-        .await
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {

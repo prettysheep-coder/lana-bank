@@ -1,0 +1,36 @@
+mutation CreateLoanAccounts(
+  $collateralAccountId: UUID!
+  $collateralAccountCode: String!
+  $outstandingAccountId: UUID!
+  $outstandingAccountCode: String!
+  $interestAccountId: UUID!
+  $interestAccountCode: String!
+) {
+  collateral: accountCreate(input: {
+    accountId: $collateralAccountId
+    code: $collateralAccountCode
+    name: "Loan Collateral"
+  }) {
+    account {
+      accountId
+    }
+  }
+  outstanding: accountCreate(input: {
+    accountId: $outstandingAccountId
+    code: $outstandingAccountCode
+    name: "Loan Outstanding"
+  }) {
+    account {
+      accountId
+    }
+  }
+  interest: accountCreate(input: {
+    accountId: $interestAccountId
+    code: $interestAccountCode
+    name: "Loan Interest"
+  }) {
+    account {
+      accountId
+    }
+  }
+}

@@ -145,6 +145,32 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
+    #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
+    pub async fn create_loan_accounts(
+        &self,
+        loan_id: impl Into<Uuid> + std::fmt::Debug,
+        FixedTermLoanAccountIds {
+            collateral_account_id,
+            outstanding_account_id,
+            interest_account_id,
+        }: FixedTermLoanAccountIds,
+    ) -> Result<(), CalaError> {
+        let loan_id = loan_id.into();
+        let variables = create_loan_accounts::Variables {
+            collateral_account_id: Uuid::from(collateral_account_id),
+            collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
+            outstanding_account_id: Uuid::from(outstanding_account_id),
+            outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
+            interest_account_id: Uuid::from(interest_account_id),
+            interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
+        };
+        let response =
+            Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
+                .await?;
+        response.data.ok_or(CalaError::MissingDataField)?;
+        Ok(())
+    }
+
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
@@ -244,7 +270,7 @@ impl CalaClient {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
             loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
-            interest_income_id: Uuid::from(account_ids.interest_income_account_id),
+            interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
             Self::traced_gql_request::<FixedTermLoanBalance, _>(&self.client, &self.url, variables)
@@ -514,7 +540,7 @@ impl CalaClient {
         let variables = post_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            loan_interest_income_account: loan_account_ids.interest_income_account_id.into(),
+            loan_interest_income_account: loan_account_ids.interest_account_id.into(),
             interest_amount,
             external_id,
         };
