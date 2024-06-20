@@ -7,8 +7,6 @@ use super::{cala::graphql::*, primitives::LayeredUsdBalance};
 pub struct UserLedgerAccountIds {
     pub off_balance_sheet_deposit_account_id: LedgerAccountId,
     pub on_balance_sheet_deposit_account_id: LedgerAccountId,
-    pub bank_checking_id: LedgerAccountId,
-    pub bank_unallocated_collateral_id: LedgerAccountId,
 }
 
 impl UserLedgerAccountIds {
@@ -17,8 +15,6 @@ impl UserLedgerAccountIds {
         Self {
             off_balance_sheet_deposit_account_id: LedgerAccountId::new(),
             on_balance_sheet_deposit_account_id: LedgerAccountId::new(),
-            bank_checking_id: LedgerAccountId::new(),
-            bank_unallocated_collateral_id: LedgerAccountId::new(),
         }
     }
 }

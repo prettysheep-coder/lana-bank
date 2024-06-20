@@ -116,12 +116,14 @@ impl CalaClient {
         user_id: impl Into<Uuid> + std::fmt::Debug,
         user_account_ids: UserLedgerAccountIds,
     ) -> Result<UserLedgerAccountAddresses, CalaError> {
+        let user_id = user_id.into();
         let variables = create_user_accounts::Variables {
             on_balance_sheet_account_id: Uuid::from(
                 user_account_ids.on_balance_sheet_deposit_account_id,
             ),
-            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id.into()),
+            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
             tron_account_id: Uuid::new_v4(),
+            tron_account_code: format!("ASSETS.TRON.{}", user_id),
             user_deposit_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
         };

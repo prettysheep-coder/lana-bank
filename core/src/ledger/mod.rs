@@ -14,9 +14,8 @@ use account::LedgerAccount;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId,
-    LedgerAccountSetId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
-    UserId, WithdrawId,
+    BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId, LedgerAccountSetId, LedgerDebitOrCredit,
+    LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents, UserId, WithdrawId,
 };
 
 use cala::*;
@@ -360,79 +359,6 @@ impl Ledger {
             name,
             code,
             external_id,
-        )
-        .await
-    }
-
-    async fn assert_address_backed_debit_account_exists(
-        integration_id: BfxIntegrationId,
-        address_type: BfxAddressType,
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, LedgerError> {
-        if let Ok(Some(address)) = cala.find_address_backed_account_by_id(account_id).await {
-            return Ok(address);
-        }
-
-        let err = match cala
-            .create_bfx_address_backed_account(
-                integration_id,
-                address_type,
-                account_id,
-                name.to_owned(),
-                code.to_owned(),
-                credit_account_id,
-            )
-            .await
-        {
-            Ok(address) => return Ok(address),
-            Err(e) => e,
-        };
-
-        match cala.find_address_backed_account_by_id(account_id).await {
-            Ok(Some(address)) => Ok(address),
-            Ok(None) => Err(LedgerError::CouldNotAssertAccountExists),
-            Err(_) => Err(err)?,
-        }
-    }
-
-    async fn assert_off_balance_sheet_address_backed_debit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, LedgerError> {
-        Self::assert_address_backed_debit_account_exists(
-            constants::OFF_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
-            BfxAddressType::Bitcoin,
-            cala,
-            account_id,
-            name,
-            code,
-            credit_account_id,
-        )
-        .await
-    }
-
-    async fn assert_bank_deposit_address_backed_debit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, LedgerError> {
-        Self::assert_address_backed_debit_account_exists(
-            constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
-            BfxAddressType::Tron,
-            cala,
-            account_id,
-            name,
-            code,
-            credit_account_id,
         )
         .await
     }
