@@ -34,8 +34,8 @@ const SignInForm = () => {
         email: emailRef.current.value,
       })
 
-      if (response && response.errorMessage) {
-        setError(response.errorMessage)
+      if (response && response.error?.message) {
+        setError(response.error.message)
       }
     }
   }
@@ -54,7 +54,7 @@ const SignInForm = () => {
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button type="submit" className="rounded-full px-6 w-full">
-            Sign In
+            Next
           </Button>
           {error && (
             <Alert variant="destructive" className="mt-1 p-3">

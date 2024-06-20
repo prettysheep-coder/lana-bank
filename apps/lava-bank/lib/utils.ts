@@ -56,3 +56,19 @@ export function isInputNode(
     "name" in node.attributes
   )
 }
+
+export const createErrorResponse = ({
+  errorMessage,
+  id,
+}: {
+  errorMessage: string
+  id?: number
+}) => {
+  return {
+    data: null,
+    error: {
+      id,
+      message: errorMessage,
+    },
+  }
+}

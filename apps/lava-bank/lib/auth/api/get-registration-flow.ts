@@ -2,7 +2,7 @@ import { RegistrationFlow } from "@ory/kratos-client"
 
 import { AxiosResponse } from "axios"
 
-import { kratosPublic } from "../kratos-sdk"
+import { kratosPublic } from "../../kratos-sdk"
 
 export const getRegistrationFlow = async ({
   flowId,

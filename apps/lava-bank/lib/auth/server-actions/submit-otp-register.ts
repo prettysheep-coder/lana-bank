@@ -10,6 +10,8 @@ import { getCsrfCookiesAsString } from "../utils"
 
 import { setCookieFromString } from "./set-cookie-from-string"
 
+import { createErrorResponse } from "@/lib/utils"
+
 export const submitOtpRegister = async ({
   flowId,
   code,
@@ -18,18 +20,14 @@ export const submitOtpRegister = async ({
   flowId: string
   code: string
   email: string
-}): Promise<void | {
-  response: null
-  errorMessage: string | null
-}> => {
+}): Promise<void | ServerActionResponse<null>> => {
   const csrfToken = cookies().get("csrfToken")?.value
   const allCookies = cookies().getAll()
 
   if (!csrfToken)
-    return {
-      response: null,
-      errorMessage: "not able to find csrf token",
-    }
+    return createErrorResponse({
+      errorMessage: "Something went wrong, please try again.",
+    })
 
   const res = await authService().verifyEmailCodeRegisterFlow({
     code,
@@ -44,31 +42,23 @@ export const submitOtpRegister = async ({
       res.response?.data?.ui?.messages[0]?.id &&
       res.response?.data?.ui?.messages[0]?.text
     ) {
-      return {
-        response: null,
+      return createErrorResponse({
         errorMessage: res.response?.data.ui.messages[0].text,
-      }
+        id: res.response?.data.ui.messages[0].id,
+      })
     }
 
-    return {
-      response: null,
+    return createErrorResponse({
       errorMessage: "Something went wrong, please try again.",
-    }
+    })
   }
 
-  if (res instanceof Error) {
-    return {
-      response: null,
-      errorMessage: res.message,
-    }
-  }
+  if (res instanceof Error) return createErrorResponse({ errorMessage: res.message })
 
-  if (!res.headers["set-cookie"]) {
-    return {
-      response: null,
+  if (!res.headers["set-cookie"])
+    return createErrorResponse({
       errorMessage: "Something went wrong, please try again.",
-    }
-  }
+    })
 
   res.headers["set-cookie"].forEach(setCookieFromString)
 

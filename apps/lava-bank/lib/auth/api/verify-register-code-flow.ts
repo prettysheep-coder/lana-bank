@@ -1,7 +1,7 @@
 import { SuccessfulNativeRegistration } from "@ory/kratos-client"
 import { AxiosError, AxiosResponse } from "axios"
 
-import { kratosPublic } from "../kratos-sdk"
+import { kratosPublic } from "../../kratos-sdk"
 
 export const verifyEmailCodeRegisterFlow = async ({
   flow,

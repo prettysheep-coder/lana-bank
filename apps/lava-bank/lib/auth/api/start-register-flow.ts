@@ -1,6 +1,6 @@
 import { AxiosError } from "axios"
 
-import { kratosPublic } from "../kratos-sdk"
+import { kratosPublic } from "../../kratos-sdk"
 
 import { getCsrfToken } from "@/lib/utils"
 

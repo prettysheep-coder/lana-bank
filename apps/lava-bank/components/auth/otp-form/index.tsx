@@ -16,14 +16,14 @@ import { Alert, AlertDescription } from "@/components/primitive/alert"
 import { submitOtpLogin } from "@/lib/auth/server-actions/submit-otp-login"
 import { submitOtpRegister } from "@/lib/auth/server-actions/submit-otp-register"
 
-type formFor = "SIGN_IN" | "REGISTER"
+type FormType = "SIGN_IN" | "REGISTER"
 
 const OtpForm = ({
   formType,
   flowId,
   email,
 }: {
-  formType: formFor
+  formType: FormType
   flowId: string
   email: string
 }) => {
@@ -39,13 +39,13 @@ const OtpForm = ({
 
     if (formType === "SIGN_IN") {
       const response = await submitOtpLogin({ code: otp, flowId, email })
-      if (response && response.errorMessage) {
-        setError(response.errorMessage)
+      if (response && response.error?.message) {
+        setError(response?.error.message)
       }
     } else {
       const response = await submitOtpRegister({ code: otp, flowId, email })
-      if (response && response.errorMessage) {
-        setError(response.errorMessage)
+      if (response && response.error?.message) {
+        setError(response.error.message)
       }
     }
   }
@@ -77,7 +77,7 @@ const OtpForm = ({
             className="rounded-full w-full"
             onClick={submitOtpHandler}
           >
-            Sign In
+            Submit
           </Button>
           {error && (
             <Alert variant="destructive" className="mt-1 p-3">

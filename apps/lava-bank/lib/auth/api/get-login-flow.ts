@@ -1,4 +1,4 @@
-import { kratosPublic } from "../kratos-sdk"
+import { kratosPublic } from "../../kratos-sdk"
 
 export const getLoginFlow = async ({
   flowId,
