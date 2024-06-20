@@ -25,7 +25,6 @@ teardown_file() {
   cache_value "alice" "$token"
 
   exec_graphql 'alice' 'me'
-  echo $(graphql_output)
   user_id=$(graphql_output '.data.me.userId')
   [[ "$user_id" != "null" ]] || exit 1
 
@@ -38,6 +37,7 @@ teardown_file() {
 
 @test "user: can deposit" {
   ust_address=$(read_value 'user.ust')
+  btc_address=$(read_value 'user.btc')
 
   variables=$(
     jq -n \
@@ -53,6 +53,25 @@ teardown_file() {
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == 1000000 ]] || exit 1
+
+  assert_assets_liabilities
+
+  btc_address=$(read_value 'user.btc')
+
+  variables=$(
+    jq -n \
+      --arg address "$btc_address" \
+    '{
+       address: $address,
+       amount: "1",
+       currency: "BTC"
+    }'
+  )
+  exec_cala_graphql 'simulate-deposit' "$variables"
+
+  exec_graphql 'alice' 'me'
+  btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
+  [[ "$btc_balance" == 100000000 ]] || exit 1
 
   assert_assets_liabilities
 }

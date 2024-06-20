@@ -72,6 +72,8 @@ wait_for_interest() {
   principal_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.outstanding.usdBalance')
   [[ "$principal_balance" == "25000000" ]] || exit 1;
 
+  assert_assets_liabilities
+
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == 25000000 ]] || exit 1

@@ -140,7 +140,7 @@ impl CalaClient {
             .data
             .map(|d| UserLedgerAccountAddresses {
                 tron_usdt_address: d.tron_address.address_backed_account_create.account.address,
-                btc_address: String::new(),
+                btc_address: d.btc_address.address_backed_account_create.account.address,
             })
             .ok_or(CalaError::MissingDataField)
     }
