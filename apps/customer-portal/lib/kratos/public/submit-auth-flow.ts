@@ -1,3 +1,5 @@
+import { UiNode, UiNodeInputAttributes } from "@ory/client"
+
 import { kratosPublic } from "@/lib/kratos/sdk"
 
 import {
@@ -51,5 +53,25 @@ export const submitAuthFlow = async ({ flowId, otp, type }: SubmitAuthData) => {
     })
 
     return data
+  }
+}
+
+export const checkIfTwoFactorRequired = async () => {
+  const { data } = await kratosPublic.createBrowserLoginFlow({
+    aal: "aal2",
+  })
+
+  const userHasTotp =
+    data.ui.nodes.find((node: UiNode) => {
+      if (node.group === "totp") {
+        const attributes = node.attributes as UiNodeInputAttributes
+        return attributes.name === "method"
+      }
+      return false
+    }) !== undefined
+
+  return {
+    flowId: data.id,
+    userHasTotp,
   }
 }
