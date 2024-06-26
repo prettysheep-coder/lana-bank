@@ -4,6 +4,7 @@ query me {
     btcDepositAddress
     ustDepositAddress
     email
+    level
     balance {
       unallocatedCollateral {
         settled {

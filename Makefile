@@ -89,3 +89,6 @@ check-code-apps-admin-panel:
 
 check-code-apps-customer-portal:
 	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm lint && pnpm build
+
+ngrok:
+	ngrok http 5253

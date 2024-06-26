@@ -1,6 +1,7 @@
 mod fixed_term_loan;
 mod schema;
-mod user;
+mod sumsub;
+mod withdraw;
 
 use async_graphql::*;
 
