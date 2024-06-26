@@ -147,6 +147,7 @@ type User {
 	btcDepositAddress: String!
 	ustDepositAddress: String!
 	email: String!
+	level: String!
 	balance: UserBalance!
 	loans: [FixedTermLoan!]!
 }

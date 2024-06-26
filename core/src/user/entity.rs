@@ -2,6 +2,7 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    applicant::{KycLevel, KycStatus},
     entity::*,
     ledger::user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
     primitives::*,
@@ -15,6 +16,9 @@ pub enum UserEvent {
         email: String,
         account_ids: UserLedgerAccountIds,
         account_addresses: UserLedgerAccountAddresses,
+    },
+    KycStatusUpdated {
+        status: KycStatus,
     },
 }
 
@@ -32,17 +36,39 @@ pub struct User {
     pub email: String,
     pub account_ids: UserLedgerAccountIds,
     pub account_addresses: UserLedgerAccountAddresses,
+    kyc_status: KycStatus,
     pub(super) events: EntityEvents<UserEvent>,
 }
 
 impl core::fmt::Display for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "User: {}, email: {}", self.id, self.email)
+        write!(
+            f,
+            "User: {}, email: {}, status: {}",
+            self.id, self.email, self.kyc_status
+        )
     }
 }
 
 impl Entity for User {
     type Event = UserEvent;
+}
+
+impl User {
+    pub fn update_status(&mut self, kyc_status: KycStatus) {
+        self.events.push(UserEvent::KycStatusUpdated {
+            status: kyc_status.clone(),
+        });
+
+        self.kyc_status = kyc_status;
+    }
+
+    pub fn level(&self) -> Option<KycLevel> {
+        match self.kyc_status {
+            KycStatus::None | KycStatus::Started { .. } => None,
+            KycStatus::Approved { level, .. } | KycStatus::Declined { level, .. } => Some(level),
+        }
+    }
 }
 
 impl TryFrom<EntityEvents<UserEvent>> for User {
@@ -63,7 +89,11 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .account_ids(*account_ids)
                         .account_addresses(account_addresses.clone())
                         .email(email.clone())
-                        .account_ids(*account_ids);
+                        .account_ids(*account_ids)
+                        .kyc_status(KycStatus::None);
+                }
+                UserEvent::KycStatusUpdated { status } => {
+                    builder = builder.kyc_status(status.clone());
                 }
             }
         }

@@ -192,6 +192,7 @@ export type User = {
   balance: UserBalance;
   btcDepositAddress: Scalars['String']['output'];
   email: Scalars['String']['output'];
+  level: Scalars['String']['output'];
   loans: Array<FixedTermLoan>;
   userId: Scalars['UUID']['output'];
   ustDepositAddress: Scalars['String']['output'];
