@@ -3,7 +3,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{ledger::*, primitives::UserId};
+use crate::{applicant::KycStatus, ledger::*, primitives::UserId};
 
 pub use cursor::*;
 pub use entity::*;
@@ -58,5 +58,20 @@ impl Users {
         query: crate::query::PaginatedQueryArgs<UserByNameCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<User, UserByNameCursor>, UserError> {
         self.repo.list(query).await
+    }
+
+    pub async fn update_status(
+        &self,
+        user_id: UserId,
+        kyc_status: KycStatus,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id.into()).await?;
+        user.update_status(kyc_status);
+
+        let mut db_tx = self._pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+        db_tx.commit().await?;
+
+        Ok(user)
     }
 }

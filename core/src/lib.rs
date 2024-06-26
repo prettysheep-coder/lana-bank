@@ -12,6 +12,7 @@ pub mod primitives;
 pub mod server;
 pub mod user;
 pub mod withdraw;
+pub mod applicant;
 
 pub mod query {
     #[derive(Debug)]
