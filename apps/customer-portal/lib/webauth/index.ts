@@ -43,6 +43,19 @@ interface SerializedRegisterPublicKeyCredential {
   }
 }
 
+interface SerializedPublicKeyCredential {
+  id: string
+  rawId: string
+  type: string
+  extensions: AuthenticationExtensionsClientOutputs
+  response: {
+    authenticatorData: string
+    clientDataJSON: string
+    signature: string
+    userHandle?: string
+  }
+}
+
 function deserializePublicKeyCredentialCreationOptions(
   serializedPublicKey: SerializedPublicKeyCredentialCreationOptions,
 ): PublicKeyCredentialCreationOptions {
@@ -59,6 +72,21 @@ function deserializePublicKeyCredentialCreationOptions(
       ...serializedPublicKey.user,
       id: safeBase64UrlToArrayBuffer(serializedPublicKey.user.id),
     },
+  }
+}
+
+function deserializeCredentialRequestOptions(
+  serializedPublicKey: SerializedPublicKeyCredentialRequestOptions,
+): PublicKeyCredentialRequestOptions {
+  return {
+    ...serializedPublicKey,
+    challenge: safeBase64UrlToArrayBuffer(serializedPublicKey.challenge),
+    allowCredentials: serializedPublicKey.allowCredentials
+      ? serializedPublicKey.allowCredentials.map((serializedCredential) => ({
+          ...serializedCredential,
+          id: safeBase64UrlToArrayBuffer(serializedCredential.id),
+        }))
+      : undefined,
   }
 }
 
@@ -85,6 +113,27 @@ export function serializeRegisterCredential(
   }
 }
 
+function serializeCredential(
+  credential: PublicKeyCredential,
+): SerializedPublicKeyCredential {
+  const assertionResponse = credential.response as AuthenticatorAssertionResponse
+
+  return {
+    id: credential.id,
+    rawId: arrayBufferToSafeBase64Url(credential.rawId),
+    type: credential.type,
+    extensions: credential.getClientExtensionResults(),
+    response: {
+      authenticatorData: arrayBufferToSafeBase64Url(assertionResponse.authenticatorData),
+      clientDataJSON: arrayBufferToSafeBase64Url(assertionResponse.clientDataJSON),
+      signature: arrayBufferToSafeBase64Url(assertionResponse.signature),
+      userHandle: assertionResponse.userHandle
+        ? arrayBufferToSafeBase64Url(assertionResponse.userHandle)
+        : undefined,
+    },
+  }
+}
+
 export async function signupWithPasskey(
   publicKey: SerializedPublicKeyCredentialCreationOptions,
 ) {
@@ -96,6 +145,19 @@ export async function signupWithPasskey(
   }
 
   return JSON.stringify(serializeRegisterCredential(credentials as PublicKeyCredential))
+}
+
+export async function signinWithPasskey(
+  publicKey: SerializedPublicKeyCredentialRequestOptions,
+) {
+  const credentials = await navigator.credentials.get({
+    publicKey: deserializeCredentialRequestOptions(publicKey),
+  })
+  if (!credentials) {
+    throw new Error("Browser could not get credentials.")
+  }
+
+  return JSON.stringify(serializeCredential(credentials as PublicKeyCredential))
 }
 
 export function arrayBufferToSafeBase64Url(buffer: ArrayBuffer) {
