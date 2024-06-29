@@ -1,8 +1,5 @@
 import QRCode from "react-qr-code"
-
 import { useState } from "react"
-
-import { AxiosError } from "axios"
 
 import { Button } from "@/components/primitive/button"
 import { CopyButton } from "@/components/primitive/copy-button"
@@ -18,13 +15,65 @@ import {
   createTotpSetupFlow,
   submitTotpSetupFlow,
 } from "@/lib/kratos/public/setup-totp-flow"
-import { AttributesNotFoundError } from "@/lib/kratos/error"
+
+export interface AuthenticatorDialogProps {
+  open: boolean
+  onClose: () => void
+  totpSecret: string
+  onSubmit: () => void
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  totpCode: string
+  error: string | null
+}
+
+export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
+  open,
+  onClose,
+  totpSecret,
+  onSubmit,
+  onChange,
+  totpCode,
+  error,
+}) => (
+  <Dialog
+    open={open}
+    onOpenChange={() => {
+      onClose()
+    }}
+  >
+    <DialogContent className="max-w-96">
+      <DialogHeader className="flex flex-col space-y-1.5 text-center">
+        <DialogTitle className="text-center">Setup Authenticator</DialogTitle>
+        <DialogDescription className="text-center">
+          Scan the QR code with your authenticator app and enter the code below
+        </DialogDescription>
+      </DialogHeader>
+      <div className="flex flex-col justify-center items-center gap-4">
+        <div className="flex justify-center items-center bg-white p-4 rounded-lg">
+          <QRCode size={200} value={totpSecret || ""} />
+        </div>
+        <div className="bg-secondary-foreground p-1 rounded-md px-2 flex gap-2 items-center">
+          <p className="text-textColor-secondary text-xs">{totpSecret}</p>
+          <CopyButton value={totpSecret} />
+        </div>
+        <Input
+          value={totpCode}
+          onChange={onChange}
+          placeholder="Enter the code from your authenticator app"
+        />
+        <Button className="w-full" onClick={onSubmit}>
+          Submit
+        </Button>
+        {error && <p className="text-red-500">{error}</p>}
+      </div>
+    </DialogContent>
+  </Dialog>
+)
 
 const SetupAuthenticator = () => {
   const [totpCode, setTotpCode] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [openTotpDialog, setOpenTotpDialog] = useState<boolean>(false)
-
   const [flowData, setFlowData] = useState<{
     flowId: string
     totpSecret: string
@@ -32,19 +81,14 @@ const SetupAuthenticator = () => {
   } | null>(null)
 
   const handleTotpSetup = async () => {
-    const createTotpSetupFlowResponse = await createTotpSetupFlow()
+    const response = await createTotpSetupFlow()
 
-    if (createTotpSetupFlowResponse instanceof AxiosError) {
-      setError(createTotpSetupFlowResponse.message)
+    if (response instanceof Error) {
+      setError(response.message)
       return
     }
 
-    if (createTotpSetupFlowResponse instanceof AttributesNotFoundError) {
-      setError(createTotpSetupFlowResponse.message)
-      return
-    }
-
-    const { flowId, totpSecret, csrfToken } = createTotpSetupFlowResponse
+    const { flowId, totpSecret, csrfToken } = response
     setFlowData({
       flowId,
       totpSecret,
@@ -58,18 +102,19 @@ const SetupAuthenticator = () => {
       return
     }
 
-    try {
-      const submitTotpSetupFlowResponse = await submitTotpSetupFlow({
-        flowId: flowData.flowId,
-        totpCode: totpCode,
-        csrfToken: flowData.csrfToken,
-      })
+    const response = await submitTotpSetupFlow({
+      flowId: flowData.flowId,
+      totpCode,
+      csrfToken: flowData.csrfToken,
+    })
 
-      if (submitTotpSetupFlowResponse.success) {
-        setOpenTotpDialog(false)
-      }
-    } catch (error) {
-      console.log(error)
+    if (response instanceof Error) {
+      setError(response.message)
+      return
+    }
+
+    if (response.success) {
+      setOpenTotpDialog(false)
     }
   }
 
@@ -77,41 +122,19 @@ const SetupAuthenticator = () => {
     <>
       <Button onClick={handleTotpSetup}>Setup Authenticator App</Button>
       {flowData && (
-        <Dialog
+        <AuthenticatorDialog
           open={openTotpDialog}
-          onOpenChange={() => {
+          onClose={() => {
             setError(null)
             setTotpCode("")
             setOpenTotpDialog(!openTotpDialog)
           }}
-        >
-          <DialogContent className="max-w-96">
-            <DialogHeader className="flex flex-col space-y-1.5 text-center">
-              <DialogTitle className="text-center">Setup Authenticator</DialogTitle>
-              <DialogDescription className="text-center">
-                Scan the QR code with your authenticator app and enter the code below
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col justify-center items-center gap-4">
-              <div className="flex justify-center items-center bg-white p-4 rounded-lg ">
-                <QRCode size={200} value={flowData.totpSecret || ""} />
-              </div>
-              <div className="bg-secondary-foreground p-1 rounded-md px-2 flex gap-2 items-center">
-                <p className="text-textColor-secondary text-xs">{flowData.totpSecret}</p>
-                <CopyButton value={flowData.totpSecret} />
-              </div>
-              <Input
-                value={totpCode}
-                onChange={(e) => setTotpCode(e.target.value)}
-                placeholder="Enter the code from your authenticator app"
-              />
-              <Button className="w-full" onClick={handleSubmitTotp}>
-                Submit
-              </Button>
-              {error && <p className="text-red-500">{error}</p>}
-            </div>
-          </DialogContent>
-        </Dialog>
+          totpSecret={flowData.totpSecret}
+          onSubmit={handleSubmitTotp}
+          onChange={(e) => setTotpCode(e.target.value)}
+          totpCode={totpCode}
+          error={error}
+        />
       )}
     </>
   )

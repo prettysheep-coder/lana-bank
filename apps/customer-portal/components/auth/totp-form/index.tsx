@@ -3,8 +3,6 @@ import { useState } from "react"
 
 import { useRouter } from "next/navigation"
 
-import { AxiosError } from "axios"
-
 import { Button } from "@/components/primitive/button"
 import {
   Card,
@@ -30,25 +28,17 @@ const TotpForm = ({ flowId }: { flowId: string }) => {
       return
     }
 
-    try {
-      await submitTotpFow({
-        flowId,
-        totpCode,
-      })
-      router.push("/")
-    } catch (error) {
-      console.error(error)
-      if (error instanceof AxiosError) {
-        if (
-          error.response?.data?.ui?.messages[0]?.id &&
-          error.response?.data?.ui?.messages[0]?.text
-        ) {
-          setError(error.response?.data.ui.messages[0].text)
-          return
-        }
-      }
-      setError("Something went wrong. Please try again.")
+    const submitTotpFowResponse = await submitTotpFow({
+      flowId,
+      totpCode,
+    })
+
+    if (submitTotpFowResponse instanceof Error) {
+      setError(submitTotpFowResponse.message)
+      return
     }
+
+    router.push("/")
   }
 
   return (

@@ -1,4 +1,6 @@
-import { UiNode, UiNodeInputAttributes } from "@ory/client"
+import { LoginFlow, UiNode, UiNodeInputAttributes } from "@ory/client"
+
+import { AxiosError } from "axios"
 
 import { kratosPublic } from "@/lib/kratos/sdk"
 
@@ -57,9 +59,23 @@ export const submitAuthFlow = async ({ flowId, otp, type }: SubmitAuthData) => {
 }
 
 export const checkIfTwoFactorRequired = async () => {
-  const { data } = await kratosPublic.createBrowserLoginFlow({
-    aal: "aal2",
-  })
+  let data: LoginFlow
+
+  try {
+    data = (
+      await kratosPublic.createBrowserLoginFlow({
+        aal: "aal2",
+      })
+    ).data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return new Error(
+        error.response?.data?.ui?.messages[0]?.text ||
+          "Something went wrong, please try again.",
+      )
+    }
+    return new Error("Unknown error occurred. Please try again.")
+  }
 
   const userHasTotp =
     data.ui.nodes.find((node: UiNode) => {

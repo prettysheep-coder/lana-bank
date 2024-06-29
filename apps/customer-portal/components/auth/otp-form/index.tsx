@@ -39,13 +39,21 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
 
     try {
       await submitAuthFlow({ flowId, otp, type })
-      const checkIfTwoFactorRequiredResponse = await checkIfTwoFactorRequired()
-      if (checkIfTwoFactorRequiredResponse.userHasTotp)
-        router.replace(`/auth/2fa/totp?flowId=${checkIfTwoFactorRequiredResponse.flowId}`)
-      else router.replace("/")
-    } catch {
-      setError("Invalid OTP or OTP has expired. Please go back and try again.")
+    } catch (error) {
+      console.error(error)
+      setError("Invalid OTP or OTP has expired. Please go back and try again")
+      return
     }
+
+    const checkIfTwoFactorRequiredResponse = await checkIfTwoFactorRequired()
+    if (checkIfTwoFactorRequiredResponse instanceof Error) {
+      setError(checkIfTwoFactorRequiredResponse.message)
+      return
+    }
+
+    if (checkIfTwoFactorRequiredResponse.userHasTotp)
+      router.replace(`/auth/2fa/totp?flowId=${checkIfTwoFactorRequiredResponse.flowId}`)
+    else router.replace("/")
   }
 
   return (
