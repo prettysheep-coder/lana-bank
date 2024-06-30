@@ -26,7 +26,7 @@ export interface AuthenticatorDialogProps {
   error: string | null
 }
 
-const SetupPasskey = () => {
+const SetupWebAuth = () => {
   const [error, setError] = useState<string | null>(null)
   const [webAuthPasskeyName, setWebAuthPasskeyName] = useState<string>("")
   const [openNameWebAuthnDialog, setOpenNameWebAuthnDialog] = useState<boolean>(false)
@@ -130,4 +130,4 @@ const SetupPasskey = () => {
   )
 }
 
-export { SetupPasskey }
+export { SetupWebAuth }

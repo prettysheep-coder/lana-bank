@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/primitive/card"
 import { SetupAuthenticator } from "@/components/settings/authenticator"
-import { SetupPasskey } from "@/components/settings/passkey"
+import { SetupWebAuth } from "@/components/settings/webauth"
 
 const SettingsPage = () => {
   return (
@@ -21,7 +21,7 @@ const SettingsPage = () => {
         </CardHeader>
         <CardContent className="flex flex-row justify-between">
           <SetupAuthenticator />
-          <SetupPasskey />
+          <SetupWebAuth />
         </CardContent>
       </Card>
     </main>

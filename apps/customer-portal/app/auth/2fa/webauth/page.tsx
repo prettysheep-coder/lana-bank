@@ -5,7 +5,7 @@ import { cookies } from "next/headers"
 import { LoginFlow, UiNodeInputAttributes } from "@ory/client"
 
 import { AuthTemplateCard } from "@/components/auth/auth-template-card"
-import { PasskeySignIn } from "@/components/auth/passkey"
+import { PasskeySignIn } from "@/components/auth/webauth"
 import { SerializedPublicKeyCredentialRequestOptions } from "@/lib/webauth"
 import { kratosPublic } from "@/lib/kratos/sdk"
 import {
@@ -14,7 +14,7 @@ import {
   getCsrfToken,
 } from "@/lib/kratos/utils"
 
-async function TwoFactorAuthWithWebauthnPage({
+async function TwoFactorAuthWithWebAuthPage({
   searchParams,
 }: {
   searchParams: {
@@ -25,9 +25,7 @@ async function TwoFactorAuthWithWebauthnPage({
   const allCookies = cookies().getAll()
   let signInFlow: LoginFlow
 
-  if (!flowId) {
-    redirect("/auth")
-  }
+  if (!flowId) redirect("/auth")
 
   try {
     signInFlow = (
@@ -49,9 +47,7 @@ async function TwoFactorAuthWithWebauthnPage({
   const csrfToken = getCsrfToken(signInFlow)
   const email = emailParserFromUiNodeLogin(signInFlow.ui.nodes)
 
-  if (!email || !csrfToken || !publicKeyNode) {
-    redirect("/auth")
-  }
+  if (!email || !csrfToken || !publicKeyNode) redirect("/auth")
 
   const publicKey = (
     JSON.parse(
@@ -75,4 +71,4 @@ async function TwoFactorAuthWithWebauthnPage({
     </AuthTemplateCard>
   )
 }
-export default TwoFactorAuthWithWebauthnPage
+export default TwoFactorAuthWithWebAuthPage
