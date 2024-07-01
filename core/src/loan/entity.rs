@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*};
+use crate::{entity::*, ledger::loan::LoanAccountIds, primitives::*};
 
 use super::terms::TermValues;
 
@@ -11,7 +11,11 @@ pub enum LoanEvent {
     Initialized {
         id: LoanId,
         user_id: UserId,
+        principal: UsdCents,
+        initial_collateral: Satoshis,
         terms: TermValues,
+        tx_id: LedgerTxId,
+        account_ids: LoanAccountIds,
     },
 }
 
@@ -28,6 +32,7 @@ pub struct Loan {
     pub id: LoanId,
     pub user_id: UserId,
     pub terms: TermValues,
+    pub account_ids: LoanAccountIds,
     pub(super) _events: EntityEvents<LoanEvent>,
 }
 
@@ -42,8 +47,18 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
         let mut builder = LoanBuilder::default();
         for event in events.iter() {
             match event {
-                LoanEvent::Initialized { id, user_id, terms } => {
-                    builder = builder.id(*id).user_id(*user_id).terms(terms.clone())
+                LoanEvent::Initialized {
+                    id,
+                    user_id,
+                    terms,
+                    account_ids,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .user_id(*user_id)
+                        .terms(terms.clone())
+                        .account_ids(account_ids.clone())
                 }
             }
         }
@@ -58,6 +73,10 @@ pub struct NewLoan {
     #[builder(setter(into))]
     pub(super) user_id: UserId,
     pub(super) terms: TermValues,
+    pub(super) principal: UsdCents,
+    pub(super) initial_collateral: Satoshis,
+    pub(super) tx_id: LedgerTxId,
+    pub(super) account_ids: LoanAccountIds,
 }
 
 impl NewLoan {
@@ -72,6 +91,10 @@ impl NewLoan {
                 id: self.id,
                 user_id: self.user_id,
                 terms: self.terms,
+                principal: self.principal,
+                initial_collateral: self.initial_collateral,
+                tx_id: self.tx_id,
+                account_ids: self.account_ids,
             }],
         )
     }
