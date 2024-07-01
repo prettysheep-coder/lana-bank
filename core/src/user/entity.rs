@@ -17,8 +17,19 @@ pub enum UserEvent {
         account_ids: UserLedgerAccountIds,
         account_addresses: UserLedgerAccountAddresses,
     },
-    KycStatusUpdated {
-        status: KycStatus,
+    KycProccessStarted {
+        applicant_id: String,
+    },
+    KycProcessApproved {
+        applicant_id: String,
+        level: KycLevel,
+    },
+    KycProcessDeclined {
+        applicant_id: String,
+        level: KycLevel,
+
+        // may not need optional
+        moderation_comment: Option<String>,
     },
 }
 
@@ -36,7 +47,7 @@ pub struct User {
     pub email: String,
     pub account_ids: UserLedgerAccountIds,
     pub account_addresses: UserLedgerAccountAddresses,
-    kyc_status: KycStatus,
+    kyc_status: Option<KycStatus>,
     pub(super) events: EntityEvents<UserEvent>,
 }
 
@@ -55,15 +66,16 @@ impl Entity for User {
 }
 
 impl User {
-    pub fn update_status(&mut self, kyc_status: KycStatus) {
-        self.events.push(UserEvent::KycStatusUpdated {
-            status: kyc_status.clone(),
-        });
+    pub fn kyc_process_started() {}
 
-        self.kyc_status = kyc_status;
-    }
+    pub fn kyc_process_approved() {}
+
+    pub fn kyc_process_denied() {}
 
     pub fn level(&self) -> Option<KycLevel> {
+        // match self.kyc_status {
+        //     Some(KycStatus::Started {.. }) => None,
+        // }
         match self.kyc_status {
             KycStatus::None | KycStatus::Started { .. } => None,
             KycStatus::Approved { level, .. } | KycStatus::Declined { level, .. } => Some(level),
@@ -83,6 +95,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                     email,
                     account_ids,
                     account_addresses,
+                    kyc_status,
                 } => {
                     builder = builder
                         .id(*id)
@@ -90,7 +103,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .account_addresses(account_addresses.clone())
                         .email(email.clone())
                         .account_ids(*account_ids)
-                        .kyc_status(KycStatus::None);
+                        .kyc_status(kyc_status);
                 }
                 UserEvent::KycStatusUpdated { status } => {
                     builder = builder.kyc_status(status.clone());

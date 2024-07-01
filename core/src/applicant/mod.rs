@@ -19,9 +19,8 @@ pub struct Applicants {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum KycStatus {
-    None,
-    Started {
+pub enum KycProcessState {
+    InProgress {
         applicant_id: String,
     },
     Approved {
@@ -60,6 +59,7 @@ pub enum ReviewAnswer {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum KycLevel {
+    NotKyced
     BasicKycLevel,
     AdvancedKycLevel,
 }
@@ -159,6 +159,7 @@ impl Applicants {
             }
         };
 
+
         match payload {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
@@ -174,7 +175,7 @@ impl Applicants {
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
-                review_result,
+                review_result: ReviewAnsew::Red,
                 applicant_id,
                 level_name,
                 ..
