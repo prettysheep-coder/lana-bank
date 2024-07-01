@@ -13,6 +13,12 @@ CREATE TABLE user_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE loan_terms (
+  id UUID PRIMARY KEY,
+  terms JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE fixed_term_loans (
   id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id),
