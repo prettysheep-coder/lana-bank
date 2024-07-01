@@ -22,17 +22,19 @@ pub enum InterestInterval {
     EndOfMonth,
 }
 
-#[derive(Builder, Debug)]
-pub struct NewTerms {
+#[derive(Builder, Debug, Serialize, Deserialize)]
+pub struct TermValues {
     annual_rate: LoanAnnualRate,
     duration: LoanDuration,
     interval: InterestInterval,
-    overdue_penalty_rate: LoanAnnualRate,
+    // overdue_penalty_rate: LoanAnnualRate,
     liquidation_ltv: LoanLTVPct,
     margin_call_ltv: LoanLTVPct,
     initial_ltv: LoanLTVPct,
 }
 
-pub struct Terms {
-    //
+impl TermValues {
+    pub fn builder() -> TermValuesBuilder {
+        TermValuesBuilder::default()
+    }
 }
