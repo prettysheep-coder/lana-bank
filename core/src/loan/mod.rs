@@ -5,6 +5,8 @@ mod terms;
 
 use sqlx::PgPool;
 
+use crate::primitives::*;
+
 use entity::*;
 use error::*;
 use repo::*;
@@ -28,11 +30,20 @@ impl Loans {
     }
 
     pub async fn update_current_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
-        let terms = self.term_repo.update_current(terms).await?;
-        Ok(terms)
+        Ok(self.term_repo.update_current(terms).await?)
     }
 
-    pub async fn create_loan_for_user(&self, new_loan: NewLoan) -> Result<Loan, LoanError> {
+    pub async fn create_loan_for_user(
+        &self,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+    ) -> Result<Loan, LoanError> {
+        let current_terms = self.term_repo.current().await?;
+        let new_loan = NewLoan::builder()
+            .id(LoanId::new())
+            .user_id(user_id)
+            .terms(current_terms.values)
+            .build()
+            .expect("could not build new loan");
         let mut tx = self.pool.begin().await?;
         let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
         tx.commit().await?;

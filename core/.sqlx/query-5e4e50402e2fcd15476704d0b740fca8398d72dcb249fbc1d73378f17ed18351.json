@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            INSERT INTO loan_terms (values)\n            VALUES ($1)\n            RETURNING id, values\n            ",
+  "query": "\n            SELECT id, values\n            FROM loan_terms\n            WHERE current IS TRUE\n            ",
   "describe": {
     "columns": [
       {
@@ -15,14 +15,12 @@
       }
     ],
     "parameters": {
-      "Left": [
-        "Jsonb"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
       false
     ]
   },
-  "hash": "ee78551c165b006c69591174684fe201741625543e5c27c6422f40dfdf697b2b"
+  "hash": "5e4e50402e2fcd15476704d0b740fca8398d72dcb249fbc1d73378f17ed18351"
 }

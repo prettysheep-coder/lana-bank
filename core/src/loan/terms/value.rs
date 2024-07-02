@@ -22,6 +22,8 @@ pub enum InterestInterval {
     EndOfMonth,
 }
 
+// values for terms are dictated by the bank. loan creation is the process for the user
+// so how much sense does it make to expose fields like margin, liquidation_ltv etc to the user ?
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
     annual_rate: LoanAnnualRate,

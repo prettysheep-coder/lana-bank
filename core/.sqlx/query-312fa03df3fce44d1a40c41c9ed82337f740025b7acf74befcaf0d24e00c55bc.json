@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH updated AS (\n                UPDATE loan_terms\n                SET current = FALSE\n                WHERE current IS TRUE\n                RETURNING id\n            )\n            INSERT INTO loan_terms (current, values)\n            VALUES (true, $1)\n            RETURNING id, values\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "values",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "312fa03df3fce44d1a40c41c9ed82337f740025b7acf74befcaf0d24e00c55bc"
+}
