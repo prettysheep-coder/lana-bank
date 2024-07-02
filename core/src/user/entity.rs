@@ -2,7 +2,6 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    applicant::{KycLevel, KycStatus},
     entity::*,
     ledger::user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
     primitives::*,
@@ -17,8 +16,15 @@ pub enum UserEvent {
         account_ids: UserLedgerAccountIds,
         account_addresses: UserLedgerAccountAddresses,
     },
-    KycStatusUpdated {
-        status: KycStatus,
+    KycStarted {
+        applicant_id: String,
+    },
+    KycApproved {
+        applicant_id: String,
+        level: KycLevel,
+    },
+    KycDeclined {
+        applicant_id: String,
     },
 }
 
@@ -36,17 +42,15 @@ pub struct User {
     pub email: String,
     pub account_ids: UserLedgerAccountIds,
     pub account_addresses: UserLedgerAccountAddresses,
-    kyc_status: KycStatus,
+    pub status: AccountStatus,
+    pub level: KycLevel,
+    pub applicant_id: Option<String>,
     pub(super) events: EntityEvents<UserEvent>,
 }
 
 impl core::fmt::Display for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "User: {}, email: {}, status: {}",
-            self.id, self.email, self.kyc_status
-        )
+        write!(f, "User: {}, email: {}", self.id, self.email)
     }
 }
 
@@ -55,19 +59,19 @@ impl Entity for User {
 }
 
 impl User {
-    pub fn update_status(&mut self, kyc_status: KycStatus) {
-        self.events.push(UserEvent::KycStatusUpdated {
-            status: kyc_status.clone(),
+    pub fn approve(&mut self, level: KycLevel, applicant_id: String) {
+        self.events.push(UserEvent::KycApproved {
+            level,
+            applicant_id,
         });
 
-        self.kyc_status = kyc_status;
+        self.level = KycLevel::Basic;
+        self.status = AccountStatus::Active;
     }
 
-    pub fn level(&self) -> Option<KycLevel> {
-        match self.kyc_status {
-            KycStatus::None | KycStatus::Started { .. } => None,
-            KycStatus::Approved { level, .. } | KycStatus::Declined { level, .. } => Some(level),
-        }
+    pub fn deactivate(&mut self, applicant_id: String) {
+        self.events.push(UserEvent::KycDeclined { applicant_id });
+        self.status = AccountStatus::Inactive;
     }
 }
 
@@ -90,10 +94,18 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .account_addresses(account_addresses.clone())
                         .email(email.clone())
                         .account_ids(*account_ids)
-                        .kyc_status(KycStatus::None);
+                        .level(KycLevel::NotKyced)
+                        .status(AccountStatus::Inactive)
+                        .applicant_id(None);
                 }
-                UserEvent::KycStatusUpdated { status } => {
-                    builder = builder.kyc_status(status.clone());
+                UserEvent::KycStarted { applicant_id } => {
+                    builder = builder.applicant_id(Some(applicant_id.clone()));
+                }
+                UserEvent::KycApproved { level, .. } => {
+                    builder = builder.level(*level).status(AccountStatus::Active)
+                }
+                UserEvent::KycDeclined { .. } => {
+                    builder = builder.status(AccountStatus::Inactive);
                 }
             }
         }

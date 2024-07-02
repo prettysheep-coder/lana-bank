@@ -1,7 +1,6 @@
 use async_graphql::*;
 
-use crate::applicant::KycLevel;
-use crate::primitives::UserId;
+use crate::primitives::{KycLevel, UserId};
 use crate::{app::LavaApp, ledger, server::shared_graphql::primitives::UUID};
 
 use super::balance::UserBalance;
@@ -49,29 +48,25 @@ impl User {
     }
 }
 
-impl From<Option<KycLevel>> for GraphqlKycLevel {
-    fn from(level: Option<KycLevel>) -> Self {
+impl From<KycLevel> for GraphqlKycLevel {
+    fn from(level: KycLevel) -> Self {
         match level {
-            None => GraphqlKycLevel::Zero,
-            Some(level) => match level {
-                KycLevel::BasicKycLevel => GraphqlKycLevel::One,
-                KycLevel::AdvancedKycLevel => GraphqlKycLevel::Two,
-            },
+            KycLevel::NotKyced => GraphqlKycLevel::Zero,
+            KycLevel::Basic => GraphqlKycLevel::One,
+            KycLevel::Advanced => GraphqlKycLevel::Two,
         }
     }
 }
 
 impl From<crate::user::User> for User {
     fn from(user: crate::user::User) -> Self {
-        let level = GraphqlKycLevel::from(user.level());
-
         User {
             user_id: UUID::from(user.id),
             btc_deposit_address: user.account_addresses.btc_address,
             ust_deposit_address: user.account_addresses.tron_usdt_address,
             email: user.email,
             account_ids: user.account_ids,
-            level,
+            level: GraphqlKycLevel::from(user.level),
         }
     }
 }

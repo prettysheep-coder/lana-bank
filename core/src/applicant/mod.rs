@@ -18,38 +18,6 @@ pub struct Applicants {
     users: Users,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum KycStatus {
-    None,
-    Started {
-        applicant_id: String,
-    },
-    Approved {
-        applicant_id: String,
-        level: KycLevel,
-    },
-    Declined {
-        applicant_id: String,
-        level: KycLevel,
-
-        // may not need optional
-        moderation_comment: Option<String>,
-    },
-}
-
-impl std::fmt::Display for KycStatus {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            KycStatus::None => write!(f, "New"),
-            KycStatus::Started { applicant_id } => {
-                write!(f, "Started, applicant_id: {}", applicant_id)
-            }
-            KycStatus::Approved { .. } => write!(f, "Approved"),
-            KycStatus::Declined { .. } => write!(f, "Declined"),
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum ReviewAnswer {
@@ -59,16 +27,16 @@ pub enum ReviewAnswer {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub enum KycLevel {
+pub enum SumsubKycLevel {
     BasicKycLevel,
     AdvancedKycLevel,
 }
 
-impl std::fmt::Display for KycLevel {
+impl std::fmt::Display for SumsubKycLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            KycLevel::BasicKycLevel => write!(f, "basic-kyc-level"),
-            KycLevel::AdvancedKycLevel => write!(f, "advanced-kyc-level"),
+            SumsubKycLevel::BasicKycLevel => write!(f, "basic-kyc-level"),
+            SumsubKycLevel::AdvancedKycLevel => write!(f, "advanced-kyc-level"),
         }
     }
 }
@@ -82,7 +50,7 @@ pub enum SumsubCallbackPayload {
         applicant_id: String,
         inspection_id: String,
         correlation_id: String,
-        level_name: KycLevel,
+        level_name: SumsubKycLevel,
         external_user_id: UserId,
         review_status: String,
         created_at_ms: String,
@@ -95,7 +63,7 @@ pub enum SumsubCallbackPayload {
         inspection_id: String,
         applicant_type: Option<String>,
         correlation_id: String,
-        level_name: KycLevel,
+        level_name: SumsubKycLevel,
         external_user_id: UserId,
         review_status: String,
         created_at_ms: String,
@@ -108,7 +76,7 @@ pub enum SumsubCallbackPayload {
         inspection_id: String,
         correlation_id: String,
         external_user_id: UserId,
-        level_name: KycLevel,
+        level_name: SumsubKycLevel,
         review_result: ReviewResult,
         review_status: String,
         created_at_ms: String,
@@ -120,7 +88,7 @@ pub enum SumsubCallbackPayload {
         inspection_id: String,
         applicant_type: Option<String>,
         correlation_id: String,
-        level_name: KycLevel,
+        level_name: SumsubKycLevel,
         external_user_id: UserId,
         review_result: ReviewResult,
         review_status: String,
@@ -178,35 +146,46 @@ impl Applicants {
                 applicant_id,
                 level_name,
                 ..
+            } => {
+                match review_result.review_answer {
+                    ReviewAnswer::Red => {
+                        let res = self.users.deactivate(external_user_id, applicant_id).await;
+
+                        if let Err(err) = res {
+                            return Err(ApplicantError::UpdatingEntryError(err.to_string()));
+                        }
+                    }
+                    ReviewAnswer::Green => match level_name {
+                        SumsubKycLevel::BasicKycLevel => {
+                            let res = self
+                                .users
+                                .approve_basic(external_user_id, applicant_id)
+                                .await;
+
+                            if let Err(err) = res {
+                                return Err(ApplicantError::UpdatingEntryError(err.to_string()));
+                            }
+                        }
+                        SumsubKycLevel::AdvancedKycLevel => {
+                            todo!("implement advanced kyc level")
+                        }
+                    },
+                };
+
+                Ok(())
             }
-            | SumsubCallbackPayload::ApplicantOnHold {
+            SumsubCallbackPayload::ApplicantOnHold {
                 external_user_id,
                 review_result,
                 applicant_id,
                 level_name,
                 ..
             } => {
-                let status = match review_result.review_answer {
-                    ReviewAnswer::Red => KycStatus::Declined {
-                        applicant_id: applicant_id.clone(),
-                        level: level_name,
-                        moderation_comment: review_result.moderation_comment,
-                    },
-                    ReviewAnswer::Green => KycStatus::Approved {
-                        applicant_id: applicant_id.clone(),
-                        level: level_name,
-                    },
-                };
-
-                println!(
-                    "User {} has KYC status: {}, {:?}",
-                    external_user_id, status, status
-                );
-
-                let user = self.users.update_status(external_user_id, status).await;
-                println!("updated user: {}", user.unwrap());
-
-                Ok(())
+                println!("applicant on hold: {}", external_user_id);
+                println!("review result: {:?}", review_result);
+                println!("applicant_id: {}", applicant_id);
+                println!("level_name: {}", level_name);
+                todo!()
             }
             // no op
             SumsubCallbackPayload::ApplicantPending { .. } => Ok(()),
@@ -219,7 +198,7 @@ impl Applicants {
     ) -> Result<CreateAccessTokenResponse, anyhow::Error> {
         let client = reqwest::Client::new();
 
-        let level_name = KycLevel::BasicKycLevel;
+        let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
             .create_access_token(&client, user_id, &level_name.to_string())
@@ -232,7 +211,7 @@ impl Applicants {
     ) -> Result<CreatePermalinkResponse, anyhow::Error> {
         let client = reqwest::Client::new();
 
-        let level_name = KycLevel::BasicKycLevel;
+        let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
             .create_permalink(&client, user_id, &level_name.to_string())
