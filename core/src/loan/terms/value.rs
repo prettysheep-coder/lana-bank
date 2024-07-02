@@ -22,7 +22,7 @@ pub enum InterestInterval {
     EndOfMonth,
 }
 
-#[derive(Builder, Debug, Serialize, Deserialize)]
+#[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
     annual_rate: LoanAnnualRate,
     duration: LoanDuration,
