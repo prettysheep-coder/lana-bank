@@ -7,6 +7,7 @@ use crate::{
     fixed_term_loan::FixedTermLoans,
     job::{JobRegistry, Jobs},
     ledger::Ledger,
+    loan::Loans,
     user::Users,
     withdraw::Withdraws,
 };
@@ -19,6 +20,7 @@ pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
     fixed_term_loans: FixedTermLoans,
+    loans: Loans,
     users: Users,
     withdraws: Withdraws,
     ledger: Ledger,
@@ -31,6 +33,7 @@ impl LavaApp {
         let users = Users::new(&pool, &ledger);
         let withdraws = Withdraws::new(&pool, &users, &ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, users.repo(), &ledger);
+        let loans = Loans::new(&pool, &mut registry, &users, &ledger);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         fixed_term_loans.set_jobs(&jobs);
         jobs.start_poll().await?;
@@ -40,6 +43,7 @@ impl LavaApp {
             users,
             withdraws,
             fixed_term_loans,
+            loans,
             ledger,
         })
     }

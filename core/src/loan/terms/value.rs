@@ -2,6 +2,8 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use crate::primitives::{Satoshis, UsdCents};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct LoanAnnualRate(Decimal);
@@ -36,5 +38,9 @@ pub struct TermValues {
 impl TermValues {
     pub fn builder() -> TermValuesBuilder {
         TermValuesBuilder::default()
+    }
+
+    pub fn required_colateral(&self, desired_principal: UsdCents) -> Satoshis {
+        unimplemented!()
     }
 }
