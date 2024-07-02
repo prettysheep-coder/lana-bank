@@ -21,11 +21,10 @@ impl TermRepo {
                 UPDATE loan_terms
                 SET current = FALSE
                 WHERE current IS TRUE
-                RETURNING id
             )
             INSERT INTO loan_terms (current, values)
-            VALUES (true, $1)
-            RETURNING id, values
+            VALUES (TRUE, $1)
+            RETURNING id
             "#,
             serde_json::to_value(&terms).expect("should serialize term values"),
         )
@@ -34,11 +33,11 @@ impl TermRepo {
 
         Ok(Terms {
             id: LoanTermsId::from(row.id),
-            values: serde_json::from_value(row.values).expect("should deserialize term values"),
+            values: terms,
         })
     }
 
-    pub async fn current(&self) -> Result<Terms, LoanError> {
+    pub async fn find_current(&self) -> Result<Terms, LoanError> {
         let row = sqlx::query!(
             r#"
             SELECT id, values

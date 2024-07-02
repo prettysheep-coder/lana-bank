@@ -19,7 +19,6 @@ CREATE TABLE loan_terms (
   values JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE UNIQUE INDEX idx_loan_terms_current ON loan_terms (current) WHERE current IS TRUE;
 
 CREATE TABLE loans (

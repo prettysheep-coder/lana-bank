@@ -37,7 +37,7 @@ impl Loans {
         &self,
         user_id: impl Into<UserId> + std::fmt::Debug,
     ) -> Result<Loan, LoanError> {
-        let current_terms = self.term_repo.current().await?;
+        let current_terms = self.term_repo.find_current().await?;
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
             .user_id(user_id)
