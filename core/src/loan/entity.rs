@@ -58,7 +58,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .id(*id)
                         .user_id(*user_id)
                         .terms(terms.clone())
-                        .account_ids(account_ids.clone())
+                        .account_ids(*account_ids)
                 }
             }
         }
