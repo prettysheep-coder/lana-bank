@@ -30,7 +30,7 @@ impl Loans {
     }
 
     pub async fn update_current_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
-        Ok(self.term_repo.update_current(terms).await?)
+        self.term_repo.update_current(terms).await
     }
 
     pub async fn create_loan_for_user(

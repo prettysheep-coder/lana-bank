@@ -1,8 +1,8 @@
 use sqlx::PgPool;
 
-use crate::primitives::*;
+use crate::{loan::LoanError, primitives::*};
 
-use super::{error::TermError, TermValues, Terms};
+use super::{TermValues, Terms};
 
 #[derive(Clone)]
 pub struct TermRepo {
@@ -14,7 +14,7 @@ impl TermRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn update_current(&self, terms: TermValues) -> Result<Terms, TermError> {
+    pub async fn update_current(&self, terms: TermValues) -> Result<Terms, LoanError> {
         let row = sqlx::query!(
             r#"
             WITH updated AS (
@@ -38,7 +38,7 @@ impl TermRepo {
         })
     }
 
-    pub async fn current(&self) -> Result<Terms, TermError> {
+    pub async fn current(&self) -> Result<Terms, LoanError> {
         let row = sqlx::query!(
             r#"
             SELECT id, values
