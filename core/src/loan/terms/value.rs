@@ -40,7 +40,7 @@ impl TermValues {
         TermValuesBuilder::default()
     }
 
-    pub fn required_colateral(&self, desired_principal: UsdCents) -> Satoshis {
+    pub fn required_colateral(&self, _desired_principal: UsdCents) -> Satoshis {
         unimplemented!()
     }
 }

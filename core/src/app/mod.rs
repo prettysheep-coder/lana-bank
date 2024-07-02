@@ -20,7 +20,7 @@ pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
     fixed_term_loans: FixedTermLoans,
-    loans: Loans,
+    _loans: Loans,
     users: Users,
     withdraws: Withdraws,
     ledger: Ledger,
@@ -43,7 +43,7 @@ impl LavaApp {
             users,
             withdraws,
             fixed_term_loans,
-            loans,
+            _loans: loans,
             ledger,
         })
     }

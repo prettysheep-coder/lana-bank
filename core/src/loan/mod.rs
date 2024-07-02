@@ -5,7 +5,7 @@ mod terms;
 
 use sqlx::PgPool;
 
-use crate::{job::JobRegistry, ledger::Ledger, primitives::*, user::Users};
+use crate::{job::JobRegistry, ledger::loan::*, ledger::Ledger, primitives::*, user::Users};
 
 use entity::*;
 use error::*;
@@ -43,7 +43,6 @@ impl Loans {
         user_id: UserId,
         desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
-        let current_terms = self.term_repo.find_current().await?;
         let user = match self.users.find_by_id(user_id).await? {
             Some(user) => user,
             None => return Err(LoanError::UserNotFound(user_id)),
@@ -58,6 +57,7 @@ impl Loans {
             .await?
             .btc_balance;
 
+        let current_terms = self.term_repo.find_current().await?;
         let required_colateral = current_terms.required_colateral(desired_principal);
 
         if required_colateral > unallocated_collateral {
@@ -67,14 +67,34 @@ impl Loans {
             ));
         }
 
+        let mut tx = self.pool.begin().await?;
+
+        let tx_id = LedgerTxId::new();
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
             .user_id(user_id)
             .terms(current_terms.values)
+            .principal(desired_principal)
+            .initial_collateral(required_colateral)
+            .tx_id(tx_id)
+            .account_ids(LoanAccountIds::new())
             .build()
             .expect("could not build new loan");
-        let mut tx = self.pool.begin().await?;
         let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
+        self.ledger
+            .create_accounts_for_loan(loan.id, loan.account_ids)
+            .await?;
+        self.ledger
+            .approve_loan(
+                tx_id,
+                loan.account_ids,
+                user.account_ids,
+                required_colateral,
+                desired_principal,
+                format!("{}-approval", loan.id),
+            )
+            .await?;
+
         tx.commit().await?;
         Ok(loan)
     }
