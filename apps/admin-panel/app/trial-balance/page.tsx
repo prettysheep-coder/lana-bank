@@ -118,9 +118,7 @@ function TrialBalancePage() {
         </TableBody>
         <TableFooter className="border-t-4">
           <TableRow>
-            <TableCell className="text-right uppercase font-bold pr-10">
-              Total Balance
-            </TableCell>
+            <TableCell className="text-right uppercase font-bold pr-10">Totals</TableCell>
             <TableCell className="w-48">
               <Balance currency={currency} amount={balance[currency][layer].debit} />
             </TableCell>
