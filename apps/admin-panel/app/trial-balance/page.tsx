@@ -86,7 +86,7 @@ function TrialBalancePage() {
 
       <Table className="mt-4">
         <TableHeader>
-          <TableHead>Member</TableHead>
+          <TableHead>Account Name</TableHead>
           <TableHead className="text-right">Debit</TableHead>
           <TableHead className="text-right">Credit</TableHead>
           <TableHead className="text-right">Net</TableHead>
