@@ -10,4 +10,6 @@ pub enum ApplicantError {
     InvalidPayload(#[from] serde_json::Error),
     #[error("ApplicantError - InvalidUserId: {0}")]
     InvalidUserId(String),
+    #[error("ApplicantError - UpdatingEntryError: {0}")]
+    UpdatingEntryError(String),
 }

@@ -3,7 +3,10 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{applicant::KycStatus, ledger::*, primitives::UserId};
+use crate::{
+    ledger::*,
+    primitives::{KycLevel, UserId},
+};
 
 pub use cursor::*;
 pub use entity::*;
@@ -60,13 +63,28 @@ impl Users {
         self.repo.list(query).await
     }
 
-    pub async fn update_status(
+    pub async fn approve_basic(
         &self,
         user_id: UserId,
-        kyc_status: KycStatus,
+        applicant_id: String,
     ) -> Result<User, UserError> {
         let mut user = self.repo.find_by_id(user_id.into()).await?;
-        user.update_status(kyc_status);
+        user.approve(KycLevel::Basic, applicant_id);
+
+        let mut db_tx = self._pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+        db_tx.commit().await?;
+
+        Ok(user)
+    }
+
+    pub async fn deactivate(
+        &self,
+        user_id: UserId,
+        applicant_id: String,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id.into()).await?;
+        user.deactivate(applicant_id);
 
         let mut db_tx = self._pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
