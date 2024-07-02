@@ -69,12 +69,12 @@ function TrialBalancePage() {
               <Label htmlFor="layer-all">All</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="pending" id="layer-pending" />
-              <Label htmlFor="layer-pending">Pending</Label>
-            </div>
-            <div className="flex items-center space-x-2">
               <RadioGroupItem value="settled" id="layer-settled" />
               <Label htmlFor="layer-settled">Settled</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="pending" id="layer-pending" />
+              <Label htmlFor="layer-pending">Pending</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="encumbrance" id="layer-encumbrance" />
