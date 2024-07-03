@@ -123,7 +123,6 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .status(AccountStatus::Inactive)
-                        .level(KycLevel::NotKyced);
                 }
             }
         }

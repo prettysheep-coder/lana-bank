@@ -1,6 +1,8 @@
 "use client"
 import QRCode from "react-qr-code"
 
+import { gql } from "@apollo/client"
+
 import { CopyButton } from "@/components/copy-button"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { QrCode } from "@/components/icons"
@@ -17,7 +19,6 @@ import {
   useGetUserByUserIdQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
-import { gql } from "@apollo/client"
 
 gql`
   mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
