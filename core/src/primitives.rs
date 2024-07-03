@@ -12,6 +12,12 @@ crate::entity_id! { JobId }
 crate::entity_id! { LoanId}
 crate::entity_id! { LoanTermsId}
 
+impl From<LoanId> for JobId {
+    fn from(id: LoanId) -> Self {
+        JobId::from(id.0)
+    }
+}
+
 // Consider importing from cala
 #[derive(Debug)]
 pub enum LedgerAccountSetMemberType {

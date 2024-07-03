@@ -1,14 +1,22 @@
 mod entity;
 pub mod error;
+mod job;
 mod repo;
 mod terms;
 
 use sqlx::PgPool;
 
-use crate::{job::JobRegistry, ledger::loan::*, ledger::Ledger, primitives::*, user::Users};
+use crate::{
+    job::{JobRegistry, Jobs},
+    ledger::loan::*,
+    ledger::Ledger,
+    primitives::*,
+    user::Users,
+};
 
 use entity::*;
 use error::*;
+use job::*;
 use repo::*;
 use terms::*;
 
@@ -19,19 +27,30 @@ pub struct Loans {
     users: Users,
     ledger: Ledger,
     pool: PgPool,
+    jobs: Option<Jobs>,
 }
 
 impl Loans {
-    pub fn new(pool: &PgPool, _registry: &mut JobRegistry, users: &Users, ledger: &Ledger) -> Self {
+    pub fn new(pool: &PgPool, registry: &mut JobRegistry, users: &Users, ledger: &Ledger) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
+        registry.add_initializer(LoanProcessingJobInitializer::new(ledger, loan_repo.clone()));
         Self {
             loan_repo,
             term_repo,
             users: users.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
+            jobs: None,
         }
+    }
+
+    pub fn set_jobs(&mut self, jobs: &Jobs) {
+        self.jobs = Some(jobs.clone());
+    }
+
+    fn jobs(&self) -> &Jobs {
+        self.jobs.as_ref().expect("Jobs must already be set")
     }
 
     pub async fn update_current_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
@@ -84,17 +103,14 @@ impl Loans {
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
             .await?;
-        self.ledger
-            .approve_loan(
-                tx_id,
-                loan.account_ids,
-                user.account_ids,
-                required_collateral,
-                desired_principal,
-                format!("{}-approval", loan.id),
+        self.jobs()
+            .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
+                &mut tx,
+                loan.id,
+                format!("loan-processing-{}", loan.id),
+                LoanJobConfig { loan_id: loan.id },
             )
             .await?;
-
         tx.commit().await?;
         Ok(loan)
     }

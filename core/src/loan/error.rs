@@ -18,4 +18,6 @@ pub enum LoanError {
     UserNotAllowedToCreateLoan(UserId),
     #[error("LoanError - InsufficientCollateral: {0} < {1}")]
     InsufficientCollateral(Satoshis, Satoshis),
+    #[error("LoanError - JobError: {0}")]
+    JobError(#[from] crate::job::error::JobError),
 }

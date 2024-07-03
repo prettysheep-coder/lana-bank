@@ -33,9 +33,10 @@ impl LavaApp {
         let users = Users::new(&pool, &ledger);
         let withdraws = Withdraws::new(&pool, &users, &ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, users.repo(), &ledger);
-        let loans = Loans::new(&pool, &mut registry, &users, &ledger);
+        let mut loans = Loans::new(&pool, &mut registry, &users, &ledger);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         fixed_term_loans.set_jobs(&jobs);
+        loans.set_jobs(&jobs);
         jobs.start_poll().await?;
         Ok(Self {
             _pool: pool,
