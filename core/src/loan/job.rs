@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::{error::*, repo::*};
+use super::repo::*;
 use crate::{
     job::*,
     ledger::*,
-    primitives::{LedgerTxId, LoanId, UsdCents},
+    primitives::{LedgerTxId, LoanId},
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -57,8 +57,28 @@ impl JobRunner for LoanProcessingJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        unimplemented!()
-        // let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
+        let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
+        if !loan.is_collateralized() {
+            let mut tx = current_job.pool().begin().await?;
+            let tx_id = LedgerTxId::new();
+            self.ledger
+                .collateralize_loan(
+                    tx_id,
+                    loan.account_ids,
+                    loan.user_account_ids,
+                    loan.initial_collateral(),
+                    loan.initial_principal(),
+                    format!("{}-approval", loan.id),
+                )
+                .await?;
+            loan.collateralize(tx_id);
+            self.repo.persist_in_tx(&mut tx, &mut loan).await?;
+            return Ok(JobCompletion::RescheduleAtWithTx(
+                tx,
+                loan.next_interest_at().expect("first interest"),
+            ));
+        }
+
         // let tx_id = LedgerTxId::new();
         // let tx_ref = match loan.record_incur_interest_transaction(tx_id) {
         //     Err(LoanError::AlreadyCompleted) => {
@@ -87,5 +107,6 @@ impl JobRunner for LoanProcessingJobRunner {
         //         Ok(JobCompletion::CompleteWithTx(db_tx))
         //     }
         // }
+        unimplemented!()
     }
 }

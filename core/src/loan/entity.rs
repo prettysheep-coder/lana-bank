@@ -1,7 +1,12 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, ledger::loan::LoanAccountIds, primitives::*};
+use crate::{
+    entity::*,
+    ledger::{loan::LoanAccountIds, user::UserLedgerAccountIds},
+    primitives::*,
+};
 
 use super::terms::TermValues;
 
@@ -11,11 +16,14 @@ pub enum LoanEvent {
     Initialized {
         id: LoanId,
         user_id: UserId,
+        user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
         initial_collateral: Satoshis,
         terms: TermValues,
-        tx_id: LedgerTxId,
         account_ids: LoanAccountIds,
+    },
+    Collateralized {
+        tx_id: LedgerTxId,
     },
 }
 
@@ -33,7 +41,36 @@ pub struct Loan {
     pub user_id: UserId,
     pub terms: TermValues,
     pub account_ids: LoanAccountIds,
-    pub(super) _events: EntityEvents<LoanEvent>,
+    pub user_account_ids: UserLedgerAccountIds,
+    pub(super) events: EntityEvents<LoanEvent>,
+}
+
+impl Loan {
+    pub fn initial_collateral(&self) -> Satoshis {
+        unimplemented!()
+    }
+
+    pub fn initial_principal(&self) -> UsdCents {
+        unimplemented!()
+    }
+
+    pub fn is_collateralized(&self) -> bool {
+        for event in self.events.iter() {
+            match event {
+                LoanEvent::Collateralized { .. } => return true,
+                _ => continue,
+            }
+        }
+        false
+    }
+
+    pub(super) fn collateralize(&mut self, tx_id: LedgerTxId) {
+        self.events.push(LoanEvent::Collateralized { tx_id });
+    }
+
+    pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
+        unimplemented!()
+    }
 }
 
 impl Entity for Loan {
@@ -52,6 +89,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     user_id,
                     terms,
                     account_ids,
+                    user_account_ids,
                     ..
                 } => {
                     builder = builder
@@ -59,10 +97,12 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .user_id(*user_id)
                         .terms(terms.clone())
                         .account_ids(*account_ids)
+                        .user_account_ids(*user_account_ids)
                 }
+                LoanEvent::Collateralized { .. } => (),
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 
@@ -72,11 +112,11 @@ pub struct NewLoan {
     pub(super) id: LoanId,
     #[builder(setter(into))]
     pub(super) user_id: UserId,
-    pub(super) terms: TermValues,
-    pub(super) principal: UsdCents,
-    pub(super) initial_collateral: Satoshis,
-    pub(super) tx_id: LedgerTxId,
-    pub(super) account_ids: LoanAccountIds,
+    terms: TermValues,
+    principal: UsdCents,
+    initial_collateral: Satoshis,
+    account_ids: LoanAccountIds,
+    user_account_ids: UserLedgerAccountIds,
 }
 
 impl NewLoan {
@@ -93,8 +133,8 @@ impl NewLoan {
                 terms: self.terms,
                 principal: self.principal,
                 initial_collateral: self.initial_collateral,
-                tx_id: self.tx_id,
                 account_ids: self.account_ids,
+                user_account_ids: self.user_account_ids,
             }],
         )
     }

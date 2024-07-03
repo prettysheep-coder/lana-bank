@@ -88,15 +88,14 @@ impl Loans {
 
         let mut tx = self.pool.begin().await?;
 
-        let tx_id = LedgerTxId::new();
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
             .user_id(user_id)
             .terms(current_terms.values)
             .principal(desired_principal)
             .initial_collateral(required_collateral)
-            .tx_id(tx_id)
             .account_ids(LoanAccountIds::new())
+            .user_account_ids(user.account_ids)
             .build()
             .expect("could not build new loan");
         let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
