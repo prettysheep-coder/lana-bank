@@ -6,7 +6,10 @@ use crate::{
     primitives::{FixedTermLoanId, UserId},
     server::{
         public::AuthContext,
-        shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, sumsub::SumsubTokenCreatePayload, user::User},
+        shared_graphql::{
+            fixed_term_loan::FixedTermLoan, primitives::UUID, sumsub::SumsubTokenCreatePayload,
+            user::User,
+        },
     },
 };
 

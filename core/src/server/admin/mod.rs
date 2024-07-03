@@ -9,8 +9,8 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use auth::auth_routes;
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
-use tower_http::cors::CorsLayer;
 use sumsub::sumsub_routes;
+use tower_http::cors::CorsLayer;
 
 use crate::app::LavaApp;
 

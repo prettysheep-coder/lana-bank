@@ -109,7 +109,7 @@ pub struct ReviewResult {
 
 impl Applicants {
     pub fn new(pool: &sqlx::PgPool, config: &SumsubConfig, users: &Users) -> Self {
-        let sumsub_client = SumsubClient::new(&config);
+        let sumsub_client = SumsubClient::new(config);
         Self {
             _pool: pool.clone(),
             sumsub_client,

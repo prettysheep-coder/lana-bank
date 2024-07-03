@@ -12,11 +12,11 @@ pub async fn sumsub_callback(
     match app.applicants().handle_callback(payload).await {
         Ok(()) => {
             println!("KYC callback handled successfully");
-            return axum::Json("{}").into_response();
+            axum::Json("{}").into_response()
         }
         Err(err) => {
             eprintln!("Failed to handle KYC callback: {:?}", err);
-            return axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response();
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }

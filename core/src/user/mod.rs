@@ -68,7 +68,7 @@ impl Users {
         user_id: UserId,
         applicant_id: String,
     ) -> Result<User, UserError> {
-        let mut user = self.repo.find_by_id(user_id.into()).await?;
+        let mut user = self.repo.find_by_id(user_id).await?;
         user.start_kyc(applicant_id);
 
         let mut db_tx = self.pool.begin().await?;
@@ -83,7 +83,7 @@ impl Users {
         user_id: UserId,
         applicant_id: String,
     ) -> Result<User, UserError> {
-        let mut user = self.repo.find_by_id(user_id.into()).await?;
+        let mut user = self.repo.find_by_id(user_id).await?;
         user.approve_kyc(KycLevel::Basic, applicant_id);
 
         let mut db_tx = self.pool.begin().await?;
@@ -98,7 +98,7 @@ impl Users {
         user_id: UserId,
         applicant_id: String,
     ) -> Result<User, UserError> {
-        let mut user = self.repo.find_by_id(user_id.into()).await?;
+        let mut user = self.repo.find_by_id(user_id).await?;
         user.deactivate(applicant_id);
 
         let mut db_tx = self.pool.begin().await?;

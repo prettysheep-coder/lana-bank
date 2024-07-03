@@ -48,8 +48,7 @@ impl SumsubClient {
         let method = "POST";
         let url = format!(
             "/resources/accessTokens?levelName={}&userId={}",
-            level_name,
-            external_user_id.to_string()
+            level_name, external_user_id
         );
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
@@ -164,7 +163,7 @@ mod tests {
     async fn test_create_signature() {
         let user_config = load_config_from_env();
 
-        if let None = user_config {
+        if user_config.is_none() {
             println!("not running the test");
             return;
         };
@@ -187,7 +186,7 @@ mod tests {
     async fn get_access_token() {
         let user_config = load_config_from_env();
 
-        if let None = user_config {
+        if user_config.is_none() {
             println!("not running the test");
             return;
         };
@@ -219,7 +218,7 @@ mod tests {
     async fn create_permalink() {
         let user_config = load_config_from_env();
 
-        if let None = user_config {
+        if user_config.is_none() {
             println!("not running the test");
             return;
         };
