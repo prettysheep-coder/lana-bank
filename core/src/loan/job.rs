@@ -1,11 +1,11 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::repo::*;
+use super::{error::LoanError, repo::*};
 use crate::{
     job::*,
     ledger::*,
-    primitives::{LedgerTxId, LoanId},
+    primitives::{LedgerTxId, LoanId, UsdCents},
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -79,34 +79,33 @@ impl JobRunner for LoanProcessingJobRunner {
             ));
         }
 
-        // let tx_id = LedgerTxId::new();
-        // let tx_ref = match loan.record_incur_interest_transaction(tx_id) {
-        //     Err(LoanError::AlreadyCompleted) => {
-        //         return Ok(JobCompletion::Complete);
-        //     }
-        //     Ok(tx_ref) => tx_ref,
-        //     Err(_) => unreachable!(),
-        // };
-        // println!(
-        //     "Loan interest job running for loan: {:?} - ref {}",
-        //     loan.id, tx_ref
-        // );
-        // let mut db_tx = current_job.pool().begin().await?;
-        // self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let tx_id = LedgerTxId::new();
+        let tx_ref = match loan.record_incur_interest_transaction(tx_id) {
+            Err(LoanError::AlreadyCompleted) => {
+                return Ok(JobCompletion::Complete);
+            }
+            Ok(tx_ref) => tx_ref,
+            Err(_) => unreachable!(),
+        };
+        println!(
+            "Loan interest job running for loan: {:?} - ref {}",
+            loan.id, tx_ref
+        );
+        let mut db_tx = current_job.pool().begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
-        // self.ledger
-        //     .record_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
-        //     .await?;
+        self.ledger
+            .record_loan_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
+            .await?;
 
-        // match loan.next_interest_at() {
-        //     Some(next_interest_at) => {
-        //         Ok(JobCompletion::RescheduleAtWithTx(db_tx, next_interest_at))
-        //     }
-        //     None => {
-        //         println!("Loan interest job completed for loan: {:?}", loan.id);
-        //         Ok(JobCompletion::CompleteWithTx(db_tx))
-        //     }
-        // }
-        unimplemented!()
+        match loan.next_interest_at() {
+            Some(next_interest_at) => {
+                Ok(JobCompletion::RescheduleAtWithTx(db_tx, next_interest_at))
+            }
+            None => {
+                println!("Loan interest job completed for loan: {:?}", loan.id);
+                Ok(JobCompletion::CompleteWithTx(db_tx))
+            }
+        }
     }
 }

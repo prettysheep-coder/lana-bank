@@ -20,4 +20,6 @@ pub enum LoanError {
     InsufficientCollateral(Satoshis, Satoshis),
     #[error("LoanError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("LoanError - AlreadyCompleted")]
+    AlreadyCompleted,
 }

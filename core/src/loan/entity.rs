@@ -8,6 +8,7 @@ use crate::{
     primitives::*,
 };
 
+use super::error::LoanError;
 use super::terms::TermValues;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,12 +19,21 @@ pub enum LoanEvent {
         user_id: UserId,
         user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
-        initial_collateral: Satoshis,
+        collateral: Satoshis,
         terms: TermValues,
         account_ids: LoanAccountIds,
     },
     Collateralized {
         tx_id: LedgerTxId,
+    },
+    InterestRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+    },
+    Completed {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
     },
 }
 
@@ -47,11 +57,19 @@ pub struct Loan {
 
 impl Loan {
     pub fn initial_collateral(&self) -> Satoshis {
-        unimplemented!()
+        if let Some(LoanEvent::Initialized { collateral, .. }) = self.events.iter().next() {
+            *collateral
+        } else {
+            unreachable!("Initialized event not found")
+        }
     }
 
     pub fn initial_principal(&self) -> UsdCents {
-        unimplemented!()
+        if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter().next() {
+            *principal
+        } else {
+            unreachable!("Initialized event not found")
+        }
     }
 
     pub fn is_collateralized(&self) -> bool {
@@ -69,7 +87,46 @@ impl Loan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        unimplemented!()
+        if !self.is_completed() && self.count_interest_incurred() <= 1 {
+            self.terms
+                .interval
+                .next_interest_payment(chrono::Utc::now())
+        } else {
+            None
+        }
+    }
+
+    fn count_interest_incurred(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, LoanEvent::InterestRecorded { .. }))
+            .count()
+    }
+
+    pub fn is_completed(&self) -> bool {
+        self.events
+            .iter()
+            .any(|event| matches!(event, LoanEvent::Completed { .. }))
+    }
+
+    pub fn record_incur_interest_transaction(
+        &mut self,
+        tx_id: LedgerTxId,
+    ) -> Result<String, LoanError> {
+        if self.is_completed() {
+            return Err(LoanError::AlreadyCompleted);
+        }
+
+        let tx_ref = format!(
+            "{}-interest-{}",
+            self.id,
+            self.count_interest_incurred() + 1
+        );
+        self.events.push(LoanEvent::InterestRecorded {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+        });
+        Ok(tx_ref)
     }
 }
 
@@ -100,6 +157,8 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .user_account_ids(*user_account_ids)
                 }
                 LoanEvent::Collateralized { .. } => (),
+                LoanEvent::InterestRecorded { .. } => (),
+                LoanEvent::Completed { .. } => (),
             }
         }
         builder.events(events).build()
@@ -114,7 +173,7 @@ pub struct NewLoan {
     pub(super) user_id: UserId,
     terms: TermValues,
     principal: UsdCents,
-    initial_collateral: Satoshis,
+    collateral: Satoshis,
     account_ids: LoanAccountIds,
     user_account_ids: UserLedgerAccountIds,
 }
@@ -132,7 +191,7 @@ impl NewLoan {
                 user_id: self.user_id,
                 terms: self.terms,
                 principal: self.principal,
-                initial_collateral: self.initial_collateral,
+                collateral: self.collateral,
                 account_ids: self.account_ids,
                 user_account_ids: self.user_account_ids,
             }],

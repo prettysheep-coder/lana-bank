@@ -613,10 +613,39 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.execute_incur_interest_tx", skip(self), err)]
-    pub async fn execute_incur_interest_tx(
+    pub async fn execute_incur_interest_tx_for_fixed_term_loan(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
+        interest_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_incur_interest_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_interest_income_account: loan_account_ids.interest_account_id.into(),
+            interest_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostIncurInterestTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.transaction_post.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(name = "lava.ledger.cala.execute_incur_interest_tx", skip(self), err)]
+    pub async fn execute_incur_interest_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
         interest_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {

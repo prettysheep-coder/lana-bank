@@ -152,10 +152,29 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
-    pub async fn record_interest(
+    pub async fn record_fixed_term_loan_interest(
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
+        tx_ref: String,
+        amount: UsdCents,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_incur_interest_tx_for_fixed_term_loan(
+                tx_id,
+                loan_account_ids,
+                amount.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
+    pub async fn record_loan_interest(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
         tx_ref: String,
         amount: UsdCents,
     ) -> Result<(), LedgerError> {
