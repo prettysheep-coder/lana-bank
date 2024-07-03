@@ -130,28 +130,43 @@ impl Applicants {
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
-                review_result,
+                review_result:
+                    ReviewResult {
+                        review_answer: ReviewAnswer::Red,
+                        ..
+                    },
                 applicant_id,
-                level_name,
                 ..
             } => {
-                match review_result.review_answer {
-                    ReviewAnswer::Red => {
-                        self.users
-                            .deactivate(external_user_id, applicant_id)
-                            .await?;
-                    }
-                    ReviewAnswer::Green => match level_name {
-                        SumsubKycLevel::BasicKycLevel => {
-                            self.users
-                                .approve_basic(external_user_id, applicant_id)
-                                .await?;
-                        }
-                        SumsubKycLevel::AdvancedKycLevel => {
-                            todo!("implement advanced kyc level")
-                        }
+                self.users
+                    .deactivate(external_user_id, applicant_id)
+                    .await?;
+            }
+            SumsubCallbackPayload::ApplicantReviewed {
+                external_user_id,
+                review_result:
+                    ReviewResult {
+                        review_answer: ReviewAnswer::Green,
+                        ..
                     },
-                };
+                applicant_id,
+                level_name: SumsubKycLevel::BasicKycLevel,
+                ..
+            } => {
+                self.users
+                    .approve_basic(external_user_id, applicant_id)
+                    .await?;
+            }
+            SumsubCallbackPayload::ApplicantReviewed {
+                review_result:
+                    ReviewResult {
+                        review_answer: ReviewAnswer::Green,
+                        ..
+                    },
+                level_name: SumsubKycLevel::AdvancedKycLevel,
+                ..
+            } => {
+                todo!("approve advanced kyc");
             }
             SumsubCallbackPayload::ApplicantOnHold {
                 external_user_id, ..
