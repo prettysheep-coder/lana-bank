@@ -15,7 +15,7 @@ pub use repo::UserRepo;
 
 #[derive(Clone)]
 pub struct Users {
-    _pool: sqlx::PgPool,
+    pool: sqlx::PgPool,
     repo: UserRepo,
     ledger: Ledger,
 }
@@ -24,7 +24,7 @@ impl Users {
     pub fn new(pool: &sqlx::PgPool, ledger: &Ledger) -> Self {
         let repo = UserRepo::new(pool);
         Self {
-            _pool: pool.clone(),
+            pool: pool.clone(),
             repo,
             ledger: ledger.clone(),
         }
@@ -71,7 +71,7 @@ impl Users {
         let mut user = self.repo.find_by_id(user_id.into()).await?;
         user.start_kyc(applicant_id);
 
-        let mut db_tx = self._pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
         db_tx.commit().await?;
 
@@ -84,9 +84,9 @@ impl Users {
         applicant_id: String,
     ) -> Result<User, UserError> {
         let mut user = self.repo.find_by_id(user_id.into()).await?;
-        user.approve(KycLevel::Basic, applicant_id);
+        user.approve_kyc(KycLevel::Basic, applicant_id);
 
-        let mut db_tx = self._pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
         db_tx.commit().await?;
 
@@ -101,7 +101,7 @@ impl Users {
         let mut user = self.repo.find_by_id(user_id.into()).await?;
         user.deactivate(applicant_id);
 
-        let mut db_tx = self._pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
         db_tx.commit().await?;
 
