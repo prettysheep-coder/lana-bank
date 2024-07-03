@@ -2,4 +2,5 @@ pub mod balance;
 pub mod fixed_term_loan;
 pub mod objects;
 pub mod primitives;
+pub mod sumsub;
 pub mod user;

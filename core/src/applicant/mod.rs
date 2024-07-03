@@ -133,12 +133,12 @@ impl Applicants {
                 applicant_id,
                 ..
             } => {
-                println!(
-                    "No KYC status update for user_id {}, applicant_id: {}",
-                    external_user_id, applicant_id
-                );
+                let res = self.users.start_kyc(external_user_id, applicant_id).await;
 
-                Ok(())
+                match res {
+                    Ok(_) => Ok(()),
+                    Err(err) => Err(ApplicantError::UpdatingEntryError(err.to_string())),
+                }
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -175,20 +175,15 @@ impl Applicants {
                 Ok(())
             }
             SumsubCallbackPayload::ApplicantOnHold {
-                external_user_id,
-                review_result,
-                applicant_id,
-                level_name,
-                ..
-            } => {
-                println!("applicant on hold: {}", external_user_id);
-                println!("review result: {:?}", review_result);
-                println!("applicant_id: {}", applicant_id);
-                println!("level_name: {}", level_name);
-                todo!()
+                external_user_id, ..
             }
-            // no op
-            SumsubCallbackPayload::ApplicantPending { .. } => Ok(()),
+            | SumsubCallbackPayload::ApplicantPending {
+                external_user_id, ..
+            } => {
+                println!("unprocessed event for : {}", external_user_id);
+
+                Ok(())
+            }
         }
     }
 

@@ -1,16 +1,12 @@
 use async_graphql::*;
 
-use super::{
-    fixed_term_loan::*,
-    sumsub::{SumsubPermalinkCreatePayload, SumsubTokenCreatePayload},
-    withdraw::*,
-};
+use super::{fixed_term_loan::*, withdraw::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
     server::{
         public::AuthContext,
-        shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
+        shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, sumsub::SumsubTokenCreatePayload, user::User},
     },
 };
 
@@ -120,18 +116,5 @@ impl Mutation {
         let res = app.applicants().create_access_token(*user_id).await?;
 
         Ok(SumsubTokenCreatePayload { token: res.token })
-    }
-
-    pub async fn sumsub_permalink_create(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let AuthContext { user_id } = ctx.data()?;
-
-        let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_permalink(*user_id).await?;
-
-        let url = res.url;
-        Ok(SumsubPermalinkCreatePayload { url })
     }
 }

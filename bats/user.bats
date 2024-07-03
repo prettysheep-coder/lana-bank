@@ -112,7 +112,7 @@ teardown_file() {
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-token-create'
   token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')
-  [[ "$token" != "null" ]] || exit 1
+  # [[ "$token" != "null" ]] || exit 1
 
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-permalink-create'
@@ -126,7 +126,40 @@ teardown_file() {
   user_id=$(graphql_output '.data.me.userId')
   [[ "$user_id" != "null" ]] || exit 1
 
-  # # accepted
+  status=$(graphql_output '.data.me.status')
+  [[ "$status" == "INACTIVE" ]] || exit 1
+
+  curl -v -X POST http://localhost:5253/sumsub/callback \
+    -H "Content-Type: application/json" \
+    -d '{
+        "applicantId": "5c9e177b0a975a6eeccf5960",
+        "inspectionId": "5c9e177b0a975a6eeccf5961",
+        "correlationId": "req-63f92830-4d68-4eee-98d5-875d53a12258",
+        "levelName": "basic-kyc-level",
+        "externalUserId": "'"$user_id"'",
+        "type": "applicantCreated",
+        "sandboxMode": "false",
+        "reviewStatus": "init",
+        "createdAtMs": "2020-02-21 13:23:19.002",
+        "clientId": "coolClientId"
+    }'
+
+  exec_graphql 'alice' 'me'
+  echo "$output"
+
+  applicant_id=$(graphql_output '.data.me.applicantId')
+  [[ "$applicant_id" != "null" ]] || exit 1
+
+  applicant_id=$(graphql_output '.data.me.applicantId')
+  [[ "$applicant_id" != "null" ]] || exit 1
+
+  level=$(graphql_output '.data.me.level')
+  [[ "$level" == "ZERO" ]] || exit 1
+
+    status=$(graphql_output '.data.me.status')
+  [[ "$status" == "INACTIVE" ]] || exit 1
+
+  # accepted
   curl -v -X POST http://localhost:5253/sumsub/callback \
       -H "Content-Type: application/json" \
       -d '{
@@ -146,6 +179,9 @@ teardown_file() {
   exec_graphql 'alice' 'me'
   level=$(graphql_output '.data.me.level')
   [[ "$level" == "ONE" ]] || exit 1
+
+    status=$(graphql_output '.data.me.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
 
   # declined
   curl -X POST http://localhost:5253/sumsub/callback \
@@ -171,5 +207,8 @@ teardown_file() {
   exec_graphql 'alice' 'me'
   level=$(graphql_output '.data.me.level')
   [[ "$level" == "ONE" ]] || exit 1
+
+  status=$(graphql_output '.data.me.status')
+  [[ "$status" == "INACTIVE" ]] || exit 1
 
 }

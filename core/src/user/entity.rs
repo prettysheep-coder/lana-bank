@@ -59,12 +59,20 @@ impl Entity for User {
 }
 
 impl User {
+    pub fn start_kyc(&mut self, applicant_id: String) {
+        self.events.push(UserEvent::KycStarted {
+            applicant_id: applicant_id.clone(),
+        });
+        self.applicant_id = Some(applicant_id);
+    }
+
     pub fn approve(&mut self, level: KycLevel, applicant_id: String) {
         self.events.push(UserEvent::KycApproved {
             level,
-            applicant_id,
+            applicant_id: applicant_id.clone(),
         });
 
+        self.applicant_id = Some(applicant_id);
         self.level = KycLevel::Basic;
         self.status = AccountStatus::Active;
     }

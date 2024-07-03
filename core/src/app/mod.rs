@@ -4,7 +4,12 @@ mod error;
 use sqlx::PgPool;
 
 use crate::{
-    applicant::Applicants, fixed_term_loan::FixedTermLoans, job::{JobRegistry, Jobs}, ledger::Ledger, user::Users, withdraw::Withdraws
+    applicant::Applicants,
+    fixed_term_loan::FixedTermLoans,
+    job::{JobRegistry, Jobs},
+    ledger::Ledger,
+    user::Users,
+    withdraw::Withdraws,
 };
 
 pub use config::*;

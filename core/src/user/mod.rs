@@ -63,6 +63,21 @@ impl Users {
         self.repo.list(query).await
     }
 
+    pub async fn start_kyc(
+        &self,
+        user_id: UserId,
+        applicant_id: String,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id.into()).await?;
+        user.start_kyc(applicant_id);
+
+        let mut db_tx = self._pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+        db_tx.commit().await?;
+
+        Ok(user)
+    }
+
     pub async fn approve_basic(
         &self,
         user_id: UserId,
