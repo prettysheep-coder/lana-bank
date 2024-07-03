@@ -10,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
-import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
 import { Select } from "@/components/primitive/select"
 
@@ -30,77 +29,105 @@ export default function CreateLoanPage() {
           </div>
         </CardHeader>
         <CardContent className="ml-14 flex flex-row gap-8">
-          <div className="flex flex-col">
-            <div className="flex flex-row gap-8">
-              <div className="flex flex-col gap-6 w-60">
-                <div>
-                  <Label className="font-bold">USD Loan Amount</Label>
-                  <Select>
-                    <option value="" selected>
-                      $100k USD
-                    </option>
-                    <option value="option1">$200k USD</option>
-                    <option value="option2">$250k USD</option>
-                    <option value="option3">$300k USD</option>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="font-bold">Interest Rate</Label>
-                  <p>5% fixed APR</p>
-                </div>
-                <div>
-                  <Label className="font-bold">Duration</Label>
-                  <p>6 months</p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-6">
-                <div>
-                  <Label className="font-bold">BTC Collateral Required</Label>
-                  <p className="mt-2">2.38021243 BTC</p>
-                </div>
-                <div>
-                  <Label className="font-bold">Collateral Value to Loan (CVL)</Label>
-                  <p>150%</p>
-                </div>
-                <div>
-                  <Label className="font-bold">Origination Fee</Label>
-                  <p>1%</p>
-                </div>
-              </div>
-            </div>
-            <CardFooter className="gap-2 flex flex-col items-start pl-0 mt-8">
-              <p className="text-sm">
-                *Available BTC Balance: 0.00000000 BTC (Deposit BTC)
-              </p>
-              <Link href="/loan/create/approve" className="flex justify-start">
-                <Button>Deposit BTC</Button>
-              </Link>
-            </CardFooter>
-          </div>
-          <Card variant="secondary" className="w-1/2">
-            <CardHeader>
-              <CardTitle>Total Cost Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc pl-5">
-                <li>Total Loan Amount: $100,000</li>
-                <li>Total Interest Cost: $2,500</li>
-                <li>Total Amount Repaid: $102,500</li>
-                <li>Origination Fee: $1,000</li>
-                <li>Total Cost of Loan: $105,155.32</li>
-              </ul>
-            </CardContent>
-            <CardContent>
-              <p className="text-sm mb-2">Collateral Value to Loan Details</p>
-              <ul className="list-disc pl-5">
-                <li>Target CVL: 150%</li>
-                <li>Margin Call: 120%</li>
-                <li>Loan Liquidation: 105%</li>
-              </ul>
-            </CardContent>
-          </Card>
+          <LoanDetails />
+          <LoanBreakDown />
         </CardContent>
       </Card>
     </main>
+  )
+}
+
+const LoanDetails = () => {
+  return (
+    <div className="flex flex-col">
+      <div className="flex flex-row gap-8">
+        <div className="flex flex-col gap-6 w-60">
+          <div>
+            <Label className="font-bold">USD Loan Amount</Label>
+            <Select>
+              <option value="option0" selected>
+                $100k USD
+              </option>
+              <option value="option1">$200k USD</option>
+              <option value="option2">$250k USD</option>
+              <option value="option3">$300k USD</option>
+            </Select>
+          </div>
+          <div>
+            <Label className="font-bold">Interest Rate</Label>
+            <p>5% fixed APR</p>
+          </div>
+          <div>
+            <Label className="font-bold">Duration</Label>
+            <p>6 months</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-6">
+          <div>
+            <Label className="font-bold">BTC Collateral Required</Label>
+            <p className="mt-2">2.38021243 BTC</p>
+          </div>
+          <div>
+            <Label className="font-bold">Collateral Value to Loan (CVL)</Label>
+            <p>150%</p>
+          </div>
+          <div>
+            <Label className="font-bold">Origination Fee</Label>
+            <p>1%</p>
+          </div>
+        </div>
+      </div>
+      <CardFooter className="gap-2 flex flex-col items-start pl-0 mt-8">
+        <p className="text-sm">*Available BTC Balance: 0.00000000 BTC (Deposit BTC)</p>
+        <Link href="/loan/create/approve" className="flex justify-start">
+          <Button>Deposit BTC</Button>
+        </Link>
+      </CardFooter>
+    </div>
+  )
+}
+
+const LoanBreakDown = () => {
+  const loanBreakDownItems = [
+    { title: "Total Loan Amount", value: "$100,000" },
+    { title: "Total Interest Cost", value: "$2,500" },
+    { title: "Total Amount Repaid", value: "$102,500" },
+    { title: "Origination Fee", value: "$1,000" },
+    { title: "Total Cost of Loan", value: "$105,155.32" },
+  ]
+
+  const collateralValueLoanDetails = [
+    { title: "Target CVL", value: "150%" },
+    { title: "Margin Call", value: "120%" },
+    { title: "Loan Liquidation", value: "105%" },
+  ]
+
+  return (
+    <Card variant="secondary" className="w-1/2">
+      <CardHeader>
+        <CardTitle>Total Cost Breakdown</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="list-disc pl-5">
+          {loanBreakDownItems.map((item, index) => (
+            <li key={index}>
+              <span>{item.title}</span>:
+              <span className="font-semibold ml-2">{item.value}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+      <CardContent>
+        <p className="mb-2 font-semibold">Collateral Value to Loan Details</p>
+        <ul className="list-disc pl-5">
+          {collateralValueLoanDetails.map((item, index) => (
+            <li key={index}>
+              <span>{item.title}</span>:
+              <span className="font-semibold ml-2">{item.value}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   )
 }
