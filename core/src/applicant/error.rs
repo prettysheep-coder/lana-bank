@@ -6,10 +6,8 @@ pub enum ApplicantError {
     Sqlx(#[from] sqlx::Error),
     #[error("ApplicantError - EntityError: {0}")]
     EntityError(#[from] crate::entity::EntityError),
-    #[error("ApplicantError - InvalidPayload: {0}")]
-    InvalidPayload(#[from] serde_json::Error),
-    #[error("ApplicantError - InvalidUserId: {0}")]
-    InvalidUserId(String),
-    #[error("ApplicantError - UpdatingEntryError: {0}")]
-    UpdatingEntryError(String),
+    #[error("ApplicantError - Serde: {0}")]
+    Serde(#[from] serde_json::Error),
+    #[error("ApplicantError - UserError: {0}")]
+    UserError(#[from] crate::user::error::UserError),
 }

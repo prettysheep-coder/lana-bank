@@ -120,25 +120,13 @@ impl Applicants {
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         println!("handle sumsub callback");
 
-        let payload = match serde_json::from_value::<SumsubCallbackPayload>(payload) {
-            Ok(payload) => payload,
-            Err(err) => {
-                return Err(ApplicantError::InvalidPayload(err));
-            }
-        };
-
-        match payload {
+        match serde_json::from_value(payload)? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
                 ..
             } => {
-                let res = self.users.start_kyc(external_user_id, applicant_id).await;
-
-                match res {
-                    Ok(_) => Ok(()),
-                    Err(err) => Err(ApplicantError::UpdatingEntryError(err.to_string())),
-                }
+                self.users.start_kyc(external_user_id, applicant_id).await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -149,30 +137,21 @@ impl Applicants {
             } => {
                 match review_result.review_answer {
                     ReviewAnswer::Red => {
-                        let res = self.users.deactivate(external_user_id, applicant_id).await;
-
-                        if let Err(err) = res {
-                            return Err(ApplicantError::UpdatingEntryError(err.to_string()));
-                        }
+                        self.users
+                            .deactivate(external_user_id, applicant_id)
+                            .await?;
                     }
                     ReviewAnswer::Green => match level_name {
                         SumsubKycLevel::BasicKycLevel => {
-                            let res = self
-                                .users
+                            self.users
                                 .approve_basic(external_user_id, applicant_id)
-                                .await;
-
-                            if let Err(err) = res {
-                                return Err(ApplicantError::UpdatingEntryError(err.to_string()));
-                            }
+                                .await?;
                         }
                         SumsubKycLevel::AdvancedKycLevel => {
                             todo!("implement advanced kyc level")
                         }
                     },
                 };
-
-                Ok(())
             }
             SumsubCallbackPayload::ApplicantOnHold {
                 external_user_id, ..
@@ -181,10 +160,9 @@ impl Applicants {
                 external_user_id, ..
             } => {
                 println!("unprocessed event for : {}", external_user_id);
-
-                Ok(())
             }
         }
+        Ok(())
     }
 
     pub async fn create_access_token(
