@@ -15,20 +15,20 @@ import { Checkbox } from "@/components/primitive/check-box"
 import { Label } from "@/components/primitive/label"
 import { BalanceCard } from "@/components/balance-card"
 import { LoanCard } from "@/components/loan/recent-loans-card"
-import { getSession } from "@/lib/auth/get-session.ts"
+import { getMeAndSession } from "@/lib/auth/get-session.ts"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 
 export default async function Home() {
-  const session = await getSession()
+  const getMeAndSessionResponse = await getMeAndSession()
 
-  if (session instanceof Error) {
+  if (getMeAndSessionResponse instanceof Error) {
     return (
       <Card className="max-w-[70rem] m-auto">
         <CardHeader>
           <CardTitle>Error</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription>{session.message}</CardDescription>
+          <CardDescription>{getMeAndSessionResponse.message}</CardDescription>
         </CardContent>
       </Card>
     )
@@ -38,7 +38,8 @@ export default async function Home() {
     {
       currency: "Bitcoin",
       amount: formatCurrency({
-        amount: session.userData?.balance.unallocatedCollateral.settled.btcBalance,
+        amount:
+          getMeAndSessionResponse.me?.balance.unallocatedCollateral.settled.btcBalance,
         currency: "SATS",
       }),
     },
@@ -46,7 +47,7 @@ export default async function Home() {
       currency: "US Dollar",
       amount: formatCurrency({
         amount: currencyConverter.centsToUsd(
-          session.userData?.balance.checking.settled.usdBalance,
+          getMeAndSessionResponse.me?.balance.checking.settled.usdBalance,
         ),
         currency: "USD",
       }),
@@ -58,7 +59,7 @@ export default async function Home() {
       <>
         <OnboardingCard
           twoFactorAuthEnabled={
-            session.kratosSession.authenticator_assurance_level ===
+            getMeAndSessionResponse.session.authenticator_assurance_level ===
             AuthenticatorAssuranceLevel.Aal2 //can we get this from backend api?
           }
           kycCompleted={false}

@@ -6,10 +6,10 @@ import { meQuery } from "@/lib/graphql/query/me"
 import { toSession } from "@/lib/kratos/public/to-session"
 import { MeQuery } from "@/lib/graphql/generated"
 
-export const getSession = async (): Promise<
+export const getMeAndSession = async (): Promise<
   | {
-      userData: MeQuery["me"]
-      kratosSession: Session
+      me: MeQuery["me"]
+      session: Session
     }
   | Error
 > => {
@@ -35,7 +35,7 @@ export const getSession = async (): Promise<
   }
 
   return {
-    userData: meQueryResponse.me,
-    kratosSession,
+    me: meQueryResponse.me,
+    session: kratosSession,
   }
 }
