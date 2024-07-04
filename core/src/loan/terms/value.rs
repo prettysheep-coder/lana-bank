@@ -76,8 +76,8 @@ impl TermValues {
         unimplemented!()
     }
 
-    pub fn monthly_rate(&self) -> Decimal {
-        self.annual_rate.0 / Decimal::from(12)
+    pub fn daily_rate(&self) -> Decimal {
+        self.annual_rate.0 / Decimal::from(366)
     }
 }
 

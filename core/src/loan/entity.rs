@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Datelike, Utc};
 use derive_builder::Builder;
 use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -119,13 +119,31 @@ impl Loan {
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
     }
 
-    pub fn interest_amount(&self) -> UsdCents {
-        let interest = (self.terms.monthly_rate()
-            * rust_decimal::Decimal::from(self.initial_principal().into_inner()))
-        .ceil()
-        .to_u64()
-        .expect("interest amount should be a positive integer");
-        UsdCents::from(interest)
+    pub fn calculate_interest(&self) -> UsdCents {
+        let principal = Decimal::from(self.initial_principal().into_inner());
+        let daily_rate = self.terms.daily_rate();
+        let days = if self.count_interest_incurred() == 0 {
+            let next_payment = self
+                .terms
+                .interval
+                .next_interest_payment(self.start_date)
+                .expect("should return an interest payment date");
+            next_payment.day() - self.start_date.day()
+        } else {
+            self.terms
+                .interval
+                .next_interest_payment(Utc::now())
+                .expect("should return an interest payment date")
+                .day()
+        };
+
+        let interest = (daily_rate * principal * Decimal::from(days)).ceil();
+
+        UsdCents::from(
+            interest
+                .to_u64()
+                .expect("interest amount should be a positive integer"),
+        )
     }
 
     pub fn record_incur_interest_transaction(
