@@ -1,6 +1,5 @@
 use chrono::{DateTime, Datelike, Utc};
 use derive_builder::Builder;
-use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -28,9 +27,10 @@ pub enum LoanEvent {
     Collateralized {
         tx_id: LedgerTxId,
     },
-    InterestRecorded {
+    InterestIncurred {
         tx_id: LedgerTxId,
         tx_ref: String,
+        amount: UsdCents,
     },
     Completed {
         tx_id: LedgerTxId,
@@ -111,7 +111,7 @@ impl Loan {
     fn count_interest_incurred(&self) -> usize {
         self.events
             .iter()
-            .filter(|event| matches!(event, LoanEvent::InterestRecorded { .. }))
+            .filter(|event| matches!(event, LoanEvent::InterestIncurred { .. }))
             .count()
     }
 
@@ -121,43 +121,39 @@ impl Loan {
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
     }
 
-    pub fn calculate_interest(&self) -> UsdCents {
-        let principal = Decimal::from(self.initial_principal().into_inner());
-        let daily_rate = self.terms.daily_rate();
-        let days = if self.count_interest_incurred() == 0 {
-            let next_payment = self.terms.interval.next_interest_payment(self.start_date);
-            next_payment.day() - self.start_date.day()
+    fn days_for_interest_calculation(&self) -> u32 {
+        if self.count_interest_incurred() == 0 {
+            self.terms
+                .interval
+                .next_interest_payment(self.start_date)
+                .day()
+                - self.start_date.day()
         } else {
             self.terms.interval.next_interest_payment(Utc::now()).day()
-        };
-
-        let interest = (daily_rate * principal * Decimal::from(days)).ceil();
-
-        UsdCents::from(
-            interest
-                .to_u64()
-                .expect("interest amount should be a positive integer"),
-        )
+        }
     }
 
-    pub fn record_incur_interest_transaction(
-        &mut self,
-        tx_id: LedgerTxId,
-    ) -> Result<String, LoanError> {
+    pub fn add_interest(&mut self, tx_id: LedgerTxId) -> Result<(UsdCents, String), LoanError> {
         if self.is_completed() {
             return Err(LoanError::AlreadyCompleted);
         }
+
+        let interest = self.terms.calculate_interest(
+            self.initial_principal(),
+            self.days_for_interest_calculation(),
+        );
 
         let tx_ref = format!(
             "{}-interest-{}",
             self.id,
             self.count_interest_incurred() + 1
         );
-        self.events.push(LoanEvent::InterestRecorded {
+        self.events.push(LoanEvent::InterestIncurred {
             tx_id,
             tx_ref: tx_ref.clone(),
+            amount: interest,
         });
-        Ok(tx_ref)
+        Ok((interest, tx_ref))
     }
 }
 
@@ -190,7 +186,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .start_date(*start_date);
                 }
                 LoanEvent::Collateralized { .. } => (),
-                LoanEvent::InterestRecorded { .. } => (),
+                LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::Completed { .. } => (),
             }
         }

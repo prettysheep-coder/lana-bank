@@ -80,7 +80,7 @@ impl JobRunner for LoanProcessingJobRunner {
         }
 
         let tx_id = LedgerTxId::new();
-        let tx_ref = match loan.record_incur_interest_transaction(tx_id) {
+        let (interest, tx_ref) = match loan.add_interest(tx_id) {
             Err(LoanError::AlreadyCompleted) => {
                 return Ok(JobCompletion::Complete);
             }
@@ -92,7 +92,7 @@ impl JobRunner for LoanProcessingJobRunner {
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .record_loan_interest(tx_id, loan.account_ids, tx_ref, loan.calculate_interest())
+            .record_loan_interest(tx_id, loan.account_ids, tx_ref, interest)
             .await?;
 
         match loan.next_interest_at() {

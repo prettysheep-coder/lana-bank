@@ -143,3 +143,14 @@ impl std::ops::Sub<UsdCents> for UsdCents {
         Self(self.0 - other.0)
     }
 }
+
+pub const DUMMY_BTC_PRICE: BtcPrice = BtcPrice(6000000);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct BtcPrice(u64);
+
+impl BtcPrice {
+    pub fn into_inner(self) -> u64 {
+        self.0
+    }
+}
