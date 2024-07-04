@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+use rust_decimal::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -19,9 +20,10 @@ pub enum LoanEvent {
         user_id: UserId,
         user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
-        collateral: Satoshis,
+        initial_collateral: Satoshis,
         terms: TermValues,
         account_ids: LoanAccountIds,
+        start_date: DateTime<Utc>,
     },
     Collateralized {
         tx_id: LedgerTxId,
@@ -52,13 +54,17 @@ pub struct Loan {
     pub terms: TermValues,
     pub account_ids: LoanAccountIds,
     pub user_account_ids: UserLedgerAccountIds,
+    pub start_date: DateTime<Utc>,
     pub(super) events: EntityEvents<LoanEvent>,
 }
 
 impl Loan {
     pub fn initial_collateral(&self) -> Satoshis {
-        if let Some(LoanEvent::Initialized { collateral, .. }) = self.events.iter().next() {
-            *collateral
+        if let Some(LoanEvent::Initialized {
+            initial_collateral, ..
+        }) = self.events.iter().next()
+        {
+            *initial_collateral
         } else {
             unreachable!("Initialized event not found")
         }
@@ -87,13 +93,17 @@ impl Loan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if !self.is_completed() && self.count_interest_incurred() <= 1 {
+        if !self.is_completed() && !self.is_expired() {
             self.terms
                 .interval
                 .next_interest_payment(chrono::Utc::now())
         } else {
             None
         }
+    }
+
+    fn is_expired(&self) -> bool {
+        Utc::now() > self.terms.duration.expiration_date(self.start_date)
     }
 
     fn count_interest_incurred(&self) -> usize {
@@ -107,6 +117,15 @@ impl Loan {
         self.events
             .iter()
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
+    }
+
+    pub fn interest_amount(&self) -> UsdCents {
+        let interest = (self.terms.monthly_rate()
+            * rust_decimal::Decimal::from(self.initial_principal().into_inner()))
+        .ceil()
+        .to_u64()
+        .expect("interest amount should be a positive integer");
+        UsdCents::from(interest)
     }
 
     pub fn record_incur_interest_transaction(
@@ -147,6 +166,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     terms,
                     account_ids,
                     user_account_ids,
+                    start_date,
                     ..
                 } => {
                     builder = builder
@@ -155,6 +175,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .terms(terms.clone())
                         .account_ids(*account_ids)
                         .user_account_ids(*user_account_ids)
+                        .start_date(*start_date);
                 }
                 LoanEvent::Collateralized { .. } => (),
                 LoanEvent::InterestRecorded { .. } => (),
@@ -173,9 +194,11 @@ pub struct NewLoan {
     pub(super) user_id: UserId,
     terms: TermValues,
     principal: UsdCents,
-    collateral: Satoshis,
+    initial_collateral: Satoshis,
     account_ids: LoanAccountIds,
     user_account_ids: UserLedgerAccountIds,
+    #[builder(default = "Utc::now()")]
+    start_date: DateTime<Utc>,
 }
 
 impl NewLoan {
@@ -191,9 +214,10 @@ impl NewLoan {
                 user_id: self.user_id,
                 terms: self.terms,
                 principal: self.principal,
-                collateral: self.collateral,
+                initial_collateral: self.initial_collateral,
                 account_ids: self.account_ids,
                 user_account_ids: self.user_account_ids,
+                start_date: self.start_date,
             }],
         )
     }

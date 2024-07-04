@@ -5,7 +5,7 @@ use super::{error::LoanError, repo::*};
 use crate::{
     job::*,
     ledger::*,
-    primitives::{LedgerTxId, LoanId, UsdCents},
+    primitives::{LedgerTxId, LoanId},
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -87,15 +87,12 @@ impl JobRunner for LoanProcessingJobRunner {
             Ok(tx_ref) => tx_ref,
             Err(_) => unreachable!(),
         };
-        println!(
-            "Loan interest job running for loan: {:?} - ref {}",
-            loan.id, tx_ref
-        );
+
         let mut db_tx = current_job.pool().begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .record_loan_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
+            .record_loan_interest(tx_id, loan.account_ids, tx_ref, loan.interest_amount())
             .await?;
 
         match loan.next_interest_at() {

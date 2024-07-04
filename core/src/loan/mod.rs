@@ -93,7 +93,7 @@ impl Loans {
             .user_id(user_id)
             .terms(current_terms.values)
             .principal(desired_principal)
-            .collateral(required_collateral)
+            .initial_collateral(required_collateral)
             .account_ids(LoanAccountIds::new())
             .user_account_ids(user.account_ids)
             .build()

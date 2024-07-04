@@ -19,6 +19,16 @@ pub enum LoanDuration {
     Months(u32),
 }
 
+impl LoanDuration {
+    pub fn expiration_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
+        match self {
+            LoanDuration::Months(months) => start_date
+                .checked_add_months(chrono::Months::new(*months))
+                .expect("should return a expiration date"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
@@ -48,8 +58,8 @@ impl InterestInterval {
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
-    annual_rate: LoanAnnualRate,
-    duration: LoanDuration,
+    pub(crate) annual_rate: LoanAnnualRate,
+    pub(crate) duration: LoanDuration,
     pub(crate) interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
     liquidation_ltv: LoanLTVPct,
@@ -64,6 +74,10 @@ impl TermValues {
 
     pub fn required_collateral(&self, _desired_principal: UsdCents) -> Satoshis {
         unimplemented!()
+    }
+
+    pub fn monthly_rate(&self) -> Decimal {
+        self.annual_rate.0 / Decimal::from(12)
     }
 }
 
@@ -81,5 +95,13 @@ mod test {
             interval.next_interest_payment(current_date),
             Some(next_payment)
         );
+    }
+
+    #[test]
+    fn expiration_date() {
+        let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let duration = LoanDuration::Months(3);
+        let expiration_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(duration.expiration_date(start_date), expiration_date);
     }
 }

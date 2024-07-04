@@ -123,6 +123,12 @@ impl UsdCents {
     }
 }
 
+impl From<u64> for UsdCents {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
 impl fmt::Display for UsdCents {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
