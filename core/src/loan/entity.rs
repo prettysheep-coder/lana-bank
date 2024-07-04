@@ -94,9 +94,11 @@ impl Loan {
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
         if !self.is_completed() && !self.is_expired() {
-            self.terms
-                .interval
-                .next_interest_payment(chrono::Utc::now())
+            Some(
+                self.terms
+                    .interval
+                    .next_interest_payment(chrono::Utc::now()),
+            )
         } else {
             None
         }
@@ -123,18 +125,10 @@ impl Loan {
         let principal = Decimal::from(self.initial_principal().into_inner());
         let daily_rate = self.terms.daily_rate();
         let days = if self.count_interest_incurred() == 0 {
-            let next_payment = self
-                .terms
-                .interval
-                .next_interest_payment(self.start_date)
-                .expect("should return an interest payment date");
+            let next_payment = self.terms.interval.next_interest_payment(self.start_date);
             next_payment.day() - self.start_date.day()
         } else {
-            self.terms
-                .interval
-                .next_interest_payment(Utc::now())
-                .expect("should return an interest payment date")
-                .day()
+            self.terms.interval.next_interest_payment(Utc::now()).day()
         };
 
         let interest = (daily_rate * principal * Decimal::from(days)).ceil();

@@ -36,7 +36,7 @@ pub enum InterestInterval {
 }
 
 impl InterestInterval {
-    pub fn next_interest_payment(&self, current_date: DateTime<Utc>) -> Option<DateTime<Utc>> {
+    pub fn next_interest_payment(&self, current_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             InterestInterval::EndOfMonth => {
                 let current_year = current_date.year();
@@ -50,7 +50,8 @@ impl InterestInterval {
 
                 Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
                     .single()
-                    .map(|dt| dt - chrono::Duration::seconds(1))
+                    .expect("should return a valid date time")
+                    - chrono::Duration::seconds(1)
             }
         }
     }
