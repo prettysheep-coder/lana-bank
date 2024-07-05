@@ -187,14 +187,14 @@ mod test {
     use super::*;
 
     #[test]
-    fn sats_to_cents_trivial() {
+    fn cents_to_sats_trivial() {
         let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
         let cents = UsdCents::from_usd(rust_decimal_macros::dec!(1000));
         assert_eq!(Satoshis::from_btc(dec!(1)), price.cents_to_sats(cents));
     }
 
     #[test]
-    fn sats_to_cents_complex() {
+    fn cents_to_sats_complex() {
         let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)));
         let cents = UsdCents::from_usd(rust_decimal_macros::dec!(100));
         assert_eq!(

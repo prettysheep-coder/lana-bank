@@ -170,9 +170,9 @@ mod test {
         let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
         let terms = terms();
         let principal = UsdCents::from(100000);
-        let interest = terms.required_collateral(principal, price);
+        let required_collateral = terms.required_collateral(principal, price);
         let sats = Satoshis::from_btc(dec!(1.4));
-        assert_eq!(interest, sats);
+        assert_eq!(required_collateral, sats);
     }
 
     #[test]
