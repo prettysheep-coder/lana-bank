@@ -12,9 +12,8 @@ teardown_file() {
 
 @test "loan: can create loan terms" {
 
-  exec_admin_graphql 'term-values-create'
-  echo $(graphql_output '.data.termValuesCreate')
-  terms_id=$(graphql_output '.data.termValuesCreate.terms.termsId')
+  exec_admin_graphql 'current-terms-update' 
+  terms_id=$(graphql_output '.data.currentTermsUpdate.terms.termsId')
   [[ "$terms_id" != "null" ]] || exit 1
 
 }

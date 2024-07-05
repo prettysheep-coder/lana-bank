@@ -80,9 +80,19 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
-export enum DurationType {
-  Months = 'MONTHS'
-}
+export type CurrentTermsUpdateInput = {
+  annualRate: Scalars['LoanAnnualRate']['input'];
+  duration: LoanDurationInput;
+  initialCvl: Scalars['LoanCVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['LoanCVLPct']['input'];
+  marginCallCvl: Scalars['LoanCVLPct']['input'];
+};
+
+export type CurrentTermsUpdatePayload = {
+  __typename?: 'CurrentTermsUpdatePayload';
+  terms: Terms;
+};
 
 export type FixedTermLoan = {
   __typename?: 'FixedTermLoan';
@@ -131,13 +141,13 @@ export type LayeredUsdAccountBalances = {
 
 export type LoanDuration = {
   __typename?: 'LoanDuration';
-  duration: Scalars['Int']['output'];
-  type: DurationType;
+  period: Period;
+  units: Scalars['Int']['output'];
 };
 
 export type LoanDurationInput = {
-  duration: Scalars['Int']['input'];
-  type: DurationType;
+  period: Period;
+  units: Scalars['Int']['input'];
 };
 
 export type LoanOutstanding = {
@@ -147,9 +157,14 @@ export type LoanOutstanding = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  currentTermsUpdate: CurrentTermsUpdatePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
-  termValuesCreate: TermValuesCreatePayload;
+};
+
+
+export type MutationCurrentTermsUpdateArgs = {
+  input: CurrentTermsUpdateInput;
 };
 
 
@@ -160,11 +175,6 @@ export type MutationShareholderEquityAddArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
-};
-
-
-export type MutationTermValuesCreateArgs = {
-  input: TermValuesCreateInput;
 };
 
 /** Information about pagination in a connection */
@@ -179,6 +189,10 @@ export type PageInfo = {
   /** When paginating backwards, the cursor to continue. */
   startCursor?: Maybe<Scalars['String']['output']>;
 };
+
+export enum Period {
+  Months = 'MONTHS'
+}
 
 export type Query = {
   __typename?: 'Query';
@@ -231,20 +245,6 @@ export type TermValues = {
   interval: InterestInterval;
   liquidationCvl: Scalars['LoanCVLPct']['output'];
   marginCallCvl: Scalars['LoanCVLPct']['output'];
-};
-
-export type TermValuesCreateInput = {
-  annualRate: Scalars['LoanAnnualRate']['input'];
-  duration: LoanDurationInput;
-  initialCvl: Scalars['LoanCVLPct']['input'];
-  interval: InterestInterval;
-  liquidationCvl: Scalars['LoanCVLPct']['input'];
-  marginCallCvl: Scalars['LoanCVLPct']['input'];
-};
-
-export type TermValuesCreatePayload = {
-  __typename?: 'TermValuesCreatePayload';
-  terms: Terms;
 };
 
 export type Terms = {

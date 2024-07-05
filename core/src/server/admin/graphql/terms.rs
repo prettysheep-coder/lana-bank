@@ -29,12 +29,12 @@ pub struct TermValues {
 
 #[derive(SimpleObject)]
 pub(super) struct LoanDuration {
-    r#type: DurationType,
-    duration: u32,
+    period: Period,
+    units: u32,
 }
 
 #[derive(InputObject)]
-pub(super) struct TermValuesCreateInput {
+pub(super) struct CurrentTermsUpdateInput {
     pub annual_rate: LoanAnnualRate,
     pub interval: InterestInterval,
     pub liquidation_cvl: LoanCVLPct,
@@ -51,14 +51,14 @@ pub(super) enum InterestInterval {
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 
-pub(super) enum DurationType {
+pub(super) enum Period {
     Months,
 }
 
 #[derive(InputObject)]
 pub(super) struct LoanDurationInput {
-    pub r#type: DurationType,
-    pub duration: u32,
+    pub period: Period,
+    pub units: u32,
 }
 
 impl ToGlobalId for crate::primitives::LoanTermsId {
@@ -94,8 +94,8 @@ impl From<crate::loan::LoanDuration> for LoanDuration {
     fn from(duration: crate::loan::LoanDuration) -> Self {
         match duration {
             crate::loan::LoanDuration::Months(months) => Self {
-                r#type: DurationType::Months,
-                duration: months,
+                period: Period::Months,
+                units: months,
             },
         }
     }
@@ -103,18 +103,18 @@ impl From<crate::loan::LoanDuration> for LoanDuration {
 
 impl From<LoanDurationInput> for crate::loan::LoanDuration {
     fn from(loan_duration: LoanDurationInput) -> Self {
-        match loan_duration.r#type {
-            DurationType::Months => Self::Months(loan_duration.duration),
+        match loan_duration.period {
+            Period::Months => Self::Months(loan_duration.units),
         }
     }
 }
 
 #[derive(SimpleObject)]
-pub struct TermValuesCreatePayload {
+pub struct CurrentTermsUpdatePayload {
     pub terms: Terms,
 }
 
-impl From<crate::loan::Terms> for TermValuesCreatePayload {
+impl From<crate::loan::Terms> for CurrentTermsUpdatePayload {
     fn from(terms: crate::loan::Terms) -> Self {
         Self {
             terms: terms.into(),

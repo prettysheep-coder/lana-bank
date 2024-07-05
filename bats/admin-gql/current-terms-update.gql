@@ -1,9 +1,9 @@
-mutation TermValuesCreate {
-  termValuesCreate(
+mutation {
+  currentTermsUpdate(
     input: {
       annualRate: "0.12"
       interval: END_OF_MONTH
-      duration: { type: MONTHS, duration: 3 }
+      duration: { period: MONTHS, units: 3 }
       liquidationCvl: "105"
       marginCallCvl: "125"
       initialCvl: "140"

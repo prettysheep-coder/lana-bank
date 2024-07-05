@@ -111,11 +111,11 @@ impl Mutation {
         Ok(SumsubPermalinkCreatePayload { url })
     }
 
-    async fn term_values_create(
+    async fn current_terms_update(
         &self,
         ctx: &Context<'_>,
-        input: TermValuesCreateInput,
-    ) -> async_graphql::Result<TermValuesCreatePayload> {
+        input: CurrentTermsUpdateInput,
+    ) -> async_graphql::Result<CurrentTermsUpdatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let term_values = crate::loan::TermValues::builder()
             .annual_rate(input.annual_rate)
@@ -126,6 +126,6 @@ impl Mutation {
             .initial_cvl(input.initial_cvl)
             .build()?;
         let terms = app.loans().update_current_terms(term_values).await?;
-        Ok(TermValuesCreatePayload::from(terms))
+        Ok(CurrentTermsUpdatePayload::from(terms))
     }
 }
