@@ -1,5 +1,6 @@
 "use server"
 
+import { sumSubPermalinkCreate } from "@/lib/graphql/mutation/sumsub-permalink-create"
 import { sumSubTokenCreate } from "@/lib/graphql/mutation/sumsub-token-create"
 
 export const initiateKycKyb = async (): Promise<
@@ -21,6 +22,29 @@ export const initiateKycKyb = async (): Promise<
   return {
     data: {
       token: sumSubTokenCreateResponse.sumsubTokenCreate.token,
+    },
+    error: null,
+  }
+}
+
+export const generateKycPermalink = async (): Promise<
+  ServerActionResponse<{
+    permalink: string
+  }>
+> => {
+  const sumSubPermalinkCreateResponse = await sumSubPermalinkCreate()
+  if (sumSubPermalinkCreateResponse instanceof Error) {
+    return {
+      data: null,
+      error: {
+        message: sumSubPermalinkCreateResponse.message,
+      },
+    }
+  }
+
+  return {
+    data: {
+      permalink: sumSubPermalinkCreateResponse.sumsubPermalinkCreate.url,
     },
     error: null,
   }
