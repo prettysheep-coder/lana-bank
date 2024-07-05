@@ -17,6 +17,8 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  LoanAnnualRate: { input: any; output: any; }
+  LoanCVLPct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   UUID: { input: string; output: string; }
   UsdCents: { input: any; output: any; }
@@ -78,6 +80,10 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export enum DurationType {
+  Months = 'MONTHS'
+}
+
 export type FixedTermLoan = {
   __typename?: 'FixedTermLoan';
   balance: FixedTermLoanBalance;
@@ -96,6 +102,10 @@ export type InterestIncome = {
   __typename?: 'InterestIncome';
   usdBalance: Scalars['UsdCents']['output'];
 };
+
+export enum InterestInterval {
+  EndOfMonth = 'END_OF_MONTH'
+}
 
 export enum KycLevel {
   One = 'ONE',
@@ -119,6 +129,17 @@ export type LayeredUsdAccountBalances = {
   settled: UsdAccountBalance;
 };
 
+export type LoanDuration = {
+  __typename?: 'LoanDuration';
+  duration: Scalars['Int']['output'];
+  type: DurationType;
+};
+
+export type LoanDurationInput = {
+  duration: Scalars['Int']['input'];
+  type: DurationType;
+};
+
 export type LoanOutstanding = {
   __typename?: 'LoanOutstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -128,6 +149,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  termValuesCreate: TermValuesCreatePayload;
 };
 
 
@@ -138,6 +160,11 @@ export type MutationShareholderEquityAddArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
+};
+
+
+export type MutationTermValuesCreateArgs = {
+  input: TermValuesCreateInput;
 };
 
 /** Information about pagination in a connection */
@@ -194,6 +221,37 @@ export type SumsubPermalinkCreateInput = {
 export type SumsubPermalinkCreatePayload = {
   __typename?: 'SumsubPermalinkCreatePayload';
   url: Scalars['String']['output'];
+};
+
+export type TermValues = {
+  __typename?: 'TermValues';
+  annualRate: Scalars['LoanAnnualRate']['output'];
+  duration: LoanDuration;
+  initialCvl: Scalars['LoanCVLPct']['output'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['LoanCVLPct']['output'];
+  marginCallCvl: Scalars['LoanCVLPct']['output'];
+};
+
+export type TermValuesCreateInput = {
+  annualRate: Scalars['LoanAnnualRate']['input'];
+  duration: LoanDurationInput;
+  initialCvl: Scalars['LoanCVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['LoanCVLPct']['input'];
+  marginCallCvl: Scalars['LoanCVLPct']['input'];
+};
+
+export type TermValuesCreatePayload = {
+  __typename?: 'TermValuesCreatePayload';
+  terms: Terms;
+};
+
+export type Terms = {
+  __typename?: 'Terms';
+  id: Scalars['ID']['output'];
+  termsId: Scalars['UUID']['output'];
+  values: TermValues;
 };
 
 export type UnallocatedCollateral = {

@@ -26,6 +26,12 @@ impl LoanAnnualRate {
     }
 }
 
+impl From<Decimal> for LoanAnnualRate {
+    fn from(value: Decimal) -> Self {
+        LoanAnnualRate(value)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct LoanCVLPct(Decimal);
@@ -39,6 +45,12 @@ impl LoanCVLPct {
                 .to_u64()
                 .expect("should return a valid integer"),
         )
+    }
+}
+
+impl From<Decimal> for LoanCVLPct {
+    fn from(value: Decimal) -> Self {
+        LoanCVLPct(value)
     }
 }
 
@@ -88,13 +100,19 @@ impl InterestInterval {
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
+    #[builder(setter(into))]
     pub(crate) annual_rate: LoanAnnualRate,
+    #[builder(setter(into))]
     pub(crate) duration: LoanDuration,
+    #[builder(setter(into))]
     pub(crate) interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
-    liquidation_cvl: LoanCVLPct,
-    margin_call_cvl: LoanCVLPct,
-    initial_cvl: LoanCVLPct,
+    #[builder(setter(into))]
+    pub(crate) liquidation_cvl: LoanCVLPct,
+    #[builder(setter(into))]
+    pub(crate) margin_call_cvl: LoanCVLPct,
+    #[builder(setter(into))]
+    pub(crate) initial_cvl: LoanCVLPct,
 }
 
 impl TermValues {

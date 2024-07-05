@@ -47,6 +47,10 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+enum DurationType {
+	MONTHS
+}
+
 type FixedTermLoan {
 	loanId: UUID!
 	balance: FixedTermLoanBalance!
@@ -64,6 +68,10 @@ type FixedTermLoanBalance {
 
 type InterestIncome {
 	usdBalance: UsdCents!
+}
+
+enum InterestInterval {
+	END_OF_MONTH
 }
 
 enum KycLevel {
@@ -86,6 +94,20 @@ type LayeredUsdAccountBalances {
 	encumbrance: UsdAccountBalance!
 }
 
+scalar LoanAnnualRate
+
+scalar LoanCVLPct
+
+type LoanDuration {
+	type: DurationType!
+	duration: Int!
+}
+
+input LoanDurationInput {
+	type: DurationType!
+	duration: Int!
+}
+
 type LoanOutstanding {
 	usdBalance: UsdCents!
 }
@@ -93,6 +115,7 @@ type LoanOutstanding {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
+	termValuesCreate(input: TermValuesCreateInput!): TermValuesCreatePayload!
 }
 
 """
@@ -142,6 +165,34 @@ input SumsubPermalinkCreateInput {
 
 type SumsubPermalinkCreatePayload {
 	url: String!
+}
+
+type TermValues {
+	annualRate: LoanAnnualRate!
+	interval: InterestInterval!
+	duration: LoanDuration!
+	liquidationCvl: LoanCVLPct!
+	marginCallCvl: LoanCVLPct!
+	initialCvl: LoanCVLPct!
+}
+
+input TermValuesCreateInput {
+	annualRate: LoanAnnualRate!
+	interval: InterestInterval!
+	liquidationCvl: LoanCVLPct!
+	duration: LoanDurationInput!
+	marginCallCvl: LoanCVLPct!
+	initialCvl: LoanCVLPct!
+}
+
+type TermValuesCreatePayload {
+	terms: Terms!
+}
+
+type Terms {
+	id: ID!
+	termsId: UUID!
+	values: TermValues!
 }
 
 scalar UUID
