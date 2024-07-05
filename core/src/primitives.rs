@@ -176,7 +176,9 @@ impl PriceOfOneBTC {
     }
 
     pub fn cents_to_sats(self, cents: UsdCents) -> Satoshis {
-        Satoshis::from_btc(cents.to_usd() / self.0.to_usd())
+        let btc = (cents.to_usd() / self.0.to_usd())
+            .round_dp_with_strategy(8, rust_decimal::RoundingStrategy::AwayFromZero);
+        Satoshis::from_btc(btc)
     }
 }
 
@@ -185,9 +187,19 @@ mod test {
     use super::*;
 
     #[test]
-    fn usd_cents_from_usd() {
+    fn sats_to_cents_trivial() {
         let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
         let cents = UsdCents::from_usd(rust_decimal_macros::dec!(1000));
         assert_eq!(Satoshis::from_btc(dec!(1)), price.cents_to_sats(cents));
+    }
+
+    #[test]
+    fn sats_to_cents_complex() {
+        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)));
+        let cents = UsdCents::from_usd(rust_decimal_macros::dec!(100));
+        assert_eq!(
+            Satoshis::from_btc(dec!(0.00166667)),
+            price.cents_to_sats(cents)
+        );
     }
 }
