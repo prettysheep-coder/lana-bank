@@ -144,13 +144,27 @@ impl std::ops::Sub<UsdCents> for UsdCents {
     }
 }
 
-pub const DUMMY_BTC_PRICE: BtcPrice = BtcPrice(6000000);
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct BtcPrice(u64);
+pub struct PriceOfOneBTC(UsdCents);
 
-impl BtcPrice {
-    pub fn into_inner(self) -> u64 {
-        self.0
+impl PriceOfOneBTC {
+    pub const fn new(price: UsdCents) -> Self {
+        Self(price)
+    }
+
+    pub fn cents_to_sats(self, cents: UsdCents) -> Satoshis {
+        Satoshis::from_btc(cents.to_usd() / self.0.to_usd())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn usd_cents_from_usd() {
+        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
+        let cents = UsdCents::from_usd(rust_decimal_macros::dec!(1000));
+        assert_eq!(Satoshis::from_btc(dec!(1)), price.cents_to_sats(cents));
     }
 }

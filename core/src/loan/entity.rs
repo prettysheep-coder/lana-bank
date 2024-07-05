@@ -230,3 +230,15 @@ impl NewLoan {
         )
     }
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    pub fn test() {
+        //
+        // lifecycle / tests
+        // create loan
+        // when is the next interest
+        // how much is the next interest
+    }
+}

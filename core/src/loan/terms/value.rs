@@ -1,9 +1,10 @@
 use chrono::{DateTime, Datelike, TimeZone, Utc};
 use derive_builder::Builder;
 use rust_decimal::{prelude::*, Decimal};
+use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{BtcPrice, Satoshis, UsdCents};
+use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: u32 = 366;
 
@@ -14,6 +15,18 @@ pub struct LoanAnnualRate(Decimal);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct LoanCVLPct(Decimal);
+
+impl LoanCVLPct {
+    pub fn scale(&self, value: UsdCents) -> UsdCents {
+        let cents = value.to_usd() * (self.0 / dec!(100)) * dec!(100);
+        UsdCents::from(
+            cents
+                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                .to_u64()
+                .expect("should return a valid integer"),
+        )
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -75,14 +88,13 @@ impl TermValues {
         TermValuesBuilder::default()
     }
 
-    pub fn required_collateral(&self, desired_principal: UsdCents, price: BtcPrice) -> Satoshis {
-        let desired_principal = Decimal::from(desired_principal.into_inner());
-        let initial_cvl = self.initial_cvl.0;
-        let price = Decimal::from(price.into_inner());
-        let collateral = ((initial_cvl * desired_principal) / (Decimal::from(100) * price))
-            .round_dp_with_strategy(8, RoundingStrategy::AwayFromZero);
-
-        Satoshis::from_btc(collateral)
+    pub fn required_collateral(
+        &self,
+        desired_principal: UsdCents,
+        price: PriceOfOneBTC,
+    ) -> Satoshis {
+        let collateral_value = self.initial_cvl.scale(desired_principal);
+        price.cents_to_sats(collateral_value)
     }
 
     fn daily_rate(&self) -> Decimal {
@@ -106,13 +118,24 @@ impl TermValues {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::primitives::DUMMY_BTC_PRICE;
-
     use super::*;
+
+    #[test]
+    fn loan_cvl_pct_scale() {
+        let cvl = LoanCVLPct(dec!(140));
+        let value = UsdCents::from(100000);
+        let scaled = cvl.scale(value);
+        assert_eq!(scaled, UsdCents::from_usd(dec!(1400)));
+
+        let cvl = LoanCVLPct(dec!(50));
+        let value = UsdCents::from(333333);
+        let scaled = cvl.scale(value);
+        assert_eq!(scaled, UsdCents::from_usd(dec!(1666.67)));
+    }
 
     fn terms() -> TermValues {
         TermValues::builder()
-            .annual_rate(LoanAnnualRate(Decimal::new(12, 2)))
+            .annual_rate(LoanAnnualRate(dec!(0.12)))
             .duration(LoanDuration::Months(3))
             .interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(LoanCVLPct(Decimal::from(105)))
@@ -120,6 +143,16 @@ mod test {
             .initial_cvl(LoanCVLPct(Decimal::from(140)))
             .build()
             .expect("should build a valid term")
+    }
+
+    #[test]
+    fn required_collateral() {
+        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
+        let terms = terms();
+        let principal = UsdCents::from(100000);
+        let interest = terms.required_collateral(principal, price);
+        let sats = Satoshis::from_btc(dec!(1.4));
+        assert_eq!(interest, sats);
     }
 
     #[test]
@@ -146,14 +179,5 @@ mod test {
         let days = 23;
         let interest = terms.calculate_interest(principal, days);
         assert_eq!(interest, UsdCents::from(755));
-    }
-
-    #[test]
-    fn required_collateral() {
-        let terms = terms();
-        let principal = UsdCents::from(100000);
-        let interest = terms.required_collateral(principal, DUMMY_BTC_PRICE);
-        let sats = Satoshis::from_btc(dec!(0.02333334));
-        assert_eq!(interest, sats);
     }
 }

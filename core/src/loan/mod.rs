@@ -57,6 +57,10 @@ impl Loans {
         self.term_repo.update_current(terms).await
     }
 
+    fn dummy_price() -> PriceOfOneBTC {
+        PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)))
+    }
+
     pub async fn create_loan_for_user(
         &self,
         user_id: UserId,
@@ -78,7 +82,7 @@ impl Loans {
 
         let current_terms = self.term_repo.find_current().await?;
         let required_collateral =
-            current_terms.required_collateral(desired_principal, DUMMY_BTC_PRICE);
+            current_terms.required_collateral(desired_principal, Self::dummy_price());
 
         if required_collateral > unallocated_collateral {
             return Err(LoanError::InsufficientCollateral(
