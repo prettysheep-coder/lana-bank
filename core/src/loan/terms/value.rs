@@ -6,11 +6,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
-const NUMBER_OF_DAYS_IN_YEAR: u32 = 366;
+const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct LoanAnnualRate(Decimal);
+
+impl LoanAnnualRate {
+    fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
+        let cents =
+            principal.to_usd() * Decimal::from(days) * dec!(100) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
+
+        UsdCents::from(
+            cents
+                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                .to_u64()
+                .expect("should return a valid integer"),
+        )
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
@@ -18,7 +32,7 @@ pub struct LoanCVLPct(Decimal);
 
 impl LoanCVLPct {
     pub fn scale(&self, value: UsdCents) -> UsdCents {
-        let cents = value.to_usd() * (self.0 / dec!(100)) * dec!(100);
+        let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
         UsdCents::from(
             cents
                 .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
@@ -97,20 +111,8 @@ impl TermValues {
         price.cents_to_sats(collateral_value)
     }
 
-    fn daily_rate(&self) -> Decimal {
-        self.annual_rate.0 / Decimal::from(NUMBER_OF_DAYS_IN_YEAR)
-    }
-
-    pub fn calculate_interest(&self, principal: UsdCents, days: impl Into<Decimal>) -> UsdCents {
-        let principal = Decimal::from(principal.into_inner());
-        let daily_rate = self.daily_rate();
-        let interest = (daily_rate * principal * days.into()).ceil();
-
-        UsdCents::from(
-            interest
-                .to_u64()
-                .expect("interest amount should be a positive integer"),
-        )
+    pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {
+        self.annual_rate.interest_for_time_period(principal, days)
     }
 }
 
@@ -165,19 +167,24 @@ mod test {
     }
 
     #[test]
+    fn interest_calculation() {
+        let terms = terms();
+        let principal = UsdCents::from_usd(dec!(100));
+        let days = 366;
+        let interest = terms.calculate_interest(principal, days);
+        assert_eq!(interest, UsdCents::from(1200));
+
+        let principal = UsdCents::from_usd(dec!(1000));
+        let days = 23;
+        let interest = terms.calculate_interest(principal, days);
+        assert_eq!(interest, UsdCents::from(755));
+    }
+
+    #[test]
     fn expiration_date() {
         let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         let duration = LoanDuration::Months(3);
         let expiration_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(duration.expiration_date(start_date), expiration_date);
-    }
-
-    #[test]
-    fn interest_calculation() {
-        let terms = terms();
-        let principal = UsdCents::from(100000);
-        let days = 23;
-        let interest = terms.calculate_interest(principal, days);
-        assert_eq!(interest, UsdCents::from(755));
     }
 }
