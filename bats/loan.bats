@@ -10,7 +10,14 @@ teardown_file() {
   stop_server
 }
 
-@test "loan: can create loan terms" {
+wait_till_loan_collateralized() {
+  exec_graphql 'alice' 'me'
+  usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
+  cache_value 'usd_balance' "$usd_balance"
+  [[ "$usd_balance" == "10000" ]] || return 1
+}
+
+@test "loan: loan lifecycle" {
 
   exec_admin_graphql 'current-terms-update' 
   terms_id=$(graphql_output '.data.currentTermsUpdate.terms.termsId')
@@ -48,10 +55,11 @@ teardown_file() {
   )
 
   exec_admin_graphql 'loan-create' "$variables"
-  echo $(graphql_output)
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
-  exec_cala_graphql 'simulate-deposit' "$variables"
+  retry 10 1 wait_till_loan_collateralized
+  usd_balance=$(read_value "usd_balance")
+  [[ "$usd_balance" == "10000" ]] || exit 1
 
 }
