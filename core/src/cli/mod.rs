@@ -7,6 +7,10 @@ use std::{fs, path::PathBuf};
 
 use self::config::{Config, EnvOverride};
 
+use std::sync::Arc;
+
+use super::server::jwks::RemoteJwksDecoder;
+
 #[derive(Parser)]
 #[clap(long_about = None)]
 struct Cli {
@@ -67,10 +71,22 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let app = crate::app::LavaApp::run(pool.clone(), config.app).await?;
     let admin_app = app.clone();
 
+    let jwks_decoder = Arc::new(RemoteJwksDecoder::new(
+        // TODO: move config to a jwks module so that it's not depend on public_server
+        // as now it's appplicable also to admin API
+        config.public_server.jwks_url.clone(),
+    ));
+    let decoder = jwks_decoder.clone();
+    tokio::spawn(async move {
+        decoder.refresh_keys_periodically().await;
+    });
+
     let admin_send = send.clone();
+    let jwks_decoder_clone = jwks_decoder.clone();
+
     handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
-            crate::server::admin::run(config.admin_server, admin_app)
+            crate::server::admin::run(config.admin_server, admin_app, jwks_decoder_clone)
                 .await
                 .context("Admin server error"),
         );
@@ -79,7 +95,7 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let api_send = send.clone();
     handles.push(tokio::spawn(async move {
         let _ = api_send.try_send(
-            crate::server::public::run(config.public_server, app)
+            crate::server::public::run(config.public_server, app, jwks_decoder)
                 .await
                 .context("Public server error"),
         );

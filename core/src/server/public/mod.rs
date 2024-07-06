@@ -8,24 +8,20 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 
-use serde::{Deserialize, Serialize};
-
 use crate::{app::LavaApp, primitives::UserId};
 
-use super::jwks::{Claims, JwtDecoderState, RemoteJwksDecoder};
+use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
 
 pub use config::*;
 
 use std::sync::Arc;
 
-pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()> {
+pub async fn run(
+    config: PublicServerConfig,
+    app: LavaApp,
+    jwks_decoder: Arc<RemoteJwksDecoder>,
+) -> anyhow::Result<()> {
     let schema = graphql::schema(Some(app.clone()));
-
-    let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone()));
-    let decoder = jwks_decoder.clone();
-    tokio::spawn(async move {
-        decoder.refresh_keys_periodically().await;
-    });
 
     let app = Router::new()
         .route(
@@ -45,13 +41,8 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
     Ok(())
 }
 
-pub struct AuthContext {
+pub struct PublicAuthContext {
     pub user_id: UserId,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JwtClaims {
-    sub: String,
 }
 
 pub async fn graphql_handler(
@@ -72,8 +63,7 @@ pub async fn graphql_handler(
         }
     };
 
-    let auth_context = AuthContext { user_id };
-
+    let auth_context = PublicAuthContext { user_id };
     req = req.data(auth_context);
 
     schema.execute(req).await.into()

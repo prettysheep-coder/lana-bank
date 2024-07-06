@@ -16,7 +16,15 @@ use crate::app::LavaApp;
 
 pub use config::*;
 
-pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> {
+use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
+
+use std::sync::Arc;
+
+pub async fn run(
+    config: AdminServerConfig,
+    app: LavaApp,
+    jwks_decoder: Arc<RemoteJwksDecoder>,
+) -> anyhow::Result<()> {
     let schema = graphql::schema(Some(app.clone()));
 
     let cors = CorsLayer::permissive();
@@ -26,6 +34,9 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
+        .with_state(JwtDecoderState {
+            decoder: jwks_decoder,
+        })
         .layer(Extension(schema))
         .merge(auth_routes())
         .merge(sumsub_routes())
@@ -41,13 +52,24 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     Ok(())
 }
 
+pub struct AdminAuthContext {
+    pub sub: String,
+}
+
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
+    Claims(jwt_claims): Claims<JwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     lava_tracing::http::extract_tracing(&headers);
-    let req = req.into_inner();
+    let mut req = req.into_inner();
+
+    let sub: String = jwt_claims.sub;
+
+    let auth_context = AdminAuthContext { sub };
+    req = req.data(auth_context);
+
     schema.execute(req).await.into()
 }
 

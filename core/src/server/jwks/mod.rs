@@ -9,7 +9,7 @@ use axum_extra::{
     TypedHeader,
 };
 use jsonwebtoken::{jwk::JwkSet, Algorithm, DecodingKey, TokenData, Validation};
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use std::sync::{Arc, RwLock};
 
@@ -17,6 +17,11 @@ pub use error::*;
 
 #[derive(Debug, Deserialize)]
 pub struct Claims<T>(pub T);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct JwtClaims {
+    pub sub: String,
+}
 
 #[derive(Clone, FromRef)]
 pub struct JwtDecoderState {
@@ -46,6 +51,9 @@ where
                 jsonwebtoken::errors::ErrorKind::ExpiredSignature => Self::Rejection::ExpiredToken,
                 jsonwebtoken::errors::ErrorKind::InvalidSignature => {
                     Self::Rejection::InvalidSignature
+                }
+                jsonwebtoken::errors::ErrorKind::InvalidAudience => {
+                    Self::Rejection::InvalidAudience
                 }
                 _ => Self::Rejection::InvalidToken,
             },
@@ -79,11 +87,17 @@ pub struct RemoteJwksDecoder {
 
 impl RemoteJwksDecoder {
     pub fn new(jwks_url: String) -> Self {
+        let mut validation = Validation::new(Algorithm::RS256);
+        // TODO:
+        // - pass audiences by env variables
+        // - ensure public token can't be used for admin and vice versa
+        validation.set_audience(&["https://public-api/graphql", "https://admin-api/graphql"]);
+
         Self {
             jwks_url,
             cache_duration: std::time::Duration::from_secs(30 * 60),
             keys_cache: RwLock::new(Vec::new()),
-            validation: Validation::new(Algorithm::RS256),
+            validation,
             client: reqwest::Client::new(),
             retry_count: 10,
             backoff: std::time::Duration::from_secs(2),
