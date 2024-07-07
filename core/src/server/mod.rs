@@ -1,4 +1,4 @@
 pub mod admin;
-pub mod jwks;
+mod jwks;
 pub mod public;
 mod shared_graphql;

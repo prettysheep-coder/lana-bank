@@ -27,7 +27,7 @@
   authenticators:
     - handler: cookie_session
       config:
-        check_session_url: http://dockerhost-alias:3001/api/auth/session
+        check_session_url: http://dockerhost-alias:3001/admin-panel/api/auth/session
         preserve_path: true
         preserve_query: true
         subject_from: user.email
@@ -72,7 +72,7 @@
     url: "http://dockerhost-alias:3000"
     preserve_host: true
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!sessions|self-service|graphql|admin-panel).*>"
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!sessions|self-service|graphql|admin|admin-panel).*>"
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: cookie_session
