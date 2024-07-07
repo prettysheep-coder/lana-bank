@@ -7,5 +7,5 @@ export default function Layout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return <SessionProvider>{children}</SessionProvider>
+  return <SessionProvider basePath="/admin-panel/api/auth">{children}</SessionProvider>
 }
