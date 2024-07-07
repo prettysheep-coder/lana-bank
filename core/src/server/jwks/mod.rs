@@ -86,12 +86,9 @@ pub struct RemoteJwksDecoder {
 }
 
 impl RemoteJwksDecoder {
-    pub fn new(jwks_url: String) -> Self {
+    pub fn new(jwks_url: String, aud: String) -> Self {
         let mut validation = Validation::new(Algorithm::RS256);
-        // TODO:
-        // - pass audiences by env variables
-        // - ensure public token can't be used for admin and vice versa
-        validation.set_audience(&["https://public-api/graphql", "https://admin-api/graphql"]);
+        validation.set_audience(&[aud]);
 
         Self {
             jwks_url,

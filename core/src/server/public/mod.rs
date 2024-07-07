@@ -16,11 +16,15 @@ pub use config::*;
 
 use std::sync::Arc;
 
-pub async fn run(
-    config: PublicServerConfig,
-    app: LavaApp,
-    jwks_decoder: Arc<RemoteJwksDecoder>,
-) -> anyhow::Result<()> {
+pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()> {
+    let aud = config.aud.clone();
+
+    let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
+    let decoder = jwks_decoder.clone();
+    tokio::spawn(async move {
+        decoder.refresh_keys_periodically().await;
+    });
+
     let schema = graphql::schema(Some(app.clone()));
 
     let app = Router::new()
