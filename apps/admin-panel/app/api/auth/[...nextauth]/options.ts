@@ -24,14 +24,9 @@ providers.push(
 )
 
 const callbacks: Partial<CallbacksOptions> = {
-  // ignore ts error
-  // @ts-ignore
   async signIn({ account, profile, user }) {
-    if (
-      account?.provider === "credentials"
-      // && env.NODE_ENV === "development"
-    ) {
-      return !!user
+    if (account?.provider === "credentials") {
+      return Boolean(user)
     }
 
     if (!account || !profile) {
@@ -43,9 +38,8 @@ const callbacks: Partial<CallbacksOptions> = {
       return false
     }
 
-    // eslint-disable-next-line no-new-wrappers
-    const verified = new Boolean("email_verified" in profile && profile.email_verified)
-    return verified // && env.AUTHORIZED_EMAILS.includes(email)
+    const verified = "email_verified" in profile && profile.email_verified
+    return Boolean(verified)
   },
 }
 

@@ -1,10 +1,10 @@
 import { IoLogOutOutline, IoMenu } from "react-icons/io5"
+import Link from "next/link"
 
 import { NavigationLinks } from "./navigation-links"
 
 import { Sheet, SheetTrigger, SheetContent } from "@/components/primitive/sheet"
 import { Button } from "@/components/primitive/button"
-import Link from "next/link"
 
 export default function SideBar() {
   return (

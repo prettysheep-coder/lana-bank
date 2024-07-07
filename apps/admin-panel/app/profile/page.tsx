@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
+
 import { Button } from "@/components/primitive/button"
 import { PageHeading } from "@/components/page-heading"
 
@@ -13,10 +14,10 @@ export default function ProfilePage() {
         <PageHeading>Profile</PageHeading>
         <div className="mb-4">
           <p className="text-lg">
-            Signed in as <span className="font-semibold">{session.user.email}</span>
+            Signed in as <span className="font-semibold">{session?.user?.email}</span>
           </p>
           <p className="text-lg">
-            Name: <span className="font-semibold">{session.user.name}</span>
+            Name: <span className="font-semibold">{session?.user?.name}</span>
           </p>
         </div>
         <Button variant="primary" onClick={() => signOut()}>
