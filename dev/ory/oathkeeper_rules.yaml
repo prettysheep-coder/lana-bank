@@ -33,6 +33,8 @@
         subject_from: user.email
         extra_from: "@this"
         force_method: "GET"
+    # only be in local dev. to simplify tests set up, until admin API is API-auth friendly
+    - handler: anonymous
   authorizer:
     handler: allow
   mutators:

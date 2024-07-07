@@ -6,7 +6,7 @@ mkdir -p "$CACHE_DIR"
 
 KRATOS_PUBLIC_ENDPOINT="http://localhost:4455"
 GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
-GQL_ADMIN_ENDPOINT="http://localhost:5253/graphql"
+GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
 
 LAVA_HOME="${LAVA_HOME:-.lava}"
