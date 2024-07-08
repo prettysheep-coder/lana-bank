@@ -126,7 +126,10 @@ impl TermValues {
         price: PriceOfOneBTC,
     ) -> Satoshis {
         let collateral_value = self.initial_cvl.scale(desired_principal);
-        price.cents_to_sats(collateral_value)
+        price.cents_to_sats(
+            collateral_value,
+            rust_decimal::RoundingStrategy::AwayFromZero,
+        )
     }
 
     pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {

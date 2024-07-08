@@ -1,4 +1,4 @@
-use rust_decimal::Decimal;
+use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
@@ -175,9 +175,8 @@ impl PriceOfOneBTC {
         Self(price)
     }
 
-    pub fn cents_to_sats(self, cents: UsdCents) -> Satoshis {
-        let btc = (cents.to_usd() / self.0.to_usd())
-            .round_dp_with_strategy(8, rust_decimal::RoundingStrategy::AwayFromZero);
+    pub fn cents_to_sats(self, cents: UsdCents, rounding_strategy: RoundingStrategy) -> Satoshis {
+        let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
         Satoshis::from_btc(btc)
     }
 }
@@ -190,7 +189,10 @@ mod test {
     fn cents_to_sats_trivial() {
         let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
         let cents = UsdCents::from_usd(rust_decimal_macros::dec!(1000));
-        assert_eq!(Satoshis::from_btc(dec!(1)), price.cents_to_sats(cents));
+        assert_eq!(
+            Satoshis::from_btc(dec!(1)),
+            price.cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
+        );
     }
 
     #[test]
@@ -199,7 +201,7 @@ mod test {
         let cents = UsdCents::from_usd(rust_decimal_macros::dec!(100));
         assert_eq!(
             Satoshis::from_btc(dec!(0.00166667)),
-            price.cents_to_sats(cents)
+            price.cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
         );
     }
 }
