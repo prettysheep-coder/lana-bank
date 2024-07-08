@@ -17,6 +17,7 @@ pub use config::*;
 use std::sync::Arc;
 
 pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()> {
+    let port = config.port;
     let aud = config.aud.as_ref();
 
     let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
@@ -37,9 +38,9 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
         })
         .layer(Extension(schema));
 
-    println!("Starting public server on port {}", config.port);
+    println!("Starting public server on port {}", port);
     let listener =
-        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], config.port)))
+        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port)))
             .await?;
     axum::serve(listener, app.into_make_service()).await?;
     Ok(())

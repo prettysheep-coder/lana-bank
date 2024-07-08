@@ -21,6 +21,7 @@ use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
 use std::sync::Arc;
 
 pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> {
+    let port = config.port;
     let aud = config.aud.as_ref();
 
     let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
@@ -44,13 +45,13 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
         .layer(Extension(schema))
         .merge(auth_routes())
         .merge(sumsub_routes())
-        .layer(Extension(config.clone()))
+        .layer(Extension(config))
         .layer(Extension(app))
         .layer(cors);
 
-    println!("Starting admin server on port {}", config.port);
+    println!("Starting admin server on port {}", port);
     let listener =
-        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], config.port)))
+        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port)))
             .await?;
     axum::serve(listener, app.into_make_service()).await?;
     Ok(())
