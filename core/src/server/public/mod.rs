@@ -17,7 +17,7 @@ pub use config::*;
 use std::sync::Arc;
 
 pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()> {
-    let aud = config.aud.clone();
+    let aud = config.aud.as_ref();
 
     let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
     let decoder = jwks_decoder.clone();

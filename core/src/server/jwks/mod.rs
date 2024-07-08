@@ -86,7 +86,7 @@ pub struct RemoteJwksDecoder {
 }
 
 impl RemoteJwksDecoder {
-    pub fn new(jwks_url: String, aud: String) -> Self {
+    pub fn new(jwks_url: String, aud: &str) -> Self {
         let mut validation = Validation::new(Algorithm::RS256);
         validation.set_audience(&[aud]);
 

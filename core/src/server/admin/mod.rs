@@ -21,7 +21,7 @@ use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
 use std::sync::Arc;
 
 pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> {
-    let aud = config.aud.clone();
+    let aud = config.aud.as_ref();
 
     let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
     let decoder = jwks_decoder.clone();
