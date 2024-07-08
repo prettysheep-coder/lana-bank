@@ -40,7 +40,7 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     axum::serve(listener, app.into_make_service()).await?;
     Ok(())
 }
-
+// note
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
