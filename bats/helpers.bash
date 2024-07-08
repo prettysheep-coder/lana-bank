@@ -129,7 +129,6 @@ exec_admin_graphql() {
 
   ${run_cmd} curl -s \
     -X POST \
-    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"
