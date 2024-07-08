@@ -40,8 +40,7 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
 
     println!("Starting public server on port {}", port);
     let listener =
-        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port)))
-            .await?;
+        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
     axum::serve(listener, app.into_make_service()).await?;
     Ok(())
 }

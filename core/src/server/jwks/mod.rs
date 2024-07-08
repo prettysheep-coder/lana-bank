@@ -85,6 +85,8 @@ pub struct RemoteJwksDecoder {
     backoff: std::time::Duration,
 }
 
+const DEFAULT_CACHE_DURATION: u64 = 30 * 60;
+
 impl RemoteJwksDecoder {
     pub fn new(jwks_url: String, aud: &str) -> Self {
         let mut validation = Validation::new(Algorithm::RS256);
@@ -92,7 +94,7 @@ impl RemoteJwksDecoder {
 
         Self {
             jwks_url,
-            cache_duration: std::time::Duration::from_secs(30 * 60),
+            cache_duration: std::time::Duration::from_secs(DEFAULT_CACHE_DURATION),
             keys_cache: RwLock::new(Vec::new()),
             validation,
             client: reqwest::Client::new(),
