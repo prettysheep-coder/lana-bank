@@ -338,7 +338,7 @@ mod test {
             .annual_rate(dec!(0.12))
             .duration(LoanDuration::Months(3))
             .interval(InterestInterval::EndOfMonth)
-            .overdue_penalty_rate(dec!(2))
+            .overdue_penalty(dec!(2))
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

@@ -129,7 +129,7 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) interval: InterestInterval,
     #[builder(setter(into))]
-    pub(crate) overdue_penalty_rate: LoanPenaltyRatePct,
+    pub(crate) overdue_penalty: LoanPenaltyRatePct,
     #[builder(setter(into))]
     pub(crate) liquidation_cvl: LoanCVLPct,
     #[builder(setter(into))]
@@ -160,7 +160,7 @@ impl TermValues {
     }
 
     pub fn calculate_penalty(&self, principal: UsdCents) -> UsdCents {
-        self.overdue_penalty_rate.penalty(principal)
+        self.overdue_penalty.penalty(principal)
     }
 }
 
@@ -188,7 +188,7 @@ mod test {
             .annual_rate(LoanAnnualRate(dec!(0.12)))
             .duration(LoanDuration::Months(3))
             .interval(InterestInterval::EndOfMonth)
-            .overdue_penalty_rate(LoanPenaltyRatePct(dec!(2)))
+            .overdue_penalty(LoanPenaltyRatePct(dec!(2)))
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

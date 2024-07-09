@@ -19,6 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   LoanAnnualRate: { input: any; output: any; }
   LoanCVLPct: { input: any; output: any; }
+  LoanPenaltyRatePct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -133,6 +134,7 @@ export type CurrentTermsUpdateInput = {
   interval: InterestInterval;
   liquidationCvl: Scalars['LoanCVLPct']['input'];
   marginCallCvl: Scalars['LoanCVLPct']['input'];
+  overduePenalty: Scalars['LoanPenaltyRatePct']['input'];
 };
 
 export type CurrentTermsUpdatePayload = {
@@ -332,6 +334,7 @@ export type TermValues = {
   interval: InterestInterval;
   liquidationCvl: Scalars['LoanCVLPct']['output'];
   marginCallCvl: Scalars['LoanCVLPct']['output'];
+  overduePenalty: Scalars['LoanPenaltyRatePct']['output'];
 };
 
 export type Terms = {
