@@ -36,7 +36,6 @@ loan_balance() {
 
   exec_admin_graphql 'current-terms-update' 
   terms_id=$(graphql_output '.data.currentTermsUpdate.terms.termsId')
-  echo $(graphql_output)
   [[ "$terms_id" != "null" ]] || exit 1
 
   username=$(random_uuid)

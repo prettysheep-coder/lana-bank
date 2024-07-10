@@ -107,8 +107,18 @@ impl Loan {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
+    fn penalty(&self) -> UsdCents {
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                LoanEvent::PenaltyRecorded { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
     pub fn outstanding(&self) -> UsdCents {
-        self.initial_principal() + self.interest_recorded() - self.payments()
+        self.initial_principal() + self.interest_recorded() + self.penalty() - self.payments()
     }
 
     pub fn is_collateralized(&self) -> bool {
