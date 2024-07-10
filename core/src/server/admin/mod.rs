@@ -39,12 +39,12 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
+        .merge(auth_routes())
+        .merge(sumsub_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
         })
         .layer(Extension(schema))
-        .merge(auth_routes())
-        .merge(sumsub_routes())
         .layer(Extension(config))
         .layer(Extension(app))
         .layer(cors);
