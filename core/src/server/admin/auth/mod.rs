@@ -43,6 +43,6 @@ pub async fn auth_callback(
     }
 }
 
-pub fn auth_routes() ->  Router<JwtDecoderState> {
+pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new().route("/auth/callback", post(auth_callback))
 }

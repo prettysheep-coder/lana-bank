@@ -74,6 +74,21 @@ pub use cala_types::primitives::{
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
+#[derive(Debug, Clone)]
+pub struct Subject(pub String);
+
+impl From<String> for Subject {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+// this is how we could do it to separate external id / subject for which we don't control the format
+// pub enum Subject(String) {
+//     External(String),
+//     Internal(UserId),
+// }
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SignedSatoshis(i64);
 

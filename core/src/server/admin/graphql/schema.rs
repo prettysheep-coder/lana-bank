@@ -5,9 +5,12 @@ use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{LoanId, UserId},
-    server::shared_graphql::{
-        loan::Loan, objects::SuccessPayload, primitives::UUID,
-        sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+    server::{
+        admin::AdminAuthContext,
+        shared_graphql::{
+            loan::Loan, objects::SuccessPayload, primitives::UUID,
+            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+        },
     },
 };
 
@@ -17,7 +20,13 @@ pub struct Query;
 impl Query {
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let loan = app
+            .loans()
+            .find_by_id(sub.clone(), LoanId::from(id))
+            .await?;
         Ok(loan.map(Loan::from))
     }
 
@@ -174,9 +183,12 @@ impl Mutation {
         input: LoanCreateInput,
     ) -> async_graphql::Result<LoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let loan = app
             .loans()
-            .create_loan_for_user(input.user_id, input.desired_principal)
+            .create_loan_for_user(sub.clone(), input.user_id, input.desired_principal)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }

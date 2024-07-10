@@ -1,0 +1,6 @@
+p, admin, loan, read
+p, admin, loan, write
+p, user, loan, read
+
+g, alice, admin
+g, bob, user

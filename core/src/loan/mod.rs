@@ -7,6 +7,7 @@ mod terms;
 use sqlx::PgPool;
 
 use crate::{
+    authorization::{Action, Authorization, Object},
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
@@ -28,10 +29,17 @@ pub struct Loans {
     ledger: Ledger,
     pool: PgPool,
     jobs: Option<Jobs>,
+    authz: Authorization,
 }
 
 impl Loans {
-    pub fn new(pool: &PgPool, registry: &mut JobRegistry, users: &Users, ledger: &Ledger) -> Self {
+    pub fn new(
+        pool: &PgPool,
+        registry: &mut JobRegistry,
+        users: &Users,
+        ledger: &Ledger,
+        authz: &Authorization,
+    ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
         registry.add_initializer(LoanProcessingJobInitializer::new(ledger, loan_repo.clone()));
@@ -42,6 +50,7 @@ impl Loans {
             ledger: ledger.clone(),
             pool: pool.clone(),
             jobs: None,
+            authz: authz.clone(),
         }
     }
 
@@ -63,9 +72,14 @@ impl Loans {
 
     pub async fn create_loan_for_user(
         &self,
+        sub: Subject,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permissions(sub, Object::Loan, Action::Write)
+            .await?;
+
         let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
             Some(user) => user,
@@ -179,7 +193,11 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn find_by_id(&self, id: LoanId) -> Result<Option<Loan>, LoanError> {
+    pub async fn find_by_id(&self, sub: Subject, id: LoanId) -> Result<Option<Loan>, LoanError> {
+        self.authz
+            .check_permissions(sub, Object::Loan, Action::Read)
+            .await?;
+
         match self.loan_repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
             Err(LoanError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
@@ -187,7 +205,15 @@ impl Loans {
         }
     }
 
-    pub async fn list_for_user(&self, user_id: UserId) -> Result<Vec<Loan>, LoanError> {
+    pub async fn list_for_user(
+        &self,
+        sub: Subject,
+        user_id: UserId,
+    ) -> Result<Vec<Loan>, LoanError> {
+        self.authz
+            .check_permissions(sub, Object::Loan, Action::Read)
+            .await?;
+
         self.loan_repo.find_for_user(user_id).await
     }
 
