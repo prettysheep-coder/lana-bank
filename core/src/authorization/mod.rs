@@ -12,7 +12,7 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub async fn new() -> Result<Self, AuthorizationError> {
+    pub async fn init() -> Result<Self, AuthorizationError> {
         let model_path = "dev/rbac.conf";
         let policy_path = "dev/policy.csv";
 
@@ -23,7 +23,7 @@ impl Authorization {
         })
     }
 
-    pub async fn check_permissions(
+    pub async fn check_permission(
         &self,
         sub: Subject,
         object: Object,

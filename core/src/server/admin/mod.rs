@@ -61,6 +61,12 @@ pub struct AdminAuthContext {
     pub sub: Subject,
 }
 
+impl AdminAuthContext {
+    pub fn new(sub: impl Into<Subject>) -> Self {
+        Self { sub: sub.into() }
+    }
+}
+
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
@@ -70,9 +76,7 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let auth_context = AdminAuthContext {
-        sub: jwt_claims.sub.into(),
-    };
+    let auth_context = AdminAuthContext::new(jwt_claims.sub);
     req = req.data(auth_context);
 
     schema.execute(req).await.into()

@@ -77,7 +77,7 @@ impl Loans {
         desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
         self.authz
-            .check_permissions(sub, Object::Loan, Action::Write)
+            .check_permission(sub, Object::Loan, Action::Write)
             .await?;
 
         let user_id = user_id.into();
@@ -195,7 +195,7 @@ impl Loans {
 
     pub async fn find_by_id(&self, sub: Subject, id: LoanId) -> Result<Option<Loan>, LoanError> {
         self.authz
-            .check_permissions(sub, Object::Loan, Action::Read)
+            .check_permission(sub, Object::Loan, Action::Read)
             .await?;
 
         match self.loan_repo.find_by_id(id).await {
@@ -211,7 +211,7 @@ impl Loans {
         user_id: UserId,
     ) -> Result<Vec<Loan>, LoanError> {
         self.authz
-            .check_permissions(sub, Object::Loan, Action::Read)
+            .check_permission(sub, Object::Loan, Action::Read)
             .await?;
 
         self.loan_repo.find_for_user(user_id).await
