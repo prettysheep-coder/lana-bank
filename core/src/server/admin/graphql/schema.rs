@@ -23,10 +23,7 @@ impl Query {
 
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let loan = app
-            .loans()
-            .find_by_id(sub, LoanId::from(id))
-            .await?;
+        let loan = app.loans().find_by_id(sub, LoanId::from(id)).await?;
         Ok(loan.map(Loan::from))
     }
 

@@ -57,15 +57,29 @@ impl Object {
 }
 
 pub enum Action {
+    Loan(LoanAction),
+}
+
+pub enum LoanAction {
+    List,
     Read,
-    Write,
+    Create,
 }
 
 impl Action {
     fn as_str(&self) -> &str {
         match self {
-            Action::Read => "read",
-            Action::Write => "write",
+            Action::Loan(action) => action.as_str(),
+        }
+    }
+}
+
+impl LoanAction {
+    fn as_str(&self) -> &str {
+        match self {
+            LoanAction::Read => "loan-read",
+            LoanAction::Create => "loan-write",
+            LoanAction::List => "loan-list",
         }
     }
 }

@@ -7,7 +7,7 @@ mod terms;
 use sqlx::PgPool;
 
 use crate::{
-    authorization::{Action, Authorization, Object},
+    authorization::{Action, Authorization, LoanAction, Object},
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
@@ -77,7 +77,7 @@ impl Loans {
         desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, Action::Write)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Create))
             .await?;
 
         let user_id = user_id.into();
@@ -195,7 +195,7 @@ impl Loans {
 
     pub async fn find_by_id(&self, sub: &Subject, id: LoanId) -> Result<Option<Loan>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, Action::Read)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Read))
             .await?;
 
         match self.loan_repo.find_by_id(id).await {
@@ -211,7 +211,7 @@ impl Loans {
         user_id: UserId,
     ) -> Result<Vec<Loan>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, Action::Read)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
             .await?;
 
         self.loan_repo.find_for_user(user_id).await

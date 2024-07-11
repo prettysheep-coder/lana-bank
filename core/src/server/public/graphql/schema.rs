@@ -27,10 +27,7 @@ impl Query {
         // fake sub for now
         let sub = crate::primitives::Subject("admin".to_string());
 
-        let loan = app
-            .loans()
-            .find_by_id(&sub, LoanId::from(id))
-            .await?;
+        let loan = app.loans().find_by_id(&sub, LoanId::from(id)).await?;
         Ok(loan.map(Loan::from))
     }
 

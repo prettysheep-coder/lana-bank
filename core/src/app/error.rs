@@ -13,4 +13,3 @@ pub enum ApplicationError {
     #[error("ApplicationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }
-
