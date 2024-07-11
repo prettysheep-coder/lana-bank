@@ -25,7 +25,7 @@ impl Query {
 
         let loan = app
             .loans()
-            .find_by_id(sub.clone(), LoanId::from(id))
+            .find_by_id(sub, LoanId::from(id))
             .await?;
         Ok(loan.map(Loan::from))
     }
@@ -188,7 +188,7 @@ impl Mutation {
 
         let loan = app
             .loans()
-            .create_loan_for_user(sub.clone(), input.user_id, input.desired_principal)
+            .create_loan_for_user(sub, input.user_id, input.desired_principal)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }

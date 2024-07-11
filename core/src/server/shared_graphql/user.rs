@@ -51,7 +51,7 @@ impl User {
 
         let loans: Vec<Loan> = app
             .loans()
-            .list_for_user(sub.clone(), primitives::UserId::from(&self.user_id))
+            .list_for_user(&sub, primitives::UserId::from(&self.user_id))
             .await?
             .into_iter()
             .map(Loan::from)

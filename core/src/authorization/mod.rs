@@ -25,13 +25,13 @@ impl Authorization {
 
     pub async fn check_permission(
         &self,
-        sub: Subject,
+        sub: &Subject,
         object: Object,
         action: Action,
     ) -> Result<bool, AuthorizationError> {
         match self
             .enforcer
-            .enforce((sub.0, object.as_str(), action.as_str()))
+            .enforce((sub.0.as_str(), object.as_str(), action.as_str()))
         {
             Ok(true) => Ok(true),
             Ok(false) => Err(AuthorizationError::NotAuthorizedError),

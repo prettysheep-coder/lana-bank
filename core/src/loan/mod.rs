@@ -72,7 +72,7 @@ impl Loans {
 
     pub async fn create_loan_for_user(
         &self,
-        sub: Subject,
+        sub: &Subject,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
@@ -193,7 +193,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn find_by_id(&self, sub: Subject, id: LoanId) -> Result<Option<Loan>, LoanError> {
+    pub async fn find_by_id(&self, sub: &Subject, id: LoanId) -> Result<Option<Loan>, LoanError> {
         self.authz
             .check_permission(sub, Object::Loan, Action::Read)
             .await?;
@@ -207,7 +207,7 @@ impl Loans {
 
     pub async fn list_for_user(
         &self,
-        sub: Subject,
+        sub: &Subject,
         user_id: UserId,
     ) -> Result<Vec<Loan>, LoanError> {
         self.authz

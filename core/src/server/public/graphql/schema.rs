@@ -29,7 +29,7 @@ impl Query {
 
         let loan = app
             .loans()
-            .find_by_id(sub.clone(), LoanId::from(id))
+            .find_by_id(&sub, LoanId::from(id))
             .await?;
         Ok(loan.map(Loan::from))
     }
