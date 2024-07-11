@@ -44,11 +44,12 @@ impl Config {
             .context(format!("Couldn't read config file {:?}", path.as_ref()))?;
         let mut config: Config =
             serde_yaml::from_str(&config_file).context("Couldn't parse config file")?;
-        config.db.pg_con = db_con;
+        config.db.pg_con = db_con.clone();
         config.app.ledger.bfx_key = bfx_key;
         config.app.ledger.bfx_secret = bfx_secret;
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;
+        config.app.casbin.db_con = db_con;
 
         Ok(config)
     }

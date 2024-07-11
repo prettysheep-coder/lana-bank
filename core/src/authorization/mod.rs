@@ -1,15 +1,18 @@
 use std::sync::Arc;
 
+pub mod config;
 pub mod error;
+
+use config::CasbinConfig;
+
 use error::AuthorizationError;
 
 use crate::primitives::Subject;
 use sqlx_adapter::{
-    casbin::{prelude::Enforcer, CoreApi},
-    SqlxAdapter
+    casbin::{prelude::Enforcer, CoreApi, MgmtApi},
+    SqlxAdapter,
 };
 
-#[derive(Clone)]
 pub struct Authorization {
     enforcer: Arc<Enforcer>,
 }
@@ -17,14 +20,10 @@ pub struct Authorization {
 const POOL_SIZE: u32 = 8;
 
 impl Authorization {
-    pub async fn init() -> Result<Self, AuthorizationError> {
+    pub async fn init(config: &CasbinConfig) -> Result<Self, AuthorizationError> {
         let model_path = "dev/rbac.conf";
 
-        let adapter = SqlxAdapter::new(
-            "postgres://casbin_rs:casbin_rs@127.0.0.1:5432/casbin",
-            POOL_SIZE,
-        )
-        .await?;
+        let adapter = SqlxAdapter::new(config.db_con.as_str(), POOL_SIZE).await?;
 
         let enforcer = Enforcer::new(model_path, adapter).await?;
         Ok(Authorization {
@@ -47,6 +46,22 @@ impl Authorization {
             Err(e) => Err(AuthorizationError::Casbin(e)),
         }
     }
+
+    // pub async fn add_permission(
+    //     &mut self,
+    //     sub: &Subject,
+    //     object: Object,
+    //     action: Action,
+    // ) -> Result<(), AuthorizationError> {
+    //     self.enforcer
+    //         .add_policy(vec![
+    //             sub.0.clone(),
+    //             object.as_str().to_string(),
+    //             action.as_str().to_string(),
+    //         ])
+    //         .await?;
+    //     Ok(())
+    // }
 }
 
 // object could be a trait on a Loan entity.
