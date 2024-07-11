@@ -1,23 +1,32 @@
-use casbin::{prelude::Enforcer, CoreApi};
 use std::sync::Arc;
 
 pub mod error;
 use error::AuthorizationError;
 
 use crate::primitives::Subject;
+use sqlx_adapter::{
+    casbin::{prelude::Enforcer, CoreApi},
+    SqlxAdapter
+};
 
 #[derive(Clone)]
 pub struct Authorization {
     enforcer: Arc<Enforcer>,
 }
 
+const POOL_SIZE: u32 = 8;
+
 impl Authorization {
     pub async fn init() -> Result<Self, AuthorizationError> {
         let model_path = "dev/rbac.conf";
-        let policy_path = "dev/policy.csv";
 
-        let mut enforcer = Enforcer::new(model_path, policy_path).await?;
-        enforcer.enable_log(true);
+        let adapter = SqlxAdapter::new(
+            "postgres://casbin_rs:casbin_rs@127.0.0.1:5432/casbin",
+            POOL_SIZE,
+        )
+        .await?;
+
+        let enforcer = Enforcer::new(model_path, adapter).await?;
         Ok(Authorization {
             enforcer: Arc::new(enforcer),
         })

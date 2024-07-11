@@ -23,11 +23,7 @@ impl Query {
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
 
-        // there is no AdminAuthContext in public graphql schema
-        // fake sub for now
-        let sub = crate::primitives::Subject("admin".to_string());
-
-        let loan = app.loans().find_by_id(&sub, LoanId::from(id)).await?;
+        let loan = app.loans().find_by_id(None, LoanId::from(id)).await?;
         Ok(loan.map(Loan::from))
     }
 

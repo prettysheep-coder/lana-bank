@@ -193,10 +193,16 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn find_by_id(&self, sub: &Subject, id: LoanId) -> Result<Option<Loan>, LoanError> {
-        self.authz
-            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Read))
-            .await?;
+    pub async fn find_by_id(
+        &self,
+        sub: Option<&Subject>,
+        id: LoanId,
+    ) -> Result<Option<Loan>, LoanError> {
+        if let Some(sub) = sub {
+            self.authz
+                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Read))
+                .await?;
+        }
 
         match self.loan_repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
@@ -207,12 +213,14 @@ impl Loans {
 
     pub async fn list_for_user(
         &self,
-        sub: &Subject,
+        sub: Option<&Subject>,
         user_id: UserId,
     ) -> Result<Vec<Loan>, LoanError> {
-        self.authz
-            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
-            .await?;
+        if let Some(sub) = sub {
+            self.authz
+                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
+                .await?;
+        }
 
         self.loan_repo.find_for_user(user_id).await
     }

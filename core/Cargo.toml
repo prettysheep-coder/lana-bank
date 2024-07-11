@@ -41,4 +41,4 @@ jsonwebtoken = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-casbin = { workspace = true }
+sqlx-adapter = { workspace = true }
