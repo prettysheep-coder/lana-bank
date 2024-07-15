@@ -55,11 +55,15 @@ impl TermRepo {
             "#,
         )
         .fetch_one(&self.pool)
-        .await?;
+        .await;
 
-        Ok(Terms {
-            id: LoanTermsId::from(row.id),
-            values: serde_json::from_value(row.values).expect("should deserialize term values"),
-        })
+        match row {
+            Ok(row) => Ok(Terms {
+                id: LoanTermsId::from(row.id),
+                values: serde_json::from_value(row.values).expect("should deserialize term values"),
+            }),
+            Err(sqlx::Error::RowNotFound) => Err(LoanError::TermsNotFound),
+            Err(err) => Err(err.into()),
+        }
     }
 }

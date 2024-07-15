@@ -24,6 +24,10 @@ type InterestIncome {
 	usdBalance: UsdCents!
 }
 
+enum InterestInterval {
+	END_OF_MONTH
+}
+
 enum KycLevel {
 	ZERO
 	ONE
@@ -38,10 +42,19 @@ type Loan {
 	user: User!
 }
 
+scalar LoanAnnualRate
+
 type LoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
 	interestIncurred: InterestIncome!
+}
+
+scalar LoanCVLPct
+
+type LoanDuration {
+	period: Period!
+	units: Int!
 }
 
 type LoanOutstanding {
@@ -54,10 +67,15 @@ type Mutation {
 	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
 
+enum Period {
+	MONTHS
+}
+
 type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	me: User
+	currentTerms: Terms
 }
 
 scalar Satoshis
@@ -69,6 +87,21 @@ type SumsubPermalinkCreatePayload {
 
 type SumsubTokenCreatePayload {
 	token: String!
+}
+
+type TermValues {
+	annualRate: LoanAnnualRate!
+	interval: InterestInterval!
+	duration: LoanDuration!
+	liquidationCvl: LoanCVLPct!
+	marginCallCvl: LoanCVLPct!
+	initialCvl: LoanCVLPct!
+}
+
+type Terms {
+	id: ID!
+	termsId: UUID!
+	values: TermValues!
 }
 
 scalar Timestamp

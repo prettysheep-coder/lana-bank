@@ -211,6 +211,7 @@ type Query {
 	trialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
 	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
+	currentTerms: Terms
 }
 
 scalar Satoshis
