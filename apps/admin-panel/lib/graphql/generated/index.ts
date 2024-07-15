@@ -491,6 +491,11 @@ export type UserEdge = {
   node: User;
 };
 
+export type CurrentTermsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CurrentTermsQuery = { __typename?: 'Query', currentTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
 }>;
@@ -530,7 +535,7 @@ export type CurrentTermsUpdateMutationVariables = Exact<{
 }>;
 
 
-export type CurrentTermsUpdateMutation = { __typename?: 'Mutation', currentTermsUpdate: { __typename?: 'CurrentTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'LoanDuration', period: Period, units: number } } } } };
+export type CurrentTermsUpdateMutation = { __typename?: 'Mutation', currentTermsUpdate: { __typename?: 'CurrentTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type ChartOfAccountAccountSetQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -647,6 +652,52 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
+export const CurrentTermsDocument = gql`
+    query CurrentTerms {
+  currentTerms {
+    id
+    termsId
+    values {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useCurrentTermsQuery__
+ *
+ * To run a query within a React component, call `useCurrentTermsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCurrentTermsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCurrentTermsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCurrentTermsQuery(baseOptions?: Apollo.QueryHookOptions<CurrentTermsQuery, CurrentTermsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CurrentTermsQuery, CurrentTermsQueryVariables>(CurrentTermsDocument, options);
+      }
+export function useCurrentTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CurrentTermsQuery, CurrentTermsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CurrentTermsQuery, CurrentTermsQueryVariables>(CurrentTermsDocument, options);
+        }
+export type CurrentTermsQueryHookResult = ReturnType<typeof useCurrentTermsQuery>;
+export type CurrentTermsLazyQueryHookResult = ReturnType<typeof useCurrentTermsLazyQuery>;
+export type CurrentTermsQueryResult = Apollo.QueryResult<CurrentTermsQuery, CurrentTermsQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
