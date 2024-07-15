@@ -1,7 +1,6 @@
-p, admin, loan, loan-read
+p, admin, loan, loan-create
 p, admin, loan, loan-write
 p, admin, loan, loan-list
-p, user, loan, read
 
 g, alice, admin
 g, bob, user

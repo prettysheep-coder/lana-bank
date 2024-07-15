@@ -1,20 +1,23 @@
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 pub mod config;
+pub mod debug;
 pub mod error;
 
 use config::CasbinConfig;
 
 use error::AuthorizationError;
 
-use crate::primitives::Subject;
+use crate::primitives::{Group, Subject};
 use sqlx_adapter::{
     casbin::{prelude::Enforcer, CoreApi, MgmtApi},
     SqlxAdapter,
 };
 
+#[derive(Clone)]
 pub struct Authorization {
-    enforcer: Arc<Enforcer>,
+    enforcer: Arc<RwLock<Enforcer>>,
 }
 
 const POOL_SIZE: u32 = 8;
@@ -27,7 +30,7 @@ impl Authorization {
 
         let enforcer = Enforcer::new(model_path, adapter).await?;
         Ok(Authorization {
-            enforcer: Arc::new(enforcer),
+            enforcer: Arc::new(RwLock::new(enforcer)),
         })
     }
 
@@ -37,31 +40,53 @@ impl Authorization {
         object: Object,
         action: Action,
     ) -> Result<bool, AuthorizationError> {
-        match self
-            .enforcer
-            .enforce((sub.0.as_str(), object.as_str(), action.as_str()))
-        {
+        println!(
+            "Checking permission for: {} {} {}",
+            sub.0,
+            object.as_str(),
+            action.as_str()
+        );
+
+        let enforcer = self.enforcer.read().await;
+
+        match enforcer.enforce((sub.0.as_str(), object.as_str(), action.as_str())) {
             Ok(true) => Ok(true),
             Ok(false) => Err(AuthorizationError::NotAuthorizedError),
             Err(e) => Err(AuthorizationError::Casbin(e)),
         }
     }
 
-    // pub async fn add_permission(
-    //     &mut self,
-    //     sub: &Subject,
-    //     object: Object,
-    //     action: Action,
-    // ) -> Result<(), AuthorizationError> {
-    //     self.enforcer
-    //         .add_policy(vec![
-    //             sub.0.clone(),
-    //             object.as_str().to_string(),
-    //             action.as_str().to_string(),
-    //         ])
-    //         .await?;
-    //     Ok(())
-    // }
+    pub async fn add_permission(
+        &mut self,
+        sub: &Subject,
+        object: Object,
+        action: Action,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        enforcer
+            .add_policy(vec![
+                sub.0.clone(),
+                object.as_str().to_string(),
+                action.as_str().to_string(),
+            ])
+            .await?;
+        Ok(())
+    }
+
+    pub async fn add_grouping(
+        &mut self,
+        sub: &Subject,
+        group: &Group,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        enforcer
+            .add_grouping_policy(vec![sub.0.clone(), group.0.to_string()])
+            .await?;
+
+        Ok(())
+    }
 }
 
 // object could be a trait on a Loan entity.
@@ -102,7 +127,7 @@ impl LoanAction {
     fn as_str(&self) -> &str {
         match self {
             LoanAction::Read => "loan-read",
-            LoanAction::Create => "loan-write",
+            LoanAction::Create => "loan-create",
             LoanAction::List => "loan-list",
         }
     }

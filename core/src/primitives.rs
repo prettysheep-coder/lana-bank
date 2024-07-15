@@ -77,6 +77,10 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 #[derive(Debug, Clone)]
 pub struct Subject(pub String);
 
+
+#[derive(Debug, Clone)]
+pub struct Group(pub String);
+
 impl From<String> for Subject {
     fn from(s: String) -> Self {
         Self(s)
