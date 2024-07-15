@@ -3,10 +3,14 @@ enum AccountStatus {
 	INACTIVE
 }
 
+scalar AnnualRate
+
 
 type BtcBalance {
 	btcBalance: Satoshis!
 }
+
+scalar CVLPct
 
 type Checking {
 	settled: UsdBalance!
@@ -15,6 +19,11 @@ type Checking {
 
 type Collateral {
 	btcBalance: Satoshis!
+}
+
+type Duration {
+	period: Period!
+	units: Int!
 }
 
 
@@ -42,19 +51,10 @@ type Loan {
 	user: User!
 }
 
-scalar LoanAnnualRate
-
 type LoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
 	interestIncurred: InterestIncome!
-}
-
-scalar LoanCVLPct
-
-type LoanDuration {
-	period: Period!
-	units: Int!
 }
 
 type LoanOutstanding {
@@ -90,12 +90,12 @@ type SumsubTokenCreatePayload {
 }
 
 type TermValues {
-	annualRate: LoanAnnualRate!
+	annualRate: AnnualRate!
 	interval: InterestInterval!
-	duration: LoanDuration!
-	liquidationCvl: LoanCVLPct!
-	marginCallCvl: LoanCVLPct!
-	initialCvl: LoanCVLPct!
+	duration: Duration!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
 }
 
 type Terms {

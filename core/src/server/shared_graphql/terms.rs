@@ -1,12 +1,12 @@
 use async_graphql::*;
 
 use crate::{
-    loan::{LoanAnnualRate, LoanCVLPct},
+    loan::{AnnualRate, CVLPct},
     server::shared_graphql::{convert::*, primitives::UUID},
 };
 
-scalar!(LoanAnnualRate);
-scalar!(LoanCVLPct);
+scalar!(AnnualRate);
+scalar!(CVLPct);
 
 #[derive(SimpleObject)]
 pub struct Terms {
@@ -17,16 +17,16 @@ pub struct Terms {
 
 #[derive(SimpleObject)]
 pub struct TermValues {
-    annual_rate: LoanAnnualRate,
+    annual_rate: AnnualRate,
     interval: InterestInterval,
-    duration: LoanDuration,
-    liquidation_cvl: LoanCVLPct,
-    margin_call_cvl: LoanCVLPct,
-    initial_cvl: LoanCVLPct,
+    duration: Duration,
+    liquidation_cvl: CVLPct,
+    margin_call_cvl: CVLPct,
+    initial_cvl: CVLPct,
 }
 
 #[derive(SimpleObject)]
-pub(super) struct LoanDuration {
+pub(super) struct Duration {
     period: Period,
     units: u32,
 }
@@ -71,10 +71,10 @@ impl From<crate::loan::TermValues> for TermValues {
     }
 }
 
-impl From<crate::loan::LoanDuration> for LoanDuration {
-    fn from(duration: crate::loan::LoanDuration) -> Self {
+impl From<crate::loan::Duration> for Duration {
+    fn from(duration: crate::loan::Duration) -> Self {
         match duration {
-            crate::loan::LoanDuration::Months(months) => Self {
+            crate::loan::Duration::Months(months) => Self {
                 period: Period::Months,
                 units: months,
             },
