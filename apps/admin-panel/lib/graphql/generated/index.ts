@@ -519,10 +519,22 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
+<<<<<<< HEAD
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+=======
+export type CurrentTermsUpdateMutationVariables = Exact<{
+  input: CurrentTermsUpdateInput;
+}>;
+
+
+export type CurrentTermsUpdateMutation = { __typename?: 'Mutation', currentTermsUpdate: { __typename?: 'CurrentTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'LoanDuration', period: Period, units: number } } } } };
+
+export type ChartOfAccountAccountSetQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+>>>>>>> df85546 (feat(admin-panel): current terms update form)
 }>;
 
 
@@ -823,9 +835,62 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+<<<<<<< HEAD
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSet(accountSetId: $accountSetId) {
+=======
+export const CurrentTermsUpdateDocument = gql`
+    mutation CurrentTermsUpdate($input: CurrentTermsUpdateInput!) {
+  currentTermsUpdate(input: $input) {
+    terms {
+      id
+      termsId
+      values {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type CurrentTermsUpdateMutationFn = Apollo.MutationFunction<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>;
+
+/**
+ * __useCurrentTermsUpdateMutation__
+ *
+ * To run a mutation, you first call `useCurrentTermsUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCurrentTermsUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [currentTermsUpdateMutation, { data, loading, error }] = useCurrentTermsUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCurrentTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>(CurrentTermsUpdateDocument, options);
+      }
+export type CurrentTermsUpdateMutationHookResult = ReturnType<typeof useCurrentTermsUpdateMutation>;
+export type CurrentTermsUpdateMutationResult = Apollo.MutationResult<CurrentTermsUpdateMutation>;
+export type CurrentTermsUpdateMutationOptions = Apollo.BaseMutationOptions<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>;
+export const ChartOfAccountAccountSetDocument = gql`
+    query ChartOfAccountAccountSet($id: UUID!) {
+  chartOfAccountsAccountSet(accountSetId: $id) {
+>>>>>>> df85546 (feat(admin-panel): current terms update form)
     id
     name
     subAccounts(first: $first, after: $after) {
