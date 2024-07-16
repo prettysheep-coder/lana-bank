@@ -352,4 +352,14 @@ mod test {
         assert_eq!(loan.outstanding(), UsdCents::ZERO);
         assert!(loan.is_completed());
     }
+
+    #[test]
+    fn prevent_double_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        assert!(res.is_ok());
+
+        let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        assert!(res.is_err());
+    }
 }
