@@ -96,7 +96,7 @@ impl Loan {
         self.initial_principal() + self.interest_recorded() - self.payments()
     }
 
-    pub fn is_approved(&self) -> bool {
+    pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
                 LoanEvent::Approved { .. } => return true,
@@ -106,11 +106,20 @@ impl Loan {
         false
     }
 
-    pub(super) fn approve(&mut self, tx_id: LedgerTxId, initial_collateral: Satoshis) {
+    pub(super) fn approve(
+        &mut self,
+        tx_id: LedgerTxId,
+        initial_collateral: Satoshis,
+    ) -> Result<(), LoanError> {
+        if self.is_approved() {
+            return Err(LoanError::AlreadyApproved);
+        }
         self.events.push(LoanEvent::Approved {
             tx_id,
             initial_collateral,
         });
+
+        Ok(())
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {

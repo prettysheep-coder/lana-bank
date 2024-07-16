@@ -119,6 +119,7 @@ impl Loans {
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
         let mut tx = self.pool.begin().await?;
         let tx_id = LedgerTxId::new();
+        loan.approve(tx_id, collateral)?;
         self.ledger
             .approve_loan(
                 tx_id,
@@ -129,7 +130,6 @@ impl Loans {
                 format!("{}-approval", loan.id),
             )
             .await?;
-        loan.approve(tx_id, collateral);
         self.loan_repo.persist_in_tx(&mut tx, &mut loan).await?;
         self.jobs()
             .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
