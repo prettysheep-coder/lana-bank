@@ -39,10 +39,10 @@ pub enum KycLevel {
     Advanced,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub enum LoanStatus {
-    Active,
     New,
+    Active,
     Closed,
 }
 

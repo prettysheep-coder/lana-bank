@@ -372,4 +372,15 @@ mod test {
         let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
         assert!(res.is_err());
     }
+
+    #[test]
+    fn test_status() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        assert_eq!(loan.status(), LoanStatus::New);
+        let _ = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        assert_eq!(loan.status(), LoanStatus::Active);
+        let _ = loan
+            .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(100)));
+        assert_eq!(loan.status(), LoanStatus::Closed);
+    }
 }
