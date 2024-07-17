@@ -109,24 +109,6 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
-input CurrentTermsUpdateInput {
-	annualRate: AnnualRate!
-	interval: InterestInterval!
-	liquidationCvl: CVLPct!
-	duration: DurationInput!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
-}
-
-type CurrentTermsUpdatePayload {
-	terms: Terms!
-}
-
-type Duration {
-	period: Period!
-	units: Int!
-}
-
 input DurationInput {
 	period: Period!
 	units: Int!
@@ -190,6 +172,7 @@ type LoanBalance {
 input LoanCreateInput {
 	userId: UUID!
 	desiredPrincipal: UsdCents!
+	loanTerms: TermsInput!
 }
 
 type LoanCreatePayload {
@@ -218,7 +201,6 @@ enum LoanStatus {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
-	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
@@ -259,7 +241,6 @@ type Query {
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
-	currentTerms: Terms
 }
 
 scalar Satoshis
@@ -286,19 +267,13 @@ type SumsubPermalinkCreatePayload {
 	url: String!
 }
 
-type TermValues {
+input TermsInput {
 	annualRate: AnnualRate!
 	interval: InterestInterval!
-	duration: Duration!
 	liquidationCvl: CVLPct!
+	duration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
-}
-
-type Terms {
-	id: ID!
-	termsId: UUID!
-	values: TermValues!
 }
 
 scalar Timestamp

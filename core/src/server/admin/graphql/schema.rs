@@ -1,13 +1,13 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
-use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
+use super::{account_set::*, loan::*, shareholder_equity::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{LoanId, UserId},
     server::shared_graphql::{
         loan::Loan, objects::SuccessPayload, primitives::UUID,
-        sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+        sumsub::SumsubPermalinkCreatePayload, user::User,
     },
 };
 
@@ -109,12 +109,6 @@ impl Query {
             .await?;
         Ok(chart_of_accounts.map(ChartOfAccountsAccountSet::from))
     }
-
-    async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let current_terms = app.loans().find_current_terms().await?;
-        Ok(current_terms.map(Terms::from))
-    }
 }
 
 pub struct Mutation;
@@ -148,24 +142,6 @@ impl Mutation {
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })
-    }
-
-    async fn current_terms_update(
-        &self,
-        ctx: &Context<'_>,
-        input: CurrentTermsUpdateInput,
-    ) -> async_graphql::Result<CurrentTermsUpdatePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let term_values = crate::loan::TermValues::builder()
-            .annual_rate(input.annual_rate)
-            .interval(input.interval)
-            .duration(input.duration)
-            .liquidation_cvl(input.liquidation_cvl)
-            .margin_call_cvl(input.margin_call_cvl)
-            .initial_cvl(input.initial_cvl)
-            .build()?;
-        let terms = app.loans().update_current_terms(term_values).await?;
-        Ok(CurrentTermsUpdatePayload::from(terms))
     }
 
     async fn loan_create(
