@@ -1,5 +1,7 @@
 use async_graphql::*;
 
+use crate::primitives;
+
 use crate::{
     app::LavaApp,
     ledger,
@@ -8,6 +10,12 @@ use crate::{
 };
 
 use super::convert::ToGlobalId;
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum LoanStatus {
+    Active,
+    Inactive,
+}
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -19,6 +27,7 @@ pub struct Loan {
     user_id: UUID,
     #[graphql(skip)]
     account_ids: crate::ledger::loan::LoanAccountIds,
+    status: LoanStatus,
 }
 
 #[ComplexObject]
@@ -84,6 +93,15 @@ impl ToGlobalId for crate::primitives::LoanId {
     }
 }
 
+impl From<primitives::LoanStatus> for LoanStatus {
+    fn from(level: primitives::LoanStatus) -> Self {
+        match level {
+            primitives::LoanStatus::Active => LoanStatus::Active,
+            primitives::LoanStatus::Inactive => LoanStatus::Inactive,
+        }
+    }
+}
+
 impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
         Loan {
@@ -92,6 +110,7 @@ impl From<crate::loan::Loan> for Loan {
             user_id: UUID::from(loan.user_id),
             account_ids: loan.account_ids,
             start_date: Timestamp::from(loan.start_date),
+            status: LoanStatus::from(loan.status),
         }
     }
 }

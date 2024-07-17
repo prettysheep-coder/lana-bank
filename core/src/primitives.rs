@@ -39,6 +39,12 @@ pub enum KycLevel {
     Advanced,
 }
 
+#[derive(Debug, Deserialize, Clone, Copy, Serialize)]
+pub enum LoanStatus {
+    Active,
+    Inactive,
+}
+
 impl std::fmt::Display for KycLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

@@ -22,6 +22,7 @@ pub enum LoanEvent {
         terms: TermValues,
         account_ids: LoanAccountIds,
         start_date: DateTime<Utc>,
+        status: LoanStatus,
     },
     Approved {
         tx_id: LedgerTxId,
@@ -61,6 +62,7 @@ pub struct Loan {
     pub user_account_ids: UserLedgerAccountIds,
     pub start_date: DateTime<Utc>,
     pub(super) events: EntityEvents<LoanEvent>,
+    pub status: LoanStatus,
 }
 
 impl Loan {
@@ -118,7 +120,7 @@ impl Loan {
             tx_id,
             initial_collateral,
         });
-
+        self.status = LoanStatus::Active;
         Ok(())
     }
 
@@ -239,6 +241,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
 
     fn try_from(events: EntityEvents<LoanEvent>) -> Result<Self, Self::Error> {
         let mut builder = LoanBuilder::default();
+        let mut status = LoanStatus::Inactive;
         for event in events.iter() {
             match event {
                 LoanEvent::Initialized {
@@ -258,13 +261,15 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .user_account_ids(*user_account_ids)
                         .start_date(*start_date);
                 }
-                LoanEvent::Approved { .. } => (),
+                LoanEvent::Approved { .. } => {
+                    status = LoanStatus::Active;
+                }
                 LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
             }
         }
-        builder.events(events).build()
+        builder.status(status).events(events).build()
     }
 }
 
@@ -280,6 +285,8 @@ pub struct NewLoan {
     user_account_ids: UserLedgerAccountIds,
     #[builder(default = "Utc::now()")]
     start_date: DateTime<Utc>,
+    #[builder(default = "LoanStatus::Inactive")]
+    status: LoanStatus,
 }
 
 impl NewLoan {
@@ -298,6 +305,7 @@ impl NewLoan {
                 account_ids: self.account_ids,
                 user_account_ids: self.user_account_ids,
                 start_date: self.start_date,
+                status: self.status,
             }],
         )
     }
@@ -335,6 +343,7 @@ mod test {
                 terms,
                 account_ids: LoanAccountIds::new(),
                 start_date: Utc::now(),
+                status: LoanStatus::Inactive,
             }],
         )
     }

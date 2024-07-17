@@ -185,6 +185,7 @@ export type Loan = {
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   startDate: Scalars['Timestamp']['output'];
+  status: LoanStatus;
   user: User;
 };
 
@@ -229,6 +230,11 @@ export type LoanPartialPaymentPayload = {
   __typename?: 'LoanPartialPaymentPayload';
   loan: Loan;
 };
+
+export enum LoanStatus {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
