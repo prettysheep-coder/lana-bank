@@ -17,9 +17,10 @@ pub enum LoanEvent {
     Initialized {
         id: LoanId,
         user_id: UserId,
-        user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
+        terms: TermValues,
         account_ids: LoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
         start_date: DateTime<Utc>,
     },
     TermsUpdated {
@@ -265,11 +266,13 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     account_ids,
                     user_account_ids,
                     start_date,
+                    terms,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .user_id(*user_id)
+                        .terms(terms.clone())
                         .account_ids(*account_ids)
                         .user_account_ids(*user_account_ids)
                         .start_date(*start_date);
@@ -309,17 +312,15 @@ impl NewLoan {
     pub(super) fn initial_events(self) -> EntityEvents<LoanEvent> {
         EntityEvents::init(
             self.id,
-            [
-                LoanEvent::Initialized {
-                    id: self.id,
-                    user_id: self.user_id,
-                    principal: self.principal,
-                    account_ids: self.account_ids,
-                    user_account_ids: self.user_account_ids,
-                    start_date: self.start_date,
-                },
-                LoanEvent::TermsUpdated { terms: self.terms },
-            ],
+            [LoanEvent::Initialized {
+                id: self.id,
+                user_id: self.user_id,
+                principal: self.principal,
+                terms: self.terms,
+                account_ids: self.account_ids,
+                user_account_ids: self.user_account_ids,
+                start_date: self.start_date,
+            }],
         )
     }
 }
@@ -345,20 +346,17 @@ mod test {
     }
 
     fn init_events() -> EntityEvents<LoanEvent> {
-        let terms = terms();
         EntityEvents::init(
             LoanId::new(),
-            [
-                LoanEvent::Initialized {
-                    id: LoanId::new(),
-                    user_id: UserId::new(),
-                    user_account_ids: UserLedgerAccountIds::new(),
-                    principal: UsdCents::from_usd(dec!(100)),
-                    account_ids: LoanAccountIds::new(),
-                    start_date: Utc::now(),
-                },
-                LoanEvent::TermsUpdated { terms },
-            ],
+            [LoanEvent::Initialized {
+                id: LoanId::new(),
+                user_id: UserId::new(),
+                principal: UsdCents::from_usd(dec!(100)),
+                terms: terms(),
+                account_ids: LoanAccountIds::new(),
+                user_account_ids: UserLedgerAccountIds::new(),
+                start_date: Utc::now(),
+            }],
         )
     }
 
@@ -420,7 +418,7 @@ mod test {
                     _ => None,
                 })
                 .count(),
-            2
+            1
         );
 
         assert!(matches!(

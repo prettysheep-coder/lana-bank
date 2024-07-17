@@ -65,7 +65,7 @@ impl Loans {
         &self,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
-        current_terms: TermValues,
+        terms: TermValues,
     ) -> Result<Loan, LoanError> {
         let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
@@ -83,8 +83,7 @@ impl Loans {
             .await?
             .btc_balance;
 
-        let required_collateral =
-            current_terms.required_collateral(desired_principal, Self::dummy_price());
+        let required_collateral = terms.required_collateral(desired_principal, Self::dummy_price());
 
         if required_collateral > unallocated_collateral {
             return Err(LoanError::InsufficientCollateral(
@@ -100,7 +99,7 @@ impl Loans {
             .user_id(user_id)
             .principal(desired_principal)
             .account_ids(LoanAccountIds::new())
-            .terms(current_terms)
+            .terms(terms)
             .user_account_ids(user.account_ids)
             .build()
             .expect("could not build new loan");
