@@ -6,7 +6,7 @@ use crate::{
 };
 
 #[derive(InputObject)]
-pub(super) struct CurrentTermsUpdateInput {
+pub struct CurrentTermsUpdateInput {
     pub annual_rate: AnnualRate,
     pub interval: InterestInterval,
     pub liquidation_cvl: CVLPct,

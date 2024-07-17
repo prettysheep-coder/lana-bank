@@ -1,11 +1,10 @@
 use async_graphql::*;
 
-use crate::{
-    loan::{AnnualRate, CVLPct},
-    server::shared_graphql::{convert::*, primitives::UUID},
-};
+use crate::server::shared_graphql::{convert::*, primitives::UUID};
 
+pub use crate::loan::AnnualRate;
 scalar!(AnnualRate);
+pub use crate::loan::CVLPct;
 scalar!(CVLPct);
 
 #[derive(SimpleObject)]
