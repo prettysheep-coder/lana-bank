@@ -233,7 +233,8 @@ export type LoanPartialPaymentPayload = {
 
 export enum LoanStatus {
   Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
+  Closed = 'CLOSED',
+  New = 'NEW'
 }
 
 export type Mutation = {

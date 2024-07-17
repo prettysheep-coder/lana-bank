@@ -64,7 +64,8 @@ type LoanOutstanding {
 
 enum LoanStatus {
 	ACTIVE
-	INACTIVE
+	NEW
+	CLOSED
 }
 
 type Mutation {

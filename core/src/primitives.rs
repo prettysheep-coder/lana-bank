@@ -42,7 +42,8 @@ pub enum KycLevel {
 #[derive(Debug, Deserialize, Clone, Copy, Serialize)]
 pub enum LoanStatus {
     Active,
-    Inactive,
+    New,
+    Closed,
 }
 
 impl std::fmt::Display for KycLevel {
