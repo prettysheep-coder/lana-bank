@@ -1,6 +1,0 @@
-p, admin, loan, loan-create
-p, admin, loan, loan-write
-p, admin, loan, loan-list
-
-g, alice, admin
-g, bob, user

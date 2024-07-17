@@ -33,6 +33,14 @@ pub async fn seed_permissions(config: &CasbinConfig) -> Result<(), Authorization
         .await;
 
     let _ = auth
+        .add_permission(
+            &Subject("admin".to_string()),
+            Object::Loan,
+            Action::Loan(LoanAction::Approve),
+        )
+        .await;
+
+    let _ = auth
         .add_grouping(&Subject("alice".to_string()), &Group("admin".to_string()))
         .await;
 

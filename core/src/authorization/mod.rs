@@ -89,8 +89,6 @@ impl Authorization {
     }
 }
 
-// object could be a trait on a Loan entity.
-
 pub enum Object {
     Applicant,
     Loan,
@@ -113,6 +111,7 @@ pub enum LoanAction {
     List,
     Read,
     Create,
+    Approve,
 }
 
 impl Action {
@@ -129,6 +128,7 @@ impl LoanAction {
             LoanAction::Read => "loan-read",
             LoanAction::Create => "loan-create",
             LoanAction::List => "loan-list",
+            LoanAction::Approve => "loan-approve",
         }
     }
 }

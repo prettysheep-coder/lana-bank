@@ -196,9 +196,12 @@ impl Mutation {
         input: LoanApproveInput,
     ) -> async_graphql::Result<LoanApprovePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let loan = app
             .loans()
-            .approve_loan(input.loan_id, input.collateral)
+            .approve_loan(sub, input.loan_id, input.collateral)
             .await?;
         Ok(LoanApprovePayload::from(loan))
     }

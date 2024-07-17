@@ -127,9 +127,14 @@ impl Loans {
 
     pub async fn approve_loan(
         &self,
+        sub: &Subject,
         loan_id: impl Into<LoanId> + std::fmt::Debug,
         collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Approve))
+            .await?;
+
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
         let mut tx = self.pool.begin().await?;
         let tx_id = LedgerTxId::new();
