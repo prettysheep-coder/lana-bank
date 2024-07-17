@@ -65,6 +65,7 @@ impl Loans {
         &self,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
+        loan_terms: Option<TermValues>,
     ) -> Result<Loan, LoanError> {
         let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
@@ -75,13 +76,19 @@ impl Loans {
         if !user.may_create_loan() {
             return Err(LoanError::UserNotAllowedToCreateLoan(user_id));
         }
+
         let unallocated_collateral = self
             .ledger
             .get_user_balance(user.account_ids)
             .await?
             .btc_balance;
 
-        let current_terms = self.term_repo.find_current().await?;
+        let current_terms = if let Some(terms) = loan_terms {
+            terms
+        } else {
+            self.term_repo.find_current().await?.values
+        };
+
         let required_collateral =
             current_terms.required_collateral(desired_principal, Self::dummy_price());
 
@@ -97,12 +104,13 @@ impl Loans {
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
             .user_id(user_id)
-            .terms(current_terms.values)
             .principal(desired_principal)
             .account_ids(LoanAccountIds::new())
+            .terms(current_terms)
             .user_account_ids(user.account_ids)
             .build()
             .expect("could not build new loan");
+
         let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)

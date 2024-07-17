@@ -19,9 +19,11 @@ pub enum LoanEvent {
         user_id: UserId,
         user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
-        terms: TermValues,
         account_ids: LoanAccountIds,
         start_date: DateTime<Utc>,
+    },
+    TermsUpdated {
+        terms: TermValues,
     },
     Approved {
         tx_id: LedgerTxId,
@@ -254,7 +256,6 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::Initialized {
                     id,
                     user_id,
-                    terms,
                     account_ids,
                     user_account_ids,
                     start_date,
@@ -263,10 +264,12 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     builder = builder
                         .id(*id)
                         .user_id(*user_id)
-                        .terms(terms.clone())
                         .account_ids(*account_ids)
                         .user_account_ids(*user_account_ids)
                         .start_date(*start_date);
+                }
+                LoanEvent::TermsUpdated { terms } => {
+                    builder = builder.terms(terms.clone());
                 }
                 LoanEvent::Approved { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
@@ -300,15 +303,17 @@ impl NewLoan {
     pub(super) fn initial_events(self) -> EntityEvents<LoanEvent> {
         EntityEvents::init(
             self.id,
-            [LoanEvent::Initialized {
-                id: self.id,
-                user_id: self.user_id,
-                terms: self.terms,
-                principal: self.principal,
-                account_ids: self.account_ids,
-                user_account_ids: self.user_account_ids,
-                start_date: self.start_date,
-            }],
+            [
+                LoanEvent::Initialized {
+                    id: self.id,
+                    user_id: self.user_id,
+                    principal: self.principal,
+                    account_ids: self.account_ids,
+                    user_account_ids: self.user_account_ids,
+                    start_date: self.start_date,
+                },
+                LoanEvent::TermsUpdated { terms: self.terms },
+            ],
         )
     }
 }
@@ -337,15 +342,17 @@ mod test {
         let terms = terms();
         EntityEvents::init(
             LoanId::new(),
-            [LoanEvent::Initialized {
-                id: LoanId::new(),
-                user_id: UserId::new(),
-                user_account_ids: UserLedgerAccountIds::new(),
-                principal: UsdCents::from_usd(dec!(100)),
-                terms,
-                account_ids: LoanAccountIds::new(),
-                start_date: Utc::now(),
-            }],
+            [
+                LoanEvent::Initialized {
+                    id: LoanId::new(),
+                    user_id: UserId::new(),
+                    user_account_ids: UserLedgerAccountIds::new(),
+                    principal: UsdCents::from_usd(dec!(100)),
+                    account_ids: LoanAccountIds::new(),
+                    start_date: Utc::now(),
+                },
+                LoanEvent::TermsUpdated { terms },
+            ],
         )
     }
 
