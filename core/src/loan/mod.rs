@@ -65,7 +65,7 @@ impl Loans {
         &self,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
-        loan_terms: Option<TermValues>,
+        current_terms: TermValues,
     ) -> Result<Loan, LoanError> {
         let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
@@ -82,12 +82,6 @@ impl Loans {
             .get_user_balance(user.account_ids)
             .await?
             .btc_balance;
-
-        let current_terms = if let Some(terms) = loan_terms {
-            terms
-        } else {
-            self.term_repo.find_current().await?.values
-        };
 
         let required_collateral =
             current_terms.required_collateral(desired_principal, Self::dummy_price());

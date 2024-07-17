@@ -174,9 +174,22 @@ impl Mutation {
         input: LoanCreateInput,
     ) -> async_graphql::Result<LoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let LoanCreateInput {
+            user_id,
+            desired_principal,
+            loan_terms,
+        } = input;
+        let term_values = crate::loan::TermValues::builder()
+            .annual_rate(loan_terms.annual_rate)
+            .interval(loan_terms.interval)
+            .duration(loan_terms.duration)
+            .liquidation_cvl(loan_terms.liquidation_cvl)
+            .margin_call_cvl(loan_terms.margin_call_cvl)
+            .initial_cvl(loan_terms.initial_cvl)
+            .build()?;
         let loan = app
             .loans()
-            .create_loan_for_user(input.user_id, input.desired_principal)
+            .create_loan_for_user(user_id, desired_principal, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }
