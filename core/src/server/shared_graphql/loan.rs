@@ -1,7 +1,5 @@
 use async_graphql::*;
 
-use crate::primitives;
-
 use crate::{
     app::LavaApp,
     ledger,
@@ -92,15 +90,6 @@ impl From<ledger::loan::LoanBalance> for LoanBalance {
 impl ToGlobalId for crate::primitives::LoanId {
     fn to_global_id(&self) -> async_graphql::types::ID {
         async_graphql::types::ID::from(format!("loan:{}", self))
-    }
-}
-
-impl From<primitives::LoanStatus> for LoanStatus {
-    fn from(level: primitives::LoanStatus) -> Self {
-        match level {
-            primitives::LoanStatus::Active => LoanStatus::Active,
-            primitives::LoanStatus::Inactive => LoanStatus::Inactive,
-        }
     }
 }
 
