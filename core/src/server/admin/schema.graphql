@@ -109,6 +109,11 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+type Duration {
+	period: Period!
+	units: Int!
+}
+
 input DurationInput {
 	period: Period!
 	units: Int!
@@ -149,7 +154,11 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+<<<<<<< HEAD
 	status: LoanStatus!
+=======
+	loanTerms: TermValues!
+>>>>>>> 1d658c1 (chore: expose terms on loan)
 	balance: LoanBalance!
 	user: User!
 }
@@ -265,6 +274,15 @@ input SumsubPermalinkCreateInput {
 
 type SumsubPermalinkCreatePayload {
 	url: String!
+}
+
+type TermValues {
+	annualRate: AnnualRate!
+	interval: InterestInterval!
+	duration: Duration!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
 }
 
 input TermsInput {

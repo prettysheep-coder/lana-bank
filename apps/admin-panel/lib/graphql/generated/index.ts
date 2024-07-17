@@ -142,6 +142,12 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type Duration = {
+  __typename?: 'Duration';
+  period: Period;
+  units: Scalars['Int']['output'];
+};
+
 export type DurationInput = {
   period: Period;
   units: Scalars['Int']['input'];
@@ -183,6 +189,7 @@ export type Loan = {
   balance: LoanBalance;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
+  loanTerms: TermValues;
   startDate: Scalars['Timestamp']['output'];
   status: LoanStatus;
   user: User;
@@ -338,6 +345,16 @@ export type SumsubPermalinkCreateInput = {
 export type SumsubPermalinkCreatePayload = {
   __typename?: 'SumsubPermalinkCreatePayload';
   url: Scalars['String']['output'];
+};
+
+export type TermValues = {
+  __typename?: 'TermValues';
+  annualRate: Scalars['AnnualRate']['output'];
+  duration: Duration;
+  initialCvl: Scalars['CVLPct']['output'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['output'];
+  marginCallCvl: Scalars['CVLPct']['output'];
 };
 
 export type TermsInput = {
