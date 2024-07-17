@@ -118,6 +118,12 @@ impl Loan {
         }
     }
 
+    #[allow(dead_code)]
+    pub(super) fn set_terms(&mut self, terms: TermValues) {
+        self.terms = terms.clone();
+        self.events.push(LoanEvent::TermsUpdated { terms });
+    }
+
     pub(super) fn approve(
         &mut self,
         tx_id: LedgerTxId,
@@ -322,7 +328,7 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{Duration, InterestInterval};
+    use crate::loan::{AnnualRate, Duration, InterestInterval};
 
     use super::*;
 
@@ -389,5 +395,39 @@ mod test {
         let _ = loan
             .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(100)));
         assert_eq!(loan.status(), LoanStatus::Closed);
+    }
+
+    fn can_update_terms() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.12)));
+
+        let new_terms = TermValues::builder()
+            .annual_rate(dec!(0.15))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term");
+        loan.set_terms(new_terms);
+
+        assert_eq!(
+            loan.events
+                .iter()
+                .filter_map(|event| match event {
+                    LoanEvent::TermsUpdated { .. } => Some(()),
+                    _ => None,
+                })
+                .count(),
+            2
+        );
+
+        assert!(matches!(
+            loan.events.iter().last().unwrap(),
+            LoanEvent::TermsUpdated { .. }
+        ));
+
+        assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.15)));
     }
 }
