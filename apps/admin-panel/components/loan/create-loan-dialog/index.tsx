@@ -187,11 +187,7 @@ export const CreateLoanDialog = ({
             />
             <DetailItem
               label="Duration"
-              value={
-                String(data.loanCreate.loan.loanTerms.duration.units) +
-                " " +
-                formatPeriod(data.loanCreate.loan.loanTerms.duration.period)
-              }
+              value={`${String(data.loanCreate.loan.loanTerms.duration.units)} ${formatPeriod(data.loanCreate.loan.loanTerms.duration.period)}`}
             />
             <DetailItem
               label="Interval"
@@ -199,19 +195,19 @@ export const CreateLoanDialog = ({
             />
             <DetailItem
               label="Annual Rate"
-              value={data.loanCreate.loan.loanTerms.annualRate}
+              value={`${data.loanCreate.loan.loanTerms.annualRate}%`}
             />
             <DetailItem
               label="Liquidation CVL"
-              value={data.loanCreate.loan.loanTerms.liquidationCvl}
+              value={`${data.loanCreate.loan.loanTerms.liquidationCvl}%`}
             />
             <DetailItem
               label="Margin Call CVL"
-              value={data.loanCreate.loan.loanTerms.marginCallCvl}
+              value={`${data.loanCreate.loan.loanTerms.marginCallCvl}%`}
             />
             <DetailItem
               label="Initial CVL"
-              value={data.loanCreate.loan.loanTerms.initialCvl}
+              value={`${data.loanCreate.loan.loanTerms.initialCvl}%`}
             />
           </DetailsGroup>
         </DialogContent>

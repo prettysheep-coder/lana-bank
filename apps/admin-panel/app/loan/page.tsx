@@ -125,17 +125,13 @@ function LoanPage() {
                   />
                   <DetailItem
                     label="Initial CVL"
-                    value={loanDetails.loan.loanTerms.initialCvl}
+                    value={`${loanDetails.loan.loanTerms.initialCvl}%`}
                   />
                 </div>
                 <div className="grid auto-rows-min">
                   <DetailItem
                     label="Duration"
-                    value={
-                      String(loanDetails.loan.loanTerms.duration.units) +
-                      " " +
-                      formatPeriod(loanDetails.loan.loanTerms.duration.period)
-                    }
+                    value={`${loanDetails.loan.loanTerms.duration.units} ${formatPeriod(loanDetails.loan.loanTerms.duration.period)}`}
                   />
                   <DetailItem
                     label="Interval"
@@ -143,15 +139,15 @@ function LoanPage() {
                   />
                   <DetailItem
                     label="Annual Rate"
-                    value={loanDetails.loan.loanTerms.annualRate}
+                    value={`${loanDetails.loan.loanTerms.annualRate}%`}
                   />
                   <DetailItem
                     label="Liquidation CVL"
-                    value={loanDetails.loan.loanTerms.liquidationCvl}
+                    value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
                   />
                   <DetailItem
                     label="Margin Call CVL"
-                    value={loanDetails.loan.loanTerms.marginCallCvl}
+                    value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
                   />
                 </div>
               </div>

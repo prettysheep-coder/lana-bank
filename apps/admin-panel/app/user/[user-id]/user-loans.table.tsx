@@ -200,12 +200,12 @@ const LoanTermsCollapsible = ({ loanTerms }: { loanTerms: Loan["loanTerms"] }) =
             }
           />
           <DetailItem label="Interval" value={formatInterval(loanTerms.interval)} />
-          <DetailItem label="Annual Rate" value={loanTerms.annualRate} />
+          <DetailItem label="Annual Rate" value={`${loanTerms.annualRate}%`} />
         </div>
         <div className="grid ">
-          <DetailItem label="Liquidation CVL" value={loanTerms.liquidationCvl} />
-          <DetailItem label="Margin Call CVL" value={loanTerms.marginCallCvl} />
-          <DetailItem label="Initial CVL" value={loanTerms.initialCvl} />
+          <DetailItem label="Liquidation CVL" value={`${loanTerms.liquidationCvl}%`} />
+          <DetailItem label="Margin Call CVL" value={`${loanTerms.marginCallCvl}%`} />
+          <DetailItem label="Initial CVL" value={`${loanTerms.initialCvl}%`} />
         </div>
       </div>
     </div>
