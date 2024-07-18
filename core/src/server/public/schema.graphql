@@ -63,8 +63,8 @@ type LoanOutstanding {
 }
 
 enum LoanStatus {
-	ACTIVE
 	NEW
+	ACTIVE
 	CLOSED
 }
 

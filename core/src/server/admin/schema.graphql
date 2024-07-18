@@ -181,8 +181,8 @@ type LoanPartialPaymentPayload {
 }
 
 enum LoanStatus {
-	ACTIVE
 	NEW
+	ACTIVE
 	CLOSED
 }
 
