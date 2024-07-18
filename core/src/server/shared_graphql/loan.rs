@@ -12,8 +12,8 @@ use super::convert::ToGlobalId;
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "crate::primitives::LoanStatus")]
 pub enum LoanStatus {
-    Active,
     New,
+    Active,
     Closed,
 }
 
