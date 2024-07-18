@@ -154,11 +154,8 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
-<<<<<<< HEAD
-	status: LoanStatus!
-=======
 	loanTerms: TermValues!
->>>>>>> 1d658c1 (chore: expose terms on loan)
+	status: LoanStatus!
 	balance: LoanBalance!
 	user: User!
 }

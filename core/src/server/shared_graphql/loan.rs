@@ -100,10 +100,10 @@ impl From<crate::loan::Loan> for Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
             user_id: UUID::from(loan.user_id),
+            status: loan.status().into(),
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
             start_date: Timestamp::from(loan.start_date),
-            status: loan.status().into(),
         }
     }
 }

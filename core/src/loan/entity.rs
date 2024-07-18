@@ -395,6 +395,7 @@ mod test {
         assert_eq!(loan.status(), LoanStatus::Closed);
     }
 
+    #[test]
     fn can_update_terms() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.12)));
