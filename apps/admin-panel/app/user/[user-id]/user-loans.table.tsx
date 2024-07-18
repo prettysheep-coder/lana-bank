@@ -190,7 +190,7 @@ const LoanTermsCollapsible = ({ loanTerms }: { loanTerms: Loan["loanTerms"] }) =
   return (
     <div className="p-4 w-full bg-secondary-foreground">
       <div className="grid grid-cols-2 gap-4">
-        <div className="grid gap-2">
+        <div className="grid ">
           <DetailItem
             label="Duration"
             value={
@@ -202,7 +202,7 @@ const LoanTermsCollapsible = ({ loanTerms }: { loanTerms: Loan["loanTerms"] }) =
           <DetailItem label="Interval" value={formatInterval(loanTerms.interval)} />
           <DetailItem label="Annual Rate" value={loanTerms.annualRate} />
         </div>
-        <div className="grid gap-2">
+        <div className="grid ">
           <DetailItem label="Liquidation CVL" value={loanTerms.liquidationCvl} />
           <DetailItem label="Margin Call CVL" value={loanTerms.marginCallCvl} />
           <DetailItem label="Initial CVL" value={loanTerms.initialCvl} />
