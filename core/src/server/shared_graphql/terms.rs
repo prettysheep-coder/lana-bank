@@ -41,6 +41,12 @@ pub enum Period {
     Months,
 }
 
+#[derive(InputObject)]
+pub struct DurationInput {
+    pub period: Period,
+    pub units: u32,
+}
+
 impl ToGlobalId for crate::primitives::LoanTermsId {
     fn to_global_id(&self) -> async_graphql::types::ID {
         async_graphql::types::ID::from(format!("loan_terms:{}", self))
@@ -77,6 +83,14 @@ impl From<crate::loan::Duration> for Duration {
                 period: Period::Months,
                 units: months,
             },
+        }
+    }
+}
+
+impl From<DurationInput> for crate::loan::Duration {
+    fn from(loan_duration: DurationInput) -> Self {
+        match loan_duration.period {
+            Period::Months => Self::Months(loan_duration.units),
         }
     }
 }

@@ -142,6 +142,20 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type DefaultTermsUpdateInput = {
+  annualRate: Scalars['AnnualRate']['input'];
+  duration: DurationInput;
+  initialCvl: Scalars['CVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
+};
+
+export type DefaultTermsUpdatePayload = {
+  __typename?: 'DefaultTermsUpdatePayload';
+  terms: Terms;
+};
+
 export type Duration = {
   __typename?: 'Duration';
   period: Period;
@@ -246,11 +260,17 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  defaultTermsUpdate: DefaultTermsUpdatePayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+};
+
+
+export type MutationDefaultTermsUpdateArgs = {
+  input: DefaultTermsUpdateInput;
 };
 
 
@@ -299,6 +319,7 @@ export type Query = {
   __typename?: 'Query';
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   chartOfAccountsAccountSet?: Maybe<ChartOfAccountsAccountSet>;
+  defaultTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<AccountSetAndMemberBalances>;
@@ -355,6 +376,13 @@ export type TermValues = {
   interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['output'];
   marginCallCvl: Scalars['CVLPct']['output'];
+};
+
+export type Terms = {
+  __typename?: 'Terms';
+  id: Scalars['ID']['output'];
+  termsId: Scalars['UUID']['output'];
+  values: TermValues;
 };
 
 export type TermsInput = {

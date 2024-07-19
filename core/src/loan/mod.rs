@@ -53,8 +53,8 @@ impl Loans {
         self.jobs.as_ref().expect("Jobs must already be set")
     }
 
-    pub async fn update_current_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
-        self.term_repo.update_current(terms).await
+    pub async fn update_default_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
+        self.term_repo.update_default(terms).await
     }
 
     fn dummy_price() -> PriceOfOneBTC {
@@ -192,8 +192,8 @@ impl Loans {
         self.loan_repo.find_for_user(user_id).await
     }
 
-    pub async fn find_current_terms(&self) -> Result<Option<Terms>, LoanError> {
-        match self.term_repo.find_current().await {
+    pub async fn find_default_terms(&self) -> Result<Option<Terms>, LoanError> {
+        match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
             Err(LoanError::TermsNotSet) => Ok(None),
             Err(e) => Err(e),

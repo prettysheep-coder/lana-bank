@@ -109,6 +109,19 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+input DefaultTermsUpdateInput {
+	annualRate: AnnualRate!
+	interval: InterestInterval!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type DefaultTermsUpdatePayload {
+	terms: Terms!
+}
+
 type Duration {
 	period: Period!
 	units: Int!
@@ -207,6 +220,7 @@ enum LoanStatus {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
+	defaultTermsUpdate(input: DefaultTermsUpdateInput!): DefaultTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
@@ -242,6 +256,7 @@ type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
+	defaultTerms: Terms
 	trialBalance: AccountSetAndMemberBalances
 	offBalanceSheetTrialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
@@ -280,6 +295,12 @@ type TermValues {
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
+}
+
+type Terms {
+	id: ID!
+	termsId: UUID!
+	values: TermValues!
 }
 
 input TermsInput {

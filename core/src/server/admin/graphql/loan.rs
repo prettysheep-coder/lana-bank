@@ -23,12 +23,6 @@ pub struct TermsInput {
     pub initial_cvl: CVLPct,
 }
 
-#[derive(InputObject)]
-pub(super) struct DurationInput {
-    pub period: Period,
-    pub units: u32,
-}
-
 #[derive(SimpleObject)]
 pub struct LoanCreatePayload {
     loan: Loan,
@@ -71,13 +65,5 @@ pub struct LoanApprovePayload {
 impl From<crate::loan::Loan> for LoanApprovePayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
-    }
-}
-
-impl From<DurationInput> for crate::loan::Duration {
-    fn from(loan_duration: DurationInput) -> Self {
-        match loan_duration.period {
-            Period::Months => Self::Months(loan_duration.units),
-        }
     }
 }

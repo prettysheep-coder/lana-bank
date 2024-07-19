@@ -1,13 +1,13 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
-use super::{account_set::*, loan::*, shareholder_equity::*, user::*};
+use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{LoanId, UserId},
     server::shared_graphql::{
         loan::Loan, objects::SuccessPayload, primitives::UUID,
-        sumsub::SumsubPermalinkCreatePayload, user::User,
+        sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
     },
 };
 
@@ -59,6 +59,12 @@ impl Query {
             },
         )
         .await
+    }
+
+    async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let terms = app.loans().find_default_terms().await?;
+        Ok(terms.map(Terms::from))
     }
 
     async fn trial_balance(
@@ -144,6 +150,23 @@ impl Mutation {
         Ok(SumsubPermalinkCreatePayload { url })
     }
 
+    async fn default_terms_update(
+        &self,
+        ctx: &Context<'_>,
+        input: DefaultTermsUpdateInput,
+    ) -> async_graphql::Result<DefaultTermsUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let term_values = crate::loan::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .interval(input.interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+        let terms = app.loans().update_default_terms(term_values).await?;
+        Ok(DefaultTermsUpdatePayload::from(terms))
+    }
     async fn loan_create(
         &self,
         ctx: &Context<'_>,
