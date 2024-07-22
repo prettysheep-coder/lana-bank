@@ -49,7 +49,6 @@ impl Config {
         config.app.ledger.bfx_secret = bfx_secret;
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;
-        config.app.casbin.db_con = db_con;
 
         Ok(config)
     }
