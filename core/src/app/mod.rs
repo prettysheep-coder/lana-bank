@@ -29,7 +29,7 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        if config.seed_permissions {
+        if config.casbin.seed_permissions {
             seed_permissions(&pool).await?;
         }
 

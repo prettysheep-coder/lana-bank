@@ -40,7 +40,7 @@ impl Authorization {
 
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => Ok(true),
-            Ok(false) => Err(AuthorizationError::NotAuthorizedError),
+            Ok(false) => Err(AuthorizationError::NotAuthorized),
             Err(e) => Err(AuthorizationError::Casbin(e)),
         }
     }

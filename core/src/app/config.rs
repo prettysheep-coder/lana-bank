@@ -15,10 +15,4 @@ pub struct AppConfig {
     pub sumsub: SumsubConfig,
     #[serde(default)]
     pub casbin: CasbinConfig,
-    #[serde(default = "default_seed_permissions")]
-    pub seed_permissions: bool,
-}
-
-fn default_seed_permissions() -> bool {
-    true
 }

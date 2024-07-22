@@ -4,6 +4,6 @@ use thiserror::Error;
 pub enum AuthorizationError {
     #[error("AuthorizationError - CasbinError: {0}")]
     Casbin(#[from] sqlx_adapter::casbin::error::Error),
-    #[error("AuthorizationError - NotAuthorizedError")]
-    NotAuthorizedError,
+    #[error("AuthorizationError - NotAuthorized")]
+    NotAuthorized,
 }

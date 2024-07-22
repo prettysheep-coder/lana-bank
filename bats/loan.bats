@@ -67,6 +67,7 @@ loan_balance() {
     }'
   )
   exec_admin_graphql 'loan-create' "$variables"
+  echo $(graphql_output)
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
