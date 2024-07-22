@@ -6,7 +6,7 @@ use crate::{
 };
 
 pub async fn seed_permissions(config: &CasbinConfig) -> Result<(), AuthorizationError> {
-    let mut auth = Authorization::init(&config).await?;
+    let mut auth = Authorization::init(config).await?;
 
     let _ = auth
         .add_permission(
