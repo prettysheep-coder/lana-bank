@@ -127,12 +127,6 @@ impl std::ops::Deref for Group {
     }
 }
 
-// this is how we could do it to separate external id / subject for which we don't control the format
-// pub enum Subject(String) {
-//     External(String),
-//     Internal(UserId),
-// }
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SignedSatoshis(i64);
 
