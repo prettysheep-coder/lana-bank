@@ -36,16 +36,9 @@ impl Authorization {
         object: Object,
         action: Action,
     ) -> Result<bool, AuthorizationError> {
-        println!(
-            "Checking permission for: {} {} {}",
-            sub.0,
-            object.as_str(),
-            action.as_str()
-        );
-
         let enforcer = self.enforcer.read().await;
 
-        match enforcer.enforce((sub.0.as_str(), object.as_str(), action.as_str())) {
+        match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => Ok(true),
             Ok(false) => Err(AuthorizationError::NotAuthorizedError),
             Err(e) => Err(AuthorizationError::Casbin(e)),
@@ -62,9 +55,9 @@ impl Authorization {
 
         enforcer
             .add_policy(vec![
-                sub.0.clone(),
-                object.as_str().to_string(),
-                action.as_str().to_string(),
+                sub.to_string(),
+                object.to_string(),
+                action.to_string(),
             ])
             .await?;
         Ok(())
@@ -78,7 +71,7 @@ impl Authorization {
         let mut enforcer = self.enforcer.write().await;
 
         enforcer
-            .add_grouping_policy(vec![sub.0.clone(), group.0.to_string()])
+            .add_grouping_policy(vec![sub.to_string(), group.to_string()])
             .await?;
 
         Ok(())
@@ -90,8 +83,18 @@ pub enum Object {
     Loan,
 }
 
-impl Object {
-    fn as_str(&self) -> &str {
+impl AsRef<str> for Object {
+    fn as_ref(&self) -> &str {
+        match self {
+            Object::Applicant => "applicant",
+            Object::Loan => "loan",
+        }
+    }
+}
+
+impl std::ops::Deref for Object {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
         match self {
             Object::Applicant => "applicant",
             Object::Loan => "loan",
@@ -103,6 +106,23 @@ pub enum Action {
     Loan(LoanAction),
 }
 
+impl AsRef<str> for Action {
+    fn as_ref(&self) -> &str {
+        match self {
+            Action::Loan(action) => action.as_ref(),
+        }
+    }
+}
+
+impl std::ops::Deref for Action {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Action::Loan(action) => action.as_ref(),
+        }
+    }
+}
+
 pub enum LoanAction {
     List,
     Read,
@@ -110,16 +130,20 @@ pub enum LoanAction {
     Approve,
 }
 
-impl Action {
-    fn as_str(&self) -> &str {
+impl AsRef<str> for LoanAction {
+    fn as_ref(&self) -> &str {
         match self {
-            Action::Loan(action) => action.as_str(),
+            LoanAction::Read => "loan-read",
+            LoanAction::Create => "loan-create",
+            LoanAction::List => "loan-list",
+            LoanAction::Approve => "loan-approve",
         }
     }
 }
 
-impl LoanAction {
-    fn as_str(&self) -> &str {
+impl std::ops::Deref for LoanAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
         match self {
             LoanAction::Read => "loan-read",
             LoanAction::Create => "loan-create",
