@@ -5,7 +5,7 @@ use sqlx::PgPool;
 
 use crate::{
     applicant::Applicants,
-    authorization::Authorization,
+    authorization::{debug::seed_permissions, Authorization},
     job::{JobRegistry, Jobs},
     ledger::Ledger,
     loan::Loans,
@@ -29,7 +29,11 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        let authz = Authorization::init(&config.casbin).await?;
+        if config.seed_permissions {
+            seed_permissions(&pool).await?;
+        }
+
+        let authz = Authorization::init(&pool).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
         let users = Users::new(&pool, &ledger);

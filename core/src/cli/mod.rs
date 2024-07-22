@@ -5,8 +5,6 @@ use anyhow::Context;
 use clap::Parser;
 use std::{fs, path::PathBuf};
 
-use crate::authorization::debug::seed_permissions;
-
 use self::config::{Config, EnvOverride};
 
 #[derive(Parser)]
@@ -37,8 +35,6 @@ struct Cli {
     sumsub_key: String,
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
-    #[clap(long, help = "Seed default permissions")]
-    seed_permissions: bool,
     // TODO: callback secret
 }
 
@@ -55,10 +51,6 @@ pub async fn run() -> anyhow::Result<()> {
             sumsub_secret: cli.sumsub_secret,
         },
     )?;
-
-    if cli.seed_permissions {
-        seed_permissions(&config.app.casbin).await?;
-    }
 
     run_cmd(&cli.lava_home, config).await?;
 

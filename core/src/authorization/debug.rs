@@ -1,12 +1,12 @@
-use super::{config::CasbinConfig, Authorization, AuthorizationError, LoanAction};
+use super::{Authorization, AuthorizationError, LoanAction};
 
 use crate::{
     authorization::{Action, Object},
     primitives::{Group, Subject},
 };
 
-pub async fn seed_permissions(config: &CasbinConfig) -> Result<(), AuthorizationError> {
-    let mut auth = Authorization::init(config).await?;
+pub async fn seed_permissions(pool: &sqlx::PgPool) -> Result<(), AuthorizationError> {
+    let mut auth = Authorization::init(pool).await?;
 
     let _ = auth
         .add_permission(

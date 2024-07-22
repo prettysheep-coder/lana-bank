@@ -5,8 +5,6 @@ pub mod config;
 pub mod debug;
 pub mod error;
 
-use config::CasbinConfig;
-
 use error::AuthorizationError;
 
 use crate::primitives::{Group, Subject};
@@ -20,13 +18,11 @@ pub struct Authorization {
     enforcer: Arc<RwLock<Enforcer>>,
 }
 
-const POOL_SIZE: u32 = 8;
-
 impl Authorization {
-    pub async fn init(config: &CasbinConfig) -> Result<Self, AuthorizationError> {
+    pub async fn init(pool: &sqlx::PgPool) -> Result<Self, AuthorizationError> {
         let model_path = "dev/rbac.conf";
 
-        let adapter = SqlxAdapter::new(config.db_con.as_str(), POOL_SIZE).await?;
+        let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
         let enforcer = Enforcer::new(model_path, adapter).await?;
         Ok(Authorization {

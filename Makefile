@@ -34,7 +34,7 @@ run-tf-in-tilt:
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lava-core -- --seed-permissions --config ./bats/lava.yml
+	cargo run --bin lava-core -- --config ./bats/lava.yml
 
 check-code: public-sdl admin-sdl
 	git diff --exit-code core/src/server/public/schema.graphql
