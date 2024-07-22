@@ -67,22 +67,28 @@ impl Query {
         .await
     }
 
+    async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let terms = app.loans().find_default_terms().await?;
+        Ok(terms.map(Terms::from))
+    }
+
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
+    ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_summary = app.ledger().trial_balance().await?;
-        Ok(account_summary.map(AccountSetAndMemberBalances::from))
+        Ok(account_summary.map(TrialBalance::from))
     }
 
     async fn off_balance_sheet_trial_balance(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
+    ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_summary = app.ledger().obs_trial_balance().await?;
-        Ok(account_summary.map(AccountSetAndMemberBalances::from))
+        Ok(account_summary.map(TrialBalance::from))
     }
 
     async fn chart_of_accounts(
@@ -103,23 +109,30 @@ impl Query {
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 
-    async fn chart_of_accounts_account_set(
+    async fn account_set(
         &self,
         ctx: &Context<'_>,
         account_set_id: UUID,
-    ) -> async_graphql::Result<Option<ChartOfAccountsAccountSet>> {
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let chart_of_accounts = app
+        let account_set = app
             .ledger()
-            .chart_of_accounts_account_set(account_set_id.into(), 0, None)
+            .account_set_and_sub_accounts(account_set_id.into(), 0, None)
             .await?;
-        Ok(chart_of_accounts.map(ChartOfAccountsAccountSet::from))
+        Ok(account_set.map(AccountSetAndSubAccounts::from))
     }
 
-    async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
+    async fn account_set_with_balance(
+        &self,
+        ctx: &Context<'_>,
+        account_set_id: UUID,
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccountsWithBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let current_terms = app.loans().find_current_terms().await?;
-        Ok(current_terms.map(Terms::from))
+        let account_set = app
+            .ledger()
+            .account_set_and_sub_accounts_with_balance(account_set_id.into(), 0, None)
+            .await?;
+        Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
     }
 }
 
@@ -156,11 +169,11 @@ impl Mutation {
         Ok(SumsubPermalinkCreatePayload { url })
     }
 
-    async fn current_terms_update(
+    async fn default_terms_update(
         &self,
         ctx: &Context<'_>,
-        input: CurrentTermsUpdateInput,
-    ) -> async_graphql::Result<CurrentTermsUpdatePayload> {
+        input: DefaultTermsUpdateInput,
+    ) -> async_graphql::Result<DefaultTermsUpdatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let term_values = crate::loan::TermValues::builder()
             .annual_rate(input.annual_rate)
@@ -170,22 +183,34 @@ impl Mutation {
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
             .build()?;
-        let terms = app.loans().update_current_terms(term_values).await?;
-        Ok(CurrentTermsUpdatePayload::from(terms))
+        let terms = app.loans().update_default_terms(term_values).await?;
+        Ok(DefaultTermsUpdatePayload::from(terms))
     }
-
+  
     async fn loan_create(
         &self,
         ctx: &Context<'_>,
         input: LoanCreateInput,
     ) -> async_graphql::Result<LoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-
         let AdminAuthContext { sub } = ctx.data()?;
-
+      
+        let LoanCreateInput {
+            user_id,
+            desired_principal,
+            loan_terms,
+        } = input;
+        let term_values = crate::loan::TermValues::builder()
+            .annual_rate(loan_terms.annual_rate)
+            .interval(loan_terms.interval)
+            .duration(loan_terms.duration)
+            .liquidation_cvl(loan_terms.liquidation_cvl)
+            .margin_call_cvl(loan_terms.margin_call_cvl)
+            .initial_cvl(loan_terms.initial_cvl)
+            .build()?;
         let loan = app
             .loans()
-            .create_loan_for_user(sub, input.user_id, input.desired_principal)
+            .create_loan_for_user(sub, user_id, desired_principal, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }

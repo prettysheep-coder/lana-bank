@@ -27,12 +27,6 @@ export type Scalars = {
   UsdCents: { input: any; output: any; }
 };
 
-export type AccountBalance = {
-  __typename?: 'AccountBalance';
-  balance: AccountBalancesByCurrency;
-  name: Scalars['String']['output'];
-};
-
 export type AccountBalancesByCurrency = {
   __typename?: 'AccountBalancesByCurrency';
   btc: LayeredBtcAccountBalances;
@@ -46,17 +40,31 @@ export type AccountDetails = {
   name: Scalars['String']['output'];
 };
 
-export type AccountSetAndMemberBalances = {
-  __typename?: 'AccountSetAndMemberBalances';
-  balance: AccountBalancesByCurrency;
-  memberBalances: Array<AccountSetMemberBalance>;
+export type AccountSetAndSubAccounts = {
+  __typename?: 'AccountSetAndSubAccounts';
+  id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  subAccounts: AccountSetSubAccountConnection;
 };
 
-export type AccountSetBalance = {
-  __typename?: 'AccountSetBalance';
+
+export type AccountSetAndSubAccountsSubAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+export type AccountSetAndSubAccountsWithBalance = {
+  __typename?: 'AccountSetAndSubAccountsWithBalance';
   balance: AccountBalancesByCurrency;
+  id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  subAccounts: AccountSetSubAccountWithBalanceConnection;
+};
+
+
+export type AccountSetAndSubAccountsWithBalanceSubAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type AccountSetDetails = {
@@ -66,12 +74,67 @@ export type AccountSetDetails = {
   name: Scalars['String']['output'];
 };
 
-export type AccountSetMemberBalance = AccountBalance | AccountSetBalance;
+export type AccountSetSubAccount = AccountDetails | AccountSetDetails;
+
+export type AccountSetSubAccountConnection = {
+  __typename?: 'AccountSetSubAccountConnection';
+  /** A list of edges. */
+  edges: Array<AccountSetSubAccountEdge>;
+  /** A list of nodes. */
+  nodes: Array<AccountSetSubAccount>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AccountSetSubAccountEdge = {
+  __typename?: 'AccountSetSubAccountEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountSetSubAccount;
+};
+
+export type AccountSetSubAccountWithBalance = AccountSetWithBalance | AccountWithBalance;
+
+export type AccountSetSubAccountWithBalanceConnection = {
+  __typename?: 'AccountSetSubAccountWithBalanceConnection';
+  /** A list of edges. */
+  edges: Array<AccountSetSubAccountWithBalanceEdge>;
+  /** A list of nodes. */
+  nodes: Array<AccountSetSubAccountWithBalance>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AccountSetSubAccountWithBalanceEdge = {
+  __typename?: 'AccountSetSubAccountWithBalanceEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountSetSubAccountWithBalance;
+};
+
+export type AccountSetWithBalance = {
+  __typename?: 'AccountSetWithBalance';
+  balance: AccountBalancesByCurrency;
+  hasSubAccounts: Scalars['Boolean']['output'];
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
 
 export enum AccountStatus {
   Active = 'ACTIVE',
   Inactive = 'INACTIVE'
 }
+
+export type AccountWithBalance = {
+  __typename?: 'AccountWithBalance';
+  balance: AccountBalancesByCurrency;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
 
 export type BtcAccountBalance = {
   __typename?: 'BtcAccountBalance';
@@ -91,26 +154,11 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
-export type ChartOfAccountsAccountSet = {
-  __typename?: 'ChartOfAccountsAccountSet';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  subAccounts: Array<ChartOfAccountsSubAccount>;
-};
-
-
-export type ChartOfAccountsAccountSetSubAccountsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-};
-
 export type ChartOfAccountsCategory = {
   __typename?: 'ChartOfAccountsCategory';
-  accounts: Array<ChartOfAccountsSubAccount>;
+  accounts: Array<AccountSetSubAccount>;
   name: Scalars['String']['output'];
 };
-
-export type ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails;
 
 export type Checking = {
   __typename?: 'Checking';
@@ -123,7 +171,7 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
-export type CurrentTermsUpdateInput = {
+export type DefaultTermsUpdateInput = {
   annualRate: Scalars['AnnualRate']['input'];
   duration: DurationInput;
   initialCvl: Scalars['CVLPct']['input'];
@@ -132,8 +180,8 @@ export type CurrentTermsUpdateInput = {
   marginCallCvl: Scalars['CVLPct']['input'];
 };
 
-export type CurrentTermsUpdatePayload = {
-  __typename?: 'CurrentTermsUpdatePayload';
+export type DefaultTermsUpdatePayload = {
+  __typename?: 'DefaultTermsUpdatePayload';
   terms: Terms;
 };
 
@@ -184,7 +232,9 @@ export type Loan = {
   balance: LoanBalance;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
+  loanTerms: TermValues;
   startDate: Scalars['Timestamp']['output'];
+  status: LoanStatus;
   user: User;
 };
 
@@ -207,6 +257,7 @@ export type LoanBalance = {
 
 export type LoanCreateInput = {
   desiredPrincipal: Scalars['UsdCents']['input'];
+  loanTerms: TermsInput;
   userId: Scalars['UUID']['input'];
 };
 
@@ -230,9 +281,15 @@ export type LoanPartialPaymentPayload = {
   loan: Loan;
 };
 
+export enum LoanStatus {
+  Active = 'ACTIVE',
+  Closed = 'CLOSED',
+  New = 'NEW'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
-  currentTermsUpdate: CurrentTermsUpdatePayload;
+  defaultTermsUpdate: DefaultTermsUpdatePayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
@@ -241,8 +298,8 @@ export type Mutation = {
 };
 
 
-export type MutationCurrentTermsUpdateArgs = {
-  input: CurrentTermsUpdateInput;
+export type MutationDefaultTermsUpdateArgs = {
+  input: DefaultTermsUpdateInput;
 };
 
 
@@ -289,19 +346,25 @@ export enum Period {
 
 export type Query = {
   __typename?: 'Query';
+  accountSet?: Maybe<AccountSetAndSubAccounts>;
+  accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
-  chartOfAccountsAccountSet?: Maybe<ChartOfAccountsAccountSet>;
-  currentTerms?: Maybe<Terms>;
+  defaultTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
-  offBalanceSheetTrialBalance?: Maybe<AccountSetAndMemberBalances>;
-  trialBalance?: Maybe<AccountSetAndMemberBalances>;
+  offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
+  trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: UserConnection;
 };
 
 
-export type QueryChartOfAccountsAccountSetArgs = {
+export type QueryAccountSetArgs = {
+  accountSetId: Scalars['UUID']['input'];
+};
+
+
+export type QueryAccountSetWithBalanceArgs = {
   accountSetId: Scalars['UUID']['input'];
 };
 
@@ -355,6 +418,22 @@ export type Terms = {
   id: Scalars['ID']['output'];
   termsId: Scalars['UUID']['output'];
   values: TermValues;
+};
+
+export type TermsInput = {
+  annualRate: Scalars['AnnualRate']['input'];
+  duration: DurationInput;
+  initialCvl: Scalars['CVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
+};
+
+export type TrialBalance = {
+  __typename?: 'TrialBalance';
+  balance: AccountBalancesByCurrency;
+  name: Scalars['String']['output'];
+  subAccounts: Array<AccountSetSubAccountWithBalance>;
 };
 
 export type UnallocatedCollateral = {
@@ -419,12 +498,19 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
+export type LoanApproveMutationVariables = Exact<{
+  input: LoanApproveInput;
+}>;
+
+
+export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
 export type LoanCreateMutationVariables = Exact<{
   input: LoanCreateInput;
 }>;
 
 
-export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type LoanPartialPaymentMutationVariables = Exact<{
   input: LoanPartialPaymentInput;
@@ -433,12 +519,14 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
-export type ChartOfAccountAccountSetQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+export type ChartOfAccountsAccountSetQueryVariables = Exact<{
+  accountSetId: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type ChartOfAccountAccountSetQuery = { __typename?: 'Query', chartOfAccountsAccountSet?: { __typename?: 'ChartOfAccountsAccountSet', id: string, name: string, subAccounts: Array<{ __typename?: 'AccountDetails', id: string, name: string } | { __typename?: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> } | null };
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
 
 export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -450,19 +538,19 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', loanId: string, startDate: any, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type GetLoansForUserQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'Loan', loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type GetTrialBalanceQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'AccountSetAndMemberBalances', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } }, memberBalances: Array<{ __typename?: 'AccountBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } } | { __typename?: 'AccountSetBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } }> } | null };
+export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } }, subAccounts: Array<{ __typename?: 'AccountSetWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } } | { __typename?: 'AccountWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } }> } | null };
 
 export type BalancesByCurrencyFragment = { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } };
 
@@ -580,6 +668,54 @@ export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHo
 export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export const LoanApproveDocument = gql`
+    mutation LoanApprove($input: LoanApproveInput!) {
+  loanApprove(input: $input) {
+    loan {
+      id
+      loanId
+      startDate
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type LoanApproveMutationFn = Apollo.MutationFunction<LoanApproveMutation, LoanApproveMutationVariables>;
+
+/**
+ * __useLoanApproveMutation__
+ *
+ * To run a mutation, you first call `useLoanApproveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanApproveMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanApproveMutation, { data, loading, error }] = useLoanApproveMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanApproveMutation(baseOptions?: Apollo.MutationHookOptions<LoanApproveMutation, LoanApproveMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanApproveMutation, LoanApproveMutationVariables>(LoanApproveDocument, options);
+      }
+export type LoanApproveMutationHookResult = ReturnType<typeof useLoanApproveMutation>;
+export type LoanApproveMutationResult = Apollo.MutationResult<LoanApproveMutation>;
+export type LoanApproveMutationOptions = Apollo.BaseMutationOptions<LoanApproveMutation, LoanApproveMutationVariables>;
 export const LoanCreateDocument = gql`
     mutation LoanCreate($input: LoanCreateInput!) {
   loanCreate(input: $input) {
@@ -596,6 +732,17 @@ export const LoanCreateDocument = gql`
         }
         interestIncurred {
           usdBalance
+        }
+      }
+      loanTerms {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
         }
       }
     }
@@ -676,20 +823,28 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-export const ChartOfAccountAccountSetDocument = gql`
-    query ChartOfAccountAccountSet($id: UUID!) {
-  chartOfAccountsAccountSet(accountSetId: $id) {
+export const ChartOfAccountsAccountSetDocument = gql`
+    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+  accountSet(accountSetId: $accountSetId) {
     id
     name
-    subAccounts(first: 10) {
-      ... on AccountDetails {
-        id
-        name
-      }
-      ... on AccountSetDetails {
-        id
-        name
-        hasSubAccounts
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on AccountDetails {
+            __typename
+            id
+            name
+          }
+          ... on AccountSetDetails {
+            __typename
+            id
+            name
+            hasSubAccounts
+          }
+        }
       }
     }
   }
@@ -697,32 +852,34 @@ export const ChartOfAccountAccountSetDocument = gql`
     `;
 
 /**
- * __useChartOfAccountAccountSetQuery__
+ * __useChartOfAccountsAccountSetQuery__
  *
- * To run a query within a React component, call `useChartOfAccountAccountSetQuery` and pass it any options that fit your needs.
- * When your component renders, `useChartOfAccountAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useChartOfAccountsAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useChartOfAccountAccountSetQuery({
+ * const { data, loading, error } = useChartOfAccountsAccountSetQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      accountSetId: // value for 'accountSetId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useChartOfAccountAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>) {
+export function useChartOfAccountsAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>(ChartOfAccountAccountSetDocument, options);
+        return Apollo.useQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
       }
-export function useChartOfAccountAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>) {
+export function useChartOfAccountsAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>(ChartOfAccountAccountSetDocument, options);
+          return Apollo.useLazyQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
         }
-export type ChartOfAccountAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountAccountSetQuery>;
-export type ChartOfAccountAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountAccountSetLazyQuery>;
-export type ChartOfAccountAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountAccountSetQuery, ChartOfAccountAccountSetQueryVariables>;
+export type ChartOfAccountsAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetQuery>;
+export type ChartOfAccountsAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetLazyQuery>;
+export type ChartOfAccountsAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>;
 export const GetChartOfAccountsDocument = gql`
     query GetChartOfAccounts {
   chartOfAccounts {
@@ -775,8 +932,10 @@ export type GetChartOfAccountsQueryResult = Apollo.QueryResult<GetChartOfAccount
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
+    id
     loanId
     startDate
+    status
     user {
       userId
     }
@@ -789,6 +948,17 @@ export const GetLoanDetailsDocument = gql`
       }
       interestIncurred {
         usdBalance
+      }
+    }
+    loanTerms {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
       }
     }
   }
@@ -827,8 +997,21 @@ export const GetLoansForUserDocument = gql`
   user(id: $id) {
     userId
     loans {
+      id
       loanId
       startDate
+      status
+      loanTerms {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
       balance {
         collateral {
           btcBalance
@@ -879,14 +1062,14 @@ export const GetTrialBalanceDocument = gql`
     balance {
       ...balancesByCurrency
     }
-    memberBalances {
-      ... on AccountBalance {
+    subAccounts {
+      ... on AccountWithBalance {
         name
         balance {
           ...balancesByCurrency
         }
       }
-      ... on AccountSetBalance {
+      ... on AccountSetWithBalance {
         name
         balance {
           ...balancesByCurrency

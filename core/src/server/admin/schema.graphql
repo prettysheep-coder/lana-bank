@@ -1,8 +1,3 @@
-type AccountBalance {
-	name: String!
-	balance: AccountBalancesByCurrency!
-}
-
 type AccountBalancesByCurrency {
 	btc: LayeredBtcAccountBalances!
 	usd: LayeredUsdAccountBalances!
@@ -14,15 +9,17 @@ type AccountDetails {
 	name: String!
 }
 
-type AccountSetAndMemberBalances {
+type AccountSetAndSubAccounts {
+	id: UUID!
 	name: String!
-	balance: AccountBalancesByCurrency!
-	memberBalances: [AccountSetMemberBalance!]!
+	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
 }
 
-type AccountSetBalance {
+type AccountSetAndSubAccountsWithBalance {
+	id: UUID!
 	name: String!
 	balance: AccountBalancesByCurrency!
+	subAccounts(first: Int!, after: String): AccountSetSubAccountWithBalanceConnection!
 }
 
 type AccountSetDetails {
@@ -31,11 +28,84 @@ type AccountSetDetails {
 	hasSubAccounts: Boolean!
 }
 
-union AccountSetMemberBalance = AccountBalance | AccountSetBalance
+union AccountSetSubAccount = AccountDetails | AccountSetDetails
+
+type AccountSetSubAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetSubAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSetSubAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetSubAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSetSubAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
+
+type AccountSetSubAccountWithBalanceConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetSubAccountWithBalanceEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSetSubAccountWithBalance!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetSubAccountWithBalanceEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSetSubAccountWithBalance!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+type AccountSetWithBalance {
+	id: UUID!
+	name: String!
+	balance: AccountBalancesByCurrency!
+	hasSubAccounts: Boolean!
+}
 
 enum AccountStatus {
 	ACTIVE
 	INACTIVE
+}
+
+type AccountWithBalance {
+	id: UUID!
+	name: String!
+	balance: AccountBalancesByCurrency!
 }
 
 scalar AnnualRate
@@ -58,18 +128,10 @@ type ChartOfAccounts {
 	categories: [ChartOfAccountsCategory!]!
 }
 
-type ChartOfAccountsAccountSet {
-	id: UUID!
-	name: String!
-	subAccounts(first: Int!, after: String): [ChartOfAccountsSubAccount!]!
-}
-
 type ChartOfAccountsCategory {
 	name: String!
-	accounts: [ChartOfAccountsSubAccount!]!
+	accounts: [AccountSetSubAccount!]!
 }
-
-union ChartOfAccountsSubAccount = AccountDetails | AccountSetDetails
 
 type Checking {
 	settled: UsdBalance!
@@ -80,7 +142,7 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
-input CurrentTermsUpdateInput {
+input DefaultTermsUpdateInput {
 	annualRate: AnnualRate!
 	interval: InterestInterval!
 	liquidationCvl: CVLPct!
@@ -89,7 +151,7 @@ input CurrentTermsUpdateInput {
 	initialCvl: CVLPct!
 }
 
-type CurrentTermsUpdatePayload {
+type DefaultTermsUpdatePayload {
 	terms: Terms!
 }
 
@@ -138,6 +200,8 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	loanTerms: TermValues!
+	status: LoanStatus!
 	balance: LoanBalance!
 	user: User!
 }
@@ -160,6 +224,7 @@ type LoanBalance {
 input LoanCreateInput {
 	userId: UUID!
 	desiredPrincipal: UsdCents!
+	loanTerms: TermsInput!
 }
 
 type LoanCreatePayload {
@@ -179,10 +244,16 @@ type LoanPartialPaymentPayload {
 	loan: Loan!
 }
 
+enum LoanStatus {
+	NEW
+	ACTIVE
+	CLOSED
+}
+
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
-	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
+	defaultTermsUpdate(input: DefaultTermsUpdateInput!): DefaultTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
@@ -218,12 +289,13 @@ type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
-	trialBalance: AccountSetAndMemberBalances
-	offBalanceSheetTrialBalance: AccountSetAndMemberBalances
+	defaultTerms: Terms
+	trialBalance: TrialBalance
+	offBalanceSheetTrialBalance: TrialBalance
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
-	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
-	currentTerms: Terms
+	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
+	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 }
 
 scalar Satoshis
@@ -265,7 +337,22 @@ type Terms {
 	values: TermValues!
 }
 
+input TermsInput {
+	annualRate: AnnualRate!
+	interval: InterestInterval!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
 scalar Timestamp
+
+type TrialBalance {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	subAccounts: [AccountSetSubAccountWithBalance!]!
+}
 
 scalar UUID
 
