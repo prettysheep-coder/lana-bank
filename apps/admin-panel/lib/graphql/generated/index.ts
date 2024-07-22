@@ -491,10 +491,10 @@ export type UserEdge = {
   node: User;
 };
 
-export type CurrentTermsQueryVariables = Exact<{ [key: string]: never; }>;
+export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CurrentTermsQuery = { __typename?: 'Query', currentTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type DefaultTermsQuery = { __typename?: 'Query', defaultTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -524,22 +524,17 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
-<<<<<<< HEAD
+export type DefaultTermsUpdateMutationVariables = Exact<{
+  input: DefaultTermsUpdateInput;
+}>;
+
+
+export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
-=======
-export type CurrentTermsUpdateMutationVariables = Exact<{
-  input: CurrentTermsUpdateInput;
-}>;
-
-
-export type CurrentTermsUpdateMutation = { __typename?: 'Mutation', currentTermsUpdate: { __typename?: 'CurrentTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
-
-export type ChartOfAccountAccountSetQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
->>>>>>> df85546 (feat(admin-panel): current terms update form)
 }>;
 
 
@@ -652,9 +647,9 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
-export const CurrentTermsDocument = gql`
-    query CurrentTerms {
-  currentTerms {
+export const DefaultTermsDocument = gql`
+    query defaultTerms {
+  defaultTerms {
     id
     termsId
     values {
@@ -673,31 +668,31 @@ export const CurrentTermsDocument = gql`
     `;
 
 /**
- * __useCurrentTermsQuery__
+ * __useDefaultTermsQuery__
  *
- * To run a query within a React component, call `useCurrentTermsQuery` and pass it any options that fit your needs.
- * When your component renders, `useCurrentTermsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useDefaultTermsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDefaultTermsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useCurrentTermsQuery({
+ * const { data, loading, error } = useDefaultTermsQuery({
  *   variables: {
  *   },
  * });
  */
-export function useCurrentTermsQuery(baseOptions?: Apollo.QueryHookOptions<CurrentTermsQuery, CurrentTermsQueryVariables>) {
+export function useDefaultTermsQuery(baseOptions?: Apollo.QueryHookOptions<DefaultTermsQuery, DefaultTermsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<CurrentTermsQuery, CurrentTermsQueryVariables>(CurrentTermsDocument, options);
+        return Apollo.useQuery<DefaultTermsQuery, DefaultTermsQueryVariables>(DefaultTermsDocument, options);
       }
-export function useCurrentTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CurrentTermsQuery, CurrentTermsQueryVariables>) {
+export function useDefaultTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DefaultTermsQuery, DefaultTermsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<CurrentTermsQuery, CurrentTermsQueryVariables>(CurrentTermsDocument, options);
+          return Apollo.useLazyQuery<DefaultTermsQuery, DefaultTermsQueryVariables>(DefaultTermsDocument, options);
         }
-export type CurrentTermsQueryHookResult = ReturnType<typeof useCurrentTermsQuery>;
-export type CurrentTermsLazyQueryHookResult = ReturnType<typeof useCurrentTermsLazyQuery>;
-export type CurrentTermsQueryResult = Apollo.QueryResult<CurrentTermsQuery, CurrentTermsQueryVariables>;
+export type DefaultTermsQueryHookResult = ReturnType<typeof useDefaultTermsQuery>;
+export type DefaultTermsLazyQueryHookResult = ReturnType<typeof useDefaultTermsLazyQuery>;
+export type DefaultTermsQueryResult = Apollo.QueryResult<DefaultTermsQuery, DefaultTermsQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
@@ -886,14 +881,9 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-<<<<<<< HEAD
-export const ChartOfAccountsAccountSetDocument = gql`
-    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-  accountSet(accountSetId: $accountSetId) {
-=======
-export const CurrentTermsUpdateDocument = gql`
-    mutation CurrentTermsUpdate($input: CurrentTermsUpdateInput!) {
-  currentTermsUpdate(input: $input) {
+export const DefaultTermsUpdateDocument = gql`
+    mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
+  defaultTermsUpdate(input: $input) {
     terms {
       id
       termsId
@@ -912,36 +902,35 @@ export const CurrentTermsUpdateDocument = gql`
   }
 }
     `;
-export type CurrentTermsUpdateMutationFn = Apollo.MutationFunction<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>;
+export type DefaultTermsUpdateMutationFn = Apollo.MutationFunction<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
 
 /**
- * __useCurrentTermsUpdateMutation__
+ * __useDefaultTermsUpdateMutation__
  *
- * To run a mutation, you first call `useCurrentTermsUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCurrentTermsUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDefaultTermsUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDefaultTermsUpdateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [currentTermsUpdateMutation, { data, loading, error }] = useCurrentTermsUpdateMutation({
+ * const [defaultTermsUpdateMutation, { data, loading, error }] = useDefaultTermsUpdateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCurrentTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>) {
+export function useDefaultTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>(CurrentTermsUpdateDocument, options);
+        return Apollo.useMutation<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>(DefaultTermsUpdateDocument, options);
       }
-export type CurrentTermsUpdateMutationHookResult = ReturnType<typeof useCurrentTermsUpdateMutation>;
-export type CurrentTermsUpdateMutationResult = Apollo.MutationResult<CurrentTermsUpdateMutation>;
-export type CurrentTermsUpdateMutationOptions = Apollo.BaseMutationOptions<CurrentTermsUpdateMutation, CurrentTermsUpdateMutationVariables>;
-export const ChartOfAccountAccountSetDocument = gql`
-    query ChartOfAccountAccountSet($id: UUID!) {
-  chartOfAccountsAccountSet(accountSetId: $id) {
->>>>>>> df85546 (feat(admin-panel): current terms update form)
+export type DefaultTermsUpdateMutationHookResult = ReturnType<typeof useDefaultTermsUpdateMutation>;
+export type DefaultTermsUpdateMutationResult = Apollo.MutationResult<DefaultTermsUpdateMutation>;
+export type DefaultTermsUpdateMutationOptions = Apollo.BaseMutationOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
+export const ChartOfAccountsAccountSetDocument = gql`
+    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+  accountSet(accountSetId: $accountSetId) {
     id
     name
     subAccounts(first: $first, after: $after) {

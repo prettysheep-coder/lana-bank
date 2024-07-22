@@ -22,13 +22,13 @@ import { Button } from "../primitive/button"
 import {
   InterestInterval,
   Period,
-  useCurrentTermsUpdateMutation,
+  useDefaultTermsUpdateMutation,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 
 gql`
-  mutation CurrentTermsUpdate($input: CurrentTermsUpdateInput!) {
-    currentTermsUpdate(input: $input) {
+  mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
+    defaultTermsUpdate(input: $input) {
       terms {
         id
         termsId
@@ -48,7 +48,7 @@ gql`
   }
 `
 
-export const UpdateCurrentTermDialog: React.FC<{
+export const UpdateDefaultTermDialog: React.FC<{
   children: React.ReactNode
   refetch?: () => void
 }> = ({ children, refetch }) => {
@@ -62,10 +62,10 @@ export const UpdateCurrentTermDialog: React.FC<{
   })
   const [annualRate, setAnnualRate] = useState<number | "">("")
 
-  const [updateCurrentTerm, { data, loading, error, reset }] =
-    useCurrentTermsUpdateMutation()
+  const [updateDefaultTerm, { data, loading, error, reset }] =
+    useDefaultTermsUpdateMutation()
 
-  const handleUpdateCurrentTerm = async (event: React.FormEvent) => {
+  const handleUpdateDefaultTerm = async (event: React.FormEvent) => {
     event.preventDefault()
     console.log(annualRate, interval, duration, liquidationCvl, marginCallCvl, initialCvl)
 
@@ -83,7 +83,7 @@ export const UpdateCurrentTermDialog: React.FC<{
     }
 
     try {
-      await updateCurrentTerm({
+      await updateDefaultTerm({
         variables: {
           input: {
             annualRate: annualRate,
@@ -98,7 +98,7 @@ export const UpdateCurrentTermDialog: React.FC<{
           },
         },
       })
-      toast.success("Current term updated")
+      toast.success("Default Term updated")
       if (refetch) refetch()
     } catch (err) {
       console.error(err)
@@ -131,34 +131,34 @@ export const UpdateCurrentTermDialog: React.FC<{
             <DialogDescription>Terms Details.</DialogDescription>
           </DialogHeader>
           <DetailsGroup>
-            <DetailItem label="Terms ID" value={data.currentTermsUpdate.terms.termsId} />
+            <DetailItem label="Terms ID" value={data.defaultTermsUpdate.terms.termsId} />
             <DetailItem
               label="Duration"
               value={
-                String(data.currentTermsUpdate.terms.values.duration.units) +
+                String(data.defaultTermsUpdate.terms.values.duration.units) +
                 " " +
-                formatPeriod(data.currentTermsUpdate.terms.values.duration.period)
+                formatPeriod(data.defaultTermsUpdate.terms.values.duration.period)
               }
             />
             <DetailItem
               label="Interval"
-              value={formatInterval(data.currentTermsUpdate.terms.values.interval)}
+              value={formatInterval(data.defaultTermsUpdate.terms.values.interval)}
             />
             <DetailItem
               label="Annual Rate"
-              value={data.currentTermsUpdate.terms.values.annualRate}
+              value={data.defaultTermsUpdate.terms.values.annualRate}
             />
             <DetailItem
               label="Liquidation CVL"
-              value={data.currentTermsUpdate.terms.values.liquidationCvl}
+              value={data.defaultTermsUpdate.terms.values.liquidationCvl}
             />
             <DetailItem
               label="Margin Call CVL"
-              value={data.currentTermsUpdate.terms.values.marginCallCvl}
+              value={data.defaultTermsUpdate.terms.values.marginCallCvl}
             />
             <DetailItem
               label="Initial CVL"
-              value={data.currentTermsUpdate.terms.values.initialCvl}
+              value={data.defaultTermsUpdate.terms.values.initialCvl}
             />
           </DetailsGroup>
         </DialogContent>
@@ -170,7 +170,7 @@ export const UpdateCurrentTermDialog: React.FC<{
               Fill in the details to update the terms.
             </DialogDescription>
           </DialogHeader>
-          <form className="flex flex-col gap-4" onSubmit={handleUpdateCurrentTerm}>
+          <form className="flex flex-col gap-4" onSubmit={handleUpdateDefaultTerm}>
             <div>
               <Label>Margin Call CVL</Label>
               <Input
