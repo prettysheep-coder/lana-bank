@@ -186,7 +186,7 @@ impl Mutation {
         let terms = app.loans().update_default_terms(term_values).await?;
         Ok(DefaultTermsUpdatePayload::from(terms))
     }
-  
+
     async fn loan_create(
         &self,
         ctx: &Context<'_>,
@@ -194,7 +194,7 @@ impl Mutation {
     ) -> async_graphql::Result<LoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-      
+
         let LoanCreateInput {
             user_id,
             desired_principal,
@@ -229,5 +229,18 @@ impl Mutation {
             .approve_loan(sub, input.loan_id, input.collateral)
             .await?;
         Ok(LoanApprovePayload::from(loan))
+    }
+
+    pub async fn loan_partial_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanPartialPaymentInput,
+    ) -> async_graphql::Result<LoanPartialPaymentPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .loans()
+            .record_payment(input.loan_id.into(), input.amount)
+            .await?;
+        Ok(LoanPartialPaymentPayload::from(loan))
     }
 }
