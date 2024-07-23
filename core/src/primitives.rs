@@ -84,6 +84,12 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 #[derive(Debug, Clone)]
 pub struct Subject(String);
 
+impl From<&str> for Subject {
+    fn from(s: &str) -> Self {
+        Self(s.to_string())
+    }
+}
+
 impl From<String> for Subject {
     fn from(s: String) -> Self {
         Self(s)
@@ -105,25 +111,28 @@ impl std::ops::Deref for Subject {
 }
 
 #[derive(Debug, Clone)]
-pub struct Group(String);
-
-impl From<String> for Group {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
+pub enum Role {
+    SuperUser,
+    BankManager,
 }
 
-impl AsRef<str> for Group {
+impl AsRef<str> for Role {
     fn as_ref(&self) -> &str {
-        &self.0
+        match self {
+            Role::SuperUser => "super-user",
+            Role::BankManager => "bank-manager",
+        }
     }
 }
 
-impl std::ops::Deref for Group {
+impl std::ops::Deref for Role {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        match self {
+            Role::SuperUser => "super-user",
+            Role::BankManager => "bank-manager",
+        }
     }
 }
 

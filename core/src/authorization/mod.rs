@@ -7,7 +7,7 @@ pub mod error;
 
 use error::AuthorizationError;
 
-use crate::primitives::{Group, Subject};
+use crate::primitives::{Role, Subject};
 use sqlx_adapter::{
     casbin::{prelude::Enforcer, CoreApi, MgmtApi},
     SqlxAdapter,
@@ -45,9 +45,9 @@ impl Authorization {
         }
     }
 
-    pub async fn add_permission(
+    pub async fn add_permission_to_role(
         &mut self,
-        sub: &Subject,
+        role: &Role,
         object: Object,
         action: Action,
     ) -> Result<(), AuthorizationError> {
@@ -55,7 +55,7 @@ impl Authorization {
 
         enforcer
             .add_policy(vec![
-                sub.to_string(),
+                role.to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -63,10 +63,10 @@ impl Authorization {
         Ok(())
     }
 
-    pub async fn add_grouping(
+    pub async fn assign_grouping_to_subject(
         &mut self,
         sub: &Subject,
-        group: &Group,
+        group: &Role,
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
