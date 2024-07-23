@@ -260,7 +260,7 @@ function TrialBalancePage() {
   return (
     <main>
       <PageHeading>Trial Balance</PageHeading>
-      <Tabs defaultValue="offBalanceSheet">
+      <Tabs defaultValue="onBalanceSheet">
         <TabsList>
           <TabsTrigger value="onBalanceSheet">On Balance Sheet</TabsTrigger>
           <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
