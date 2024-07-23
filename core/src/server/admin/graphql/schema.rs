@@ -237,9 +237,11 @@ impl Mutation {
         input: LoanPartialPaymentInput,
     ) -> async_graphql::Result<LoanPartialPaymentPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let loan = app
             .loans()
-            .record_payment(input.loan_id.into(), input.amount)
+            .record_payment(sub, input.loan_id.into(), input.amount)
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
     }

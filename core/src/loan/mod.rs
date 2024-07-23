@@ -165,9 +165,14 @@ impl Loans {
 
     pub async fn record_payment(
         &self,
+        sub: &Subject,
         loan_id: LoanId,
         amount: UsdCents,
     ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+            .await?;
+
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
         assert_eq!(balances.outstanding, loan.outstanding());

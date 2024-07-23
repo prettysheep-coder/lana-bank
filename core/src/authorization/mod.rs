@@ -132,6 +132,7 @@ pub enum LoanAction {
     Read,
     Create,
     Approve,
+    RecordPayment,
 }
 
 impl AsRef<str> for LoanAction {
@@ -141,6 +142,7 @@ impl AsRef<str> for LoanAction {
             LoanAction::Create => "loan-create",
             LoanAction::List => "loan-list",
             LoanAction::Approve => "loan-approve",
+            LoanAction::RecordPayment => "loan-record-payment",
         }
     }
 }
@@ -153,6 +155,7 @@ impl std::ops::Deref for LoanAction {
             LoanAction::Create => "loan-create",
             LoanAction::List => "loan-list",
             LoanAction::Approve => "loan-approve",
+            LoanAction::RecordPayment => "loan-record-payment",
         }
     }
 }

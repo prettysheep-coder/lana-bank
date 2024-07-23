@@ -26,6 +26,10 @@ pub async fn seed_permissions(pool: &sqlx::PgPool) -> Result<(), AuthorizationEr
         .add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
         .await;
 
+    let _ = auth
+        .add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+        .await;
+
     let admin = Subject::from("admin");
 
     let _ = auth.assign_role_to_subject(&admin, &role).await;
