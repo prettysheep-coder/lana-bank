@@ -88,3 +88,4 @@ CREATE TABLE casbin_rule (
   v5 VARCHAR NOT NULL,
   CONSTRAINT unique_key_sqlx_adapter UNIQUE(ptype, v0, v1, v2, v3, v4, v5)
 );
+
