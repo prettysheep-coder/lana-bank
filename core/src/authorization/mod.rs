@@ -9,9 +9,14 @@ use error::AuthorizationError;
 
 use crate::primitives::{Role, Subject};
 use sqlx_adapter::{
-    casbin::{prelude::Enforcer, CoreApi, MgmtApi},
+    casbin::{
+        prelude::{DefaultModel, Enforcer},
+        CoreApi, MgmtApi,
+    },
     SqlxAdapter,
 };
+
+const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
 pub struct Authorization {
@@ -20,11 +25,10 @@ pub struct Authorization {
 
 impl Authorization {
     pub async fn init(pool: &sqlx::PgPool) -> Result<Self, AuthorizationError> {
-        let model_path = "dev/rbac.conf";
-
+        let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
-        let enforcer = Enforcer::new(model_path, adapter).await?;
+        let enforcer = Enforcer::new(model, adapter).await?;
         Ok(Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
         })
