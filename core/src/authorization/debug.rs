@@ -28,7 +28,7 @@ pub async fn seed_permissions(pool: &sqlx::PgPool) -> Result<(), AuthorizationEr
 
     let admin = Subject::from("admin");
 
-    let _ = auth.assign_grouping_to_subject(&admin, &role).await;
+    let _ = auth.assign_role_to_subject(&admin, &role).await;
 
     Ok(())
 }

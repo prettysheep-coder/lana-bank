@@ -67,15 +67,15 @@ impl Authorization {
         Ok(())
     }
 
-    pub async fn assign_grouping_to_subject(
+    pub async fn assign_role_to_subject(
         &mut self,
         sub: &Subject,
-        group: &Role,
+        role: &Role,
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
         enforcer
-            .add_grouping_policy(vec![sub.to_string(), group.to_string()])
+            .add_grouping_policy(vec![sub.to_string(), role.to_string()])
             .await?;
 
         Ok(())
