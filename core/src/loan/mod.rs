@@ -7,7 +7,7 @@ mod terms;
 use sqlx::PgPool;
 
 use crate::{
-    authorization::{Action, Authorization, LoanAction, Object},
+    authorization::{Action, Authorization, LoanAction, Object, TermAction},
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
@@ -62,7 +62,15 @@ impl Loans {
         self.jobs.as_ref().expect("Jobs must already be set")
     }
 
-    pub async fn update_default_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
+    pub async fn update_default_terms(
+        &self,
+        sub: &Subject,
+        terms: TermValues,
+    ) -> Result<Terms, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Term, Action::Term(TermAction::Update))
+            .await?;
+
         self.term_repo.update_default(terms).await
     }
 
@@ -236,7 +244,10 @@ impl Loans {
         self.loan_repo.find_for_user(user_id).await
     }
 
-    pub async fn find_default_terms(&self) -> Result<Option<Terms>, LoanError> {
+    pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Term, Action::Term(TermAction::Read))
+            .await?;
         match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
             Err(LoanError::TermsNotSet) => Ok(None),

@@ -85,6 +85,7 @@ impl Authorization {
 pub enum Object {
     Applicant,
     Loan,
+    Term,
 }
 
 impl AsRef<str> for Object {
@@ -92,6 +93,7 @@ impl AsRef<str> for Object {
         match self {
             Object::Applicant => "applicant",
             Object::Loan => "loan",
+            Object::Term => "term",
         }
     }
 }
@@ -102,18 +104,21 @@ impl std::ops::Deref for Object {
         match self {
             Object::Applicant => "applicant",
             Object::Loan => "loan",
+            Object::Term => "term",
         }
     }
 }
 
 pub enum Action {
     Loan(LoanAction),
+    Term(TermAction),
 }
 
 impl AsRef<str> for Action {
     fn as_ref(&self) -> &str {
         match self {
             Action::Loan(action) => action.as_ref(),
+            Action::Term(action) => action.as_ref(),
         }
     }
 }
@@ -123,6 +128,7 @@ impl std::ops::Deref for Action {
     fn deref(&self) -> &Self::Target {
         match self {
             Action::Loan(action) => action.as_ref(),
+            Action::Term(action) => action.as_ref(),
         }
     }
 }
@@ -156,6 +162,30 @@ impl std::ops::Deref for LoanAction {
             LoanAction::List => "loan-list",
             LoanAction::Approve => "loan-approve",
             LoanAction::RecordPayment => "loan-record-payment",
+        }
+    }
+}
+
+pub enum TermAction {
+    Update,
+    Read,
+}
+
+impl AsRef<str> for TermAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            TermAction::Update => "term-update",
+            TermAction::Read => "term-read",
+        }
+    }
+}
+
+impl std::ops::Deref for TermAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            TermAction::Update => "term-update",
+            TermAction::Read => "term-read",
         }
     }
 }

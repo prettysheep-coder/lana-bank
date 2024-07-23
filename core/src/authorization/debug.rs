@@ -1,4 +1,4 @@
-use super::{Authorization, AuthorizationError, LoanAction};
+use super::{Authorization, AuthorizationError, LoanAction, TermAction};
 
 use crate::{
     authorization::{Action, Object},
@@ -28,6 +28,14 @@ pub async fn seed_permissions(pool: &sqlx::PgPool) -> Result<(), AuthorizationEr
 
     let _ = auth
         .add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+        .await;
+
+    let _ = auth
+        .add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
+        .await;
+
+    let _ = auth
+        .add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
         .await;
 
     let admin = Subject::from("admin");

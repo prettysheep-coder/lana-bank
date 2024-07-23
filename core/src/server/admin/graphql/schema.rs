@@ -69,7 +69,9 @@ impl Query {
 
     async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let terms = app.loans().find_default_terms().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let terms = app.loans().find_default_terms(sub).await?;
         Ok(terms.map(Terms::from))
     }
 
@@ -175,6 +177,8 @@ impl Mutation {
         input: DefaultTermsUpdateInput,
     ) -> async_graphql::Result<DefaultTermsUpdatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let term_values = crate::loan::TermValues::builder()
             .annual_rate(input.annual_rate)
             .interval(input.interval)
@@ -183,7 +187,7 @@ impl Mutation {
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
             .build()?;
-        let terms = app.loans().update_default_terms(term_values).await?;
+        let terms = app.loans().update_default_terms(sub, term_values).await?;
         Ok(DefaultTermsUpdatePayload::from(terms))
     }
 
