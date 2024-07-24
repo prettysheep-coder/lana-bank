@@ -7,8 +7,10 @@ export const toSession = async ({ cookie }: { cookie: string }) => {
     const { data } = await kratosPublic.toSession({
       cookie,
     })
+    console.log({ data })
     return data
   } catch (error) {
+    console.log({ error })
     if (error instanceof AxiosError) {
       console.log(error.response?.data)
     }
