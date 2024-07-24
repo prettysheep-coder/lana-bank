@@ -525,6 +525,13 @@ export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: stri
 
 export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
+export type SumsubPermalinkCreateMutationVariables = Exact<{
+  input: SumsubPermalinkCreateInput;
+}>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
+
 export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -545,13 +552,6 @@ export type BalancesByCurrencyFragment = { __typename?: 'AccountBalancesByCurren
 export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } };
 
 export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } };
-
-export type SumsubPermalinkCreateMutationVariables = Exact<{
-  input: SumsubPermalinkCreateInput;
-}>;
-
-
-export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -830,6 +830,39 @@ export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apol
 export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
 export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
 export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
+export const SumsubPermalinkCreateDocument = gql`
+    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+  sumsubPermalinkCreate(input: $input) {
+    url
+  }
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const DefaultTermsDocument = gql`
     query defaultTerms {
   defaultTerms {
@@ -978,39 +1011,6 @@ export function useGetOffBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.
 export type GetOffBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceQuery>;
 export type GetOffBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceLazyQuery>;
 export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>;
-export const SumsubPermalinkCreateDocument = gql`
-    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
-    url
-  }
-}
-    `;
-export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-
-/**
- * __useSumsubPermalinkCreateMutation__
- *
- * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
-      }
-export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const LoanApproveDocument = gql`
     mutation LoanApprove($input: LoanApproveInput!) {
   loanApprove(input: $input) {

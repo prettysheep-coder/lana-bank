@@ -4,7 +4,7 @@ gql`
   query Customers($first: Int!, $after: String) {
     customers(first: $first, after: $after) {
       nodes {
-        customerId 
+        customerId
         email
         btcDepositAddress
         ustDepositAddress
