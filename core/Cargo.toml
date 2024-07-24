@@ -42,3 +42,4 @@ hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 sqlx-adapter = { workspace = true }
+ory-kratos-client = "1.1.0"

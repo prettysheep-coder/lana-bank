@@ -185,6 +185,10 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type CreateUserInput = {
+  email: Scalars['String']['input'];
+};
+
 export type DefaultTermsUpdateInput = {
   annualRate: Scalars['AnnualRate']['input'];
   duration: DurationInput;
@@ -303,12 +307,18 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createUser: UserCreatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+};
+
+
+export type MutationCreateUserArgs = {
+  input: CreateUserInput;
 };
 
 
@@ -495,6 +505,11 @@ export type UserConnection = {
   nodes: Array<User>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+};
+
+export type UserCreatePayload = {
+  __typename?: 'UserCreatePayload';
+  user: User;
 };
 
 /** An edge in a connection. */

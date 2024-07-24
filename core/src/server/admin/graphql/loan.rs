@@ -4,6 +4,7 @@ use crate::server::shared_graphql::{
     loan::*,
     primitives::{Satoshis, UsdCents, UUID},
     terms::*,
+    user::*,
 };
 
 #[derive(InputObject)]
@@ -65,5 +66,21 @@ pub struct LoanPartialPaymentPayload {
 impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreateUserInput {
+    pub email: String,
+}
+
+#[derive(SimpleObject)]
+pub struct UserCreatePayload {
+    user: User,
+}
+
+impl From<crate::user::User> for UserCreatePayload {
+    fn from(user: crate::user::User) -> Self {
+        Self { user: user.into() }
     }
 }

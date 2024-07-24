@@ -1,6 +1,5 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
-
 use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
@@ -13,7 +12,12 @@ use crate::{
         },
     },
 };
-
+use ory_kratos_client::apis::identity_api::create_identity;
+use ory_kratos_client::models::CreateIdentityBody;
+use serde_json::json;
+use async_graphql::Error;
+use ory_kratos_client::apis::configuration::Configuration;
+use serde::{Deserialize, Serialize};
 pub struct Query;
 
 #[Object]
@@ -258,4 +262,70 @@ impl Mutation {
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
     }
+
+    pub async fn create_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CreateUserInput,
+    ) -> async_graphql::Result<UserCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let id = create_kratos_user(&input.email).await?;
+        let user_id = UserId::from(id);
+        let user = app.users().create_user(user_id, input.email).await?;
+        Ok(UserCreatePayload::from(user))
+    }
 }
+
+
+
+
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+struct KratosAdminConfig {
+    #[serde(default = "default_admin_url")]
+    admin_url: String,
+}
+
+impl Default for KratosAdminConfig {
+    fn default() -> Self {
+        Self {
+            admin_url: default_admin_url(),
+        }
+    }
+}
+
+fn default_admin_url() -> String {
+    "http://localhost:4434".to_string()
+}
+
+fn get_kratos_config() -> Configuration {
+    let config: KratosAdminConfig = Default::default();
+    let mut kratos_config = Configuration::new();
+    kratos_config.base_path = config.admin_url;
+    kratos_config
+}
+
+pub async fn create_kratos_user(email: &str) -> Result<Uuid, Error> {
+    let config = get_kratos_config();
+    let identity_body = CreateIdentityBody {
+        schema_id: "email".to_string(),
+        traits: json!({ "email": email }),
+        credentials: None,
+        state: None,
+        metadata_admin: None,
+        metadata_public: None,
+        recovery_addresses: None,
+        verifiable_addresses: None,
+    };
+
+    match create_identity(&config, Some(&identity_body)).await {
+        Ok(identity) => {
+            let id = Uuid::parse_str(&identity.id).map_err(|e| Error::from(e))?;
+            Ok(id)
+        }
+        Err(e) => {
+            Err(e.into())
+        }
+    }
+}
+
