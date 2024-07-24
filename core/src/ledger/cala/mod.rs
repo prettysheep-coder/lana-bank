@@ -175,14 +175,14 @@ impl CalaClient {
         customer_account_ids: CustomerLedgerAccountIds,
     ) -> Result<CustomerLedgerAccountAddresses, CalaError> {
         let customer_id = customer_id.into();
-        let variables = create_user_accounts::Variables {
+        let variables = create_customer_accounts::Variables {
             on_balance_sheet_account_id: Uuid::from(
                 customer_account_ids.on_balance_sheet_deposit_account_id,
             ),
-            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", customer_id),
-            on_balance_sheet_account_name: format!("User Checking Account for {}", customer_id),
-            user_checking_control_account_set_id:
-                super::constants::USER_CHECKING_CONTROL_ACCOUNT_SET_ID,
+            on_balance_sheet_account_code: format!("CUSTOMERS.CHECKING.{}", customer_id),
+            on_balance_sheet_account_name: format!("Customer Checking Account for {}", customer_id),
+            customer_checking_control_account_set_id:
+                super::constants::CUSTOMER_CHECKING_CONTROL_ACCOUNT_SET_ID,
             tron_account_id: Uuid::new_v4(),
             tron_account_code: format!("ASSETS.TRON.{}", customer_id),
             tron_account_name: format!("Bank USDT Deposit Account for {}", customer_id),
@@ -194,15 +194,18 @@ impl CalaClient {
                 "Bank Off-Balance-Sheet Deposit Account for {}",
                 customer_id
             ),
-            user_collateral_control_account_set_id:
-                super::constants::USER_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
+            customer_collateral_control_account_set_id:
+                super::constants::CUSTOMER_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             btc_account_id: Uuid::new_v4(),
             btc_account_code: format!("ASSETS.BTC.{}", customer_id),
             btc_account_name: format!("Bank BTC Deposit Account for {}", customer_id),
         };
-        let response =
-            Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
-                .await?;
+        let response = Self::traced_gql_request::<CreateCustomerAccounts, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
         response
             .data
             .map(|d| CustomerLedgerAccountAddresses {
@@ -318,11 +321,11 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.get_customer_balance", skip(self), err)]
-    pub async fn get_customer_balance<T: From<user_balance::ResponseData>>(
+    pub async fn get_customer_balance<T: From<customer_balance::ResponseData>>(
         &self,
         account_ids: CustomerLedgerAccountIds,
     ) -> Result<Option<T>, CalaError> {
-        let variables = user_balance::Variables {
+        let variables = customer_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             off_balance_sheet_account_id: Uuid::from(
                 account_ids.off_balance_sheet_deposit_account_id,
@@ -332,7 +335,8 @@ impl CalaClient {
             ),
         };
         let response =
-            Self::traced_gql_request::<UserBalance, _>(&self.client, &self.url, variables).await?;
+            Self::traced_gql_request::<CustomerBalance, _>(&self.client, &self.url, variables)
+                .await?;
 
         Ok(response.data.map(T::from))
     }

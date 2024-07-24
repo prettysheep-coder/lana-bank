@@ -21,12 +21,12 @@ pub struct Withdraws {
 }
 
 impl Withdraws {
-    pub fn new(pool: &sqlx::PgPool, users: &Customers, ledger: &Ledger) -> Self {
+    pub fn new(pool: &sqlx::PgPool, customers: &Customers, ledger: &Ledger) -> Self {
         let repo = WithdrawRepo::new(pool);
         Self {
             _pool: pool.clone(),
             repo,
-            customers: users.clone(),
+            customers: customers.clone(),
             ledger: ledger.clone(),
         }
     }

@@ -42,7 +42,7 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
-    #[instrument(name = "lava.ledger.get_user_balance", skip(self), err)]
+    #[instrument(name = "lava.ledger.get_customer_balance", skip(self), err)]
     pub async fn get_customer_balance(
         &self,
         account_ids: CustomerLedgerAccountIds,
@@ -54,7 +54,7 @@ impl Ledger {
     }
 
     #[instrument(
-        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        name = "lava.ledger.create_unallocated_collateral_account_for_customer",
         skip(self),
         err
     )]
@@ -78,7 +78,7 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.initiate_withdrawal_for_user", skip(self), err)]
+    #[instrument(name = "lava.ledger.initiate_withdrawal_for_customer", skip(self), err)]
     pub async fn initiate_withdrawal_for_customer(
         &self,
         withdrawal_id: WithdrawId,

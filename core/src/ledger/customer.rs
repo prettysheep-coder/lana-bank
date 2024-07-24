@@ -30,8 +30,8 @@ pub struct CustomerBalance {
     pub usdt_balance: LayeredUsdBalance,
 }
 
-impl From<user_balance::ResponseData> for CustomerBalance {
-    fn from(data: user_balance::ResponseData) -> Self {
+impl From<customer_balance::ResponseData> for CustomerBalance {
+    fn from(data: customer_balance::ResponseData) -> Self {
         CustomerBalance {
             btc_balance: data
                 .btc_balance

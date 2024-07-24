@@ -36,7 +36,7 @@ impl Loans {
     pub fn new(
         pool: &PgPool,
         registry: &mut JobRegistry,
-        users: &Customers,
+        customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
     ) -> Self {
@@ -46,7 +46,7 @@ impl Loans {
         Self {
             loan_repo,
             term_repo,
-            customers: users.clone(),
+            customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
             jobs: None,
@@ -90,18 +90,18 @@ impl Loans {
             .await?;
 
         let customer_id = customer_id.into();
-        let user = match self.customers.find_by_id(customer_id).await? {
-            Some(user) => user,
-            None => return Err(LoanError::UserNotFound(customer_id)),
+        let customer = match self.customers.find_by_id(customer_id).await? {
+            Some(customer) => customer,
+            None => return Err(LoanError::CustomerNotFound(customer_id)),
         };
 
-        if !user.may_create_loan() {
-            return Err(LoanError::UserNotAllowedToCreateLoan(customer_id));
+        if !customer.may_create_loan() {
+            return Err(LoanError::CustomerNotAllowedToCreateLoan(customer_id));
         }
 
         let unallocated_collateral = self
             .ledger
-            .get_customer_balance(user.account_ids)
+            .get_customer_balance(customer.account_ids)
             .await?
             .btc_balance;
 
@@ -122,7 +122,7 @@ impl Loans {
             .principal(desired_principal)
             .account_ids(LoanAccountIds::new())
             .terms(terms)
-            .customer_account_ids(user.account_ids)
+            .customer_account_ids(customer.account_ids)
             .build()
             .expect("could not build new loan");
 
