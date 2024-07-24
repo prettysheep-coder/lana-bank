@@ -10,7 +10,7 @@ teardown_file() {
   stop_server
 }
 
-@test "user: unauthorized" {
+@test "customer: unauthorized" {
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
@@ -20,7 +20,7 @@ teardown_file() {
   [[ "$error_status" == "Unauthorized" ]] || exit 1
 }
 
-@test "user: can create a user" {
+@test "customer: can create a customer" {
   token=$(create_user)
   cache_value "alice" "$token"
 
@@ -36,7 +36,7 @@ teardown_file() {
   cache_value 'user.ust' "$ust_address"
 }
 
-@test "user: can deposit" {
+@test "customer: can deposit" {
   ust_address=$(read_value 'user.ust')
   btc_address=$(read_value 'user.btc')
 
@@ -78,7 +78,7 @@ teardown_file() {
   assert_accounts_balanced
 }
 
-@test "user: can withdraw" {
+@test "customer: can withdraw" {
   variables=$(
     jq -n \
     --arg date "$(date +%s%N)" \
@@ -103,7 +103,7 @@ teardown_file() {
   assert_accounts_balanced
 }
 
-@test "user: verify level 2" {
+@test "customer: verify level 2" {
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-token-create'
   token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')
