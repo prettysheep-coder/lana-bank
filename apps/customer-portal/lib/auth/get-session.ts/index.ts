@@ -27,19 +27,24 @@ export const getMeAndSession = async (): Promise<
 
   console.log({ cookieParam })
 
-  const kratosSession = await toSession({
-    cookie: cookieParam,
-  })
+  try {
+    const kratosSession = await toSession({
+      cookie: cookieParam,
+    })
 
-  console.log({ kratosSession })
+    console.log({ kratosSession })
 
-  if (kratosSession instanceof Error) {
-    console.error("Error getting session from Kratos: ", kratosSession)
-    return kratosSession
-  }
+    if (kratosSession instanceof Error) {
+      console.error("Error getting session from Kratos: ", kratosSession)
+      return kratosSession
+    }
 
-  return {
-    me: meQueryResponse.me,
-    session: kratosSession,
+    return {
+      me: meQueryResponse.me,
+      session: kratosSession,
+    }
+  } catch (error) {
+    console.log("Error getting session from Kratos: ", error)
+    return new Error("Error getting session from Kratos")
   }
 }
