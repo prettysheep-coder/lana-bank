@@ -369,7 +369,7 @@ type SuccessPayload {
 }
 
 input SumsubPermalinkCreateInput {
-	userId: String!
+	customerId: String!
 }
 
 type SumsubPermalinkCreatePayload {

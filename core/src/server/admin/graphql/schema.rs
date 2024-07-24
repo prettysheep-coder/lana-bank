@@ -173,12 +173,12 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let user_id = Uuid::parse_str(&input.user_id);
-        let user_id = user_id.map_err(|_| "Invalid user id")?;
-        let user_id = CustomerId::from(user_id);
+        let customer_id = Uuid::parse_str(&input.customer_id);
+        let customer_id = customer_id.map_err(|_| "Invalid user id")?;
+        let customer_id = CustomerId::from(customer_id);
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_permalink(user_id).await?;
+        let res = app.applicants().create_permalink(customer_id).await?;
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })

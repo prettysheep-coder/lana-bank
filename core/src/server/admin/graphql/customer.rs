@@ -71,5 +71,5 @@ impl From<CustomerByNameCursor> for crate::customer::CustomerByNameCursor {
 
 #[derive(InputObject)]
 pub struct SumsubPermalinkCreateInput {
-    pub user_id: String,
+    pub customer_id: String,
 }

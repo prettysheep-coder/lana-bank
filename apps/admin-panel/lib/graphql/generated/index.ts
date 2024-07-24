@@ -442,7 +442,7 @@ export type SuccessPayload = {
 };
 
 export type SumsubPermalinkCreateInput = {
-  userId: Scalars['String']['input'];
+  customerId: Scalars['String']['input'];
 };
 
 export type SumsubPermalinkCreatePayload = {
