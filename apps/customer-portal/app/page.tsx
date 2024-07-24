@@ -23,9 +23,7 @@ import { KycLevel } from "@/lib/graphql/generated"
 export default async function Home() {
   const getMeAndSessionResponse = await getMeAndSession()
 
-  console.log({
-    getMeAndSessionResponse: JSON.stringify(getMeAndSessionResponse, null, 2),
-  })
+  console.log({ getMeAndSessionResponse })
 
   if (getMeAndSessionResponse instanceof Error) {
     return (
