@@ -28,8 +28,10 @@
 #@   "app_edge_image_resource_name",
 #@   "app_latest_image_resource_name",
 #@   "app_latest_image",
+#@   "app_src_resource_name",
 #@   "build_app_edge_image",
-#@   "app_edge_image"
+#@   "app_edge_image",
+#@   "task_image_config"
 #@ )
 
 #@ def on_nix_host(name, cmd):
@@ -81,6 +83,9 @@ groups:
   - bump-image-in-chart
   - #@ build_app_edge_image_name("admin-panel")
   - #@ build_app_edge_image_name("customer-portal")
+- name: test
+  jobs:
+  - #@ build_app_edge_image_name("customer-portal-test")
 
 jobs:
 - #@ check_code()
@@ -328,6 +333,47 @@ jobs:
 
 - #@ build_app_edge_image("admin-panel")
 - #@ build_app_edge_image("customer-portal")
+- name: #@ build_app_edge_image_name("customer-portal-test")
+  serial: true
+  plan:
+    - in_parallel:
+        - get: #@ app_src_resource_name("customer-portal-test")
+          trigger: true
+        - { get: pipeline-tasks }
+    - task: prepare-docker-build
+      config:
+        platform: linux
+        image_resource: #@ task_image_config()
+        inputs:
+          - name: pipeline-tasks
+          - name: #@ app_src_resource_name("customer-portal-test")
+            path: repo
+        outputs:
+          - name: repo
+        run:
+          path: pipeline-tasks/ci/tasks/app-prepare-docker-build.sh
+    - task: build
+      attempts: 2
+      privileged: true
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: vito/oci-build-task
+        inputs:
+          - name: repo
+        outputs:
+          - name: image
+        params:
+          CONTEXT: repo
+          DOCKERFILE: repo/apps/customer-portal/Dockerfile
+          BUILD_ARGS_FILE: repo/.build-args
+        run:
+          path: build
+    - put: #@ app_edge_image_resource_name("customer-portal-test")
+      params:
+        image: image/image.tar
 
 resources:
 - name: repo
@@ -371,6 +417,14 @@ resources:
 - #@ app_src_resource("customer-portal")
 - #@ app_edge_image("customer-portal")
 - #@ app_latest_image("customer-portal")
+
+- #@ app_edge_image("customer-portal-test")
+- name: customer-portal-test-src
+  type: git
+  source:
+    uri: #@ data.values.git_uri
+    branch: customer-portal-test
+    private_key: #@ data.values.github_private_key
 
 resource_types:
 - #@ slack_resource_type()
