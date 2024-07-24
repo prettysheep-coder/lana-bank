@@ -25,10 +25,9 @@ teardown_file() {
   cache_value "alice" "$token"
 
   exec_graphql 'alice' 'me'
-  echo "$output"
 
-  user_id=$(graphql_output '.data.me.userId')
-  [[ "$user_id" != "null" ]] || exit 1
+  customer_id=$(graphql_output '.data.me.customerId')
+  [[ "$customer_id" != "null" ]] || exit 1
 
   btc_address=$(graphql_output '.data.me.btcDepositAddress')
   cache_value 'user.btc' "$btc_address"
@@ -51,6 +50,7 @@ teardown_file() {
     }'
   )
   exec_cala_graphql 'simulate-deposit' "$variables"
+  echo $(graphql_output)
 
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
@@ -91,6 +91,7 @@ teardown_file() {
     }'
   )
   exec_graphql 'alice' 'initiate-withdrawal' "$variables"
+  echo $(graphql_output)
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
@@ -117,7 +118,7 @@ teardown_file() {
   level=$(graphql_output '.data.me.level')
   [[ "$level" == "ZERO" ]] || exit 1
 
-  user_id=$(graphql_output '.data.me.userId')
+  user_id=$(graphql_output '.data.me.customerId')
   [[ "$user_id" != "null" ]] || exit 1
 
   status=$(graphql_output '.data.me.status')

@@ -1,5 +1,5 @@
 query user($id: UUID!) {
-  user(id: $id) {
+  customer(id: $id) {
     balance {
       unallocatedCollateral {
         settled {
