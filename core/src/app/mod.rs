@@ -10,6 +10,7 @@ use crate::{
     job::{JobRegistry, Jobs},
     ledger::Ledger,
     loan::Loans,
+    user::Users,
     withdraw::Withdraws,
 };
 
@@ -25,10 +26,12 @@ pub struct LavaApp {
     withdraws: Withdraws,
     ledger: Ledger,
     applicants: Applicants,
+    users: Users,
 }
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
+        let super_user_email = config.authorization.super_user_email.clone();
         let authz = Authorization::init(&pool, config.authorization).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
@@ -37,9 +40,11 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger);
         let mut loans = Loans::new(&pool, &mut registry, &customers, &ledger, &authz);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
+        let users = Users::new(&pool);
         loans.set_jobs(&jobs);
         jobs.start_poll().await?;
-        Ok(Self {
+
+        let app = Self {
             _pool: pool,
             _jobs: jobs,
             customers,
@@ -47,7 +52,11 @@ impl LavaApp {
             loans,
             ledger,
             applicants,
-        })
+            users,
+        };
+        app.create_super_user(super_user_email).await?;
+
+        Ok(app)
     }
 
     pub fn customers(&self) -> &Customers {
@@ -68,5 +77,16 @@ impl LavaApp {
 
     pub fn loans(&self) -> &Loans {
         &self.loans
+    }
+
+    pub fn users(&self) -> &Users {
+        &self.users
+    }
+
+    async fn create_super_user(&self, email: String) -> Result<(), ApplicationError> {
+        if self.users.find_by_email(&email).await?.is_none() {
+            self.users.create_user(email).await?;
+        }
+        Ok(())
     }
 }
