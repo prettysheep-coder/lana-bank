@@ -25,7 +25,7 @@ impl Users {
         &self.repo
     }
 
-    pub async fn create_user(&self, email: String) -> Result<User, UserError> {
+    pub async fn create_user(&self, email: impl Into<String>) -> Result<User, UserError> {
         let new_user = NewUser::builder()
             .email(email)
             .build()
@@ -36,7 +36,7 @@ impl Users {
         Ok(user)
     }
 
-    pub async fn find_by_email(&self, email: &str) -> Result<Option<User>, UserError> {
+    pub async fn find_by_email(&self, email: impl Into<String>) -> Result<Option<User>, UserError> {
         match self.repo.find_by_email(email).await {
             Ok(user) => Ok(Some(user)),
             Err(UserError::CouldNotFindByEmail(_)) => Ok(None),

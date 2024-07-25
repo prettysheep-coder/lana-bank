@@ -84,7 +84,7 @@ impl LavaApp {
     }
 
     async fn create_super_user(&self, email: String) -> Result<(), ApplicationError> {
-        if self.users.find_by_email(&email).await?.is_none() {
+        if self.users.find_by_email(email.as_str()).await?.is_none() {
             self.users.create_user(email).await?;
         }
         Ok(())

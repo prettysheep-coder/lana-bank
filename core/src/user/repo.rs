@@ -33,7 +33,8 @@ impl UserRepo {
         Ok(User::try_from(events)?)
     }
 
-    pub async fn find_by_email(&self, email: &str) -> Result<User, UserError> {
+    pub async fn find_by_email(&self, email: impl Into<String>) -> Result<User, UserError> {
+        let email = email.into();
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT a.id, e.sequence, e.event,
@@ -48,9 +49,7 @@ impl UserRepo {
         .await?;
         match EntityEvents::load_first(rows) {
             Ok(customer) => Ok(customer),
-            Err(EntityError::NoEntityEventsPresent) => {
-                Err(UserError::CouldNotFindByEmail(email.to_string()))
-            }
+            Err(EntityError::NoEntityEventsPresent) => Err(UserError::CouldNotFindByEmail(email)),
             Err(e) => Err(e.into()),
         }
     }
