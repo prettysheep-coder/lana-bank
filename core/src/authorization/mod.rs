@@ -2,7 +2,6 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub mod config;
-pub mod debug;
 pub mod error;
 
 use error::AuthorizationError;
@@ -16,6 +15,8 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 
+use config::*;
+
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
@@ -24,14 +25,55 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub async fn init(pool: &sqlx::PgPool) -> Result<Self, AuthorizationError> {
+    pub async fn init(
+        pool: &sqlx::PgPool,
+        config: AuthorizationConfig,
+    ) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
         let enforcer = Enforcer::new(model, adapter).await?;
-        Ok(Authorization {
+
+        let mut auth = Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
-        })
+        };
+
+        if config.seed_roles {
+            auth.seed_roles(config.super_user_email).await?;
+        }
+
+        Ok(auth)
+    }
+
+    async fn seed_roles(&mut self, email: String) -> Result<(), AuthorizationError> {
+        let role = Role::SuperUser;
+
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
+            .await?;
+
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::List))
+            .await?;
+
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Create))
+            .await?;
+
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
+            .await?;
+
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+            .await?;
+
+        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
+            .await?;
+
+        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
+            .await?;
+
+        let admin = Subject::from(email);
+
+        self.assign_role_to_subject(&admin, &role).await?;
+
+        Ok(())
     }
 
     pub async fn check_permission(
@@ -57,14 +99,20 @@ impl Authorization {
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
-        enforcer
+        match enforcer
             .add_policy(vec![
                 role.to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
-            .await?;
-        Ok(())
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::DuplicateRule(_) => Ok(()),
+                e => Err(e),
+            },
+        }
     }
 
     pub async fn assign_role_to_subject(
@@ -74,11 +122,16 @@ impl Authorization {
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
-        enforcer
+        match enforcer
             .add_grouping_policy(vec![sub.to_string(), role.to_string()])
-            .await?;
-
-        Ok(())
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::DuplicateRule(_) => Ok(()),
+                e => Err(e),
+            },
+        }
     }
 }
 
