@@ -5,21 +5,24 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+const CENTS_PER_USD = 100
+const SATOSHI_PER_BTC = 100000000
+
 export const currencyConverter = {
   centsToUsd: (cents: number) => {
-    return Number((cents / 100).toFixed(2))
+    return Number((cents / CENTS_PER_USD).toFixed(2))
   },
 
   btcToSatoshi: (btc: number) => {
-    return Number((btc * 100000000).toFixed(0))
+    return Number((btc * SATOSHI_PER_BTC).toFixed(0))
   },
 
   satoshiToBtc: (satoshi: number) => {
-    return satoshi / 100000000
+    return satoshi / SATOSHI_PER_BTC
   },
 
   usdToCents: (usd: number) => {
-    return Number((usd * 100).toFixed(0))
+    return Number((usd * CENTS_PER_USD).toFixed(0))
   },
 }
 
