@@ -2,7 +2,7 @@ is_ci = sys.argv[1] == "ci"
 
 docker_compose("../docker-compose.yml", project_name="lava-bank")
 docker_groups = {
-    "auth": ["kratos", "kratos-pg", "oathkeeper", "mailslurper"],
+    "auth": ["kratos", "kratos-pg", "oathkeeper", "mailslurper", "next-auth-pg", "mailhog"],
     "otel": ["otel-agent"],
     "cala": ["cala", "cala-pg"],
     "core": ["core-pg"]
@@ -25,7 +25,9 @@ local_resource(
     resource_deps=[
         "cala",
         "core-pg",
-        "cala-pg"
+        "cala-pg",
+        "next-auth-pg",
+        "mailhog",
     ]
 )
 
