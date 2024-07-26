@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub mod config;
 pub mod error;
 
 use error::AuthorizationError;
@@ -15,8 +14,6 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 
-use config::*;
-
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
@@ -25,10 +22,7 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub async fn init(
-        pool: &sqlx::PgPool,
-        config: AuthorizationConfig,
-    ) -> Result<Self, AuthorizationError> {
+    pub async fn init(pool: &sqlx::PgPool) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
@@ -38,14 +32,12 @@ impl Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
         };
 
-        if config.seed_roles {
-            auth.seed_roles(config.super_user_email).await?;
-        }
+        auth.seed_roles().await?;
 
         Ok(auth)
     }
 
-    async fn seed_roles(&mut self, email: String) -> Result<(), AuthorizationError> {
+    async fn seed_roles(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::SuperUser;
 
         self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
@@ -68,10 +60,6 @@ impl Authorization {
 
         self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
             .await?;
-
-        let admin = Subject::from(email);
-
-        self.assign_role_to_subject(&admin, &role).await?;
 
         Ok(())
     }
@@ -117,9 +105,10 @@ impl Authorization {
 
     pub async fn assign_role_to_subject(
         &mut self,
-        sub: &Subject,
+        sub: impl Into<Subject>,
         role: &Role,
     ) -> Result<(), AuthorizationError> {
+        let sub: Subject = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer

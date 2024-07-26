@@ -31,8 +31,7 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        let super_user_email = config.authorization.super_user_email.clone();
-        let authz = Authorization::init(&pool, config.authorization).await?;
+        let authz = Authorization::init(&pool).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
         let customers = Customers::new(&pool, &ledger);
@@ -40,11 +39,11 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger);
         let mut loans = Loans::new(&pool, &mut registry, &customers, &ledger, &authz);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
-        let users = Users::new(&pool);
+        let users = Users::init(&pool, &authz, config.user).await?;
         loans.set_jobs(&jobs);
         jobs.start_poll().await?;
 
-        let app = Self {
+        Ok(Self {
             _pool: pool,
             _jobs: jobs,
             customers,
@@ -53,10 +52,7 @@ impl LavaApp {
             ledger,
             applicants,
             users,
-        };
-        app.create_super_user(super_user_email).await?;
-
-        Ok(app)
+        })
     }
 
     pub fn customers(&self) -> &Customers {
@@ -81,12 +77,5 @@ impl LavaApp {
 
     pub fn users(&self) -> &Users {
         &self.users
-    }
-
-    async fn create_super_user(&self, email: String) -> Result<(), ApplicationError> {
-        if self.users.find_by_email(email.as_str()).await?.is_none() {
-            self.users.create_user(email).await?;
-        }
-        Ok(())
     }
 }
