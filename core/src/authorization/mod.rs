@@ -97,7 +97,7 @@ impl Authorization {
         {
             Ok(_) => Ok(()),
             Err(e) => match AuthorizationError::from(e) {
-                AuthorizationError::DuplicateRule(_) => Ok(()),
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
                 e => Err(e),
             },
         }
@@ -117,7 +117,7 @@ impl Authorization {
         {
             Ok(_) => Ok(()),
             Err(e) => match AuthorizationError::from(e) {
-                AuthorizationError::DuplicateRule(_) => Ok(()),
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
                 e => Err(e),
             },
         }

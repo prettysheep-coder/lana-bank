@@ -7,8 +7,8 @@ pub enum AuthorizationError {
     Casbin(CasbinError),
     #[error("AuthorizationError - NotAuthorized")]
     NotAuthorized,
-    #[error("AuthorizationError - DuplicateRule: {0}")]
-    DuplicateRule(String),
+    #[error("AuthorizationError - PermissionAlreadyExistsForRole: {0}")]
+    PermissionAlreadyExistsForRole(String),
 }
 
 impl From<CasbinError> for AuthorizationError {
@@ -20,7 +20,9 @@ impl From<CasbinError> for AuthorizationError {
                 .and_then(|e| e.downcast_ref::<sqlx::Error>())
             {
                 if db_error.code() == Some("23505".into()) {
-                    return AuthorizationError::DuplicateRule(db_error.message().to_string());
+                    return AuthorizationError::PermissionAlreadyExistsForRole(
+                        db_error.message().to_string(),
+                    );
                 }
             }
         }
