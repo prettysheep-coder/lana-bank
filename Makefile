@@ -16,6 +16,9 @@ start-deps:
 setup-db:
 	cd core && cargo sqlx migrate run
 
+setup-next-auth-db:
+	cd apps/admin-panel && pnpm run db:migrate
+
 sqlx-prepare:
 	cd core && cargo sqlx prepare
 
@@ -31,7 +34,7 @@ run-tf-in-tilt:
 	make reset-tf-state
 	make run-tf || true
 
-reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
+reset-deps: reset-tf-state clean-deps start-deps setup-db setup-next-auth-db run-tf
 
 run-server:
 	cargo run --bin lava-core -- --config ./bats/lava.yml

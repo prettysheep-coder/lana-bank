@@ -13,8 +13,13 @@
     "codegen": "graphql-codegen --config codegen.yml",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx ."
+    "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
+    "db:status": "TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' knex --knexfile ./config/database.ts migrate:status",
+    "db:create": "TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' knex --knexfile ./config/database.ts migrate:make -x ts",
+    "db:migrate": "TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' knex --knexfile ./config/database.ts migrate:latest",
+    "db:rollback": "TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' knex --knexfile ./config/database.ts migrate:rollback"
   },
+
   "dependencies": {
     "@apollo/client": "^3.10.4",
     "@apollo/experimental-nextjs-app-support": "^0.11.0",
@@ -31,6 +36,7 @@
     "@t3-oss/env-nextjs": "^0.10.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "knex": "^3.1.0",
     "next": "14.2.3",
     "next-auth": "^4.24.3",
     "nodemailer": "^6.9.14",
@@ -42,6 +48,7 @@
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "ts-node": "^10.9.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
