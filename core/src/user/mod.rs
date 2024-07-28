@@ -54,7 +54,7 @@ impl Users {
         &self.repo
     }
 
-    pub async fn create_super_user(&self, email: impl Into<String>) -> Result<User, UserError> {
+    async fn create_super_user(&self, email: impl Into<String>) -> Result<User, UserError> {
         let new_user = NewUser::builder()
             .email(email)
             .build()
@@ -95,7 +95,7 @@ impl Users {
         self.authz
             .check_permission(sub, Object::User, Action::User(UserAction::List))
             .await?;
-        Ok(self.repo.list().await?)
+        self.repo.list().await
     }
 
     pub async fn assign_role_to_user(
@@ -104,7 +104,6 @@ impl Users {
         id: UserId,
         role: Role,
     ) -> Result<User, UserError> {
-        let id = id.into();
         self.authz
             .check_permission(sub, Object::User, Action::User(UserAction::AssignRole))
             .await?;

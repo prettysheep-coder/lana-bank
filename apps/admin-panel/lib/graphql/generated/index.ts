@@ -336,7 +336,7 @@ export type Mutation = {
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   userAssignRole: UserAssignRolePayload;
-  userCreate: User;
+  userCreate: UserCreatePayload;
 };
 
 
@@ -552,6 +552,11 @@ export type UserBalance = {
 
 export type UserCreateInput = {
   email: Scalars['String']['input'];
+};
+
+export type UserCreatePayload = {
+  __typename?: 'UserCreatePayload';
+  user: User;
 };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{

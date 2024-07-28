@@ -78,5 +78,5 @@ pub async fn login_callback(
 pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new()
         .route("/auth/callback", post(auth_callback))
-        .route("auth/login", post(login_callback))
+        .route("/auth/login", post(login_callback))
 }
