@@ -335,6 +335,8 @@ export type Mutation = {
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  userAssignRole: UserAssignRolePayload;
+  userCreate: User;
 };
 
 
@@ -365,6 +367,16 @@ export type MutationShareholderEquityAddArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
+};
+
+
+export type MutationUserAssignRoleArgs = {
+  input: UserAssignRoleInput;
+};
+
+
+export type MutationUserCreateArgs = {
+  input: UserCreateInput;
 };
 
 /** Information about pagination in a connection */
@@ -405,6 +417,7 @@ export type Query = {
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   trialBalance?: Maybe<TrialBalance>;
+  users: Array<User>;
 };
 
 
@@ -432,6 +445,11 @@ export type QueryCustomersArgs = {
 export type QueryLoanArgs = {
   id: Scalars['UUID']['input'];
 };
+
+export enum Role {
+  BankManager = 'BANK_MANAGER',
+  SuperUser = 'SUPER_USER'
+}
 
 export type ShareholderEquityAddInput = {
   amount: Scalars['UsdCents']['input'];
@@ -510,10 +528,30 @@ export type UsdBalance = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type User = {
+  __typename?: 'User';
+  email: Scalars['String']['output'];
+  userId: Scalars['UUID']['output'];
+};
+
+export type UserAssignRoleInput = {
+  id: Scalars['UUID']['input'];
+  role: Role;
+};
+
+export type UserAssignRolePayload = {
+  __typename?: 'UserAssignRolePayload';
+  user: User;
+};
+
 export type UserBalance = {
   __typename?: 'UserBalance';
   checking: Checking;
   unallocatedCollateral: UnallocatedCollateral;
+};
+
+export type UserCreateInput = {
+  email: Scalars['String']['input'];
 };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
