@@ -446,6 +446,7 @@ scalar UsdCents
 type User {
 	userId: UUID!
 	email: String!
+	roles: [Role!]!
 }
 
 input UserAssignRoleInput {

@@ -111,7 +111,7 @@ impl std::ops::Deref for Subject {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Role {
     SuperUser,
     BankManager,
@@ -122,6 +122,16 @@ impl AsRef<str> for Role {
         match self {
             Role::SuperUser => "super-user",
             Role::BankManager => "bank-manager",
+        }
+    }
+}
+
+impl From<&str> for Role {
+    fn from(s: &str) -> Self {
+        match s {
+            "super-user" => Role::SuperUser,
+            "bank-manager" => Role::BankManager,
+            _ => panic!("Invalid role"),
         }
     }
 }

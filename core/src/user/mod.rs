@@ -127,4 +127,12 @@ impl Users {
         self.authz.revoke_role_from_subject(email, role).await?;
         Ok(user)
     }
+
+    pub async fn roles_for_user(&self, sub: &Subject, id: UserId) -> Result<Vec<Role>, UserError> {
+        self.authz
+            .check_permission(sub, Object::User, Action::User(UserAction::Read))
+            .await?;
+        let user = self.repo.find_by_id(id).await?;
+        Ok(self.authz.roles_for_subject(user.email).await?)
+    }
 }

@@ -531,6 +531,7 @@ export type UsdBalance = {
 export type User = {
   __typename?: 'User';
   email: Scalars['String']['output'];
+  roles: Array<Role>;
   userId: Scalars['UUID']['output'];
 };
 

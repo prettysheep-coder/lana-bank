@@ -175,6 +175,22 @@ impl Authorization {
             Err(e) => Err(AuthorizationError::from(e)),
         }
     }
+
+    pub async fn roles_for_subject(
+        &self,
+        sub: impl Into<Subject>,
+    ) -> Result<Vec<Role>, AuthorizationError> {
+        let sub: Subject = sub.into();
+        let enforcer = self.enforcer.read().await;
+
+        let roles = enforcer
+            .get_grouping_policy()
+            .into_iter()
+            .filter(|r| r[0] == sub.to_string())
+            .map(|r| Role::from(r[1].as_str()))
+            .collect();
+        Ok(roles)
+    }
 }
 
 pub enum Object {
