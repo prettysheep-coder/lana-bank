@@ -11,10 +11,10 @@ fn generate_random_email() -> String {
 #[tokio::test]
 async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
-    let super_user_email = generate_random_email();
-    let super_user_subject = Subject::from(super_user_email.clone());
+    let superuser_email = generate_random_email();
+    let superuser_subject = Subject::from(superuser_email.clone());
     let user_config = UserConfig {
-        super_user_email: Some(super_user_email),
+        superuser_email: Some(superuser_email),
     };
     let app_config = AppConfig {
         user: user_config,
@@ -25,13 +25,13 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     let user_email = generate_random_email();
     let user = app
         .users()
-        .create_user(&super_user_subject, user_email.clone())
+        .create_user(&superuser_subject, user_email.clone())
         .await?;
     assert_eq!(user.email, user_email);
 
     let bank_manager = app
         .users()
-        .assign_role_to_user(&super_user_subject, user.id, Role::BankManager)
+        .assign_role_to_user(&superuser_subject, user.id, Role::BankManager)
         .await;
 
     assert!(bank_manager.is_ok());
@@ -39,18 +39,18 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
 
     assert_eq!(
         app.users()
-            .roles_for_user(&super_user_subject, bank_manager_id)
+            .roles_for_user(&superuser_subject, bank_manager_id)
             .await?,
         vec![Role::BankManager]
     );
 
     app.users()
-        .revoke_role_from_user(&super_user_subject, bank_manager_id, Role::BankManager)
+        .revoke_role_from_user(&superuser_subject, bank_manager_id, Role::BankManager)
         .await?;
 
     assert_eq!(
         app.users()
-            .roles_for_user(&super_user_subject, bank_manager_id)
+            .roles_for_user(&superuser_subject, bank_manager_id)
             .await?,
         vec![]
     );

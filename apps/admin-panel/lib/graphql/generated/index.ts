@@ -454,7 +454,7 @@ export type QueryLoanArgs = {
 
 export enum Role {
   BankManager = 'BANK_MANAGER',
-  SuperUser = 'SUPER_USER'
+  Superuser = 'SUPERUSER'
 }
 
 export type ShareholderEquityAddInput = {

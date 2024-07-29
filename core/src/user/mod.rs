@@ -33,14 +33,14 @@ impl Users {
             repo,
         };
 
-        if let Some(email) = config.super_user_email {
-            users.create_and_assign_role_to_super_user(email).await?;
+        if let Some(email) = config.superuser_email {
+            users.create_and_assign_role_to_superuser(email).await?;
         }
 
         Ok(users)
     }
 
-    async fn create_and_assign_role_to_super_user(&self, email: String) -> Result<(), UserError> {
+    async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
         if self.find_by_email(&email).await?.is_none() {
             let new_user = NewUser::builder()
                 .email(&email)
@@ -49,7 +49,7 @@ impl Users {
             let mut db = self.pool.begin().await?;
             self.repo.create_in_tx(&mut db, new_user).await?;
             self.authz
-                .assign_role_to_subject(email, &Role::SuperUser)
+                .assign_role_to_subject(email, &Role::Superuser)
                 .await?;
             db.commit().await?;
         }

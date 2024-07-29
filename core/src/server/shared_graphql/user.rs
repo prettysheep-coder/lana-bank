@@ -39,6 +39,6 @@ impl From<crate::user::User> for User {
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 #[graphql(remote = "crate::primitives::Role")]
 pub enum Role {
-    SuperUser,
+    Superuser,
     BankManager,
 }

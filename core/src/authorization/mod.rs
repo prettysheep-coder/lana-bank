@@ -38,14 +38,14 @@ impl Authorization {
     }
 
     async fn seed_roles(&mut self) -> Result<(), AuthorizationError> {
-        self.add_permissions_for_super_user().await?;
+        self.add_permissions_for_superuser().await?;
         self.add_permissions_for_bank_manager().await?;
 
         Ok(())
     }
 
-    async fn add_permissions_for_super_user(&mut self) -> Result<(), AuthorizationError> {
-        let role = Role::SuperUser;
+    async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
+        let role = Role::Superuser;
 
         self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
             .await?;
