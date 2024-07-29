@@ -42,7 +42,7 @@ impl Users {
 
     async fn create_and_assign_role_to_super_user(&self, email: String) -> Result<(), UserError> {
         if self.find_by_email(&email).await?.is_none() {
-            self.create_super_user(&email).await?;
+            self.create_user_without_permissions_check(&email).await?;
             self.authz
                 .assign_role_to_subject(email, &Role::SuperUser)
                 .await?;
@@ -54,7 +54,10 @@ impl Users {
         &self.repo
     }
 
-    async fn create_super_user(&self, email: impl Into<String>) -> Result<User, UserError> {
+    async fn create_user_without_permissions_check(
+        &self,
+        email: impl Into<String>,
+    ) -> Result<User, UserError> {
         let new_user = NewUser::builder()
             .email(email)
             .build()
