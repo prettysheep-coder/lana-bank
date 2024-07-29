@@ -41,3 +41,22 @@ impl From<crate::user::User> for UserAssignRolePayload {
         }
     }
 }
+
+#[derive(InputObject)]
+pub struct UserRevokeRoleInput {
+    pub id: UUID,
+    pub role: Role,
+}
+
+#[derive(SimpleObject)]
+pub struct UserRevokeRolePayload {
+    user: User,
+}
+
+impl From<crate::user::User> for UserRevokeRolePayload {
+    fn from(user: crate::user::User) -> Self {
+        Self {
+            user: User::from(user),
+        }
+    }
+}

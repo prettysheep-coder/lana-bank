@@ -337,6 +337,7 @@ export type Mutation = {
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
+  userRevokeRole: UserRevokeRolePayload;
 };
 
 
@@ -377,6 +378,11 @@ export type MutationUserAssignRoleArgs = {
 
 export type MutationUserCreateArgs = {
   input: UserCreateInput;
+};
+
+
+export type MutationUserRevokeRoleArgs = {
+  input: UserRevokeRoleInput;
 };
 
 /** Information about pagination in a connection */
@@ -557,6 +563,16 @@ export type UserCreateInput = {
 
 export type UserCreatePayload = {
   __typename?: 'UserCreatePayload';
+  user: User;
+};
+
+export type UserRevokeRoleInput = {
+  id: Scalars['UUID']['input'];
+  role: Role;
+};
+
+export type UserRevokeRolePayload = {
+  __typename?: 'UserRevokeRolePayload';
   user: User;
 };
 

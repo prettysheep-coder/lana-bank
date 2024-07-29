@@ -120,14 +120,14 @@ impl Users {
         &self,
         sub: &Subject,
         id: UserId,
-        role: &Role,
+        role: Role,
     ) -> Result<User, UserError> {
         self.authz
             .check_permission(sub, Object::User, Action::User(UserAction::RevokeRole))
             .await?;
         let user = self.repo.find_by_id(id).await?;
         let email = user.email.clone();
-        self.authz.revoke_role_from_subject(email, role).await?;
+        self.authz.revoke_role_from_subject(email, &role).await?;
         Ok(user)
     }
 

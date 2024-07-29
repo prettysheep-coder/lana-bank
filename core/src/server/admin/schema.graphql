@@ -307,6 +307,7 @@ type Mutation {
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
+	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 }
 
 """
@@ -468,6 +469,15 @@ input UserCreateInput {
 }
 
 type UserCreatePayload {
+	user: User!
+}
+
+input UserRevokeRoleInput {
+	id: UUID!
+	role: Role!
+}
+
+type UserRevokeRolePayload {
 	user: User!
 }
 

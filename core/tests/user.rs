@@ -45,7 +45,7 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     );
 
     app.users()
-        .revoke_role_from_user(&super_user_subject, bank_manager_id, &Role::BankManager)
+        .revoke_role_from_user(&super_user_subject, bank_manager_id, Role::BankManager)
         .await?;
 
     assert_eq!(

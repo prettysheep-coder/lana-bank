@@ -304,4 +304,19 @@ impl Mutation {
             .await?;
         Ok(UserAssignRolePayload::from(user))
     }
+
+    async fn user_revoke_role(
+        &self,
+        ctx: &Context<'_>,
+        input: UserRevokeRoleInput,
+    ) -> async_graphql::Result<UserRevokeRolePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let UserRevokeRoleInput { id, role } = input;
+        let user = app
+            .users()
+            .revoke_role_from_user(sub, id.into(), role.into())
+            .await?;
+        Ok(UserRevokeRolePayload::from(user))
+    }
 }
