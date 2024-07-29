@@ -42,30 +42,22 @@ impl Users {
 
     async fn create_and_assign_role_to_super_user(&self, email: String) -> Result<(), UserError> {
         if self.find_by_email(&email).await?.is_none() {
-            self.create_user_without_permissions_check(&email).await?;
+            let new_user = NewUser::builder()
+                .email(&email)
+                .build()
+                .expect("Could not build user");
+            let mut db = self.pool.begin().await?;
+            self.repo.create_in_tx(&mut db, new_user).await?;
             self.authz
                 .assign_role_to_subject(email, &Role::SuperUser)
                 .await?;
+            db.commit().await?;
         }
         Ok(())
     }
 
     pub fn repo(&self) -> &UserRepo {
         &self.repo
-    }
-
-    async fn create_user_without_permissions_check(
-        &self,
-        email: impl Into<String>,
-    ) -> Result<User, UserError> {
-        let new_user = NewUser::builder()
-            .email(email)
-            .build()
-            .expect("Could not build user");
-        let mut db = self.pool.begin().await?;
-        let user = self.repo.create_in_tx(&mut db, new_user).await?;
-        db.commit().await?;
-        Ok(user)
     }
 
     pub async fn create_user(
