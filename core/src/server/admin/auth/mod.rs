@@ -58,7 +58,7 @@ pub async fn login_callback(
     Json(payload): Json<LoginCallbackPayload>,
 ) -> Result<Response, StatusCode> {
     // Log the received HTTP method and JSON payload
-    println!("Received auth callback with payload: {:?}", payload);
+    println!("Received login callback with payload: {:?}", payload);
 
     let email = payload.email;
 
@@ -78,5 +78,5 @@ pub async fn login_callback(
 pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new()
         .route("/auth/callback", post(auth_callback))
-        .route("/auth/login", post(login_callback))
+        .route("/login/callback", post(login_callback))
 }
