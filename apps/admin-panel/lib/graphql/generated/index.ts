@@ -623,6 +623,32 @@ export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountBalances', al
 
 export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } };
 
+export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> };
+
+export type UserCreateMutationVariables = Exact<{
+  input: UserCreateInput;
+}>;
+
+
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type UserAssignRoleMutationVariables = Exact<{
+  input: UserAssignRoleInput;
+}>;
+
+
+export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type UserRevokeRoleMutationVariables = Exact<{
+  input: UserRevokeRoleInput;
+}>;
+
+
+export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
 }>;
@@ -1081,6 +1107,153 @@ export function useGetOffBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.
 export type GetOffBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceQuery>;
 export type GetOffBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceLazyQuery>;
 export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>;
+export const UsersDocument = gql`
+    query Users {
+  users {
+    userId
+    email
+    roles
+  }
+}
+    `;
+
+/**
+ * __useUsersQuery__
+ *
+ * To run a query within a React component, call `useUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUsersQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useUsersQuery(baseOptions?: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+      }
+export function useUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UsersQuery, UsersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+        }
+export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
+export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
+export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
+export const UserCreateDocument = gql`
+    mutation UserCreate($input: UserCreateInput!) {
+  userCreate(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserCreateMutationFn = Apollo.MutationFunction<UserCreateMutation, UserCreateMutationVariables>;
+
+/**
+ * __useUserCreateMutation__
+ *
+ * To run a mutation, you first call `useUserCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userCreateMutation, { data, loading, error }] = useUserCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserCreateMutation(baseOptions?: Apollo.MutationHookOptions<UserCreateMutation, UserCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserCreateMutation, UserCreateMutationVariables>(UserCreateDocument, options);
+      }
+export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutation>;
+export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
+export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
+export const UserAssignRoleDocument = gql`
+    mutation UserAssignRole($input: UserAssignRoleInput!) {
+  userAssignRole(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserAssignRoleMutationFn = Apollo.MutationFunction<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+
+/**
+ * __useUserAssignRoleMutation__
+ *
+ * To run a mutation, you first call `useUserAssignRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserAssignRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userAssignRoleMutation, { data, loading, error }] = useUserAssignRoleMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserAssignRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserAssignRoleMutation, UserAssignRoleMutationVariables>(UserAssignRoleDocument, options);
+      }
+export type UserAssignRoleMutationHookResult = ReturnType<typeof useUserAssignRoleMutation>;
+export type UserAssignRoleMutationResult = Apollo.MutationResult<UserAssignRoleMutation>;
+export type UserAssignRoleMutationOptions = Apollo.BaseMutationOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+export const UserRevokeRoleDocument = gql`
+    mutation UserRevokeRole($input: UserRevokeRoleInput!) {
+  userRevokeRole(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserRevokeRoleMutationFn = Apollo.MutationFunction<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
+
+/**
+ * __useUserRevokeRoleMutation__
+ *
+ * To run a mutation, you first call `useUserRevokeRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserRevokeRoleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userRevokeRoleMutation, { data, loading, error }] = useUserRevokeRoleMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserRevokeRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>(UserRevokeRoleDocument, options);
+      }
+export type UserRevokeRoleMutationHookResult = ReturnType<typeof useUserRevokeRoleMutation>;
+export type UserRevokeRoleMutationResult = Apollo.MutationResult<UserRevokeRoleMutation>;
+export type UserRevokeRoleMutationOptions = Apollo.BaseMutationOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
 export const LoanApproveDocument = gql`
     mutation LoanApprove($input: LoanApproveInput!) {
   loanApprove(input: $input) {

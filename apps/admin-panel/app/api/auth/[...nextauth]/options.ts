@@ -20,6 +20,12 @@ const allowedUsers = [
     email: "user@lava.io",
     role: "user",
   },
+  {
+    id: 3,
+    name: "User",
+    email: "super.user@example.com",
+    role: "user",
+  },
 ]
 
 export const authOptions: NextAuthOptions = {
