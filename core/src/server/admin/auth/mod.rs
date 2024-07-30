@@ -48,17 +48,17 @@ pub async fn auth_callback(
 }
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
-pub struct LoginCallbackPayload {
+pub struct UserCallbackPayload {
     email: String,
     transient_payload: serde_json::Value,
 }
 
-pub async fn login_callback(
+pub async fn user_callback(
     Extension(app): Extension<LavaApp>,
-    Json(payload): Json<LoginCallbackPayload>,
+    Json(payload): Json<UserCallbackPayload>,
 ) -> Result<Response, StatusCode> {
     // Log the received HTTP method and JSON payload
-    println!("Received login callback with payload: {:?}", payload);
+    println!("Received user callback with payload: {:?}", payload);
 
     let email = payload.email;
 
@@ -78,5 +78,5 @@ pub async fn login_callback(
 pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new()
         .route("/auth/callback", post(auth_callback))
-        .route("/login/callback", post(login_callback))
+        .route("/user/callback", post(user_callback))
 }
