@@ -88,10 +88,10 @@ function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>UserId</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Roles</TableHead>
-            <TableHead></TableHead>
+            <TableHead className="w-1/6">UserId</TableHead>
+            <TableHead className="w-2/6">Email</TableHead>
+            <TableHead className="w-2/6">Roles</TableHead>
+            <TableHead className="w-1/6 text-left pl-4"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -125,7 +125,7 @@ function UsersPage() {
 
 export default UsersPage
 
-export const RolesDropDown = ({
+const RolesDropDown = ({
   userId,
   roles,
   refetch,
