@@ -6,6 +6,7 @@ import { customPostgresAdapter } from "@/lib/auth/db/auth-adapter"
 import { pool } from "@/lib/auth/db"
 import { env } from "@/env"
 
+const allowedDomains = ["galoy.io", "blink.sv"]
 const allowedUsers = [
   {
     id: 1,
@@ -34,16 +35,23 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ account }) {
       const email = account?.providerAccountId
-      const user = allowedUsers.find((user) => user.email === email)
-      if (account?.provider === "email" && email && user) {
-        return true
+      if (account?.provider === "email" && email) {
+        const user = allowedUsers.find((user) => user.email === email)
+        if (user) {
+          return true
+        }
+
+        const domain = email.split("@")[1]
+        if (allowedDomains.includes(domain)) {
+          return true
+        }
       }
       return false
     },
     async session({ session, token }) {
       const user = allowedUsers.find((allowedUser) => allowedUser.email === token.email)
       if (session.user) {
-        session.user.name = user?.name
+        session.user.name = user?.name || token.email?.split("@")[0]
         session.user.email = token.email
       }
       return session
