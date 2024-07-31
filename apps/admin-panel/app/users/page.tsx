@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
 import { Badge } from "@/components/primitive/badge"
+import { Card, CardContent } from "@/components/primitive/card"
 
 gql`
   query Users {
@@ -82,40 +83,46 @@ function UsersPage() {
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-1/6">UserId</TableHead>
-            <TableHead className="w-2/6">Email</TableHead>
-            <TableHead className="w-2/6">Roles</TableHead>
-            <TableHead className="w-1/6 text-left pl-4"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {usersList?.users.map((user) => (
-            <TableRow key={user.userId}>
-              <TableCell>{user.userId}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell className="flex flex-wrap gap-2 text-textColor-secondary">
-                {user.roles.length > 0
-                  ? user.roles.map((role) => (
-                      <Badge variant="secondary" key={role}>
-                        {formatRole(role)}
-                      </Badge>
-                    ))
-                  : "No roles Assigned"}
-              </TableCell>
-              <TableCell>
-                <RolesDropDown
-                  refetch={refetch}
-                  userId={user.userId}
-                  roles={user.roles}
-                />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <Card>
+        <CardContent className="pt-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-1/5">UserId</TableHead>
+                <TableHead className="w-1/5">Email</TableHead>
+                <TableHead className="w-2/5">Roles</TableHead>
+                <TableHead className="w-1/5 text-left pl-4"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usersList?.users.map((user) => (
+                <TableRow key={user.userId}>
+                  <TableCell>{user.userId}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
+                      {user.roles.length > 0
+                        ? user.roles.map((role) => (
+                            <Badge variant="secondary" key={role}>
+                              {formatRole(role)}
+                            </Badge>
+                          ))
+                        : "No roles Assigned"}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <RolesDropDown
+                      refetch={refetch}
+                      userId={user.userId}
+                      roles={user.roles}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   )
 }
