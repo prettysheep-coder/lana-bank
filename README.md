@@ -42,7 +42,7 @@ the access through the frontends needs to be proxied to oathkeeper to receive th
 
 admin panel: http://localhost:4455/admin-panel
 
-use email admin@galoy.io
+use email super.user@example.com
 connect to http://0.0.0.0:8025/
 
 app: http://localhost:4455/
