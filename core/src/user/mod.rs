@@ -47,9 +47,9 @@ impl Users {
                 .build()
                 .expect("Could not build user");
             let mut db = self.pool.begin().await?;
-            self.repo.create_in_tx(&mut db, new_user).await?;
+            let user = self.repo.create_in_tx(&mut db, new_user).await?;
             self.authz
-                .assign_role_to_subject(email, &Role::Superuser)
+                .assign_role_to_subject(user.id, &Role::Superuser)
                 .await?;
             db.commit().await?;
         }
@@ -103,8 +103,7 @@ impl Users {
             .check_permission(sub, Object::User, Action::User(UserAction::AssignRole))
             .await?;
         let user = self.repo.find_by_id(id).await?;
-        let email = user.email.clone();
-        self.authz.assign_role_to_subject(email, &role).await?;
+        self.authz.assign_role_to_subject(user.id, &role).await?;
         Ok(user)
     }
 
@@ -118,8 +117,7 @@ impl Users {
             .check_permission(sub, Object::User, Action::User(UserAction::RevokeRole))
             .await?;
         let user = self.repo.find_by_id(id).await?;
-        let email = user.email.clone();
-        self.authz.revoke_role_from_subject(email, &role).await?;
+        self.authz.revoke_role_from_subject(user.id, &role).await?;
         Ok(user)
     }
 
@@ -128,6 +126,6 @@ impl Users {
             .check_permission(sub, Object::User, Action::User(UserAction::Read))
             .await?;
         let user = self.repo.find_by_id(id).await?;
-        Ok(self.authz.roles_for_subject(user.email).await?)
+        Ok(self.authz.roles_for_subject(user.id).await?)
     }
 }

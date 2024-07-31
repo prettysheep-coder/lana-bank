@@ -76,10 +76,20 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let auth_context = AdminAuthContext::new(jwt_claims.sub);
-    req = req.data(auth_context);
-
-    schema.execute(req).await.into()
+    dbg!("Admin GraphQL Handler");
+    dbg!(&jwt_claims);
+    match uuid::Uuid::parse_str(&jwt_claims.sub) {
+        Ok(id) => {
+            let auth_context = AdminAuthContext::new(id);
+            req = req.data(auth_context);
+            schema.execute(req).await.into()
+        }
+        Err(e) => async_graphql::Response::from_errors(vec![async_graphql::ServerError::new(
+            e.to_string(),
+            None,
+        )])
+        .into(),
+    }
 }
 
 async fn playground() -> impl axum::response::IntoResponse {

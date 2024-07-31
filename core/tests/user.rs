@@ -12,15 +12,17 @@ fn generate_random_email() -> String {
 async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let superuser_email = generate_random_email();
-    let superuser_subject = Subject::from(superuser_email.clone());
     let user_config = UserConfig {
-        superuser_email: Some(superuser_email),
+        superuser_email: Some(superuser_email.clone()),
     };
     let app_config = AppConfig {
         user: user_config,
         ..Default::default()
     };
     let app = LavaApp::run(pool, app_config).await?;
+
+    let superuser = app.users().find_by_email(superuser_email).await?;
+    let superuser_subject = Subject::from(superuser.unwrap().id);
 
     let user_email = generate_random_email();
     let user = app

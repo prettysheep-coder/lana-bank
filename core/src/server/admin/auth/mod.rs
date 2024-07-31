@@ -75,8 +75,56 @@ pub async fn user_callback(
     }
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct HydratorPayload {
+    subject: String,
+    extra: serde_json::Value,
+    header: serde_json::Value,
+    match_context: MatchContext,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct MatchContext {
+    regexp_capture_groups: serde_json::Value,
+    url: serde_json::Value,
+}
+
+pub async fn user_id_from_email(
+    Extension(app): Extension<LavaApp>,
+    Json(mut payload): Json<HydratorPayload>,
+) -> impl IntoResponse {
+    println!("Received user_id_from_email payload: {:?}", payload);
+
+    let email = &payload.subject;
+    match app.users().find_by_email(email).await {
+        Ok(Some(user)) => {
+            if let serde_json::Value::Object(ref mut header) = payload.header {
+                header.insert(
+                    "User-Id".to_string(),
+                    serde_json::Value::String(user.id.to_string()),
+                );
+            } else {
+                payload.header = serde_json::json!({
+                    "User-Id": user.id.to_string()
+                });
+            }
+            dbg!(&payload);
+            Ok((StatusCode::OK, Json(payload)))
+        }
+        Ok(None) => {
+            println!("User not found: {:?}", email);
+            Err(StatusCode::NOT_FOUND)
+        }
+        Err(error) => {
+            println!("Error finding user: {:?}", error);
+            Err(StatusCode::INTERNAL_SERVER_ERROR)
+        }
+    }
+}
+
 pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new()
         .route("/auth/callback", post(auth_callback))
         .route("/user/callback", post(user_callback))
+        .route("/user/id-from-email", post(user_id_from_email))
 }
