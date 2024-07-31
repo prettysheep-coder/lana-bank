@@ -1,7 +1,5 @@
 import React, { useState } from "react"
-
 import { gql } from "@apollo/client"
-
 import { toast } from "sonner"
 
 import {
@@ -16,6 +14,7 @@ import { useUserCreateMutation } from "@/lib/graphql/generated"
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
+import { sendMagicLinkToEmail } from "@/lib/user/server-actions/send-magic-link"
 
 gql`
   mutation UserCreate($input: UserCreateInput!) {
@@ -40,6 +39,7 @@ function CreateUserDialog({
 }) {
   const [createUser, { loading, reset }] = useUserCreateMutation()
   const [email, setEmail] = useState<string>("")
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,10 +53,21 @@ function CreateUserDialog({
       })
       refetch()
       toast.success("User created successfully")
+      await sendMagicLinkToEmail(email)
       setOpenCreateUserDialog(false)
     } catch (error) {
-      console.log(error)
+      console.error(error)
+      if (error instanceof Error) {
+        setError(error.message)
+      }
     }
+    resetStates()
+  }
+
+  const resetStates = () => {
+    setEmail("")
+    setError(null)
+    reset()
   }
 
   return (
@@ -65,7 +76,7 @@ function CreateUserDialog({
       onOpenChange={(isOpen) => {
         setOpenCreateUserDialog(isOpen)
         if (!isOpen) {
-          reset()
+          resetStates()
         }
       }}
     >
@@ -87,6 +98,10 @@ function CreateUserDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+          <p className="text-textColor-secondary text-xs ml-1">
+            A magic link will be sent to the email address provided.
+          </p>
+          {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
             <Button loading={loading}>Submit</Button>
           </DialogFooter>

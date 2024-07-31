@@ -42,9 +42,7 @@ gql`
       roles
     }
   }
-`
 
-gql`
   mutation UserAssignRole($input: UserAssignRoleInput!) {
     userAssignRole(input: $input) {
       user {
@@ -54,8 +52,7 @@ gql`
       }
     }
   }
-`
-gql`
+
   mutation UserRevokeRole($input: UserRevokeRoleInput!) {
     userRevokeRole(input: $input) {
       user {
