@@ -47,7 +47,7 @@ impl UserRepo {
         .fetch_all(&self.pool)
         .await?;
         match EntityEvents::load_first(rows) {
-            Ok(customer) => Ok(customer),
+            Ok(user) => Ok(user),
             Err(EntityError::NoEntityEventsPresent) => Err(UserError::CouldNotFindById(id)),
             Err(e) => Err(e.into()),
         }
@@ -85,7 +85,7 @@ impl UserRepo {
         .fetch_all(&self.pool)
         .await?;
         match EntityEvents::load_first(rows) {
-            Ok(customer) => Ok(customer),
+            Ok(user) => Ok(user),
             Err(EntityError::NoEntityEventsPresent) => Err(UserError::CouldNotFindByEmail(email)),
             Err(e) => Err(e.into()),
         }
