@@ -40,9 +40,10 @@
   authorizer:
     handler: allow
   mutators:
+    - handler: hydrator
     - handler: id_token
       config:
-        claims: '{"sub": "{{ print .Subject }}", "aud": ["https://admin-api/graphql"] }'
+        claims: '{"aud": ["https://admin-api/graphql"], "user_id": {{ print .Extra.user_id | toJson }} }'
 
 - id: admin-panel
   upstream:

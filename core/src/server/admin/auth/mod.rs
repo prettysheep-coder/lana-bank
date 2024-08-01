@@ -98,26 +98,25 @@ pub async fn user_id_from_email(
     let email = &payload.subject;
     match app.users().find_by_email(email).await {
         Ok(Some(user)) => {
-            if let serde_json::Value::Object(ref mut header) = payload.header {
-                header.insert(
-                    "User-Id".to_string(),
+            if let serde_json::Value::Object(ref mut extra) = payload.extra {
+                extra.insert(
+                    "user_id".to_string(),
                     serde_json::Value::String(user.id.to_string()),
                 );
             } else {
-                payload.header = serde_json::json!({
-                    "User-Id": user.id.to_string()
+                payload.extra = serde_json::json!({
+                    "user_id": user.id.to_string()
                 });
             }
-            dbg!(&payload);
-            Ok((StatusCode::OK, Json(payload)))
+            Json(payload).into_response()
         }
         Ok(None) => {
             println!("User not found: {:?}", email);
-            Err(StatusCode::NOT_FOUND)
+            StatusCode::NOT_FOUND.into_response()
         }
         Err(error) => {
             println!("Error finding user: {:?}", error);
-            Err(StatusCode::INTERNAL_SERVER_ERROR)
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
 }
