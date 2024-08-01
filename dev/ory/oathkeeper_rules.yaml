@@ -43,7 +43,7 @@
     - handler: hydrator
     - handler: id_token
       config:
-        claims: '{"aud": ["https://admin-api/graphql"], "user_id": {{ print .Extra.user_id | toJson }} }'
+        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
 - id: admin-panel
   upstream:

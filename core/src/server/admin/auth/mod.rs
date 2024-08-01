@@ -100,12 +100,12 @@ pub async fn user_id_from_email(
         Ok(Some(user)) => {
             if let serde_json::Value::Object(ref mut extra) = payload.extra {
                 extra.insert(
-                    "user_id".to_string(),
+                    "subject".to_string(),
                     serde_json::Value::String(user.id.to_string()),
                 );
             } else {
                 payload.extra = serde_json::json!({
-                    "user_id": user.id.to_string()
+                    "subject": user.id.to_string()
                 });
             }
             Json(payload).into_response()

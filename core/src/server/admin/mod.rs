@@ -70,7 +70,7 @@ impl AdminAuthContext {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AdminJwtClaims {
-    pub user_id: String,
+    pub subject: String,
 }
 
 pub async fn graphql_handler(
@@ -82,7 +82,7 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    match uuid::Uuid::parse_str(&jwt_claims.user_id) {
+    match uuid::Uuid::parse_str(&jwt_claims.subject) {
         Ok(id) => {
             let auth_context = AdminAuthContext::new(id);
             req = req.data(auth_context);
