@@ -22,11 +22,14 @@ impl KratosClient {
         }
     }
 
-    pub async fn identity_id(&self, email: &str) -> Result<uuid::Uuid, KratosClientError> {
+    pub async fn identity_id_from_email(
+        &self,
+        email: &str,
+    ) -> Result<uuid::Uuid, KratosClientError> {
         let identity_body = CreateIdentityBody::new(
-            email.to_string(),
+            "email".to_string(),
             serde_json::json!({
-                "email": email
+                "email": email.to_string()
             }),
         );
 

@@ -288,7 +288,7 @@ impl Mutation {
     ) -> async_graphql::Result<CustomerCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let kratos_client = ctx.data_unchecked::<KratosClient>();
-        let customer_id = kratos_client.identity_id(&input.email).await?;
+        let customer_id = kratos_client.identity_id_from_email(&input.email).await?;
         let customer = app
             .customers()
             .create_customer(customer_id.into(), input.email)
