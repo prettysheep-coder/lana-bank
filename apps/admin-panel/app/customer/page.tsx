@@ -1,28 +1,26 @@
-import { redirect } from "next/navigation"
+"use client"
+
+import { useState } from "react"
 
 import CustomerTable from "./customer-table"
+
+import { searchCustomer } from "./server-actions"
 
 import { Input } from "@/components/primitive/input"
 
 import { Button } from "@/components/primitive/button"
 
 import { PageHeading } from "@/components/page-heading"
+import CreateCustomerDialog from "@/components/customer/create-customer-dialog"
 
-const searchCustomer = async (formData: FormData) => {
-  "use server"
-  if (formData.get("submit") === "clear") {
-    redirect(`/customer`)
-  }
-
-  const customerId = formData.get("customerId")
-  if (!customerId || typeof customerId !== "string") {
-    redirect(`/customer`)
-  }
-  redirect(`/customer?customerId=${customerId}`)
-}
-
-async function customerPage({ searchParams }: { searchParams: { customerId?: string } }) {
+function CustomerPage({ searchParams }: { searchParams: { customerId?: string } }) {
   const { customerId } = searchParams
+  const [openCreateCustomerDialog, setOpenCreateCustomerDialog] = useState(false)
+
+  const handleOpenCreateCustomerDialog = (e: React.FormEvent) => {
+    e.preventDefault()
+    setOpenCreateCustomerDialog(true)
+  }
 
   return (
     <main>
@@ -35,17 +33,27 @@ async function customerPage({ searchParams }: { searchParams: { customerId?: str
             name="customerId"
             className="w-80"
           />
-          <Button variant="primary">Search</Button>
+          <Button variant="secondary">Search</Button>
           {customerId && (
-            <Button type="submit" name="submit" value="clear">
+            <Button variant="secondary" type="submit" name="submit" value="clear">
               X Clear
             </Button>
           )}
+          <Button onClick={handleOpenCreateCustomerDialog}>Create New</Button>
         </div>
       </form>
-      <CustomerTable customerId={customerId} />
+      <CustomerTable
+        customerId={customerId}
+        renderCreateCustomerDialog={(refetch) => (
+          <CreateCustomerDialog
+            setOpenCreateCustomerDialog={setOpenCreateCustomerDialog}
+            openCreateCustomerDialog={openCreateCustomerDialog}
+            refetch={refetch}
+          />
+        )}
+      />
     </main>
   )
 }
 
-export default customerPage
+export default CustomerPage
