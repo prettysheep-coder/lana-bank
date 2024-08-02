@@ -14,7 +14,7 @@ pub struct KratosClient {
 }
 
 impl KratosClient {
-    pub fn new(config: AdminKratosConfig) -> Self {
+    pub fn new(config: KratosConfig) -> Self {
         let mut kratos_config = Configuration::new();
         kratos_config.base_path = config.url;
         Self {

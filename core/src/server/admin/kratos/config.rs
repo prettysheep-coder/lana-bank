@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct AdminKratosConfig {
+pub struct KratosConfig {
     #[serde(default = "default_url")]
     pub url: String,
 }
 
-impl Default for AdminKratosConfig {
+impl Default for KratosConfig {
     fn default() -> Self {
         Self { url: default_url() }
     }

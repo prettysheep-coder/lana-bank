@@ -4,10 +4,9 @@ use uuid::Uuid;
 use super::{account_set::*, customer::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
-    kratos::KratosClient,
     primitives::{CustomerId, LoanId},
     server::{
-        admin::AdminAuthContext,
+        admin::{kratos::KratosClient, AdminAuthContext},
         shared_graphql::{
             customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
             sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,

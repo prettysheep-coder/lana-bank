@@ -7,7 +7,6 @@ use std::path::Path;
 use super::db::*;
 use crate::{
     app::AppConfig,
-    kratos::AdminKratosConfig,
     server::{admin::AdminServerConfig, public::PublicServerConfig},
 };
 
@@ -23,8 +22,6 @@ pub struct Config {
     pub app: AppConfig,
     #[serde(default)]
     pub tracing: TracingConfig,
-    #[serde(default)]
-    pub admin_kratos: AdminKratosConfig,
 }
 
 pub struct EnvOverride {

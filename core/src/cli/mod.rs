@@ -66,13 +66,12 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let pool = db::init_pool(&config.db).await?;
     let public_app = crate::app::LavaApp::run(pool.clone(), config.app).await?;
     let admin_app = public_app.clone();
-    let admin_kratos = crate::kratos::KratosClient::new(config.admin_kratos);
 
     let admin_send = send.clone();
 
     handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
-            crate::server::admin::run(config.admin_server, admin_app, admin_kratos)
+            crate::server::admin::run(config.admin_server, admin_app)
                 .await
                 .context("Admin server error"),
         );

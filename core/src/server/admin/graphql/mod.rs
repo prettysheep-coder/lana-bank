@@ -11,7 +11,7 @@ use async_graphql::*;
 
 pub use schema::*;
 
-use crate::{app::LavaApp, kratos::KratosClient};
+use crate::{app::LavaApp, server::admin::kratos::KratosClient};
 
 pub fn schema(
     app: Option<LavaApp>,
