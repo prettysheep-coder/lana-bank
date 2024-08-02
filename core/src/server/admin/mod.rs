@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
 
-use crate::{app::LavaApp, primitives::Subject};
+use crate::{app::LavaApp, kratos::KratosClient, primitives::Subject};
 
 pub use config::*;
 
@@ -21,7 +21,11 @@ use super::jwks::{Claims, JwtDecoderState, RemoteJwksDecoder};
 
 use std::sync::Arc;
 
-pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> {
+pub async fn run(
+    config: AdminServerConfig,
+    app: LavaApp,
+    admin_kratos: KratosClient,
+) -> anyhow::Result<()> {
     let port = config.port;
     let aud = config.aud.as_ref();
 
@@ -31,7 +35,7 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
         decoder.refresh_keys_periodically().await;
     });
 
-    let schema = graphql::schema(Some(app.clone()));
+    let schema = graphql::schema(Some(app.clone()), Some(admin_kratos));
 
     let cors = CorsLayer::permissive();
 

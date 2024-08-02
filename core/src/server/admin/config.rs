@@ -8,6 +8,8 @@ pub struct AdminServerConfig {
     pub jwks_url: String,
     #[serde(default = "aud")]
     pub aud: String,
+    #[serde(default = "default_kratos_admin_url")]
+    pub kratos_admin_url: String,
 }
 
 impl Default for AdminServerConfig {
@@ -16,6 +18,7 @@ impl Default for AdminServerConfig {
             port: default_port(),
             jwks_url: default_jwks_url(),
             aud: "https://admin-api/graphql".to_string(),
+            kratos_admin_url: default_kratos_admin_url(),
         }
     }
 }
@@ -30,4 +33,8 @@ fn default_jwks_url() -> String {
 
 fn aud() -> String {
     "https://admin-api/graphql".to_string()
+}
+
+fn default_kratos_admin_url() -> String {
+    "http://localhost:4433".to_string()
 }

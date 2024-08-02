@@ -4,6 +4,7 @@ use uuid::Uuid;
 use super::{account_set::*, customer::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
+    kratos::KratosClient,
     primitives::{CustomerId, LoanId},
     server::{
         admin::AdminAuthContext,
@@ -286,10 +287,11 @@ impl Mutation {
         input: CustomerCreateInput,
     ) -> async_graphql::Result<CustomerCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let customer_id = CustomerId::new();
+        let kratos_client = ctx.data_unchecked::<KratosClient>();
+        let customer_id = kratos_client.identity_id(&input.email).await?;
         let customer = app
             .customers()
-            .create_customer(customer_id, input.email)
+            .create_customer(customer_id.into(), input.email)
             .await?;
         Ok(CustomerCreatePayload::from(customer))
     }

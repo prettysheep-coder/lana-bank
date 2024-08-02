@@ -8,6 +8,7 @@ pub mod cli;
 pub mod customer;
 pub mod entity;
 pub mod job;
+pub mod kratos;
 pub mod ledger;
 pub mod loan;
 pub mod primitives;
