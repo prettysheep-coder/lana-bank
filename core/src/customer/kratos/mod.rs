@@ -1,5 +1,5 @@
 mod config;
-mod error;
+pub mod error;
 
 use ory_kratos_client::{
     apis::{configuration::Configuration, identity_api},
@@ -7,25 +7,23 @@ use ory_kratos_client::{
 };
 
 pub use config::*;
-use error::KratosClientError;
+pub use error::KratosClientError;
 
+#[derive(Clone)]
 pub struct KratosClient {
     config: Configuration,
 }
 
 impl KratosClient {
-    pub fn new(config: KratosConfig) -> Self {
+    pub fn new(config: &KratosConfig) -> Self {
         let mut kratos_config = Configuration::new();
-        kratos_config.base_path = config.url;
+        kratos_config.base_path.clone_from(&config.admin_url);
         Self {
             config: kratos_config,
         }
     }
 
-    pub async fn identity_id_from_email(
-        &self,
-        email: &str,
-    ) -> Result<uuid::Uuid, KratosClientError> {
+    pub async fn create_identity(&self, email: &str) -> Result<uuid::Uuid, KratosClientError> {
         let identity_body = CreateIdentityBody::new(
             "email".to_string(),
             serde_json::json!({

@@ -2,7 +2,6 @@ pub mod graphql;
 
 mod auth;
 mod config;
-mod kratos;
 mod sumsub;
 
 use async_graphql::*;
@@ -14,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
 
-use crate::{app::LavaApp, primitives::Subject, server::admin::kratos::KratosClient};
+use crate::{app::LavaApp, primitives::Subject};
 
 pub use config::*;
 
@@ -31,8 +30,7 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     tokio::spawn(async move {
         decoder.refresh_keys_periodically().await;
     });
-    let kratos = KratosClient::new(config.kratos.clone());
-    let schema = graphql::schema(Some(app.clone()), Some(kratos));
+    let schema = graphql::schema(Some(app.clone()));
 
     let cors = CorsLayer::permissive();
 

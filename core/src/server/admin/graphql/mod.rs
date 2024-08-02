@@ -11,20 +11,13 @@ use async_graphql::*;
 
 pub use schema::*;
 
-use crate::{app::LavaApp, server::admin::kratos::KratosClient};
+use crate::app::LavaApp;
 
-pub fn schema(
-    app: Option<LavaApp>,
-    kratos: Option<KratosClient>,
-) -> Schema<Query, Mutation, EmptySubscription> {
+pub fn schema(app: Option<LavaApp>) -> Schema<Query, Mutation, EmptySubscription> {
     let mut schema_builder = Schema::build(Query, Mutation, EmptySubscription);
 
     if let Some(app) = app {
         schema_builder = schema_builder.data(app);
-    }
-
-    if let Some(kratos) = kratos {
-        schema_builder = schema_builder.data(kratos);
     }
 
     schema_builder.finish()

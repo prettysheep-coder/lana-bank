@@ -1,6 +1,8 @@
+mod config;
 mod cursor;
 mod entity;
 pub mod error;
+mod kratos;
 mod repo;
 
 use crate::{
@@ -8,9 +10,11 @@ use crate::{
     primitives::{CustomerId, KycLevel},
 };
 
+pub use config::*;
 pub use cursor::*;
 pub use entity::*;
 use error::CustomerError;
+use kratos::*;
 pub use repo::CustomerRepo;
 
 #[derive(Clone)]
@@ -18,20 +22,31 @@ pub struct Customers {
     pool: sqlx::PgPool,
     repo: CustomerRepo,
     ledger: Ledger,
+    kratos: KratosClient,
 }
 
 impl Customers {
-    pub fn new(pool: &sqlx::PgPool, ledger: &Ledger) -> Self {
+    pub fn new(pool: &sqlx::PgPool, ledger: &Ledger, config: &CustomerConfig) -> Self {
         let repo = CustomerRepo::new(pool);
+        let kratos = KratosClient::new(&config.kratos);
         Self {
             pool: pool.clone(),
             repo,
             ledger: ledger.clone(),
+            kratos,
         }
     }
 
     pub fn repo(&self) -> &CustomerRepo {
         &self.repo
+    }
+
+    pub async fn create_customer_through_admin(
+        &self,
+        email: String,
+    ) -> Result<Customer, CustomerError> {
+        let customer_id = self.kratos.create_identity(&email).await?;
+        self.create_customer(customer_id.into(), email).await
     }
 
     pub async fn create_customer(

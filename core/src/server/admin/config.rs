@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use super::kratos::KratosConfig;
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AdminServerConfig {
     #[serde(default = "default_port")]
@@ -10,8 +8,6 @@ pub struct AdminServerConfig {
     pub jwks_url: String,
     #[serde(default = "aud")]
     pub aud: String,
-    #[serde(default)]
-    pub kratos: KratosConfig,
 }
 
 impl Default for AdminServerConfig {
@@ -20,7 +16,6 @@ impl Default for AdminServerConfig {
             port: default_port(),
             jwks_url: default_jwks_url(),
             aud: "https://admin-api/graphql".to_string(),
-            kratos: KratosConfig::default(),
         }
     }
 }
