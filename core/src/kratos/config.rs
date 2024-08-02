@@ -13,5 +13,5 @@ impl Default for AdminKratosConfig {
 }
 
 fn default_url() -> String {
-    "http://localhost:4433".to_string()
+    "http://localhost:4434".to_string()
 }
