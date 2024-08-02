@@ -34,7 +34,7 @@ impl Customers {
         &self.repo
     }
 
-    pub async fn create_customers(
+    pub async fn create_customer(
         &self,
         id: CustomerId,
         email: String,

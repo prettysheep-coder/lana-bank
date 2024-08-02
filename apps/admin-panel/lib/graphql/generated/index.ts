@@ -202,6 +202,15 @@ export type CustomerConnection = {
   pageInfo: PageInfo;
 };
 
+export type CustomerCreateInput = {
+  email: Scalars['String']['input'];
+};
+
+export type CustomerCreatePayload = {
+  __typename?: 'CustomerCreatePayload';
+  customer: Customer;
+};
+
 /** An edge in a connection. */
 export type CustomerEdge = {
   __typename?: 'CustomerEdge';
@@ -329,6 +338,7 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  customerCreate: CustomerCreatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
@@ -338,6 +348,11 @@ export type Mutation = {
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+};
+
+
+export type MutationCustomerCreateArgs = {
+  input: CustomerCreateInput;
 };
 
 

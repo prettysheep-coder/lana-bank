@@ -8,20 +8,38 @@ use crate::{
 
 #[derive(InputObject)]
 pub struct CustomerPledgeCollateralInput {
-    pub user_id: UUID,
+    pub customer: UUID,
     pub amount: Satoshis,
     pub reference: String,
 }
 
 #[derive(SimpleObject)]
 pub struct CustomerPledgeCollateralPayload {
-    pub user: Customer,
+    pub customer: Customer,
+}
+
+#[derive(InputObject)]
+pub struct CustomerCreateInput {
+    pub email: String,
+}
+
+#[derive(SimpleObject)]
+pub struct CustomerCreatePayload {
+    pub customer: Customer,
 }
 
 impl From<crate::customer::Customer> for CustomerPledgeCollateralPayload {
-    fn from(user: crate::customer::Customer) -> Self {
+    fn from(customer: crate::customer::Customer) -> Self {
         Self {
-            user: Customer::from(user),
+            customer: Customer::from(customer),
+        }
+    }
+}
+
+impl From<crate::customer::Customer> for CustomerCreatePayload {
+    fn from(customer: crate::customer::Customer) -> Self {
+        Self {
+            customer: Customer::from(customer),
         }
     }
 }
