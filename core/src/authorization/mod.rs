@@ -127,7 +127,7 @@ impl Authorization {
                         authorized: true,
                     })
                     .await;
-                return Ok(true);
+                Ok(true)
             }
             Ok(false) => {
                 // should we ignore the error?
@@ -140,7 +140,7 @@ impl Authorization {
                         authorized: false,
                     })
                     .await;
-                return Err(AuthorizationError::NotAuthorized);
+                Err(AuthorizationError::NotAuthorized)
             }
             Err(e) => Err(AuthorizationError::Casbin(e)),
         }
