@@ -4,7 +4,7 @@ import { useState } from "react"
 
 import CustomerTable from "./customer-table"
 
-import { searchCustomer } from "./server-actions"
+import { handleCustomerSearchFormSubmit } from "./server-actions"
 
 import { Input } from "@/components/primitive/input"
 
@@ -24,7 +24,10 @@ function CustomerPage({ searchParams }: { searchParams: { customerId?: string } 
 
   return (
     <main>
-      <form className="flex justify-between items-center mb-8" action={searchCustomer}>
+      <form
+        className="flex justify-between items-center mb-8"
+        action={handleCustomerSearchFormSubmit}
+      >
         <PageHeading className="mb-0">Customers</PageHeading>
         <div className="flex gap-2">
           <Input
