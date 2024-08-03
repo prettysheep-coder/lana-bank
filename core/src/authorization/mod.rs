@@ -14,11 +14,15 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 
+mod audit;
+use audit::{Audit, NewAuditEvent};
+
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
 pub struct Authorization {
     enforcer: Arc<RwLock<Enforcer>>,
+    audit: Audit,
 }
 
 impl Authorization {
@@ -28,8 +32,11 @@ impl Authorization {
 
         let enforcer = Enforcer::new(model, adapter).await?;
 
+        let audit = Audit::new(pool);
+
         let mut auth = Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
+            audit,
         };
 
         auth.seed_roles().await?;
@@ -109,8 +116,28 @@ impl Authorization {
         let enforcer = self.enforcer.read().await;
 
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
-            Ok(true) => Ok(true),
-            Ok(false) => Err(AuthorizationError::NotAuthorized),
+            Ok(true) => {
+                self.audit
+                    .log(NewAuditEvent {
+                        sub: sub.as_ref(),
+                        object: object.as_ref(),
+                        action: action.as_ref(),
+                        authorized: true,
+                    })
+                    .await;
+                return Ok(true);
+            }
+            Ok(false) => {
+                self.audit
+                    .log(NewAuditEvent {
+                        sub: sub.as_ref(),
+                        object: object.as_ref(),
+                        action: action.as_ref(),
+                        authorized: false,
+                    })
+                    .await;
+                return Err(AuthorizationError::NotAuthorized);
+            }
             Err(e) => Err(AuthorizationError::Casbin(e)),
         }
     }
