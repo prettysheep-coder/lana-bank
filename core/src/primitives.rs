@@ -108,6 +108,12 @@ impl std::ops::Deref for Subject {
     }
 }
 
+impl Subject {
+    pub fn inner(&self) -> &uuid::Uuid {
+        &self.0
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Role {
     Superuser,

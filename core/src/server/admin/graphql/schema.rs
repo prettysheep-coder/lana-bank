@@ -4,7 +4,7 @@ use uuid::Uuid;
 use super::{account_set::*, customer::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
-    primitives::{CustomerId, LoanId},
+    primitives::{CustomerId, LoanId, UserId},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
@@ -35,6 +35,17 @@ impl Query {
         let app = ctx.data_unchecked::<LavaApp>();
         let customer = app.customers().find_by_id(CustomerId::from(id)).await?;
         Ok(customer.map(Customer::from))
+    }
+
+    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let user = app
+            .users()
+            .find_by_id(sub, UserId::from(*sub.inner()))
+            .await?;
+        Ok(user.map(User::from))
     }
 
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
