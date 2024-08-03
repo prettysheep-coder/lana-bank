@@ -121,9 +121,9 @@ impl Authorization {
                 let _ = self
                     .audit
                     .log(NewAuditEvent {
-                        sub: sub.as_ref(),
-                        object: object.as_ref(),
-                        action: action.as_ref(),
+                        sub,
+                        object: &object,
+                        action: &action,
                         authorized: true,
                     })
                     .await;
@@ -134,9 +134,9 @@ impl Authorization {
                 let _ = self
                     .audit
                     .log(NewAuditEvent {
-                        sub: sub.as_ref(),
-                        object: object.as_ref(),
-                        action: action.as_ref(),
+                        sub,
+                        object: &object,
+                        action: &action,
                         authorized: false,
                     })
                     .await;
