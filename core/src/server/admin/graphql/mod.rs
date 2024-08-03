@@ -6,6 +6,7 @@ mod schema;
 mod shareholder_equity;
 mod terms;
 mod user;
+mod audit;
 
 use async_graphql::*;
 

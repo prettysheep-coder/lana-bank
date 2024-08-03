@@ -14,8 +14,7 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 
-mod audit;
-use audit::{Audit, NewAuditEvent};
+use super::audit::{Audit, NewAuditEvent};
 
 const MODEL: &str = include_str!("./rbac.conf");
 
@@ -26,13 +25,11 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub async fn init(pool: &sqlx::PgPool) -> Result<Self, AuthorizationError> {
+    pub async fn init(pool: &sqlx::PgPool, audit: Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
         let enforcer = Enforcer::new(model, adapter).await?;
-
-        let audit = Audit::new(pool);
 
         let mut auth = Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
@@ -121,9 +118,9 @@ impl Authorization {
                 let _ = self
                     .audit
                     .log(NewAuditEvent {
-                        sub,
-                        object: &object,
-                        action: &action,
+                        subject: sub.clone(),
+                        object,
+                        action,
                         authorized: true,
                     })
                     .await;
@@ -134,9 +131,9 @@ impl Authorization {
                 let _ = self
                     .audit
                     .log(NewAuditEvent {
-                        sub,
-                        object: &object,
-                        action: &action,
+                        subject: sub.clone(),
+                        object,
+                        action,
                         authorized: false,
                     })
                     .await;
@@ -254,6 +251,18 @@ impl std::ops::Deref for Object {
     }
 }
 
+impl From<String> for Object {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "applicant" => Object::Applicant,
+            "loan" => Object::Loan,
+            "term" => Object::Term,
+            "user" => Object::User,
+            _ => panic!("Unknown object type: {}", value),
+        }
+    }
+}
+
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
@@ -266,6 +275,28 @@ impl AsRef<str> for Action {
             Action::Loan(action) => action.as_ref(),
             Action::Term(action) => action.as_ref(),
             Action::User(action) => action.as_ref(),
+        }
+    }
+}
+
+impl From<String> for Action {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "loan-read" => Action::Loan(LoanAction::Read),
+            "loan-create" => Action::Loan(LoanAction::Create),
+            "loan-list" => Action::Loan(LoanAction::List),
+            "loan-approve" => Action::Loan(LoanAction::Approve),
+            "loan-record-payment" => Action::Loan(LoanAction::RecordPayment),
+            "term-update" => Action::Term(TermAction::Update),
+            "term-read" => Action::Term(TermAction::Read),
+            "user-create" => Action::User(UserAction::Create),
+            "user-read" => Action::User(UserAction::Read),
+            "user-list" => Action::User(UserAction::List),
+            "user-update" => Action::User(UserAction::Update),
+            "user-delete" => Action::User(UserAction::Delete),
+            "user-assign-role" => Action::User(UserAction::AssignRole),
+            "user-revoke-role" => Action::User(UserAction::RevokeRole),
+            _ => panic!("Unknown action type: {}", value),
         }
     }
 }
