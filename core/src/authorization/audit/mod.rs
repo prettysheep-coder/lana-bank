@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 
-// use serde::Serialize;
+mod error;
+use error::AuditError;
+
 use uuid::Uuid;
 
 pub struct NewAuditEvent<'a> {
@@ -29,7 +31,7 @@ impl Audit {
         Self { pool: pool.clone() }
     }
 
-    pub async fn log<'a>(&self, event: NewAuditEvent<'a>) {
+    pub async fn log<'a>(&self, event: NewAuditEvent<'a>) -> Result<(), AuditError> {
         let event = AuditEvent {
             id: Uuid::new_v4(),
             sub: event.sub,
@@ -51,7 +53,7 @@ impl Audit {
             }
         );
 
-        let res = sqlx::query!(
+        sqlx::query!(
             r#"
                 INSERT INTO audit_events (id, subject, object, action, authorized, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6)
@@ -64,12 +66,8 @@ impl Audit {
             event.created_at
         )
         .execute(&self.pool)
-        .await;
+        .await?;
 
-        println!("{:?}", res);
-        // .await?;
-
-        // self.log_to_db(event);
-        // ...
+        Ok(())
     }
 }

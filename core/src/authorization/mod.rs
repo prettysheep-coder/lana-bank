@@ -117,7 +117,9 @@ impl Authorization {
 
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => {
-                self.audit
+                // should we ignore the error?
+                let _ = self
+                    .audit
                     .log(NewAuditEvent {
                         sub: sub.as_ref(),
                         object: object.as_ref(),
@@ -128,7 +130,9 @@ impl Authorization {
                 return Ok(true);
             }
             Ok(false) => {
-                self.audit
+                // should we ignore the error?
+                let _ = self
+                    .audit
                     .log(NewAuditEvent {
                         sub: sub.as_ref(),
                         object: object.as_ref(),
