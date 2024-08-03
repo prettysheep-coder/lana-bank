@@ -7,7 +7,7 @@ use ory_kratos_client::{
 };
 
 pub use config::*;
-pub use error::KratosClientError;
+use error::KratosClientError;
 
 #[derive(Clone)]
 pub struct KratosClient {
