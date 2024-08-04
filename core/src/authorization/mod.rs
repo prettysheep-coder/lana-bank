@@ -14,7 +14,7 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 
-use super::audit::{Audit, NewAuditEvent};
+use super::audit::{Audit, NewAuditLog};
 
 const MODEL: &str = include_str!("./rbac.conf");
 
@@ -117,7 +117,7 @@ impl Authorization {
                 // should we ignore the error?
                 let _ = self
                     .audit
-                    .log(NewAuditEvent {
+                    .log(NewAuditLog {
                         subject: sub.clone(),
                         object,
                         action,
@@ -130,7 +130,7 @@ impl Authorization {
                 // should we ignore the error?
                 let _ = self
                     .audit
-                    .log(NewAuditEvent {
+                    .log(NewAuditLog {
                         subject: sub.clone(),
                         object,
                         action,

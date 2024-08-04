@@ -136,6 +136,16 @@ export type AccountWithBalance = {
   name: Scalars['String']['output'];
 };
 
+export type AuditLog = {
+  __typename?: 'AuditLog';
+  action: Scalars['String']['output'];
+  authorized: Scalars['Boolean']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  object: Scalars['String']['output'];
+  subject: Scalars['UUID']['output'];
+};
+
 export type BalanceSheet = {
   __typename?: 'BalanceSheet';
   balance: AccountBalancesByCurrency;
@@ -429,6 +439,7 @@ export type Query = {
   /** @deprecated Use `accountSetWithBalance` instead */
   accountSet?: Maybe<AccountSetAndSubAccounts>;
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
+  audit: Array<AuditLog>;
   balanceSheet?: Maybe<BalanceSheet>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   customer?: Maybe<Customer>;
@@ -591,6 +602,11 @@ export type UserRevokeRolePayload = {
   __typename?: 'UserRevokeRolePayload';
   user: User;
 };
+
+export type AuditLogsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AuditLogsQuery = { __typename?: 'Query', audit: Array<{ __typename?: 'AuditLog', id: string, subject: string, object: string, action: string, authorized: boolean, createdAt: any }> };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -791,6 +807,45 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
+export const AuditLogsDocument = gql`
+    query AuditLogs {
+  audit {
+    id
+    subject
+    object
+    action
+    authorized
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useAuditLogsQuery__
+ *
+ * To run a query within a React component, call `useAuditLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAuditLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAuditLogsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAuditLogsQuery(baseOptions?: Apollo.QueryHookOptions<AuditLogsQuery, AuditLogsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AuditLogsQuery, AuditLogsQueryVariables>(AuditLogsDocument, options);
+      }
+export function useAuditLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AuditLogsQuery, AuditLogsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AuditLogsQuery, AuditLogsQueryVariables>(AuditLogsDocument, options);
+        }
+export type AuditLogsQueryHookResult = ReturnType<typeof useAuditLogsQuery>;
+export type AuditLogsLazyQueryHookResult = ReturnType<typeof useAuditLogsLazyQuery>;
+export type AuditLogsQueryResult = Apollo.QueryResult<AuditLogsQuery, AuditLogsQueryVariables>;
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSetWithBalance(accountSetId: $accountSetId) {

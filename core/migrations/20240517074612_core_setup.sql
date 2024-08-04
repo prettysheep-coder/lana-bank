@@ -104,7 +104,7 @@ CREATE TABLE casbin_rule (
   CONSTRAINT unique_key_sqlx_adapter UNIQUE(ptype, v0, v1, v2, v3, v4, v5)
 );
 
-CREATE TABLE audit_events (
+CREATE TABLE audit_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   subject UUID NOT NULL,
   object VARCHAR NOT NULL,

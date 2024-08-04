@@ -11,14 +11,14 @@ use crate::{
     primitives::Subject,
 };
 
-pub struct NewAuditEvent {
+pub struct NewAuditLog {
     pub subject: Subject,
     pub object: Object,
     pub action: Action,
     pub authorized: bool,
 }
 
-pub struct AuditEvent {
+pub struct AuditLog {
     pub id: Uuid,
     pub subject: Subject,
     pub object: Object,
@@ -28,7 +28,7 @@ pub struct AuditEvent {
 }
 
 #[derive(Debug, FromRow)]
-struct RawAuditEvent {
+struct RawAuditLog {
     id: Uuid,
     subject: Uuid,
     object: String,
@@ -37,9 +37,9 @@ struct RawAuditEvent {
     created_at: DateTime<Utc>,
 }
 
-impl NewAuditEvent {
-    pub fn into_audit_event(self) -> AuditEvent {
-        AuditEvent {
+impl NewAuditLog {
+    pub fn into_audit_event(self) -> AuditLog {
+        AuditLog {
             id: Uuid::new_v4(),
             subject: self.subject,
             object: self.object,
@@ -60,12 +60,12 @@ impl Audit {
         Self { pool: pool.clone() }
     }
 
-    pub async fn log(&self, event: NewAuditEvent) -> Result<(), AuditError> {
+    pub async fn log(&self, event: NewAuditLog) -> Result<(), AuditError> {
         let event = event.into_audit_event();
 
         sqlx::query!(
             r#"
-                INSERT INTO audit_events (id, subject, object, action, authorized, created_at)
+                INSERT INTO audit_logs (id, subject, object, action, authorized, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6)
                 "#,
             event.id,
@@ -81,12 +81,12 @@ impl Audit {
         Ok(())
     }
 
-    pub async fn list(&self) -> Result<Vec<AuditEvent>, AuditError> {
-        let raw_events: Vec<RawAuditEvent> = sqlx::query_as!(
-            RawAuditEvent,
+    pub async fn list(&self, _sub: &Subject) -> Result<Vec<AuditLog>, AuditError> {
+        let raw_events: Vec<RawAuditLog> = sqlx::query_as!(
+            RawAuditLog,
             r#"
             SELECT id, subject, object, action, authorized, created_at
-            FROM audit_events
+            FROM audit_logs
             WHERE authorized = $1
             "#,
             true
@@ -94,9 +94,9 @@ impl Audit {
         .fetch_all(&self.pool)
         .await?;
 
-        let events: Vec<AuditEvent> = raw_events
+        let events: Vec<AuditLog> = raw_events
             .into_iter()
-            .map(|raw_event| AuditEvent {
+            .map(|raw_event| AuditLog {
                 id: raw_event.id,
                 subject: Subject::from(raw_event.subject),
                 object: Object::from(raw_event.object),
