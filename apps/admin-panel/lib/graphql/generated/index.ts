@@ -425,6 +425,7 @@ export type Query = {
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   trialBalance?: Maybe<TrialBalance>;
+  user?: Maybe<User>;
   users: Array<User>;
 };
 
@@ -451,6 +452,11 @@ export type QueryCustomersArgs = {
 
 
 export type QueryLoanArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryUserArgs = {
   id: Scalars['UUID']['input'];
 };
 

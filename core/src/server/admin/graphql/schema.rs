@@ -55,6 +55,13 @@ impl Query {
         Ok(users.into_iter().map(User::from).collect())
     }
 
+    async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let user = app.users().find_by_id(sub, UserId::from(id)).await?;
+        Ok(user.map(User::from))
+    }
+
     async fn customers(
         &self,
         ctx: &Context<'_>,
