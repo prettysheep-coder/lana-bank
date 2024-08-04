@@ -420,7 +420,7 @@ export type Query = {
   customers: CustomerConnection;
   defaultTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
-  me?: Maybe<User>;
+  me: User;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;

@@ -37,15 +37,15 @@ impl Query {
         Ok(customer.map(Customer::from))
     }
 
-    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<User>> {
+    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
         let user = app
             .users()
-            .find_by_id(sub, UserId::from(*sub.inner()))
+            .find_by_id_without_permission(UserId::from(*sub.inner()))
             .await?;
-        Ok(user.map(User::from))
+        Ok(User::from(user))
     }
 
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
