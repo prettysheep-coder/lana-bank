@@ -104,7 +104,7 @@ impl AsRef<uuid::Uuid> for Subject {
 impl std::ops::Deref for Subject {
     type Target = uuid::Uuid;
     fn deref(&self) -> &Self::Target {
-        &self.0
+        self.as_ref()
     }
 }
 
@@ -143,10 +143,7 @@ impl std::ops::Deref for Role {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        match self {
-            Role::Superuser => "superuser",
-            Role::BankManager => "bank-manager",
-        }
+        self.as_ref()
     }
 }
 
