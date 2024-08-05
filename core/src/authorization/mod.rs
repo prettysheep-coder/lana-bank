@@ -79,6 +79,8 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::RevokeRole))
             .await?;
+        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
+            .await?;
 
         Ok(())
     }
@@ -210,6 +212,7 @@ pub enum Object {
     Loan,
     Term,
     User,
+    Audit,
 }
 
 impl AsRef<str> for Object {
@@ -219,6 +222,7 @@ impl AsRef<str> for Object {
             Object::Loan => "loan",
             Object::Term => "term",
             Object::User => "user",
+            Object::Audit => "audit",
         }
     }
 }
@@ -237,6 +241,7 @@ impl From<String> for Object {
             "loan" => Object::Loan,
             "term" => Object::Term,
             "user" => Object::User,
+            "audit" => Object::Audit,
             _ => panic!("Unknown object type: {}", value),
         }
     }
@@ -246,6 +251,7 @@ pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
     User(UserAction),
+    Audit(AuditAction),
 }
 
 impl AsRef<str> for Action {
@@ -254,6 +260,7 @@ impl AsRef<str> for Action {
             Action::Loan(action) => action.as_ref(),
             Action::Term(action) => action.as_ref(),
             Action::User(action) => action.as_ref(),
+            Action::Audit(action) => action.as_ref(),
         }
     }
 }
@@ -332,6 +339,27 @@ impl std::ops::Deref for TermAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         self.as_ref()
+    }
+}
+
+pub enum AuditAction {
+    List,
+}
+
+impl AsRef<str> for AuditAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            AuditAction::List => "audit-list",
+        }
+    }
+}
+
+impl std::ops::Deref for AuditAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            AuditAction::List => "audit-list",
+        }
     }
 }
 

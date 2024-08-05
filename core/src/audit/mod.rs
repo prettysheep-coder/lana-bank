@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 
-mod error;
+pub mod error;
 use error::AuditError;
 
 use sqlx::prelude::FromRow;
@@ -66,7 +66,7 @@ impl Audit {
         Ok(())
     }
 
-    pub async fn list(&self, _sub: &Subject) -> Result<Vec<AuditEntry>, AuditError> {
+    pub async fn list(&self) -> Result<Vec<AuditEntry>, AuditError> {
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
             RawAuditEntry,
             r#"
