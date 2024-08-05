@@ -286,6 +286,7 @@ impl FromStr for Action {
             "user-delete" => Ok(Action::User(UserAction::Delete)),
             "user-assign-role" => Ok(Action::User(UserAction::AssignRole)),
             "user-revoke-role" => Ok(Action::User(UserAction::RevokeRole)),
+            "audit-list" => Ok(Action::Audit(AuditAction::List)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
