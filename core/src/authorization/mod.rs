@@ -116,13 +116,11 @@ impl Authorization {
 
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => {
-                // should we ignore the error?
-                let _ = self.audit.persist(sub, object, action, true).await;
+                self.audit.persist(sub, object, action, true).await?;
                 Ok(true)
             }
             Ok(false) => {
-                // should we ignore the error?
-                let _ = self.audit.persist(sub, object, action, false).await;
+                self.audit.persist(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
             }
             Err(e) => Err(AuthorizationError::Casbin(e)),
