@@ -14,7 +14,7 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 
-use super::audit::{Audit, NewAuditLog};
+use super::audit::Audit;
 
 const MODEL: &str = include_str!("./rbac.conf");
 
@@ -115,28 +115,12 @@ impl Authorization {
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => {
                 // should we ignore the error?
-                let _ = self
-                    .audit
-                    .log(NewAuditLog {
-                        subject: sub.clone(),
-                        object,
-                        action,
-                        authorized: true,
-                    })
-                    .await;
+                let _ = self.audit.persist(sub, object, action, true).await;
                 Ok(true)
             }
             Ok(false) => {
                 // should we ignore the error?
-                let _ = self
-                    .audit
-                    .log(NewAuditLog {
-                        subject: sub.clone(),
-                        object,
-                        action,
-                        authorized: false,
-                    })
-                    .await;
+                let _ = self.audit.persist(sub, object, action, false).await;
                 Err(AuthorizationError::NotAuthorized)
             }
             Err(e) => Err(AuthorizationError::Casbin(e)),

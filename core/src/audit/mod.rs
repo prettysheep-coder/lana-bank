@@ -11,13 +11,6 @@ use crate::{
     primitives::Subject,
 };
 
-pub struct NewAuditLog {
-    pub subject: Subject,
-    pub object: Object,
-    pub action: Action,
-    pub authorized: bool,
-}
-
 pub struct AuditLog {
     pub id: Uuid,
     pub subject: Subject,
@@ -37,19 +30,6 @@ struct RawAuditLog {
     created_at: DateTime<Utc>,
 }
 
-impl NewAuditLog {
-    pub fn into_audit_event(self) -> AuditLog {
-        AuditLog {
-            id: Uuid::new_v4(),
-            subject: self.subject,
-            object: self.object,
-            action: self.action,
-            authorized: self.authorized,
-            created_at: Utc::now(),
-        }
-    }
-}
-
 #[derive(Clone)]
 pub struct Audit {
     pool: sqlx::PgPool,
@@ -60,20 +40,25 @@ impl Audit {
         Self { pool: pool.clone() }
     }
 
-    pub async fn log(&self, event: NewAuditLog) -> Result<(), AuditError> {
-        let event = event.into_audit_event();
+    pub async fn persist(
+        &self,
+        subject: &Subject,
+        object: Object,
+        action: Action,
+        authorized: bool,
+    ) -> Result<(), AuditError> {
+        let id = Uuid::new_v4();
 
         sqlx::query!(
             r#"
-                INSERT INTO audit_logs (id, subject, object, action, authorized, created_at)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO audit_logs (id, subject, object, action, authorized)
+                VALUES ($1, $2, $3, $4, $5)
                 "#,
-            event.id,
-            event.subject.as_ref(),
-            event.object.as_ref(),
-            event.action.as_ref(),
-            event.authorized,
-            event.created_at
+            id,
+            subject.as_ref(),
+            object.as_ref(),
+            action.as_ref(),
+            authorized,
         )
         .execute(&self.pool)
         .await?;
