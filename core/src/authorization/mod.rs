@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tokio::sync::RwLock;
 
 pub mod error;
@@ -232,15 +232,19 @@ impl std::ops::Deref for Object {
     }
 }
 
-impl From<String> for Object {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "applicant" => Object::Applicant,
-            "loan" => Object::Loan,
-            "term" => Object::Term,
-            "user" => Object::User,
-            "audit" => Object::Audit,
-            _ => panic!("Unknown object type: {}", value),
+impl FromStr for Object {
+    type Err = crate::authorization::AuthorizationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "applicant" => Ok(Object::Applicant),
+            "loan" => Ok(Object::Loan),
+            "term" => Ok(Object::Term),
+            "user" => Ok(Object::User),
+            "audit" => Ok(Object::Audit),
+            _ => Err(AuthorizationError::ObjectParseError {
+                value: s.to_string(),
+            }),
         }
     }
 }
@@ -263,24 +267,28 @@ impl AsRef<str> for Action {
     }
 }
 
-impl From<String> for Action {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "loan-read" => Action::Loan(LoanAction::Read),
-            "loan-create" => Action::Loan(LoanAction::Create),
-            "loan-list" => Action::Loan(LoanAction::List),
-            "loan-approve" => Action::Loan(LoanAction::Approve),
-            "loan-record-payment" => Action::Loan(LoanAction::RecordPayment),
-            "term-update" => Action::Term(TermAction::Update),
-            "term-read" => Action::Term(TermAction::Read),
-            "user-create" => Action::User(UserAction::Create),
-            "user-read" => Action::User(UserAction::Read),
-            "user-list" => Action::User(UserAction::List),
-            "user-update" => Action::User(UserAction::Update),
-            "user-delete" => Action::User(UserAction::Delete),
-            "user-assign-role" => Action::User(UserAction::AssignRole),
-            "user-revoke-role" => Action::User(UserAction::RevokeRole),
-            _ => panic!("Unknown action type: {}", value),
+impl FromStr for Action {
+    type Err = crate::authorization::AuthorizationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "loan-read" => Ok(Action::Loan(LoanAction::Read)),
+            "loan-create" => Ok(Action::Loan(LoanAction::Create)),
+            "loan-list" => Ok(Action::Loan(LoanAction::List)),
+            "loan-approve" => Ok(Action::Loan(LoanAction::Approve)),
+            "loan-record-payment" => Ok(Action::Loan(LoanAction::RecordPayment)),
+            "term-update" => Ok(Action::Term(TermAction::Update)),
+            "term-read" => Ok(Action::Term(TermAction::Read)),
+            "user-create" => Ok(Action::User(UserAction::Create)),
+            "user-read" => Ok(Action::User(UserAction::Read)),
+            "user-list" => Ok(Action::User(UserAction::List)),
+            "user-update" => Ok(Action::User(UserAction::Update)),
+            "user-delete" => Ok(Action::User(UserAction::Delete)),
+            "user-assign-role" => Ok(Action::User(UserAction::AssignRole)),
+            "user-revoke-role" => Ok(Action::User(UserAction::RevokeRole)),
+            _ => Err(AuthorizationError::ActionParseError {
+                value: s.to_string(),
+            }),
         }
     }
 }

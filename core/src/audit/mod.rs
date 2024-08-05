@@ -84,8 +84,8 @@ impl Audit {
             .map(|raw_event| AuditEntry {
                 id: raw_event.id,
                 subject: Subject::from(raw_event.subject),
-                object: Object::from(raw_event.object),
-                action: Action::from(raw_event.action),
+                object: raw_event.object.parse().unwrap(),
+                action: raw_event.action.parse().unwrap(),
                 authorized: raw_event.authorized,
                 created_at: raw_event.created_at,
             })
