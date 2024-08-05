@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tokio::sync::RwLock;
 
 pub mod error;
@@ -79,6 +79,8 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::RevokeRole))
             .await?;
+        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
+            .await?;
 
         self.add_permission_to_role(
             &role,
@@ -138,13 +140,11 @@ impl Authorization {
 
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => {
-                // should we ignore the error?
-                let _ = self.audit.persist(sub, object, action, true).await;
+                self.audit.persist(sub, object, action, true).await?;
                 Ok(true)
             }
             Ok(false) => {
-                // should we ignore the error?
-                let _ = self.audit.persist(sub, object, action, false).await;
+                self.audit.persist(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
             }
             Err(e) => Err(AuthorizationError::Casbin(e)),
@@ -236,6 +236,7 @@ pub enum Object {
     Term,
     User,
     Customer,
+    Audit,
 }
 
 impl AsRef<str> for Object {
@@ -246,6 +247,7 @@ impl AsRef<str> for Object {
             Object::Term => "term",
             Object::User => "user",
             Object::Customer => "customer",
+            Object::Audit => "audit",
         }
     }
 }
@@ -270,11 +272,29 @@ impl From<String> for Object {
     }
 }
 
+impl FromStr for Object {
+    type Err = crate::authorization::AuthorizationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "applicant" => Ok(Object::Applicant),
+            "loan" => Ok(Object::Loan),
+            "term" => Ok(Object::Term),
+            "user" => Ok(Object::User),
+            "audit" => Ok(Object::Audit),
+            _ => Err(AuthorizationError::ObjectParseError {
+                value: s.to_string(),
+            }),
+        }
+    }
+}
+
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
     User(UserAction),
     Customer(CustomerAction),
+    Audit(AuditAction),
 }
 
 impl AsRef<str> for Action {
@@ -284,28 +304,34 @@ impl AsRef<str> for Action {
             Action::Term(action) => action.as_ref(),
             Action::User(action) => action.as_ref(),
             Action::Customer(action) => action.as_ref(),
+            Action::Audit(action) => action.as_ref(),
         }
     }
 }
 
-impl From<String> for Action {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "loan-read" => Action::Loan(LoanAction::Read),
-            "loan-create" => Action::Loan(LoanAction::Create),
-            "loan-list" => Action::Loan(LoanAction::List),
-            "loan-approve" => Action::Loan(LoanAction::Approve),
-            "loan-record-payment" => Action::Loan(LoanAction::RecordPayment),
-            "term-update" => Action::Term(TermAction::Update),
-            "term-read" => Action::Term(TermAction::Read),
-            "user-create" => Action::User(UserAction::Create),
-            "user-read" => Action::User(UserAction::Read),
-            "user-list" => Action::User(UserAction::List),
-            "user-update" => Action::User(UserAction::Update),
-            "user-delete" => Action::User(UserAction::Delete),
-            "user-assign-role" => Action::User(UserAction::AssignRole),
-            "user-revoke-role" => Action::User(UserAction::RevokeRole),
-            _ => panic!("Unknown action type: {}", value),
+impl FromStr for Action {
+    type Err = crate::authorization::AuthorizationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "loan-read" => Ok(Action::Loan(LoanAction::Read)),
+            "loan-create" => Ok(Action::Loan(LoanAction::Create)),
+            "loan-list" => Ok(Action::Loan(LoanAction::List)),
+            "loan-approve" => Ok(Action::Loan(LoanAction::Approve)),
+            "loan-record-payment" => Ok(Action::Loan(LoanAction::RecordPayment)),
+            "term-update" => Ok(Action::Term(TermAction::Update)),
+            "term-read" => Ok(Action::Term(TermAction::Read)),
+            "user-create" => Ok(Action::User(UserAction::Create)),
+            "user-read" => Ok(Action::User(UserAction::Read)),
+            "user-list" => Ok(Action::User(UserAction::List)),
+            "user-update" => Ok(Action::User(UserAction::Update)),
+            "user-delete" => Ok(Action::User(UserAction::Delete)),
+            "user-assign-role" => Ok(Action::User(UserAction::AssignRole)),
+            "user-revoke-role" => Ok(Action::User(UserAction::RevokeRole)),
+            "audit-list" => Ok(Action::Audit(AuditAction::List)),
+            _ => Err(AuthorizationError::ActionParseError {
+                value: s.to_string(),
+            }),
         }
     }
 }
@@ -359,6 +385,25 @@ impl AsRef<str> for TermAction {
 }
 
 impl std::ops::Deref for TermAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+pub enum AuditAction {
+    List,
+}
+
+impl AsRef<str> for AuditAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            AuditAction::List => "audit-list",
+        }
+    }
+}
+
+impl std::ops::Deref for AuditAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         self.as_ref()

@@ -26,7 +26,7 @@ impl Query {
 
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let logs = app.audit().list(sub).await?;
+        let logs = app.list_audit_entries(sub).await?;
         Ok(logs.into_iter().map(AuditEntry::from).collect())
     }
 
@@ -172,20 +172,6 @@ impl Query {
         let app = ctx.data_unchecked::<LavaApp>();
         let profit_and_loss = app.ledger().profit_and_loss().await?;
         Ok(profit_and_loss.map(ProfitAndLossStatement::from))
-    }
-
-    #[graphql(deprecation = "Use `accountSetWithBalance` instead")]
-    async fn account_set(
-        &self,
-        ctx: &Context<'_>,
-        account_set_id: UUID,
-    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let account_set = app
-            .ledger()
-            .account_set_and_sub_accounts(account_set_id.into(), 0, None)
-            .await?;
-        Ok(account_set.map(AccountSetAndSubAccounts::from))
     }
 
     async fn account_set_with_balance(
