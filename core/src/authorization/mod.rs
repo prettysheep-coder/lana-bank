@@ -81,7 +81,6 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
             .await?;
-
         self.add_permission_to_role(
             &role,
             Object::Customer,
@@ -126,6 +125,30 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
             .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Create),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::List),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Read),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Update),
+        )
+        .await?;
 
         Ok(())
     }
