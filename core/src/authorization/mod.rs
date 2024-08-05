@@ -80,6 +80,30 @@ impl Authorization {
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::RevokeRole))
             .await?;
 
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Create),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::List),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Read),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Update),
+        )
+        .await?;
         Ok(())
     }
 
@@ -201,6 +225,7 @@ impl Authorization {
             .filter(|r| r[0] == sub.to_string())
             .map(|r| Role::from(r[1].as_str()))
             .collect();
+
         Ok(roles)
     }
 }
@@ -210,6 +235,7 @@ pub enum Object {
     Loan,
     Term,
     User,
+    Customer,
 }
 
 impl AsRef<str> for Object {
@@ -219,6 +245,7 @@ impl AsRef<str> for Object {
             Object::Loan => "loan",
             Object::Term => "term",
             Object::User => "user",
+            Object::Customer => "customer",
         }
     }
 }
@@ -237,6 +264,7 @@ impl From<String> for Object {
             "loan" => Object::Loan,
             "term" => Object::Term,
             "user" => Object::User,
+            "customer" => Object::Customer,
             _ => panic!("Unknown object type: {}", value),
         }
     }
@@ -246,6 +274,7 @@ pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
     User(UserAction),
+    Customer(CustomerAction),
 }
 
 impl AsRef<str> for Action {
@@ -254,6 +283,7 @@ impl AsRef<str> for Action {
             Action::Loan(action) => action.as_ref(),
             Action::Term(action) => action.as_ref(),
             Action::User(action) => action.as_ref(),
+            Action::Customer(action) => action.as_ref(),
         }
     }
 }
@@ -360,6 +390,31 @@ impl AsRef<str> for UserAction {
 }
 
 impl std::ops::Deref for UserAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+pub enum CustomerAction {
+    Create,
+    Read,
+    List,
+    Update,
+}
+
+impl AsRef<str> for CustomerAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            CustomerAction::Create => "customer-create",
+            CustomerAction::Read => "customer-read",
+            CustomerAction::List => "customer-list",
+            CustomerAction::Update => "customer-update",
+        }
+    }
+}
+
+impl std::ops::Deref for CustomerAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         self.as_ref()
