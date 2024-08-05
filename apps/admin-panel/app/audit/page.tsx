@@ -1,11 +1,11 @@
 "use client"
 
 import { PageHeading } from "@/components/page-heading"
-import { useAuditLogsQuery } from "@/lib/graphql/generated"
+import { useAuditEntriesQuery } from "@/lib/graphql/generated"
 import { gql } from "@apollo/client"
 
 gql`
-  query AuditLogs {
+  query AuditEntries {
     audit {
       id
       subject
@@ -18,7 +18,7 @@ gql`
 `
 
 function LogsPage() {
-  const { loading, error, data: logDetails, refetch } = useAuditLogsQuery({})
+  const { loading, error, data: logDetails, refetch } = useAuditEntriesQuery({})
 
   return (
     <main className="text-white min-h-screen p-4">

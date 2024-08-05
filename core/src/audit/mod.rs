@@ -11,7 +11,7 @@ use crate::{
     primitives::Subject,
 };
 
-pub struct AuditLog {
+pub struct AuditEntry {
     pub id: Uuid,
     pub subject: Subject,
     pub object: Object,
@@ -21,7 +21,7 @@ pub struct AuditLog {
 }
 
 #[derive(Debug, FromRow)]
-struct RawAuditLog {
+struct RawAuditEntry {
     id: Uuid,
     subject: Uuid,
     object: String,
@@ -51,7 +51,7 @@ impl Audit {
 
         sqlx::query!(
             r#"
-                INSERT INTO audit_logs (id, subject, object, action, authorized)
+                INSERT INTO audit_entries (id, subject, object, action, authorized)
                 VALUES ($1, $2, $3, $4, $5)
                 "#,
             id,
@@ -66,12 +66,12 @@ impl Audit {
         Ok(())
     }
 
-    pub async fn list(&self, _sub: &Subject) -> Result<Vec<AuditLog>, AuditError> {
-        let raw_events: Vec<RawAuditLog> = sqlx::query_as!(
-            RawAuditLog,
+    pub async fn list(&self, _sub: &Subject) -> Result<Vec<AuditEntry>, AuditError> {
+        let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
+            RawAuditEntry,
             r#"
             SELECT id, subject, object, action, authorized, created_at
-            FROM audit_logs
+            FROM audit_entries
             WHERE authorized = $1
             "#,
             true
@@ -79,9 +79,9 @@ impl Audit {
         .fetch_all(&self.pool)
         .await?;
 
-        let events: Vec<AuditLog> = raw_events
+        let events: Vec<AuditEntry> = raw_events
             .into_iter()
-            .map(|raw_event| AuditLog {
+            .map(|raw_event| AuditEntry {
                 id: raw_event.id,
                 subject: Subject::from(raw_event.subject),
                 object: Object::from(raw_event.object),

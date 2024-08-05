@@ -2,7 +2,8 @@ use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditLog, customer::*, loan::*, shareholder_equity::*, terms::*, user::*,
+    account_set::*, audit::AuditEntry, customer::*, loan::*, shareholder_equity::*, terms::*,
+    user::*,
 };
 use crate::{
     app::LavaApp,
@@ -20,13 +21,13 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditLog>> {
+    async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
         let app = ctx.data_unchecked::<LavaApp>();
 
         let AdminAuthContext { sub } = ctx.data()?;
 
         let logs = app.audit().list(sub).await?;
-        Ok(logs.into_iter().map(AuditLog::from).collect())
+        Ok(logs.into_iter().map(AuditEntry::from).collect())
     }
 
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {

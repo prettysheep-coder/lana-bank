@@ -110,7 +110,7 @@ type AccountWithBalance {
 
 scalar AnnualRate
 
-type AuditLog {
+type AuditEntry {
 	id: ID!
 	subject: UUID!
 	object: String!
@@ -361,7 +361,7 @@ type ProfitAndLossStatement {
 }
 
 type Query {
-	audit: [AuditLog!]!
+	audit: [AuditEntry!]!
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
 	users: [User!]!
