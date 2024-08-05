@@ -40,11 +40,7 @@ impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-
-        let user = app
-            .users()
-            .find_by_id_without_permission(UserId::from(*sub.inner()))
-            .await?;
+        let user = app.users().find_for_subject(sub).await?;
         Ok(User::from(user))
     }
 

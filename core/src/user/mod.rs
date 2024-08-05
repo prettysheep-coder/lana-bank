@@ -89,8 +89,8 @@ impl Users {
         }
     }
 
-    pub async fn find_by_id_without_permission(&self, id: UserId) -> Result<User, UserError> {
-        self.repo.find_by_id(id).await
+    pub async fn find_for_subject(&self, sub: &Subject) -> Result<User, UserError> {
+        self.repo.find_by_id(UserId::from(*sub.inner())).await
     }
 
     pub async fn find_by_email(&self, email: impl Into<String>) -> Result<Option<User>, UserError> {
