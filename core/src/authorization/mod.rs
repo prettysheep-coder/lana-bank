@@ -363,9 +363,7 @@ impl AsRef<str> for AuditAction {
 impl std::ops::Deref for AuditAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
-        match self {
-            AuditAction::List => "audit-list",
-        }
+        self.as_ref()
     }
 }
 
