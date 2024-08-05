@@ -1,8 +1,9 @@
 "use client"
 
+import { gql } from "@apollo/client"
+
 import { PageHeading } from "@/components/page-heading"
 import { useAuditEntriesQuery } from "@/lib/graphql/generated"
-import { gql } from "@apollo/client"
 
 gql`
   query AuditEntries {
@@ -18,7 +19,7 @@ gql`
 `
 
 function LogsPage() {
-  const { loading, error, data: logDetails, refetch } = useAuditEntriesQuery({})
+  const { data: logDetails } = useAuditEntriesQuery({})
 
   return (
     <main className="text-white min-h-screen p-4">
