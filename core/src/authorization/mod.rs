@@ -282,6 +282,7 @@ impl FromStr for Object {
             "term" => Ok(Object::Term),
             "user" => Ok(Object::User),
             "audit" => Ok(Object::Audit),
+            "customer" => Ok(Object::Customer),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
             }),
@@ -329,6 +330,10 @@ impl FromStr for Action {
             "user-assign-role" => Ok(Action::User(UserAction::AssignRole)),
             "user-revoke-role" => Ok(Action::User(UserAction::RevokeRole)),
             "audit-list" => Ok(Action::Audit(AuditAction::List)),
+            "customer-create" => Ok(Action::Customer(CustomerAction::Create)),
+            "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
+            "customer-list" => Ok(Action::Customer(CustomerAction::List)),
+            "customer-update" => Ok(Action::Customer(CustomerAction::Update)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
