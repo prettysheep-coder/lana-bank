@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -68,7 +68,7 @@ export const CreateLoanDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
-  const [customerIdValue, setcustomerIdValue] = useState<string>(customerId)
+  const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { data, loading, error, reset }] = useLoanCreateMutation()
 
@@ -82,22 +82,6 @@ export const CreateLoanDialog = ({
     durationUnits: "",
     durationPeriod: "",
   })
-
-  useEffect(() => {
-    if (defaultTermsData && defaultTermsData.defaultTerms) {
-      const terms = defaultTermsData.defaultTerms.values
-      setFormValues({
-        desiredPrincipal: "",
-        annualRate: terms.annualRate.toString(),
-        interval: terms.interval,
-        liquidationCvl: terms.liquidationCvl.toString(),
-        marginCallCvl: terms.marginCallCvl.toString(),
-        initialCvl: terms.initialCvl.toString(),
-        durationUnits: terms.duration.units.toString(),
-        durationPeriod: terms.duration.period,
-      })
-    }
-  }, [defaultTermsData])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -162,25 +146,41 @@ export const CreateLoanDialog = ({
   }
 
   const resetForm = () => {
-    setFormValues({
-      desiredPrincipal: "",
-      annualRate: "",
-      interval: "",
-      liquidationCvl: "",
-      marginCallCvl: "",
-      initialCvl: "",
-      durationUnits: "",
-      durationPeriod: "",
-    })
+    if (defaultTermsData && defaultTermsData.defaultTerms) {
+      const terms = defaultTermsData.defaultTerms.values
+      setFormValues({
+        desiredPrincipal: "",
+        annualRate: terms.annualRate.toString(),
+        interval: terms.interval,
+        liquidationCvl: terms.liquidationCvl.toString(),
+        marginCallCvl: terms.marginCallCvl.toString(),
+        initialCvl: terms.initialCvl.toString(),
+        durationUnits: terms.duration.units.toString(),
+        durationPeriod: terms.duration.period,
+      })
+    } else {
+      setFormValues({
+        desiredPrincipal: "",
+        annualRate: "",
+        interval: "",
+        liquidationCvl: "",
+        marginCallCvl: "",
+        initialCvl: "",
+        durationUnits: "",
+        durationPeriod: "",
+      })
+    }
   }
 
   return (
     <Dialog
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          setcustomerIdValue(customerId)
-          resetForm()
+          setCustomerIdValue(customerId)
           reset()
+        }
+        if (isOpen) {
+          resetForm()
         }
       }}
     >
