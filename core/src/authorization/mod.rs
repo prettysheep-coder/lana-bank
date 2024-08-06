@@ -51,16 +51,31 @@ impl Authorization {
     }
 
     async fn seed_role_hierarchy(&self) -> Result<(), AuthorizationError> {
-        let mut enforcer = self.enforcer.write().await;
-
-        enforcer
-            .add_grouping_policy(vec![Role::Superuser.to_string(), Role::Admin.to_string()])
+        self.add_role_hierarchy(Role::Admin, Role::Superuser)
             .await?;
-        enforcer
-            .add_grouping_policy(vec![Role::Admin.to_string(), Role::BankManager.to_string()])
+        self.add_role_hierarchy(Role::BankManager, Role::Admin)
             .await?;
 
         Ok(())
+    }
+
+    async fn add_role_hierarchy(
+        &self,
+        parent_role: Role,
+        child_role: Role,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        match enforcer
+            .add_grouping_policy(vec![child_role.to_string(), parent_role.to_string()])
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
+                e => Err(e),
+            },
+        }
     }
 
     async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
