@@ -37,6 +37,7 @@ impl Authorization {
         };
 
         auth.seed_roles().await?;
+        auth.seed_role_hierarchy().await?;
 
         Ok(auth)
     }
@@ -49,33 +50,22 @@ impl Authorization {
         Ok(())
     }
 
+    async fn seed_role_hierarchy(&self) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        enforcer
+            .add_grouping_policy(vec![Role::Superuser.to_string(), Role::Admin.to_string()])
+            .await?;
+        enforcer
+            .add_grouping_policy(vec![Role::Admin.to_string(), Role::BankManager.to_string()])
+            .await?;
+
+        Ok(())
+    }
+
     async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Superuser;
 
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::List))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Create))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
-            .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
-            .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Create))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::List))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Read))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Update))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Delete))
-            .await?;
         self.add_permission_to_role(
             &role,
             Object::User,
@@ -85,45 +75,7 @@ impl Authorization {
         self.add_permission_to_role(
             &role,
             Object::User,
-            Action::User(UserAction::AssignRole(Role::BankManager)),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::User,
             Action::User(UserAction::RevokeRole(Role::Admin)),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::User,
-            Action::User(UserAction::RevokeRole(Role::BankManager)),
-        )
-        .await?;
-        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
-            .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Create),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::List),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Read),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Update),
         )
         .await?;
         Ok(())
@@ -132,20 +84,6 @@ impl Authorization {
     async fn add_permissions_for_admin(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Admin;
 
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::List))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Create))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
-            .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
-            .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
-            .await?;
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Create))
             .await?;
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::List))
@@ -166,32 +104,6 @@ impl Authorization {
             &role,
             Object::User,
             Action::User(UserAction::RevokeRole(Role::BankManager)),
-        )
-        .await?;
-        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
-            .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Create),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::List),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Read),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Update),
         )
         .await?;
         Ok(())
@@ -238,6 +150,8 @@ impl Authorization {
             Action::Customer(CustomerAction::Update),
         )
         .await?;
+        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
+            .await?;
 
         Ok(())
     }
