@@ -282,19 +282,6 @@ impl std::ops::Deref for Object {
     }
 }
 
-impl From<String> for Object {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "applicant" => Object::Applicant,
-            "loan" => Object::Loan,
-            "term" => Object::Term,
-            "user" => Object::User,
-            "customer" => Object::Customer,
-            _ => panic!("Unknown object type: {}", value),
-        }
-    }
-}
-
 impl FromStr for Object {
     type Err = crate::authorization::AuthorizationError;
 
