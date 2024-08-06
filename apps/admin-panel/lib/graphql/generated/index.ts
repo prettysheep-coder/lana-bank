@@ -403,8 +403,7 @@ export type ProfitAndLossStatement = {
 export type Query = {
   __typename?: 'Query';
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
-  audit: Array<AuditEntryPayload>;
-  auditCursor: AuditEntryPayloadConnection;
+  audit: AuditEntryPayloadConnection;
   balanceSheet?: Maybe<BalanceSheet>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   customer?: Maybe<Customer>;
@@ -426,7 +425,7 @@ export type QueryAccountSetWithBalanceArgs = {
 };
 
 
-export type QueryAuditCursorArgs = {
+export type QueryAuditArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
@@ -577,10 +576,13 @@ export type UserRevokeRolePayload = {
   user: User;
 };
 
-export type AuditEntriesQueryVariables = Exact<{ [key: string]: never; }>;
+export type AuditLogsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
 
 
-export type AuditEntriesQuery = { __typename?: 'Query', audit: Array<{ __typename?: 'AuditEntryPayload', id: string, subject: string, object: string, action: string, authorized: boolean, createdAt: any }> };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryPayloadConnection', edges: Array<{ __typename?: 'AuditEntryPayloadEdge', cursor: string, node: { __typename?: 'AuditEntryPayload', id: string, subject: string, object: string, action: string, authorized: boolean, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -781,45 +783,56 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
-export const AuditEntriesDocument = gql`
-    query AuditEntries {
-  audit {
-    id
-    subject
-    object
-    action
-    authorized
-    createdAt
+export const AuditLogsDocument = gql`
+    query AuditLogs($first: Int!, $after: String) {
+  audit(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        subject
+        object
+        action
+        authorized
+        createdAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
 }
     `;
 
 /**
- * __useAuditEntriesQuery__
+ * __useAuditLogsQuery__
  *
- * To run a query within a React component, call `useAuditEntriesQuery` and pass it any options that fit your needs.
- * When your component renders, `useAuditEntriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useAuditLogsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAuditLogsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useAuditEntriesQuery({
+ * const { data, loading, error } = useAuditLogsQuery({
  *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useAuditEntriesQuery(baseOptions?: Apollo.QueryHookOptions<AuditEntriesQuery, AuditEntriesQueryVariables>) {
+export function useAuditLogsQuery(baseOptions: Apollo.QueryHookOptions<AuditLogsQuery, AuditLogsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AuditEntriesQuery, AuditEntriesQueryVariables>(AuditEntriesDocument, options);
+        return Apollo.useQuery<AuditLogsQuery, AuditLogsQueryVariables>(AuditLogsDocument, options);
       }
-export function useAuditEntriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AuditEntriesQuery, AuditEntriesQueryVariables>) {
+export function useAuditLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AuditLogsQuery, AuditLogsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AuditEntriesQuery, AuditEntriesQueryVariables>(AuditEntriesDocument, options);
+          return Apollo.useLazyQuery<AuditLogsQuery, AuditLogsQueryVariables>(AuditLogsDocument, options);
         }
-export type AuditEntriesQueryHookResult = ReturnType<typeof useAuditEntriesQuery>;
-export type AuditEntriesLazyQueryHookResult = ReturnType<typeof useAuditEntriesLazyQuery>;
-export type AuditEntriesQueryResult = Apollo.QueryResult<AuditEntriesQuery, AuditEntriesQueryVariables>;
+export type AuditLogsQueryHookResult = ReturnType<typeof useAuditLogsQuery>;
+export type AuditLogsLazyQueryHookResult = ReturnType<typeof useAuditLogsLazyQuery>;
+export type AuditLogsQueryResult = Apollo.QueryResult<AuditLogsQuery, AuditLogsQueryVariables>;
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSetWithBalance(accountSetId: $accountSetId) {

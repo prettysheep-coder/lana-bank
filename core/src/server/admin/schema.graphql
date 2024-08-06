@@ -337,8 +337,7 @@ type ProfitAndLossStatement {
 }
 
 type Query {
-	audit: [AuditEntryPayload!]!
-	auditCursor(first: Int!, after: String): AuditEntryPayloadConnection!
+	audit(first: Int!, after: String): AuditEntryPayloadConnection!
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
 	me: User!

@@ -70,18 +70,7 @@ impl LavaApp {
         &self.audit
     }
 
-    pub async fn list_audit_entries(
-        &self,
-        sub: &Subject,
-    ) -> Result<Vec<AuditEntry>, ApplicationError> {
-        self.authz
-            .check_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
-            .await?;
-
-        self.audit.list().await.map_err(ApplicationError::from)
-    }
-
-    pub async fn list_audit_entries_cursor(
+    pub async fn list_audit(
         &self,
         sub: &Subject,
         query: crate::query::PaginatedQueryArgs<AuditCursor>,
@@ -90,10 +79,7 @@ impl LavaApp {
             .check_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
             .await?;
 
-        self.audit
-            .list_cursor(query)
-            .await
-            .map_err(ApplicationError::from)
+        self.audit.list(query).await.map_err(ApplicationError::from)
     }
 
     pub fn withdraws(&self) -> &Withdraws {

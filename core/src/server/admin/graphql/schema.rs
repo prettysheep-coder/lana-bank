@@ -22,16 +22,7 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntryPayload>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-
-        let AdminAuthContext { sub } = ctx.data()?;
-
-        let logs = app.list_audit_entries(sub).await?;
-        Ok(logs.into_iter().map(AuditEntryPayload::from).collect())
-    }
-
-    async fn audit_cursor(
+    async fn audit(
         &self,
         ctx: &Context<'_>,
         first: i64,
@@ -49,7 +40,7 @@ impl Query {
             after: after_cursor,
         };
 
-        let res = app.list_audit_entries_cursor(sub, query_args).await?;
+        let res = app.list_audit(sub, query_args).await?;
 
         let mut connection = Connection::new(false, res.has_next_page);
         connection

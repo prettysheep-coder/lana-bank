@@ -66,35 +66,7 @@ impl Audit {
         Ok(())
     }
 
-    pub async fn list(&self) -> Result<Vec<AuditEntry>, AuditError> {
-        let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
-            RawAuditEntry,
-            r#"
-            SELECT id, subject, object, action, authorized, created_at
-            FROM audit_entries
-            WHERE authorized = $1
-            "#,
-            true
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        let events: Vec<AuditEntry> = raw_events
-            .into_iter()
-            .map(|raw_event| AuditEntry {
-                id: raw_event.id,
-                subject: Subject::from(raw_event.subject),
-                object: raw_event.object.parse().expect("Could not parse object"),
-                action: raw_event.action.parse().expect("Could not parse action"),
-                authorized: raw_event.authorized,
-                created_at: raw_event.created_at,
-            })
-            .collect();
-
-        Ok(events)
-    }
-
-    pub async fn list_cursor(
+    pub async fn list(
         &self,
         query: crate::query::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
@@ -102,8 +74,6 @@ impl Audit {
         let after_id: Option<i64> = query.after.map(|cursor| cursor.id);
 
         let limit = i64::try_from(query.first)?;
-
-        dbg!(limit);
 
         // Fetch the raw events with pagination
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
