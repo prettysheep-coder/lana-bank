@@ -6,6 +6,4 @@ pub enum AuditError {
     Sqlx(#[from] sqlx::Error),
     #[error("AuditError - TryFromIntError: {0}")]
     TryFromIntError(#[from] std::num::TryFromIntError),
-    #[error("AuditError - UuidError: {0}")]
-    UuidError(#[from] uuid::Error),
 }

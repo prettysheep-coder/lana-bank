@@ -3,7 +3,7 @@ use async_graphql::{SimpleObject, ID};
 use crate::server::shared_graphql::primitives::{Timestamp, UUID};
 
 #[derive(SimpleObject)]
-pub struct AuditEntry {
+pub struct AuditEntryPayload {
     id: ID,
     subject: UUID,
     object: String,
@@ -12,7 +12,7 @@ pub struct AuditEntry {
     created_at: Timestamp,
 }
 
-impl From<crate::audit::AuditEntry> for AuditEntry {
+impl From<crate::audit::AuditEntry> for AuditEntryPayload {
     fn from(audit_log: crate::audit::AuditEntry) -> Self {
         Self {
             id: audit_log.id.into(),

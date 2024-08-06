@@ -5,7 +5,7 @@ use sqlx::PgPool;
 
 use crate::{
     applicant::Applicants,
-    audit::{Audit, AuditEntry},
+    audit::{Audit, AuditCursor, AuditEntry},
     authorization::{Action, AuditAction, Authorization, Object},
     customer::Customers,
     job::{JobRegistry, Jobs},
@@ -79,6 +79,21 @@ impl LavaApp {
             .await?;
 
         self.audit.list().await.map_err(ApplicationError::from)
+    }
+
+    pub async fn list_audit_entries_cursor(
+        &self,
+        sub: &Subject,
+        query: crate::query::PaginatedQueryArgs<AuditCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
+        self.authz
+            .check_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
+            .await?;
+
+        self.audit
+            .list_cursor(query)
+            .await
+            .map_err(ApplicationError::from)
     }
 
     pub fn withdraws(&self) -> &Withdraws {
