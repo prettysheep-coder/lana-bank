@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub struct AuditEntry {
-    pub id: Uuid,
+    pub id: i64,
     pub subject: Subject,
     pub object: Object,
     pub action: Action,
@@ -22,7 +22,7 @@ pub struct AuditEntry {
 
 #[derive(Debug, FromRow)]
 struct RawAuditEntry {
-    id: Uuid,
+    id: i64,
     subject: Uuid,
     object: String,
     action: String,
@@ -47,14 +47,11 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
-        let id = Uuid::new_v4();
-
         sqlx::query!(
             r#"
-                INSERT INTO audit_entries (id, subject, object, action, authorized)
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO audit_entries (subject, object, action, authorized)
+                VALUES ($1, $2, $3, $4)
                 "#,
-            id,
             subject.as_ref(),
             object.as_ref(),
             action.as_ref(),
