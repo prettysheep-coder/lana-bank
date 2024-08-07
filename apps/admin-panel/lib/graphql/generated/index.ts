@@ -89,8 +89,8 @@ export type AccountWithBalance = {
   name: Scalars['String']['output'];
 };
 
-export type AuditEntryPayload = {
-  __typename?: 'AuditEntryPayload';
+export type AuditEntry = {
+  __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
   authorized: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
@@ -99,23 +99,23 @@ export type AuditEntryPayload = {
   subject: Scalars['UUID']['output'];
 };
 
-export type AuditEntryPayloadConnection = {
-  __typename?: 'AuditEntryPayloadConnection';
+export type AuditEntryConnection = {
+  __typename?: 'AuditEntryConnection';
   /** A list of edges. */
-  edges: Array<AuditEntryPayloadEdge>;
+  edges: Array<AuditEntryEdge>;
   /** A list of nodes. */
-  nodes: Array<AuditEntryPayload>;
+  nodes: Array<AuditEntry>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
 };
 
 /** An edge in a connection. */
-export type AuditEntryPayloadEdge = {
-  __typename?: 'AuditEntryPayloadEdge';
+export type AuditEntryEdge = {
+  __typename?: 'AuditEntryEdge';
   /** A cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
-  node: AuditEntryPayload;
+  node: AuditEntry;
 };
 
 export type BalanceSheet = {
@@ -403,7 +403,7 @@ export type ProfitAndLossStatement = {
 export type Query = {
   __typename?: 'Query';
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
-  audit: AuditEntryPayloadConnection;
+  audit: AuditEntryConnection;
   balanceSheet?: Maybe<BalanceSheet>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   customer?: Maybe<Customer>;
@@ -582,7 +582,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryPayloadConnection', edges: Array<{ __typename?: 'AuditEntryPayloadEdge', cursor: string, node: { __typename?: 'AuditEntryPayload', id: string, subject: string, object: string, action: string, authorized: boolean, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, subject: string, object: string, action: string, authorized: boolean, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];

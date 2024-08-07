@@ -2,8 +2,8 @@ use async_graphql::{types::connection::*, Context, Object, Result};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntryPayload, customer::*, loan::*, shareholder_equity::*,
-    terms::*, user::*,
+    account_set::*, audit::AuditEntry, customer::*, loan::*, shareholder_equity::*, terms::*,
+    user::*,
 };
 use crate::{
     app::LavaApp,
@@ -27,7 +27,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i64,
         after: Option<String>,
-    ) -> Result<Connection<AuditCursor, AuditEntryPayload>> {
+    ) -> Result<Connection<AuditCursor, AuditEntry>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
@@ -47,7 +47,7 @@ impl Query {
             .edges
             .extend(res.entities.into_iter().map(|entry| {
                 let cursor = AuditCursor { id: entry.id };
-                Edge::new(cursor, AuditEntryPayload::from(entry))
+                Edge::new(cursor, AuditEntry::from(entry))
             }));
 
         Ok(connection)
