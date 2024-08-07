@@ -46,7 +46,7 @@ impl Query {
         connection
             .edges
             .extend(res.entities.into_iter().map(|entry| {
-                let cursor = AuditCursor { id: entry.id };
+                let cursor = AuditCursor { id: entry.id.0 };
                 Edge::new(cursor, AuditEntry::from(entry))
             }));
 

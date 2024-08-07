@@ -378,6 +378,15 @@ impl PriceOfOneBTC {
     }
 }
 
+#[derive(Debug)]
+pub struct AuditEntryId(pub i64);
+
+impl Into<AuditEntryId> for i64 {
+    fn into(self) -> AuditEntryId {
+        AuditEntryId(self)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

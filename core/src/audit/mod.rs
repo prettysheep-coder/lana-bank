@@ -11,11 +11,11 @@ use uuid::Uuid;
 
 use crate::{
     authorization::{Action, Object},
-    primitives::Subject,
+    primitives::{AuditEntryId, Subject},
 };
 
 pub struct AuditEntry {
-    pub id: i64,
+    pub id: AuditEntryId,
     pub subject: Subject,
     pub object: Object,
     pub action: Action,
@@ -25,7 +25,7 @@ pub struct AuditEntry {
 
 #[derive(Debug, FromRow)]
 struct RawAuditEntry {
-    id: i64,
+    id: AuditEntryId,
     subject: Uuid,
     object: String,
     action: String,
@@ -106,7 +106,7 @@ impl Audit {
 
         // Create the next cursor if there is a next page
         let end_cursor = if has_next_page {
-            events.last().map(|event| AuditCursor { id: event.id })
+            events.last().map(|event| AuditCursor { id: event.id.0 })
         } else {
             None
         };
