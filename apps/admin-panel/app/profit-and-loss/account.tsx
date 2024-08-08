@@ -11,6 +11,46 @@ import {
 import Balance, { Currency } from "@/components/balance/balance"
 import { TableCell, TableRow } from "@/components/primitive/table"
 
+gql`
+  query PnlAccountSetWithBalance($accountSetId: UUID!, $first: Int!, $after: String) {
+    accountSetWithBalance(accountSetId: $accountSetId) {
+      id
+      name
+      balance {
+        ...balancesByCurrency
+      }
+      subAccounts(first: $first, after: $after) {
+        edges {
+          cursor
+          node {
+            __typename
+            ... on AccountWithBalance {
+              __typename
+              id
+              name
+              balance {
+                ...balancesByCurrency
+              }
+            }
+            ... on AccountSetWithBalance {
+              __typename
+              id
+              name
+              hasSubAccounts
+              balance {
+                ...balancesByCurrency
+              }
+            }
+          }
+        }
+        pageInfo {
+          hasNextPage
+        }
+      }
+    }
+  }
+`
+
 export const Account = ({
   account,
   currency,
@@ -46,7 +86,7 @@ export const Account = ({
         <TableCell>
           <Balance
             currency={currency}
-            amount={account.balance[currency][layer].netDebit}
+            amount={account.balance[currency][layer].netCredit}
           />
         </TableCell>
       </TableRow>
@@ -113,48 +153,9 @@ const SubAccountsForAccountSet = ({
             <div className="w-8" />
             <div className="font-thin italic">show more...</div>
           </TableCell>
+          <TableCell></TableCell>
         </TableRow>
       )}
     </>
   )
 }
-
-gql`
-  query PnlAccountSetWithBalance($accountSetId: UUID!, $first: Int!, $after: String) {
-    accountSetWithBalance(accountSetId: $accountSetId) {
-      id
-      name
-      balance {
-        ...balancesByCurrency
-      }
-      subAccounts(first: $first, after: $after) {
-        edges {
-          cursor
-          node {
-            __typename
-            ... on AccountWithBalance {
-              __typename
-              id
-              name
-              balance {
-                ...balancesByCurrency
-              }
-            }
-            ... on AccountSetWithBalance {
-              __typename
-              id
-              name
-              hasSubAccounts
-              balance {
-                ...balancesByCurrency
-              }
-            }
-          }
-        }
-        pageInfo {
-          hasNextPage
-        }
-      }
-    }
-  }
-`

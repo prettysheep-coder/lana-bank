@@ -22,6 +22,42 @@ import {
 import { PageHeading } from "@/components/page-heading"
 import { Select } from "@/components/primitive/select"
 
+gql`
+  query ProfitAndLossStatement {
+    profitAndLossStatement {
+      name
+      balance {
+        ...balancesByCurrency
+      }
+      categories {
+        name
+        balance {
+          ...balancesByCurrency
+        }
+        accounts {
+          ... on AccountWithBalance {
+            __typename
+            id
+            name
+            balance {
+              ...balancesByCurrency
+            }
+          }
+          ... on AccountSetWithBalance {
+            __typename
+            id
+            name
+            hasSubAccounts
+            balance {
+              ...balancesByCurrency
+            }
+          }
+        }
+      }
+    }
+  }
+`
+
 export default function ProfitAndLossStatementPage() {
   const {
     data: ProfitAndLossStatementData,
@@ -84,7 +120,7 @@ const ProfitAndLossStatement = ({
       </div>
       <Table>
         <TableHeader>
-          <TableHead>Category</TableHead>
+          <TableHead></TableHead>
           <TableHead className="text-right">Net</TableHead>
         </TableHeader>
         <TableBody>
@@ -95,7 +131,7 @@ const ProfitAndLossStatement = ({
                 <TableCell className="w-48">
                   <Balance
                     currency={currency}
-                    amount={category.balance[currency][layer].netDebit}
+                    amount={category.balance[currency][layer].netCredit}
                   />
                 </TableCell>
               </TableRow>
@@ -114,7 +150,7 @@ const ProfitAndLossStatement = ({
           <TableRow>
             <TableCell className="uppercase font-bold pr-10">Total</TableCell>
             <TableCell className="w-48">
-              <Balance currency={currency} amount={balance[currency][layer].netDebit} />
+              <Balance currency={currency} amount={balance[currency][layer].netCredit} />
             </TableCell>
           </TableRow>
         </TableFooter>
@@ -122,39 +158,3 @@ const ProfitAndLossStatement = ({
     </main>
   )
 }
-
-gql`
-  query ProfitAndLossStatement {
-    profitAndLossStatement {
-      name
-      balance {
-        ...balancesByCurrency
-      }
-      categories {
-        name
-        balance {
-          ...balancesByCurrency
-        }
-        accounts {
-          ... on AccountWithBalance {
-            __typename
-            id
-            name
-            balance {
-              ...balancesByCurrency
-            }
-          }
-          ... on AccountSetWithBalance {
-            __typename
-            id
-            name
-            hasSubAccounts
-            balance {
-              ...balancesByCurrency
-            }
-          }
-        }
-      }
-    }
-  }
-`
