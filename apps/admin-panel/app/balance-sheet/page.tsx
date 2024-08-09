@@ -10,13 +10,7 @@ import {
   useBalanceSheetQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableRow,
-} from "@/components/primitive/table"
+import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
 
 import { PageHeading } from "@/components/page-heading"
 import { Select } from "@/components/primitive/select"
@@ -89,15 +83,21 @@ const BalanceSheet = ({
   loading: boolean
   error: Error | undefined
 }) => {
-  const [currency, setCurrency] = useState<Currency>("btc")
+  const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
   const balance = data?.balance
+  console.log(balance)
   const categories = data?.categories
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading) return <div>Loading...</div>
   if (!balance) return <div>No data</div>
+
+  const assets = categories?.filter((category) => category.name === "Assets")
+  const liabilitiesAndEquity = categories?.filter(
+    (category) => category.name === "Liabilities" || category.name === "Equity",
+  )
 
   return (
     <main>
@@ -123,15 +123,26 @@ const BalanceSheet = ({
           </div>
         </div>
       </div>
-      <Table>
-        <TableBody>
-          {categories?.map((category) => {
-            console.log(
-              category.name,
-              BALANCE_FOR_CATEGORY[category.name].TransactionType,
-            )
-
-            return (
+      <div className="flex gap-4 justify-between">
+        <Table>
+          <TableBody>
+            {assets?.map((category) => (
+              <CategoryRow
+                key={category.name}
+                category={category}
+                currency={currency}
+                layer={layer}
+                transactionType={
+                  BALANCE_FOR_CATEGORY[category.name].TransactionType || "netDebit"
+                }
+              />
+            ))}
+          </TableBody>
+        </Table>
+        <div className="w-2 min-h-full bg-secondary-foreground"></div>
+        <Table>
+          <TableBody>
+            {liabilitiesAndEquity?.map((category) => (
               <CategoryRow
                 key={category.name}
                 category={category}
@@ -141,20 +152,10 @@ const BalanceSheet = ({
                   BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
                 }
               />
-            )
-          })}
-        </TableBody>
-        <TableFooter>
-          <TableRow className="border-t-4">
-            <TableCell className="uppercase font-bold  text-textColor-secondary ">
-              Net
-            </TableCell>
-            <TableCell className="w-48 flex flex-col gap-2 items-end text-right">
-              <Balance currency={currency} amount={balance[currency][layer].netDebit} />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </main>
   )
 }
@@ -170,10 +171,12 @@ const CategoryRow = ({
   layer: Layers
   transactionType: TransactionType
 }) => {
+  console.log(category, transactionType)
+
   return (
     <>
-      <TableRow>
-        <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase">
+      <TableRow className="bg-secondary-foreground">
+        <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase ">
           {category.name}
         </TableCell>
         <TableCell className="w-48">
