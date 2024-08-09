@@ -151,6 +151,14 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Deposit, DepositAction::List)
             .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Initiate)
+            .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Confirm)
+            .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
+            .await?;
         self.add_permission_to_role(&role, Object::Audit, AuditAction::List)
             .await?;
 

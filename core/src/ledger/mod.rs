@@ -13,8 +13,8 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
-        LoanId, Satoshis, Subject, UsdCents, WithdrawId,
+        CustomerId, DepositId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId,
+        Satoshis, Subject, UsdCents, WithdrawId,
     },
 };
 
@@ -103,23 +103,19 @@ impl Ledger {
     pub async fn initiate_withdrawal_for_customer(
         &self,
         withdrawal_id: WithdrawId,
+        customer_account_ids: CustomerLedgerAccountIds,
         amount: UsdCents,
         external_id: String,
-        debit_account_id: LedgerAccountId,
     ) -> Result<WithdrawId, LedgerError> {
-        unimplemented!()
-        // Ok(self
-        //     .cala
-        //     .execute_bfx_withdrawal(
-        //         withdrawal_id,
-        //         constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
-        //         amount.to_usd(),
-        //         BfxWithdrawalMethod::TronUsdt,
-        //         tron_usdt_address,
-        //         debit_account_id,
-        //         external_id,
-        //     )
-        //     .await?)
+        self.cala
+            .execute_initiate_withdraw_tx(
+                LedgerTxId::from(uuid::Uuid::from(withdrawal_id)),
+                customer_account_ids,
+                amount.to_usd(),
+                external_id,
+            )
+            .await?;
+        Ok(withdrawal_id)
     }
 
     #[instrument(name = "lava.ledger.loan_balance", skip(self), err)]
@@ -368,6 +364,11 @@ impl Ledger {
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_add_equity_tx_template_exists(cala, constants::ADD_EQUITY_CODE).await?;
         Self::assert_deposit_template_tx_template_exists(cala, constants::DEPOSIT_CHECKING).await?;
+        Self::assert_initiate_withdraw_template_tx_template_exists(
+            cala,
+            constants::INITIATE_WITHDRAW,
+        )
+        .await?;
 
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
 
@@ -420,6 +421,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_deposit_checking_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_initiate_withdraw_template_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_initiate_withdraw_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

@@ -15,7 +15,7 @@ pub use repo::WithdrawRepo;
 
 #[derive(Clone)]
 pub struct Withdraws {
-    _pool: sqlx::PgPool,
+    pool: sqlx::PgPool,
     repo: WithdrawRepo,
     customers: Customers,
     ledger: Ledger,
@@ -31,7 +31,7 @@ impl Withdraws {
     ) -> Self {
         let repo = WithdrawRepo::new(pool);
         Self {
-            _pool: pool.clone(),
+            pool: pool.clone(),
             repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
@@ -64,16 +64,20 @@ impl Withdraws {
             .build()
             .expect("Could not build Withdraw");
 
-        let withdraw = self.repo.create(new_withdraw).await?;
+        let mut db_tx = self.pool.begin().await?;
+        let withdraw = self.repo.create_in_tx(&mut db_tx, new_withdraw).await?;
 
         self.ledger
             .initiate_withdrawal_for_customer(
                 withdraw.id,
+                customer.account_ids,
                 withdraw.amount,
                 format!("lava:withdraw:{}", withdraw.id),
-                withdraw.debit_account_id,
             )
             .await?;
+
+        db_tx.commit().await?;
+
         Ok(withdraw)
     }
 }

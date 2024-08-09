@@ -341,6 +341,7 @@ export type Mutation = {
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+  withdrawalInitiate: WithdrawalInitiatePayload;
 };
 
 
@@ -396,6 +397,11 @@ export type MutationUserCreateArgs = {
 
 export type MutationUserRevokeRoleArgs = {
   input: UserRevokeRoleInput;
+};
+
+
+export type MutationWithdrawalInitiateArgs = {
+  input: WithdrawalInitiateInput;
 };
 
 /** Information about pagination in a connection */
@@ -585,6 +591,25 @@ export type UserRevokeRoleInput = {
 export type UserRevokeRolePayload = {
   __typename?: 'UserRevokeRolePayload';
   user: User;
+};
+
+export type Withdrawal = {
+  __typename?: 'Withdrawal';
+  amount: Scalars['UsdCents']['output'];
+  customer?: Maybe<Customer>;
+  customerId: Scalars['UUID']['output'];
+  withdrawalId: Scalars['UUID']['output'];
+};
+
+export type WithdrawalInitiateInput = {
+  amount: Scalars['UsdCents']['input'];
+  customerId: Scalars['UUID']['input'];
+  reference?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type WithdrawalInitiatePayload = {
+  __typename?: 'WithdrawalInitiatePayload';
+  withdrawal: Withdrawal;
 };
 
 export type AuditLogsQueryVariables = Exact<{
