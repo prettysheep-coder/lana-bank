@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use std::str::FromStr;
 
 pub mod error;
 use error::AuditError;
@@ -27,10 +28,37 @@ pub struct AuditEntry {
 struct RawAuditEntry {
     id: AuditEntryId,
     subject: Uuid,
+    endpoint: String,
     object: String,
     action: String,
     authorized: bool,
     created_at: DateTime<Utc>,
+}
+
+pub enum Endpoint {
+    Admin,
+    Public,
+}
+
+impl Endpoint {
+    pub fn as_str(&self) -> &str {
+        match self {
+            Self::Admin => "admin",
+            Self::Public => "public",
+        }
+    }
+}
+
+impl FromStr for Endpoint {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "admin" => Ok(Endpoint::Admin),
+            "public" => Ok(Endpoint::Public),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -50,12 +78,18 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
+        let (sub, endpoint) = match subject {
+            Subject::Admin(sub) => (sub, Endpoint::Admin),
+            Subject::Public(sub) => (sub, Endpoint::Public),
+        };
+
         sqlx::query!(
             r#"
-                INSERT INTO audit_entries (subject, object, action, authorized)
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO audit_entries (subject, endpoint, object, action, authorized)
+                VALUES ($1, $2, $3, $4, $5)
                 "#,
-            subject.as_ref(),
+            sub,
+            endpoint.as_str(),
             object.as_ref(),
             action.as_ref(),
             authorized,
@@ -79,7 +113,7 @@ impl Audit {
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
             RawAuditEntry,
             r#"
-            SELECT id, subject, object, action, authorized, created_at
+            SELECT id, subject, endpoint, object, action, authorized, created_at
             FROM audit_entries
             WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
             ORDER BY id DESC
@@ -114,13 +148,23 @@ impl Audit {
         // Map raw events to the desired return type
         let audit_entries: Vec<AuditEntry> = events
             .into_iter()
-            .map(|raw_event| AuditEntry {
-                id: raw_event.id,
-                subject: Subject::from(raw_event.subject),
-                object: raw_event.object.parse().expect("Could not parse object"),
-                action: raw_event.action.parse().expect("Could not parse action"),
-                authorized: raw_event.authorized,
-                created_at: raw_event.created_at,
+            .map(|raw_event| {
+                let endpoint =
+                    Endpoint::from_str(&raw_event.endpoint).expect("Unexpected endpoint value");
+
+                let subject = match endpoint {
+                    Endpoint::Admin => Subject::Admin(raw_event.subject),
+                    Endpoint::Public => Subject::Public(raw_event.subject),
+                };
+
+                AuditEntry {
+                    id: raw_event.id,
+                    subject,
+                    object: raw_event.object.parse().expect("Could not parse object"),
+                    action: raw_event.action.parse().expect("Could not parse action"),
+                    authorized: raw_event.authorized,
+                    created_at: raw_event.created_at,
+                }
             })
             .collect();
 

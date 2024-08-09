@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, subject, object, action, authorized, created_at\n            FROM audit_entries\n            WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)\n            ORDER BY id DESC\n            LIMIT $2\n            ",
+  "query": "\n            SELECT id, subject, endpoint, object, action, authorized, created_at\n            FROM audit_entries\n            WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)\n            ORDER BY id DESC\n            LIMIT $2\n            ",
   "describe": {
     "columns": [
       {
@@ -15,21 +15,26 @@
       },
       {
         "ordinal": 2,
-        "name": "object",
+        "name": "endpoint",
         "type_info": "Varchar"
       },
       {
         "ordinal": 3,
-        "name": "action",
+        "name": "object",
         "type_info": "Varchar"
       },
       {
         "ordinal": 4,
+        "name": "action",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
         "name": "authorized",
         "type_info": "Bool"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "created_at",
         "type_info": "Timestamptz"
       }
@@ -46,8 +51,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "7e78a5b473a0d68582ae38922dab915c111afb9e6db46ecf36986d768fb2fcf6"
+  "hash": "49ba4d08dc8e46318174e3cdfe76d5944a9d234cd00f3bc0290ae03b3cc56849"
 }

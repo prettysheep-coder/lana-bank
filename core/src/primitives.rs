@@ -75,20 +75,29 @@ pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone)]
-pub struct Subject(uuid::Uuid);
+pub enum Subject {
+    Public(uuid::Uuid),
+    Admin(uuid::Uuid),
+}
 
-impl<T> From<T> for Subject
-where
-    T: Into<uuid::Uuid>,
-{
-    fn from(s: T) -> Self {
-        Self(s.into())
+impl From<UserId> for Subject {
+    fn from(s: UserId) -> Self {
+        Subject::Admin(s.into())
+    }
+}
+
+impl From<CustomerId> for Subject {
+    fn from(s: CustomerId) -> Self {
+        Subject::Public(s.into())
     }
 }
 
 impl AsRef<uuid::Uuid> for Subject {
     fn as_ref(&self) -> &uuid::Uuid {
-        &self.0
+        match self {
+            Subject::Public(uuid) => uuid,
+            Subject::Admin(uuid) => uuid,
+        }
     }
 }
 
@@ -101,13 +110,16 @@ impl std::ops::Deref for Subject {
 
 impl Subject {
     pub fn inner(&self) -> &uuid::Uuid {
-        &self.0
+        self.as_ref()
     }
 }
 
 impl From<&Subject> for uuid::Uuid {
     fn from(subject: &Subject) -> Self {
-        subject.0
+        match subject {
+            Subject::Public(uuid) => *uuid,
+            Subject::Admin(uuid) => *uuid,
+        }
     }
 }
 

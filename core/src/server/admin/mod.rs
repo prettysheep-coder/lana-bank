@@ -13,6 +13,7 @@ use axum_extra::headers::HeaderMap;
 use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
+use uuid::Uuid;
 
 use crate::{app::LavaApp, primitives::Subject};
 
@@ -63,8 +64,10 @@ pub struct AdminAuthContext {
 }
 
 impl AdminAuthContext {
-    pub fn new(sub: impl Into<Subject>) -> Self {
-        Self { sub: sub.into() }
+    pub fn new(sub: impl Into<Uuid>) -> Self {
+        Self {
+            sub: Subject::Admin(sub.into()),
+        }
     }
 }
 
