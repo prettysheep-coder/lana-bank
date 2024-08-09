@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use super::{
     account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, shareholder_equity::*,
-    terms::*, user::*,
+    terms::*, user::*, withdraw::*,
 };
 use crate::{
     app::LavaApp,
@@ -341,6 +341,22 @@ impl Mutation {
             .await?;
 
         Ok(DepositRecordPayload::from(deposit))
+    }
+
+    pub async fn withdrawal_initiate(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalInitiateInput,
+    ) -> async_graphql::Result<WithdrawalInitiatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let withdraw = app
+            .withdraws()
+            .initiate(sub, input.customer_id, input.amount, input.reference)
+            .await?;
+
+        Ok(WithdrawalInitiatePayload::from(withdraw))
     }
 
     async fn customer_create(

@@ -11,7 +11,6 @@ teardown_file() {
 }
 
 @test "customer: unauthorized" {
-skip
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
@@ -22,20 +21,21 @@ skip
 }
 
 @test "customer: can create a customer" {
-skip
-  token=$(create_user)
-  cache_value "alice" "$token"
+  customer_email=$(generate_email)
 
-  exec_graphql 'alice' 'me'
+  variables=$(
+    jq -n \
+    --arg email "$customer_email" \
+    '{
+      input: {
+        email: $email
+        }
+      }'
+  )
 
-  customer_id=$(graphql_output '.data.me.customerId')
+  exec_admin_graphql 'customer-create' "$variables"
+  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
-
-  btc_address=$(graphql_output '.data.me.btcDepositAddress')
-  cache_value 'user.btc' "$btc_address"
-
-  ust_address=$(graphql_output '.data.me.ustDepositAddress')
-  cache_value 'user.ust' "$ust_address"
 }
 
 @test "customer: can deposit" {
@@ -61,7 +61,6 @@ skip
 }
 
 @test "customer: can withdraw" {
-skip
   variables=$(
     jq -n \
     --arg date "$(date +%s%N)" \

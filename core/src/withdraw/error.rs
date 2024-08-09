@@ -16,4 +16,6 @@ pub enum WithdrawError {
     CouldNotFindById(WithdrawId),
     #[error("WithdrawError - AlreadySettled: {0}")]
     AlreadySettled(WithdrawId),
+    #[error("WithdrawError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

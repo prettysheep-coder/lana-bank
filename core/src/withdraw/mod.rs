@@ -3,9 +3,10 @@ mod error;
 mod repo;
 
 use crate::{
+    authorization::{Authorization, Object, WithdrawAction},
     customer::Customers,
     ledger::Ledger,
-    primitives::{CustomerId, UsdCents, WithdrawId},
+    primitives::{CustomerId, Subject, UsdCents, WithdrawId},
 };
 
 pub use entity::*;
@@ -18,16 +19,23 @@ pub struct Withdraws {
     repo: WithdrawRepo,
     customers: Customers,
     ledger: Ledger,
+    authz: Authorization,
 }
 
 impl Withdraws {
-    pub fn new(pool: &sqlx::PgPool, customers: &Customers, ledger: &Ledger) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        customers: &Customers,
+        ledger: &Ledger,
+        authz: &Authorization,
+    ) -> Self {
         let repo = WithdrawRepo::new(pool);
         Self {
             _pool: pool.clone(),
             repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
+            authz: authz.clone(),
         }
     }
 
@@ -37,10 +45,14 @@ impl Withdraws {
 
     pub async fn initiate(
         &self,
+        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
+        self.authz
+            .check_permission(sub, Object::Withdraw, WithdrawAction::Initiate)
+            .await?;
         let customer_id = customer_id.into();
         let customer = self.customers.repo().find_by_id(customer_id).await?;
         let new_withdraw = NewWithdraw::builder()
