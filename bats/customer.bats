@@ -87,10 +87,31 @@ teardown_file() {
   [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
   # assert_accounts_balanced <- debug with Arvin
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+
+  echo $(graphql_output)
+  withdrawal_id=$(graphql_output '.data.withdrawalConfirm.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.settled.usdBalance')
+  [[ "$settled_usd_balance" == "0" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.pending.usdBalance')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
+
+  # assert_accounts_balanced <- debug with Arvin
 }
 
 @test "customer: verify level 2" {
-skip
+  skip
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-token-create'
   token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')

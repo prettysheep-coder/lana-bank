@@ -314,6 +314,7 @@ type Mutation {
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
@@ -490,6 +491,14 @@ type Withdrawal {
 	withdrawalId: UUID!
 	amount: UsdCents!
 	customer: Customer
+}
+
+input WithdrawalConfirmInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalConfirmPayload {
+	withdrawal: Withdrawal!
 }
 
 input WithdrawalInitiateInput {

@@ -359,6 +359,19 @@ impl Mutation {
         Ok(WithdrawalInitiatePayload::from(withdraw))
     }
 
+    pub async fn withdrawal_confirm(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalConfirmInput,
+    ) -> async_graphql::Result<WithdrawalConfirmPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let withdraw = app.withdraws().confirm(sub, input.withdrawal_id).await?;
+
+        Ok(WithdrawalConfirmPayload::from(withdraw))
+    }
+
     async fn customer_create(
         &self,
         ctx: &Context<'_>,

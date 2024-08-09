@@ -59,3 +59,21 @@ impl From<crate::withdraw::Withdraw> for WithdrawalInitiatePayload {
         }
     }
 }
+
+#[derive(InputObject)]
+pub struct WithdrawalConfirmInput {
+    pub withdrawal_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct WithdrawalConfirmPayload {
+    pub withdrawal: Withdrawal,
+}
+
+impl From<crate::withdraw::Withdraw> for WithdrawalConfirmPayload {
+    fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
+        Self {
+            withdrawal: Withdrawal::from(withdrawal),
+        }
+    }
+}

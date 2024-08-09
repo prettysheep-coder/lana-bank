@@ -341,6 +341,7 @@ export type Mutation = {
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+  withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
 };
 
@@ -397,6 +398,11 @@ export type MutationUserCreateArgs = {
 
 export type MutationUserRevokeRoleArgs = {
   input: UserRevokeRoleInput;
+};
+
+
+export type MutationWithdrawalConfirmArgs = {
+  input: WithdrawalConfirmInput;
 };
 
 
@@ -599,6 +605,15 @@ export type Withdrawal = {
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
   withdrawalId: Scalars['UUID']['output'];
+};
+
+export type WithdrawalConfirmInput = {
+  withdrawalId: Scalars['UUID']['input'];
+};
+
+export type WithdrawalConfirmPayload = {
+  __typename?: 'WithdrawalConfirmPayload';
+  withdrawal: Withdrawal;
 };
 
 export type WithdrawalInitiateInput = {

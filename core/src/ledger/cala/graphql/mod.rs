@@ -151,6 +151,22 @@ pub struct PostInitiateWithdrawTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/confirm-withdraw.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct ConfirmWithdrawTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/confirm-withdraw.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostConfirmWithdrawTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
