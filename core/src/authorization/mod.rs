@@ -16,6 +16,16 @@ use sqlx_adapter::{
 
 use super::audit::Audit;
 
+macro_rules! impl_from_for_action {
+    ($from_type:ty, $variant:ident) => {
+        impl From<$from_type> for Action {
+            fn from(action: $from_type) -> Self {
+                Action::$variant(action)
+            }
+        }
+    };
+}
+
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
@@ -454,11 +464,7 @@ impl std::ops::Deref for LoanAction {
     }
 }
 
-impl From<LoanAction> for Action {
-    fn from(action: LoanAction) -> Self {
-        Action::Loan(action)
-    }
-}
+impl_from_for_action!(LoanAction, Loan);
 
 pub enum TermAction {
     Update,
@@ -486,11 +492,7 @@ impl std::ops::Deref for TermAction {
     }
 }
 
-impl From<TermAction> for Action {
-    fn from(action: TermAction) -> Self {
-        Action::Term(action)
-    }
-}
+impl_from_for_action!(TermAction, Term);
 
 pub enum AuditAction {
     List,
@@ -515,11 +517,7 @@ impl std::ops::Deref for AuditAction {
     }
 }
 
-impl From<AuditAction> for Action {
-    fn from(action: AuditAction) -> Self {
-        Action::Audit(action)
-    }
-}
+impl_from_for_action!(AuditAction, Audit);
 
 pub enum UserAction {
     Create,
@@ -574,11 +572,7 @@ impl std::ops::Deref for UserAction {
     }
 }
 
-impl From<UserAction> for Action {
-    fn from(action: UserAction) -> Self {
-        Action::User(action)
-    }
-}
+impl_from_for_action!(UserAction, User);
 
 pub enum CustomerAction {
     Create,
@@ -612,11 +606,7 @@ impl std::ops::Deref for CustomerAction {
     }
 }
 
-impl From<CustomerAction> for Action {
-    fn from(action: CustomerAction) -> Self {
-        Action::Customer(action)
-    }
-}
+impl_from_for_action!(CustomerAction, Customer);
 
 pub enum DepositAction {
     Record,
@@ -646,11 +636,7 @@ impl std::ops::Deref for DepositAction {
     }
 }
 
-impl From<DepositAction> for Action {
-    fn from(action: DepositAction) -> Self {
-        Action::Deposit(action)
-    }
-}
+impl_from_for_action!(DepositAction, Deposit);
 
 pub enum WithdrawAction {
     Initiate,
@@ -683,11 +669,7 @@ impl std::ops::Deref for WithdrawAction {
     }
 }
 
-impl From<WithdrawAction> for Action {
-    fn from(action: WithdrawAction) -> Self {
-        Action::Withdraw(action)
-    }
-}
+impl_from_for_action!(WithdrawAction, Withdraw);
 
 impl std::ops::Deref for LedgerAction {
     type Target = str;
@@ -712,8 +694,4 @@ impl AsRef<str> for LedgerAction {
     }
 }
 
-impl From<LedgerAction> for Action {
-    fn from(action: LedgerAction) -> Self {
-        Action::Ledger(action)
-    }
-}
+impl_from_for_action!(LedgerAction, Ledger);
