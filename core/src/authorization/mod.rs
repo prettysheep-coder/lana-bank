@@ -279,18 +279,30 @@ pub enum Object {
     Ledger,
 }
 
+impl Object {
+    const APPLICANT_STR: &'static str = "applicant";
+    const LOAN_STR: &'static str = "loan";
+    const TERM_STR: &'static str = "term";
+    const USER_STR: &'static str = "user";
+    const DEPOSIT_STR: &'static str = "deposit";
+    const WITHDRAW_STR: &'static str = "withdraw";
+    const CUSTOMER_STR: &'static str = "customer";
+    const AUDIT_STR: &'static str = "audit";
+    const LEDGER_STR: &'static str = "ledger";
+}
+
 impl AsRef<str> for Object {
     fn as_ref(&self) -> &str {
         match self {
-            Object::Applicant => "applicant",
-            Object::Loan => "loan",
-            Object::Term => "term",
-            Object::User => "user",
-            Object::Deposit => "deposit",
-            Object::Withdraw => "withdraw",
-            Object::Customer => "customer",
-            Object::Audit => "audit",
-            Object::Ledger => "ledger",
+            Object::Applicant => Self::APPLICANT_STR,
+            Object::Loan => Self::LOAN_STR,
+            Object::Term => Self::TERM_STR,
+            Object::User => Self::USER_STR,
+            Object::Deposit => Self::DEPOSIT_STR,
+            Object::Withdraw => Self::WITHDRAW_STR,
+            Object::Customer => Self::CUSTOMER_STR,
+            Object::Audit => Self::AUDIT_STR,
+            Object::Ledger => Self::LEDGER_STR,
         }
     }
 }
@@ -307,15 +319,15 @@ impl FromStr for Object {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "applicant" => Ok(Object::Applicant),
-            "loan" => Ok(Object::Loan),
-            "term" => Ok(Object::Term),
-            "user" => Ok(Object::User),
-            "audit" => Ok(Object::Audit),
-            "customer" => Ok(Object::Customer),
-            "deposit" => Ok(Object::Deposit),
-            "withdraw" => Ok(Object::Withdraw),
-            "ledger" => Ok(Object::Ledger),
+            Self::APPLICANT_STR => Ok(Object::Applicant),
+            Self::LOAN_STR => Ok(Object::Loan),
+            Self::TERM_STR => Ok(Object::Term),
+            Self::USER_STR => Ok(Object::User),
+            Self::AUDIT_STR => Ok(Object::Audit),
+            Self::CUSTOMER_STR => Ok(Object::Customer),
+            Self::DEPOSIT_STR => Ok(Object::Deposit),
+            Self::WITHDRAW_STR => Ok(Object::Withdraw),
+            Self::LEDGER_STR => Ok(Object::Ledger),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
             }),
@@ -415,14 +427,22 @@ pub enum LoanAction {
     RecordPayment,
 }
 
+impl LoanAction {
+    const READ_STR: &'static str = "loan-read";
+    const CREATE_STR: &'static str = "loan-create";
+    const LIST_STR: &'static str = "loan-list";
+    const APPROVE_STR: &'static str = "loan-approve";
+    const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
+}
+
 impl AsRef<str> for LoanAction {
     fn as_ref(&self) -> &str {
         match self {
-            LoanAction::Read => "loan-read",
-            LoanAction::Create => "loan-create",
-            LoanAction::List => "loan-list",
-            LoanAction::Approve => "loan-approve",
-            LoanAction::RecordPayment => "loan-record-payment",
+            LoanAction::Read => Self::READ_STR,
+            LoanAction::Create => Self::CREATE_STR,
+            LoanAction::List => Self::LIST_STR,
+            LoanAction::Approve => Self::APPROVE_STR,
+            LoanAction::RecordPayment => Self::RECORD_PAYMENT_STR,
         }
     }
 }
@@ -445,11 +465,16 @@ pub enum TermAction {
     Read,
 }
 
+impl TermAction {
+    const UPDATE_STR: &'static str = "term-update";
+    const READ_STR: &'static str = "term-read";
+}
+
 impl AsRef<str> for TermAction {
     fn as_ref(&self) -> &str {
         match self {
-            TermAction::Update => "term-update",
-            TermAction::Read => "term-read",
+            TermAction::Update => Self::UPDATE_STR,
+            TermAction::Read => Self::READ_STR,
         }
     }
 }
@@ -471,10 +496,14 @@ pub enum AuditAction {
     List,
 }
 
+impl AuditAction {
+    const LIST_STR: &'static str = "audit-list";
+}
+
 impl AsRef<str> for AuditAction {
     fn as_ref(&self) -> &str {
         match self {
-            AuditAction::List => "audit-list",
+            AuditAction::List => Self::LIST_STR,
         }
     }
 }
@@ -502,23 +531,37 @@ pub enum UserAction {
     RevokeRole(Role),
 }
 
+impl UserAction {
+    const CREATE_STR: &'static str = "user-create";
+    const READ_STR: &'static str = "user-read";
+    const LIST_STR: &'static str = "user-list";
+    const UPDATE_STR: &'static str = "user-update";
+    const DELETE_STR: &'static str = "user-delete";
+    const ASSIGN_ROLE_SUPERUSER_STR: &'static str = "user-assign-role-superuser";
+    const ASSIGN_ROLE_ADMIN_STR: &'static str = "user-assign-role-admin";
+    const ASSIGN_ROLE_BANK_MANAGER_STR: &'static str = "user-assign-role-bank-manager";
+    const REVOKE_ROLE_SUPERUSER_STR: &'static str = "user-revoke-role-superuser";
+    const REVOKE_ROLE_ADMIN_STR: &'static str = "user-revoke-role-admin";
+    const REVOKE_ROLE_BANK_MANAGER_STR: &'static str = "user-revoke-role-bank-manager";
+}
+
 impl AsRef<str> for UserAction {
     fn as_ref(&self) -> &str {
         match self {
-            UserAction::Create => "user-create",
-            UserAction::Read => "user-read",
-            UserAction::List => "user-list",
-            UserAction::Update => "user-update",
-            UserAction::Delete => "user-delete",
+            UserAction::Create => Self::CREATE_STR,
+            UserAction::Read => Self::READ_STR,
+            UserAction::List => Self::LIST_STR,
+            UserAction::Update => Self::UPDATE_STR,
+            UserAction::Delete => Self::DELETE_STR,
             UserAction::AssignRole(role) => match role {
-                Role::Superuser => "user-assign-role-superuser",
-                Role::Admin => "user-assign-role-admin",
-                Role::BankManager => "user-assign-role-bank-manager",
+                Role::Superuser => Self::ASSIGN_ROLE_SUPERUSER_STR,
+                Role::Admin => Self::ASSIGN_ROLE_ADMIN_STR,
+                Role::BankManager => Self::ASSIGN_ROLE_BANK_MANAGER_STR,
             },
             UserAction::RevokeRole(role) => match role {
-                Role::Superuser => "user-revoke-role-superuser",
-                Role::Admin => "user-revoke-role-admin",
-                Role::BankManager => "user-revoke-role-bank-manager",
+                Role::Superuser => Self::REVOKE_ROLE_SUPERUSER_STR,
+                Role::Admin => Self::REVOKE_ROLE_ADMIN_STR,
+                Role::BankManager => Self::REVOKE_ROLE_BANK_MANAGER_STR,
             },
         }
     }
@@ -544,13 +587,20 @@ pub enum CustomerAction {
     Update,
 }
 
+impl CustomerAction {
+    const CREATE_STR: &'static str = "customer-create";
+    const READ_STR: &'static str = "customer-read";
+    const LIST_STR: &'static str = "customer-list";
+    const UPDATE_STR: &'static str = "customer-update";
+}
+
 impl AsRef<str> for CustomerAction {
     fn as_ref(&self) -> &str {
         match self {
-            CustomerAction::Create => "customer-create",
-            CustomerAction::Read => "customer-read",
-            CustomerAction::List => "customer-list",
-            CustomerAction::Update => "customer-update",
+            CustomerAction::Create => Self::CREATE_STR,
+            CustomerAction::Read => Self::READ_STR,
+            CustomerAction::List => Self::LIST_STR,
+            CustomerAction::Update => Self::UPDATE_STR,
         }
     }
 }
@@ -574,12 +624,18 @@ pub enum DepositAction {
     List,
 }
 
+impl DepositAction {
+    const RECORD_STR: &'static str = "deposit-record";
+    const READ_STR: &'static str = "deposit-read";
+    const LIST_STR: &'static str = "deposit-list";
+}
+
 impl AsRef<str> for DepositAction {
     fn as_ref(&self) -> &str {
         match self {
-            DepositAction::Record => "deposit-record",
-            DepositAction::Read => "deposit-read",
-            DepositAction::List => "deposit-list",
+            DepositAction::Record => Self::RECORD_STR,
+            DepositAction::Read => Self::READ_STR,
+            DepositAction::List => Self::LIST_STR,
         }
     }
 }
@@ -603,13 +659,20 @@ pub enum WithdrawAction {
     List,
 }
 
+impl WithdrawAction {
+    const INITIATE_STR: &'static str = "withdraw-initiate";
+    const CONFIRM_STR: &'static str = "withdraw-confirm";
+    const READ_STR: &'static str = "withdraw-read";
+    const LIST_STR: &'static str = "withdraw-list";
+}
+
 impl AsRef<str> for WithdrawAction {
     fn as_ref(&self) -> &str {
         match self {
-            WithdrawAction::Initiate => "withdraw-initiate",
-            WithdrawAction::Confirm => "withdraw-confirm",
-            WithdrawAction::Read => "withdraw-read",
-            WithdrawAction::List => "withdraw-list",
+            WithdrawAction::Initiate => Self::INITIATE_STR,
+            WithdrawAction::Confirm => Self::CONFIRM_STR,
+            WithdrawAction::Read => Self::READ_STR,
+            WithdrawAction::List => Self::LIST_STR,
         }
     }
 }
@@ -637,10 +700,14 @@ pub enum LedgerAction {
     Read,
 }
 
+impl LedgerAction {
+    const READ_STR: &'static str = "ledger-read";
+}
+
 impl AsRef<str> for LedgerAction {
     fn as_ref(&self) -> &str {
         match self {
-            LedgerAction::Read => "ledger-read",
+            LedgerAction::Read => Self::READ_STR,
         }
     }
 }
