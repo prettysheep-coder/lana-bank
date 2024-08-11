@@ -26,6 +26,17 @@ macro_rules! impl_from_for_action {
     };
 }
 
+macro_rules! impl_deref_to_str {
+    ($type:ty) => {
+        impl std::ops::Deref for $type {
+            type Target = str;
+            fn deref(&self) -> &Self::Target {
+                self.as_ref()
+            }
+        }
+    };
+}
+
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
@@ -317,12 +328,7 @@ impl AsRef<str> for Object {
     }
 }
 
-impl std::ops::Deref for Object {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
+impl_deref_to_str!(Object);
 
 impl FromStr for Object {
     type Err = crate::authorization::AuthorizationError;
@@ -422,12 +428,7 @@ impl FromStr for Action {
     }
 }
 
-impl std::ops::Deref for Action {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
+impl_deref_to_str!(Action);
 
 pub enum LoanAction {
     List,
@@ -457,13 +458,7 @@ impl AsRef<str> for LoanAction {
     }
 }
 
-impl std::ops::Deref for LoanAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
+impl_deref_to_str!(LoanAction);
 impl_from_for_action!(LoanAction, Loan);
 
 pub enum TermAction {
@@ -485,13 +480,7 @@ impl AsRef<str> for TermAction {
     }
 }
 
-impl std::ops::Deref for TermAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
+impl_deref_to_str!(TermAction);
 impl_from_for_action!(TermAction, Term);
 
 pub enum AuditAction {
@@ -510,13 +499,7 @@ impl AsRef<str> for AuditAction {
     }
 }
 
-impl std::ops::Deref for AuditAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
+impl_deref_to_str!(AuditAction);
 impl_from_for_action!(AuditAction, Audit);
 
 pub enum UserAction {
@@ -565,13 +548,7 @@ impl AsRef<str> for UserAction {
     }
 }
 
-impl std::ops::Deref for UserAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
+impl_deref_to_str!(UserAction);
 impl_from_for_action!(UserAction, User);
 
 pub enum CustomerAction {
@@ -599,13 +576,7 @@ impl AsRef<str> for CustomerAction {
     }
 }
 
-impl std::ops::Deref for CustomerAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
+impl_deref_to_str!(CustomerAction);
 impl_from_for_action!(CustomerAction, Customer);
 
 pub enum DepositAction {
@@ -629,13 +600,8 @@ impl AsRef<str> for DepositAction {
         }
     }
 }
-impl std::ops::Deref for DepositAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
 
+impl_deref_to_str!(DepositAction);
 impl_from_for_action!(DepositAction, Deposit);
 
 pub enum WithdrawAction {
@@ -662,21 +628,9 @@ impl AsRef<str> for WithdrawAction {
         }
     }
 }
-impl std::ops::Deref for WithdrawAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
 
+impl_deref_to_str!(WithdrawAction);
 impl_from_for_action!(WithdrawAction, Withdraw);
-
-impl std::ops::Deref for LedgerAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
 
 pub enum LedgerAction {
     Read,
@@ -694,4 +648,5 @@ impl AsRef<str> for LedgerAction {
     }
 }
 
+impl_deref_to_str!(LedgerAction);
 impl_from_for_action!(LedgerAction, Ledger);
