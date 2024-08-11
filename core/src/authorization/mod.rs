@@ -315,15 +315,15 @@ impl Object {
 impl AsRef<str> for Object {
     fn as_ref(&self) -> &str {
         match self {
-            Object::Applicant => Self::APPLICANT_STR,
-            Object::Loan => Self::LOAN_STR,
-            Object::Term => Self::TERM_STR,
-            Object::User => Self::USER_STR,
-            Object::Deposit => Self::DEPOSIT_STR,
-            Object::Withdraw => Self::WITHDRAW_STR,
-            Object::Customer => Self::CUSTOMER_STR,
-            Object::Audit => Self::AUDIT_STR,
-            Object::Ledger => Self::LEDGER_STR,
+            Self::Applicant => Self::APPLICANT_STR,
+            Self::Loan => Self::LOAN_STR,
+            Self::Term => Self::TERM_STR,
+            Self::User => Self::USER_STR,
+            Self::Deposit => Self::DEPOSIT_STR,
+            Self::Withdraw => Self::WITHDRAW_STR,
+            Self::Customer => Self::CUSTOMER_STR,
+            Self::Audit => Self::AUDIT_STR,
+            Self::Ledger => Self::LEDGER_STR,
         }
     }
 }
@@ -335,15 +335,15 @@ impl FromStr for Object {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            Self::APPLICANT_STR => Ok(Object::Applicant),
-            Self::LOAN_STR => Ok(Object::Loan),
-            Self::TERM_STR => Ok(Object::Term),
-            Self::USER_STR => Ok(Object::User),
-            Self::AUDIT_STR => Ok(Object::Audit),
-            Self::CUSTOMER_STR => Ok(Object::Customer),
-            Self::DEPOSIT_STR => Ok(Object::Deposit),
-            Self::WITHDRAW_STR => Ok(Object::Withdraw),
-            Self::LEDGER_STR => Ok(Object::Ledger),
+            Self::APPLICANT_STR => Ok(Self::Applicant),
+            Self::LOAN_STR => Ok(Self::Loan),
+            Self::TERM_STR => Ok(Self::Term),
+            Self::USER_STR => Ok(Self::User),
+            Self::AUDIT_STR => Ok(Self::Audit),
+            Self::CUSTOMER_STR => Ok(Self::Customer),
+            Self::DEPOSIT_STR => Ok(Self::Deposit),
+            Self::WITHDRAW_STR => Ok(Self::Withdraw),
+            Self::LEDGER_STR => Ok(Self::Ledger),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
             }),
@@ -365,14 +365,14 @@ pub enum Action {
 impl AsRef<str> for Action {
     fn as_ref(&self) -> &str {
         match self {
-            Action::Loan(action) => action.as_ref(),
-            Action::Term(action) => action.as_ref(),
-            Action::User(action) => action.as_ref(),
-            Action::Customer(action) => action.as_ref(),
-            Action::Deposit(action) => action.as_ref(),
-            Action::Withdraw(action) => action.as_ref(),
-            Action::Audit(action) => action.as_ref(),
-            Action::Ledger(action) => action.as_ref(),
+            Self::Loan(action) => action.as_ref(),
+            Self::Term(action) => action.as_ref(),
+            Self::User(action) => action.as_ref(),
+            Self::Customer(action) => action.as_ref(),
+            Self::Deposit(action) => action.as_ref(),
+            Self::Withdraw(action) => action.as_ref(),
+            Self::Audit(action) => action.as_ref(),
+            Self::Ledger(action) => action.as_ref(),
         }
     }
 }
@@ -382,45 +382,41 @@ impl FromStr for Action {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "loan-read" => Ok(Action::Loan(LoanAction::Read)),
-            "loan-create" => Ok(Action::Loan(LoanAction::Create)),
-            "loan-list" => Ok(Action::Loan(LoanAction::List)),
-            "loan-approve" => Ok(Action::Loan(LoanAction::Approve)),
-            "loan-record-payment" => Ok(Action::Loan(LoanAction::RecordPayment)),
-            "term-update" => Ok(Action::Term(TermAction::Update)),
-            "term-read" => Ok(Action::Term(TermAction::Read)),
-            "user-create" => Ok(Action::User(UserAction::Create)),
-            "user-read" => Ok(Action::User(UserAction::Read)),
-            "user-list" => Ok(Action::User(UserAction::List)),
-            "user-update" => Ok(Action::User(UserAction::Update)),
-            "user-delete" => Ok(Action::User(UserAction::Delete)),
-            "user-assign-role-superuser" => {
-                Ok(Action::User(UserAction::AssignRole(Role::Superuser)))
-            }
-            "user-assign-role-admin" => Ok(Action::User(UserAction::AssignRole(Role::Admin))),
+            "loan-read" => Ok(Self::Loan(LoanAction::Read)),
+            "loan-create" => Ok(Self::Loan(LoanAction::Create)),
+            "loan-list" => Ok(Self::Loan(LoanAction::List)),
+            "loan-approve" => Ok(Self::Loan(LoanAction::Approve)),
+            "loan-record-payment" => Ok(Self::Loan(LoanAction::RecordPayment)),
+            "term-update" => Ok(Self::Term(TermAction::Update)),
+            "term-read" => Ok(Self::Term(TermAction::Read)),
+            "user-create" => Ok(Self::User(UserAction::Create)),
+            "user-read" => Ok(Self::User(UserAction::Read)),
+            "user-list" => Ok(Self::User(UserAction::List)),
+            "user-update" => Ok(Self::User(UserAction::Update)),
+            "user-delete" => Ok(Self::User(UserAction::Delete)),
+            "user-assign-role-superuser" => Ok(Self::User(UserAction::AssignRole(Role::Superuser))),
+            "user-assign-role-admin" => Ok(Self::User(UserAction::AssignRole(Role::Admin))),
             "user-assign-role-bank-manager" => {
-                Ok(Action::User(UserAction::AssignRole(Role::BankManager)))
+                Ok(Self::User(UserAction::AssignRole(Role::BankManager)))
             }
-            "user-revoke-role-superuser" => {
-                Ok(Action::User(UserAction::RevokeRole(Role::Superuser)))
-            }
-            "user-revoke-role-admin" => Ok(Action::User(UserAction::RevokeRole(Role::Admin))),
+            "user-revoke-role-superuser" => Ok(Self::User(UserAction::RevokeRole(Role::Superuser))),
+            "user-revoke-role-admin" => Ok(Self::User(UserAction::RevokeRole(Role::Admin))),
             "user-revoke-role-bank-manager" => {
-                Ok(Action::User(UserAction::RevokeRole(Role::BankManager)))
+                Ok(Self::User(UserAction::RevokeRole(Role::BankManager)))
             }
-            "audit-list" => Ok(Action::Audit(AuditAction::List)),
-            "customer-create" => Ok(Action::Customer(CustomerAction::Create)),
-            "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
-            "customer-list" => Ok(Action::Customer(CustomerAction::List)),
-            "customer-update" => Ok(Action::Customer(CustomerAction::Update)),
-            "deposit-record" => Ok(Action::Deposit(DepositAction::Record)),
-            "deposit-read" => Ok(Action::Deposit(DepositAction::Read)),
-            "deposit-list" => Ok(Action::Deposit(DepositAction::List)),
-            "withdraw-initiate" => Ok(Action::Withdraw(WithdrawAction::Initiate)),
-            "withdraw-confirm" => Ok(Action::Withdraw(WithdrawAction::Confirm)),
-            "withdraw-read" => Ok(Action::Deposit(DepositAction::Read)),
-            "withdraw-list" => Ok(Action::Deposit(DepositAction::List)),
-            "ledger-read" => Ok(Action::Ledger(LedgerAction::Read)),
+            "audit-list" => Ok(Self::Audit(AuditAction::List)),
+            "customer-create" => Ok(Self::Customer(CustomerAction::Create)),
+            "customer-read" => Ok(Self::Customer(CustomerAction::Read)),
+            "customer-list" => Ok(Self::Customer(CustomerAction::List)),
+            "customer-update" => Ok(Self::Customer(CustomerAction::Update)),
+            "deposit-record" => Ok(Self::Deposit(DepositAction::Record)),
+            "deposit-read" => Ok(Self::Deposit(DepositAction::Read)),
+            "deposit-list" => Ok(Self::Deposit(DepositAction::List)),
+            "withdraw-initiate" => Ok(Self::Withdraw(WithdrawAction::Initiate)),
+            "withdraw-confirm" => Ok(Self::Withdraw(WithdrawAction::Confirm)),
+            "withdraw-read" => Ok(Self::Deposit(DepositAction::Read)),
+            "withdraw-list" => Ok(Self::Deposit(DepositAction::List)),
+            "ledger-read" => Ok(Self::Ledger(LedgerAction::Read)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
@@ -449,11 +445,11 @@ impl LoanAction {
 impl AsRef<str> for LoanAction {
     fn as_ref(&self) -> &str {
         match self {
-            LoanAction::Read => Self::READ_STR,
-            LoanAction::Create => Self::CREATE_STR,
-            LoanAction::List => Self::LIST_STR,
-            LoanAction::Approve => Self::APPROVE_STR,
-            LoanAction::RecordPayment => Self::RECORD_PAYMENT_STR,
+            Self::Read => Self::READ_STR,
+            Self::Create => Self::CREATE_STR,
+            Self::List => Self::LIST_STR,
+            Self::Approve => Self::APPROVE_STR,
+            Self::RecordPayment => Self::RECORD_PAYMENT_STR,
         }
     }
 }
@@ -474,8 +470,8 @@ impl TermAction {
 impl AsRef<str> for TermAction {
     fn as_ref(&self) -> &str {
         match self {
-            TermAction::Update => Self::UPDATE_STR,
-            TermAction::Read => Self::READ_STR,
+            Self::Update => Self::UPDATE_STR,
+            Self::Read => Self::READ_STR,
         }
     }
 }
@@ -494,7 +490,7 @@ impl AuditAction {
 impl AsRef<str> for AuditAction {
     fn as_ref(&self) -> &str {
         match self {
-            AuditAction::List => Self::LIST_STR,
+            Self::List => Self::LIST_STR,
         }
     }
 }
@@ -529,17 +525,17 @@ impl UserAction {
 impl AsRef<str> for UserAction {
     fn as_ref(&self) -> &str {
         match self {
-            UserAction::Create => Self::CREATE_STR,
-            UserAction::Read => Self::READ_STR,
-            UserAction::List => Self::LIST_STR,
-            UserAction::Update => Self::UPDATE_STR,
-            UserAction::Delete => Self::DELETE_STR,
-            UserAction::AssignRole(role) => match role {
+            Self::Create => Self::CREATE_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
+            Self::Update => Self::UPDATE_STR,
+            Self::Delete => Self::DELETE_STR,
+            Self::AssignRole(role) => match role {
                 Role::Superuser => Self::ASSIGN_ROLE_SUPERUSER_STR,
                 Role::Admin => Self::ASSIGN_ROLE_ADMIN_STR,
                 Role::BankManager => Self::ASSIGN_ROLE_BANK_MANAGER_STR,
             },
-            UserAction::RevokeRole(role) => match role {
+            Self::RevokeRole(role) => match role {
                 Role::Superuser => Self::REVOKE_ROLE_SUPERUSER_STR,
                 Role::Admin => Self::REVOKE_ROLE_ADMIN_STR,
                 Role::BankManager => Self::REVOKE_ROLE_BANK_MANAGER_STR,
@@ -568,10 +564,10 @@ impl CustomerAction {
 impl AsRef<str> for CustomerAction {
     fn as_ref(&self) -> &str {
         match self {
-            CustomerAction::Create => Self::CREATE_STR,
-            CustomerAction::Read => Self::READ_STR,
-            CustomerAction::List => Self::LIST_STR,
-            CustomerAction::Update => Self::UPDATE_STR,
+            Self::Create => Self::CREATE_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
+            Self::Update => Self::UPDATE_STR,
         }
     }
 }
@@ -594,9 +590,9 @@ impl DepositAction {
 impl AsRef<str> for DepositAction {
     fn as_ref(&self) -> &str {
         match self {
-            DepositAction::Record => Self::RECORD_STR,
-            DepositAction::Read => Self::READ_STR,
-            DepositAction::List => Self::LIST_STR,
+            Self::Record => Self::RECORD_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
         }
     }
 }
@@ -621,10 +617,10 @@ impl WithdrawAction {
 impl AsRef<str> for WithdrawAction {
     fn as_ref(&self) -> &str {
         match self {
-            WithdrawAction::Initiate => Self::INITIATE_STR,
-            WithdrawAction::Confirm => Self::CONFIRM_STR,
-            WithdrawAction::Read => Self::READ_STR,
-            WithdrawAction::List => Self::LIST_STR,
+            Self::Initiate => Self::INITIATE_STR,
+            Self::Confirm => Self::CONFIRM_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
         }
     }
 }
@@ -643,7 +639,7 @@ impl LedgerAction {
 impl AsRef<str> for LedgerAction {
     fn as_ref(&self) -> &str {
         match self {
-            LedgerAction::Read => Self::READ_STR,
+            Self::Read => Self::READ_STR,
         }
     }
 }
