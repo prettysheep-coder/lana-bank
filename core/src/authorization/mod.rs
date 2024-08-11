@@ -382,41 +382,57 @@ impl FromStr for Action {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "loan-read" => Ok(Self::Loan(LoanAction::Read)),
-            "loan-create" => Ok(Self::Loan(LoanAction::Create)),
-            "loan-list" => Ok(Self::Loan(LoanAction::List)),
-            "loan-approve" => Ok(Self::Loan(LoanAction::Approve)),
-            "loan-record-payment" => Ok(Self::Loan(LoanAction::RecordPayment)),
-            "term-update" => Ok(Self::Term(TermAction::Update)),
-            "term-read" => Ok(Self::Term(TermAction::Read)),
-            "user-create" => Ok(Self::User(UserAction::Create)),
-            "user-read" => Ok(Self::User(UserAction::Read)),
-            "user-list" => Ok(Self::User(UserAction::List)),
-            "user-update" => Ok(Self::User(UserAction::Update)),
-            "user-delete" => Ok(Self::User(UserAction::Delete)),
-            "user-assign-role-superuser" => Ok(Self::User(UserAction::AssignRole(Role::Superuser))),
-            "user-assign-role-admin" => Ok(Self::User(UserAction::AssignRole(Role::Admin))),
-            "user-assign-role-bank-manager" => {
+            LoanAction::READ_STR => Ok(Self::Loan(LoanAction::Read)),
+            LoanAction::CREATE_STR => Ok(Self::Loan(LoanAction::Create)),
+            LoanAction::LIST_STR => Ok(Self::Loan(LoanAction::List)),
+            LoanAction::APPROVE_STR => Ok(Self::Loan(LoanAction::Approve)),
+            LoanAction::RECORD_PAYMENT_STR => Ok(Self::Loan(LoanAction::RecordPayment)),
+
+            TermAction::UPDATE_STR => Ok(Self::Term(TermAction::Update)),
+            TermAction::READ_STR => Ok(Self::Term(TermAction::Read)),
+
+            UserAction::CREATE_STR => Ok(Self::User(UserAction::Create)),
+            UserAction::READ_STR => Ok(Self::User(UserAction::Read)),
+            UserAction::LIST_STR => Ok(Self::User(UserAction::List)),
+            UserAction::UPDATE_STR => Ok(Self::User(UserAction::Update)),
+            UserAction::DELETE_STR => Ok(Self::User(UserAction::Delete)),
+            UserAction::ASSIGN_ROLE_SUPERUSER_STR => {
+                Ok(Self::User(UserAction::AssignRole(Role::Superuser)))
+            }
+            UserAction::ASSIGN_ROLE_ADMIN_STR => {
+                Ok(Self::User(UserAction::AssignRole(Role::Admin)))
+            }
+            UserAction::ASSIGN_ROLE_BANK_MANAGER_STR => {
                 Ok(Self::User(UserAction::AssignRole(Role::BankManager)))
             }
-            "user-revoke-role-superuser" => Ok(Self::User(UserAction::RevokeRole(Role::Superuser))),
-            "user-revoke-role-admin" => Ok(Self::User(UserAction::RevokeRole(Role::Admin))),
-            "user-revoke-role-bank-manager" => {
+            UserAction::REVOKE_ROLE_SUPERUSER_STR => {
+                Ok(Self::User(UserAction::RevokeRole(Role::Superuser)))
+            }
+            UserAction::REVOKE_ROLE_ADMIN_STR => {
+                Ok(Self::User(UserAction::RevokeRole(Role::Admin)))
+            }
+            UserAction::REVOKE_ROLE_BANK_MANAGER_STR => {
                 Ok(Self::User(UserAction::RevokeRole(Role::BankManager)))
             }
-            "audit-list" => Ok(Self::Audit(AuditAction::List)),
-            "customer-create" => Ok(Self::Customer(CustomerAction::Create)),
-            "customer-read" => Ok(Self::Customer(CustomerAction::Read)),
-            "customer-list" => Ok(Self::Customer(CustomerAction::List)),
-            "customer-update" => Ok(Self::Customer(CustomerAction::Update)),
-            "deposit-record" => Ok(Self::Deposit(DepositAction::Record)),
-            "deposit-read" => Ok(Self::Deposit(DepositAction::Read)),
-            "deposit-list" => Ok(Self::Deposit(DepositAction::List)),
-            "withdraw-initiate" => Ok(Self::Withdraw(WithdrawAction::Initiate)),
-            "withdraw-confirm" => Ok(Self::Withdraw(WithdrawAction::Confirm)),
-            "withdraw-read" => Ok(Self::Deposit(DepositAction::Read)),
-            "withdraw-list" => Ok(Self::Deposit(DepositAction::List)),
-            "ledger-read" => Ok(Self::Ledger(LedgerAction::Read)),
+
+            AuditAction::LIST_STR => Ok(Self::Audit(AuditAction::List)),
+
+            CustomerAction::CREATE_STR => Ok(Self::Customer(CustomerAction::Create)),
+            CustomerAction::READ_STR => Ok(Self::Customer(CustomerAction::Read)),
+            CustomerAction::LIST_STR => Ok(Self::Customer(CustomerAction::List)),
+            CustomerAction::UPDATE_STR => Ok(Self::Customer(CustomerAction::Update)),
+
+            DepositAction::RECORD_STR => Ok(Self::Deposit(DepositAction::Record)),
+            DepositAction::READ_STR => Ok(Self::Deposit(DepositAction::Read)),
+            DepositAction::LIST_STR => Ok(Self::Deposit(DepositAction::List)),
+
+            WithdrawAction::INITIATE_STR => Ok(Self::Withdraw(WithdrawAction::Initiate)),
+            WithdrawAction::CONFIRM_STR => Ok(Self::Withdraw(WithdrawAction::Confirm)),
+            WithdrawAction::READ_STR => Ok(Self::Deposit(DepositAction::Read)),
+            WithdrawAction::LIST_STR => Ok(Self::Deposit(DepositAction::List)),
+
+            LedgerAction::READ_STR => Ok(Self::Ledger(LedgerAction::Read)),
+
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
