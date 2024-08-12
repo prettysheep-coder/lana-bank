@@ -84,13 +84,13 @@ pub enum Subject {
 
 impl From<UserId> for Subject {
     fn from(s: UserId) -> Self {
-        Subject::User(s.into())
+        Subject::User(s)
     }
 }
 
 impl From<CustomerId> for Subject {
     fn from(s: CustomerId) -> Self {
-        Subject::Customer(s.into())
+        Subject::Customer(s)
     }
 }
 
@@ -115,9 +115,9 @@ impl From<&Subject> for UserId {
 impl From<Subject> for String {
     fn from(s: Subject) -> Self {
         match s {
-            Subject::Customer(id) => format!("customer:{}", id.to_string()),
-            Subject::User(id) => format!("user:{}", id.to_string()),
-            Subject::System => format!("system:{}", Uuid::nil().to_string()),
+            Subject::Customer(id) => format!("customer:{}", id),
+            Subject::User(id) => format!("user:{}", id),
+            Subject::System => format!("system:{}", Uuid::nil()),
         }
     }
 }
@@ -127,7 +127,7 @@ impl std::fmt::Display for Subject {
         match self {
             Subject::Customer(id) => write!(f, "customer:{}", id),
             Subject::User(id) => write!(f, "user:{}", id),
-            Subject::System => write!(f, "system:{}", Uuid::nil().to_string()),
+            Subject::System => write!(f, "system:{}", Uuid::nil()),
         }
     }
 }
