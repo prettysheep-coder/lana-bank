@@ -96,6 +96,7 @@ export type AuditEntry = {
   id: Scalars['ID']['output'];
   object: Scalars['String']['output'];
   subject: Scalars['UUID']['output'];
+  subjectType: Scalars['String']['output'];
 };
 
 export type AuditEntryConnection = {

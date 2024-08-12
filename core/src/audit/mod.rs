@@ -36,16 +36,16 @@ struct RawAuditEntry {
 }
 
 pub enum SubjectType {
-    Admin,
-    Public,
+    User,
+    Customer,
     System,
 }
 
 impl SubjectType {
     pub fn as_str(&self) -> &str {
         match self {
-            Self::Admin => "admin",
-            Self::Public => "public",
+            Self::User => "user",
+            Self::Customer => "customer",
             Self::System => "system",
         }
     }
@@ -56,8 +56,8 @@ impl FromStr for SubjectType {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "admin" => Ok(SubjectType::Admin),
-            "public" => Ok(SubjectType::Public),
+            "user" => Ok(SubjectType::User),
+            "customer" => Ok(SubjectType::Customer),
             "system" => Ok(SubjectType::System),
             _ => Err(()),
         }
@@ -82,8 +82,8 @@ impl Audit {
         authorized: bool,
     ) -> Result<(), AuditError> {
         let (sub, subject_type): (Uuid, SubjectType) = match subject {
-            Subject::Admin(sub) => (sub.into(), SubjectType::Admin),
-            Subject::Public(sub) => (sub.into(), SubjectType::Public),
+            Subject::User(sub) => (sub.into(), SubjectType::User),
+            Subject::Customer(sub) => (sub.into(), SubjectType::Customer),
             Subject::System => (Uuid::nil(), SubjectType::System),
         };
 
@@ -157,8 +157,8 @@ impl Audit {
                     SubjectType::from_str(&raw_event.subject_type).expect("Unexpected type value");
 
                 let subject = match subject_type {
-                    SubjectType::Admin => Subject::Admin(UserId::from(raw_event.subject)),
-                    SubjectType::Public => Subject::Public(CustomerId::from(raw_event.subject)),
+                    SubjectType::User => Subject::User(UserId::from(raw_event.subject)),
+                    SubjectType::Customer => Subject::Customer(CustomerId::from(raw_event.subject)),
                     SubjectType::System => Subject::System,
                 };
 

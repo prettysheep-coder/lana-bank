@@ -77,27 +77,27 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy)]
 pub enum Subject {
-    Public(CustomerId),
-    Admin(UserId),
+    Customer(CustomerId),
+    User(UserId),
     System,
 }
 
 impl From<UserId> for Subject {
     fn from(s: UserId) -> Self {
-        Subject::Admin(s.into())
+        Subject::User(s.into())
     }
 }
 
 impl From<CustomerId> for Subject {
     fn from(s: CustomerId) -> Self {
-        Subject::Public(s.into())
+        Subject::Customer(s.into())
     }
 }
 
 impl From<Subject> for UserId {
     fn from(s: Subject) -> Self {
         match s {
-            Subject::Admin(id) => id,
+            Subject::User(id) => id,
             _ => panic!("Cannot convert to UserId"),
         }
     }
@@ -106,7 +106,7 @@ impl From<Subject> for UserId {
 impl From<&Subject> for UserId {
     fn from(s: &Subject) -> Self {
         match s {
-            Subject::Admin(id) => *id,
+            Subject::User(id) => *id,
             _ => panic!("Cannot convert to UserId"),
         }
     }
@@ -115,8 +115,8 @@ impl From<&Subject> for UserId {
 impl From<Subject> for String {
     fn from(s: Subject) -> Self {
         match s {
-            Subject::Public(id) => format!("customer:{}", id.to_string()),
-            Subject::Admin(id) => format!("user:{}", id.to_string()),
+            Subject::Customer(id) => format!("customer:{}", id.to_string()),
+            Subject::User(id) => format!("user:{}", id.to_string()),
             Subject::System => format!("system:{}", Uuid::nil().to_string()),
         }
     }
@@ -125,8 +125,8 @@ impl From<Subject> for String {
 impl std::fmt::Display for Subject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Subject::Public(id) => write!(f, "customer:{}", id),
-            Subject::Admin(id) => write!(f, "user:{}", id),
+            Subject::Customer(id) => write!(f, "customer:{}", id),
+            Subject::User(id) => write!(f, "user:{}", id),
             Subject::System => write!(f, "system:{}", Uuid::nil().to_string()),
         }
     }

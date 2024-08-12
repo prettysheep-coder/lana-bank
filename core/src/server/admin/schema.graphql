@@ -64,6 +64,7 @@ scalar AnnualRatePct
 type AuditEntry {
 	id: ID!
 	subject: UUID!
+	subjectType: String!
 	object: String!
 	action: String!
 	authorized: Boolean!

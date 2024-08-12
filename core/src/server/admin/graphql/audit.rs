@@ -20,8 +20,8 @@ const NIL_UUID: uuid::Uuid = Uuid::nil();
 impl From<crate::audit::AuditEntry> for AuditEntry {
     fn from(audit_log: crate::audit::AuditEntry) -> Self {
         let (subject, subject_type): (Uuid, String) = match audit_log.subject {
-            crate::primitives::Subject::Admin(id) => (Uuid::from(id), "Admin".to_owned()),
-            crate::primitives::Subject::Public(id) => (Uuid::from(id), "User".to_owned()),
+            crate::primitives::Subject::User(id) => (Uuid::from(id), "User".to_owned()),
+            crate::primitives::Subject::Customer(id) => (Uuid::from(id), "Customer".to_owned()),
             crate::primitives::Subject::System => (NIL_UUID, "System".to_owned()),
         };
 

@@ -69,7 +69,7 @@ pub struct AdminAuthContext {
 impl AdminAuthContext {
     pub fn new(sub: impl Into<UserId>) -> Self {
         Self {
-            sub: Subject::Admin(sub.into()),
+            sub: Subject::User(sub.into()),
         }
     }
 }
