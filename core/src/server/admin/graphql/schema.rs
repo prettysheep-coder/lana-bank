@@ -1,4 +1,4 @@
-use async_graphql::{types::connection::*, Context, Object, Result};
+use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
@@ -13,7 +13,7 @@ use crate::{
         admin::AdminAuthContext,
         shared_graphql::{
             customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
-            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+            sumsub::SumsubPermalinkCreatePayload, terms::Terms,
         },
     },
 };
@@ -27,7 +27,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i64,
         after: Option<String>,
-    ) -> Result<Connection<AuditCursor, AuditEntry>> {
+    ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
@@ -99,7 +99,8 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>>
+    {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         query(
