@@ -12,8 +12,9 @@ use crate::{
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
-            customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
-            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+            customer::Customer, deposit::Deposit, loan::Loan, objects::SuccessPayload,
+            primitives::UUID, sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+            withdraw::Withdrawal,
         },
     },
 };
