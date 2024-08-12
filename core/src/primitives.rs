@@ -77,8 +77,8 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy)]
 pub enum Subject {
-    Public(uuid::Uuid),
-    Admin(uuid::Uuid),
+    Public(CustomerId),
+    Admin(UserId),
     System,
 }
 
@@ -94,54 +94,40 @@ impl From<CustomerId> for Subject {
     }
 }
 
-impl From<Uuid> for Subject {
-    fn from(s: Uuid) -> Self {
-        // FIXME we don't differentiate between public and admin subjects
-        Subject::Admin(s)
+impl From<Subject> for UserId {
+    fn from(s: Subject) -> Self {
+        match s {
+            Subject::Admin(id) => id,
+            _ => panic!("Cannot convert to UserId"),
+        }
     }
 }
 
-const NIL_UUID: uuid::Uuid = Uuid::nil();
+impl From<&Subject> for UserId {
+    fn from(s: &Subject) -> Self {
+        match s {
+            Subject::Admin(id) => *id,
+            _ => panic!("Cannot convert to UserId"),
+        }
+    }
+}
 
-impl AsRef<uuid::Uuid> for Subject {
-    fn as_ref(&self) -> &uuid::Uuid {
+impl From<Subject> for String {
+    fn from(s: Subject) -> Self {
+        match s {
+            Subject::Public(id) => format!("customer:{}", id.to_string()),
+            Subject::Admin(id) => format!("user:{}", id.to_string()),
+            Subject::System => format!("system:{}", Uuid::nil().to_string()),
+        }
+    }
+}
+
+impl std::fmt::Display for Subject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Subject::Public(uuid) => uuid,
-            Subject::Admin(uuid) => uuid,
-            Subject::System => &NIL_UUID,
-        }
-    }
-}
-
-impl std::ops::Deref for Subject {
-    type Target = uuid::Uuid;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl Subject {
-    pub fn inner(&self) -> &uuid::Uuid {
-        self.as_ref()
-    }
-}
-
-impl From<&Subject> for uuid::Uuid {
-    fn from(subject: &Subject) -> Self {
-        match subject {
-            Subject::Public(uuid) => *uuid,
-            Subject::Admin(uuid) => *uuid,
-            Subject::System => Uuid::nil(),
-        }
-    }
-}
-
-impl From<Subject> for uuid::Uuid {
-    fn from(subject: Subject) -> Self {
-        match subject {
-            Subject::Public(uuid) => uuid,
-            Subject::Admin(uuid) => uuid,
-            Subject::System => Uuid::nil(),
+            Subject::Public(id) => write!(f, "customer:{}", id),
+            Subject::Admin(id) => write!(f, "user:{}", id),
+            Subject::System => write!(f, "system:{}", Uuid::nil().to_string()),
         }
     }
 }

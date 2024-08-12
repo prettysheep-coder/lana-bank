@@ -13,9 +13,11 @@ use axum_extra::headers::HeaderMap;
 use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
-use uuid::Uuid;
 
-use crate::{app::LavaApp, primitives::Subject};
+use crate::{
+    app::LavaApp,
+    primitives::{Subject, UserId},
+};
 
 pub use config::*;
 
@@ -58,13 +60,14 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     Ok(())
 }
 
+// admin/public Auth context can be removed as Subject has the right context already
 #[derive(Debug, Clone)]
 pub struct AdminAuthContext {
     pub sub: Subject,
 }
 
 impl AdminAuthContext {
-    pub fn new(sub: impl Into<Uuid>) -> Self {
+    pub fn new(sub: impl Into<UserId>) -> Self {
         Self {
             sub: Subject::Admin(sub.into()),
         }

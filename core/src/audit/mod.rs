@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use crate::{
     authorization::{Action, Object},
-    primitives::{AuditEntryId, Subject},
+    primitives::{AuditEntryId, CustomerId, Subject, UserId},
 };
 
 pub struct AuditEntry {
@@ -81,11 +81,10 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
-        let nil_uuid = Uuid::nil();
-        let (sub, subject_type) = match subject {
-            Subject::Admin(sub) => (sub, SubjectType::Admin),
-            Subject::Public(sub) => (sub, SubjectType::Public),
-            Subject::System => (nil_uuid.as_ref(), SubjectType::System),
+        let (sub, subject_type): (Uuid, SubjectType) = match subject {
+            Subject::Admin(sub) => (sub.into(), SubjectType::Admin),
+            Subject::Public(sub) => (sub.into(), SubjectType::Public),
+            Subject::System => (Uuid::nil(), SubjectType::System),
         };
 
         sqlx::query!(
@@ -158,8 +157,8 @@ impl Audit {
                     SubjectType::from_str(&raw_event.subject_type).expect("Unexpected type value");
 
                 let subject = match subject_type {
-                    SubjectType::Admin => Subject::Admin(raw_event.subject),
-                    SubjectType::Public => Subject::Public(raw_event.subject),
+                    SubjectType::Admin => Subject::Admin(UserId::from(raw_event.subject)),
+                    SubjectType::Public => Subject::Public(CustomerId::from(raw_event.subject)),
                     SubjectType::System => Subject::System,
                 };
 

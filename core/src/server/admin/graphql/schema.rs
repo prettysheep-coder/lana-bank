@@ -77,7 +77,8 @@ impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let user = app.users().find_for_subject(sub).await?;
+        let user = app.users().find_by_id(sub, sub.into()).await?;
+        let user = user.expect("User always exists");
         Ok(User::from(user))
     }
 

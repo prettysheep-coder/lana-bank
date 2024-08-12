@@ -15,7 +15,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
 
-    let superuser_id = uuid::Uuid::new_v4();
+    let superuser_id = UserId::from(uuid::Uuid::new_v4());
     let superuser_subject = Subject::from(superuser_id);
     authz
         .assign_role_to_subject(superuser_subject, &Role::Superuser)
@@ -73,7 +73,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
 
-    let admin_id = uuid::Uuid::new_v4();
+    let admin_id = UserId::from(uuid::Uuid::new_v4());
     let admin_subject = Subject::from(admin_id);
     authz
         .assign_role_to_subject(admin_subject, &Role::Admin)
@@ -133,7 +133,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
 
-    let bank_manager_id = uuid::Uuid::new_v4();
+    let bank_manager_id = UserId::from(uuid::Uuid::new_v4());
     let bank_manager_subject = Subject::from(bank_manager_id);
     authz
         .assign_role_to_subject(bank_manager_subject, &Role::BankManager)
