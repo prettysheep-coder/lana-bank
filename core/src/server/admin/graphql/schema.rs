@@ -408,7 +408,7 @@ impl Mutation {
         let UserAssignRoleInput { id, role } = input;
         let user = app
             .users()
-            .assign_role_to_user(sub, id.into(), role.into())
+            .assign_role_to_user(sub, id.into(), role)
             .await?;
         Ok(UserAssignRolePayload::from(user))
     }
@@ -423,7 +423,7 @@ impl Mutation {
         let UserRevokeRoleInput { id, role } = input;
         let user = app
             .users()
-            .revoke_role_from_user(sub, id.into(), role.into())
+            .revoke_role_from_user(sub, id.into(), role)
             .await?;
         Ok(UserRevokeRolePayload::from(user))
     }
