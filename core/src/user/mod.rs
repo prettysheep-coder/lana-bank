@@ -89,6 +89,14 @@ impl Users {
         }
     }
 
+    pub async fn find_by_id_internal(&self, id: UserId) -> Result<Option<User>, UserError> {
+        match self.repo.find_by_id(id).await {
+            Ok(user) => Ok(Some(user)),
+            Err(UserError::CouldNotFindById(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn find_by_email(&self, email: impl Into<String>) -> Result<Option<User>, UserError> {
         match self.repo.find_by_email(email).await {
             Ok(user) => Ok(Some(user)),

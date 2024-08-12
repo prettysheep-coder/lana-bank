@@ -44,12 +44,13 @@ impl Query {
         let res = app.list_audit(sub, query_args).await?;
 
         let mut connection = Connection::new(false, res.has_next_page);
-        connection
-            .edges
-            .extend(res.entities.into_iter().map(|entry| {
-                let cursor = AuditCursor { id: entry.id.0 };
-                Edge::new(cursor, AuditEntry::from(entry))
-            }));
+        for entry in res.entities {
+            let audit_entry = AuditEntry::from_async(entry, app.users(), app.customers()).await;
+            let cursor = AuditCursor {
+                id: audit_entry.id.parse().unwrap(),
+            };
+            connection.edges.push(Edge::new(cursor, audit_entry));
+        }
 
         Ok(connection)
     }
