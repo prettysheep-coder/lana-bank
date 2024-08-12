@@ -192,7 +192,8 @@ impl Authorization {
         object: Object,
         action: impl Into<Action>,
     ) -> Result<bool, AuthorizationError> {
-        let enforcer = self.enforcer.read().await;
+        let mut enforcer = self.enforcer.write().await;
+        enforcer.load_policy().await?;
 
         let action = action.into();
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
