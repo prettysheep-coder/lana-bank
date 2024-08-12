@@ -28,20 +28,20 @@ pub struct AuditEntry {
 struct RawAuditEntry {
     id: AuditEntryId,
     subject: Uuid,
-    endpoint: String,
+    subject_type: String,
     object: String,
     action: String,
     authorized: bool,
     created_at: DateTime<Utc>,
 }
 
-pub enum Endpoint {
+pub enum SubjectType {
     Admin,
     Public,
     System,
 }
 
-impl Endpoint {
+impl SubjectType {
     pub fn as_str(&self) -> &str {
         match self {
             Self::Admin => "admin",
@@ -51,14 +51,14 @@ impl Endpoint {
     }
 }
 
-impl FromStr for Endpoint {
+impl FromStr for SubjectType {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "admin" => Ok(Endpoint::Admin),
-            "public" => Ok(Endpoint::Public),
-            "system" => Ok(Endpoint::System),
+            "admin" => Ok(SubjectType::Admin),
+            "public" => Ok(SubjectType::Public),
+            "system" => Ok(SubjectType::System),
             _ => Err(()),
         }
     }
@@ -81,20 +81,20 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
-        let nil_uuid = Uuid::nil(); // Create a binding for the nil UUID
-        let (sub, endpoint) = match subject {
-            Subject::Admin(sub) => (sub, Endpoint::Admin),
-            Subject::Public(sub) => (sub, Endpoint::Public),
-            Subject::System => (nil_uuid.as_ref(), Endpoint::System), // Use the binding
+        let nil_uuid = Uuid::nil();
+        let (sub, subject_type) = match subject {
+            Subject::Admin(sub) => (sub, SubjectType::Admin),
+            Subject::Public(sub) => (sub, SubjectType::Public),
+            Subject::System => (nil_uuid.as_ref(), SubjectType::System),
         };
 
         sqlx::query!(
             r#"
-                INSERT INTO audit_entries (subject, endpoint, object, action, authorized)
+                INSERT INTO audit_entries (subject, subject_type, object, action, authorized)
                 VALUES ($1, $2, $3, $4, $5)
                 "#,
             sub,
-            endpoint.as_str(),
+            subject_type.as_str(),
             object.as_ref(),
             action.as_ref(),
             authorized,
@@ -118,7 +118,7 @@ impl Audit {
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
             RawAuditEntry,
             r#"
-            SELECT id, subject, endpoint, object, action, authorized, created_at
+            SELECT id, subject, subject_type, object, action, authorized, created_at
             FROM audit_entries
             WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
             ORDER BY id DESC
@@ -154,13 +154,13 @@ impl Audit {
         let audit_entries: Vec<AuditEntry> = events
             .into_iter()
             .map(|raw_event| {
-                let endpoint =
-                    Endpoint::from_str(&raw_event.endpoint).expect("Unexpected endpoint value");
+                let subject_type =
+                    SubjectType::from_str(&raw_event.subject_type).expect("Unexpected type value");
 
-                let subject = match endpoint {
-                    Endpoint::Admin => Subject::Admin(raw_event.subject),
-                    Endpoint::Public => Subject::Public(raw_event.subject),
-                    Endpoint::System => Subject::System,
+                let subject = match subject_type {
+                    SubjectType::Admin => Subject::Admin(raw_event.subject),
+                    SubjectType::Public => Subject::Public(raw_event.subject),
+                    SubjectType::System => Subject::System,
                 };
 
                 AuditEntry {

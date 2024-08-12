@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT id, subject, endpoint, object, action, authorized, created_at\n            FROM audit_entries\n            WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)\n            ORDER BY id DESC\n            LIMIT $2\n            ",
+  "query": "\n            SELECT id, subject, subject_type, object, action, authorized, created_at\n            FROM audit_entries\n            WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)\n            ORDER BY id DESC\n            LIMIT $2\n            ",
   "describe": {
     "columns": [
       {
@@ -15,7 +15,7 @@
       },
       {
         "ordinal": 2,
-        "name": "endpoint",
+        "name": "subject_type",
         "type_info": "Varchar"
       },
       {
@@ -55,5 +55,5 @@
       false
     ]
   },
-  "hash": "49ba4d08dc8e46318174e3cdfe76d5944a9d234cd00f3bc0290ae03b3cc56849"
+  "hash": "5fe17555f812666a3321f8cf6e6755f028bf7834ac969a344113b51b31a55b75"
 }
