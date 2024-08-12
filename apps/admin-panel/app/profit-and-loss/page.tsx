@@ -126,11 +126,6 @@ const ProfitAndLossStatement = ({
       <Table>
         <TableBody>
           {categories?.map((category) => {
-            console.log(
-              category.name,
-              BALANCE_FOR_CATEGORY[category.name].TransactionType,
-            )
-
             return (
               <CategoryRow
                 key={category.name}
