@@ -145,7 +145,7 @@ function WithdrawalInitiateDialog({
                     id="amount"
                     type="number"
                     required
-                    placeholder="Enter the deposit amount"
+                    placeholder="Enter amount"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
