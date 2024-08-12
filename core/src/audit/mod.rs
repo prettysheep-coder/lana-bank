@@ -38,6 +38,7 @@ struct RawAuditEntry {
 pub enum Endpoint {
     Admin,
     Public,
+    System,
 }
 
 impl Endpoint {
@@ -45,6 +46,7 @@ impl Endpoint {
         match self {
             Self::Admin => "admin",
             Self::Public => "public",
+            Self::System => "system",
         }
     }
 }
@@ -56,6 +58,7 @@ impl FromStr for Endpoint {
         match s {
             "admin" => Ok(Endpoint::Admin),
             "public" => Ok(Endpoint::Public),
+            "system" => Ok(Endpoint::System),
             _ => Err(()),
         }
     }
@@ -78,9 +81,11 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
+        let nil_uuid = Uuid::nil(); // Create a binding for the nil UUID
         let (sub, endpoint) = match subject {
             Subject::Admin(sub) => (sub, Endpoint::Admin),
             Subject::Public(sub) => (sub, Endpoint::Public),
+            Subject::System => (nil_uuid.as_ref(), Endpoint::System), // Use the binding
         };
 
         sqlx::query!(
@@ -155,6 +160,7 @@ impl Audit {
                 let subject = match endpoint {
                     Endpoint::Admin => Subject::Admin(raw_event.subject),
                     Endpoint::Public => Subject::Public(raw_event.subject),
+                    Endpoint::System => Subject::System,
                 };
 
                 AuditEntry {

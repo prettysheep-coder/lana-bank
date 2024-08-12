@@ -1,6 +1,7 @@
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use std::{fmt, str::FromStr};
 use thiserror::Error;
@@ -74,10 +75,11 @@ pub use cala_types::primitives::{
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Subject {
     Public(uuid::Uuid),
     Admin(uuid::Uuid),
+    System,
 }
 
 impl From<UserId> for Subject {
@@ -92,11 +94,21 @@ impl From<CustomerId> for Subject {
     }
 }
 
+impl From<Uuid> for Subject {
+    fn from(s: Uuid) -> Self {
+        // FIXME we don't differenciate between public and admin subjects
+        Subject::Admin(s)
+    }
+}
+
+const NIL_UUID: uuid::Uuid = Uuid::nil();
+
 impl AsRef<uuid::Uuid> for Subject {
     fn as_ref(&self) -> &uuid::Uuid {
         match self {
             Subject::Public(uuid) => uuid,
             Subject::Admin(uuid) => uuid,
+            Subject::System => &NIL_UUID,
         }
     }
 }
@@ -119,6 +131,17 @@ impl From<&Subject> for uuid::Uuid {
         match subject {
             Subject::Public(uuid) => *uuid,
             Subject::Admin(uuid) => *uuid,
+            Subject::System => Uuid::nil(),
+        }
+    }
+}
+
+impl From<Subject> for uuid::Uuid {
+    fn from(subject: Subject) -> Self {
+        match subject {
+            Subject::Public(uuid) => uuid,
+            Subject::Admin(uuid) => uuid,
+            Subject::System => Uuid::nil(),
         }
     }
 }
