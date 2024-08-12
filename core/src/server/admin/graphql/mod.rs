@@ -2,13 +2,13 @@ mod account;
 mod account_set;
 mod audit;
 mod customer;
-mod deposit;
+pub mod deposit;
 mod loan;
 mod schema;
 mod shareholder_equity;
 mod terms;
 mod user;
-mod withdraw;
+pub mod withdraw;
 
 use async_graphql::*;
 

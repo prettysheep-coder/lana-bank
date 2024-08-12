@@ -17,6 +17,7 @@ use tower_http::cors::CorsLayer;
 use crate::{app::LavaApp, primitives::Subject};
 
 pub use config::*;
+pub use graphql::{deposit, withdraw};
 
 use super::jwks::{Claims, JwtDecoderState, RemoteJwksDecoder};
 

@@ -4,8 +4,10 @@ use crate::{
     app::LavaApp,
     ledger, primitives,
     server::{
+        admin::deposit::Deposit,
+        admin::withdraw::Withdrawal,
         admin::AdminAuthContext,
-        shared_graphql::{deposit::*, loan::Loan, primitives::UUID, withdraw::*},
+        shared_graphql::{loan::Loan, primitives::UUID},
     },
 };
 
