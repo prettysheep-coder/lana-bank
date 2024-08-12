@@ -133,7 +133,6 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
 
-    
     let bank_manager_id = uuid::Uuid::new_v4();
     let bank_manager_subject = Subject::from(bank_manager_id);
     authz

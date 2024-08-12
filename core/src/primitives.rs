@@ -96,7 +96,7 @@ impl From<CustomerId> for Subject {
 
 impl From<Uuid> for Subject {
     fn from(s: Uuid) -> Self {
-        // FIXME we don't differenciate between public and admin subjects
+        // FIXME we don't differentiate between public and admin subjects
         Subject::Admin(s)
     }
 }
