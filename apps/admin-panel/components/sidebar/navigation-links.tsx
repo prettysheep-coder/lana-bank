@@ -27,7 +27,7 @@ const navLinks = [
   { href: "/audit", label: "Audit Logs", icon: IoTimeOutline },
   { href: "/users", label: "Users", icon: RiAdminLine },
   {
-    label: "Financial",
+    label: "Financials",
     icon: IoCashOutline,
     subMenu: [
       { href: "/chart-of-accounts", label: "Chart of Accounts" },
