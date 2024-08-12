@@ -5,7 +5,7 @@ use crate::{
     ledger, primitives,
     server::{
         admin::AdminAuthContext,
-        shared_graphql::{deposit::*, loan::Loan, primitives::UUID},
+        shared_graphql::{deposit::*, loan::Loan, primitives::UUID, withdraw::*},
     },
 };
 
@@ -69,6 +69,19 @@ impl Customer {
             .map(Deposit::from)
             .collect();
         Ok(deposits)
+    }
+
+    async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let withdraws = app
+            .withdraws()
+            .list_for_customer(sub, primitives::CustomerId::from(&self.customer_id))
+            .await?
+            .into_iter()
+            .map(Withdrawal::from)
+            .collect();
+        Ok(withdraws)
     }
 }
 

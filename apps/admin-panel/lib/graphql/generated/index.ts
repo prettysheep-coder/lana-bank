@@ -159,6 +159,7 @@ export type Customer = {
   level: KycLevel;
   loans: Array<Loan>;
   status: AccountStatus;
+  withdrawals: Array<Withdrawal>;
 };
 
 export type CustomerBalance = {
@@ -473,6 +474,8 @@ export type Query = {
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
+  withdrawal?: Maybe<Withdrawal>;
+  withdrawals: WithdrawalConnection;
 };
 
 
@@ -516,6 +519,17 @@ export type QueryLoanArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryWithdrawalArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryWithdrawalsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export enum Role {
@@ -647,6 +661,25 @@ export type WithdrawalConfirmInput = {
 export type WithdrawalConfirmPayload = {
   __typename?: 'WithdrawalConfirmPayload';
   withdrawal: Withdrawal;
+};
+
+export type WithdrawalConnection = {
+  __typename?: 'WithdrawalConnection';
+  /** A list of edges. */
+  edges: Array<WithdrawalEdge>;
+  /** A list of nodes. */
+  nodes: Array<Withdrawal>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type WithdrawalEdge = {
+  __typename?: 'WithdrawalEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Withdrawal;
 };
 
 export type WithdrawalInitiateInput = {
