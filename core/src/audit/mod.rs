@@ -27,7 +27,7 @@ pub struct AuditEntry {
 #[derive(Debug, FromRow)]
 struct RawAuditEntry {
     id: AuditEntryId,
-    subject: Uuid,
+    subject_uuid: Uuid,
     subject_type: String,
     object: String,
     action: String,
@@ -81,7 +81,7 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
-        let (sub, subject_type): (Uuid, SubjectType) = match subject {
+        let (subject_uuid, subject_type): (Uuid, SubjectType) = match subject {
             Subject::User(sub) => (sub.into(), SubjectType::User),
             Subject::Customer(sub) => (sub.into(), SubjectType::Customer),
             Subject::System => (Uuid::nil(), SubjectType::System),
@@ -89,10 +89,10 @@ impl Audit {
 
         sqlx::query!(
             r#"
-                INSERT INTO audit_entries (subject, subject_type, object, action, authorized)
+                INSERT INTO audit_entries (subject_uuid, subject_type, object, action, authorized)
                 VALUES ($1, $2, $3, $4, $5)
                 "#,
-            sub,
+            subject_uuid,
             subject_type.as_str(),
             object.as_ref(),
             action.as_ref(),
@@ -117,7 +117,7 @@ impl Audit {
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
             RawAuditEntry,
             r#"
-            SELECT id, subject, subject_type, object, action, authorized, created_at
+            SELECT id, subject_uuid, subject_type, object, action, authorized, created_at
             FROM audit_entries
             WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
             ORDER BY id DESC
@@ -157,8 +157,10 @@ impl Audit {
                     SubjectType::from_str(&raw_event.subject_type).expect("Unexpected type value");
 
                 let subject = match subject_type {
-                    SubjectType::User => Subject::User(UserId::from(raw_event.subject)),
-                    SubjectType::Customer => Subject::Customer(CustomerId::from(raw_event.subject)),
+                    SubjectType::User => Subject::User(UserId::from(raw_event.subject_uuid)),
+                    SubjectType::Customer => {
+                        Subject::Customer(CustomerId::from(raw_event.subject_uuid))
+                    }
                     SubjectType::System => Subject::System,
                 };
 
