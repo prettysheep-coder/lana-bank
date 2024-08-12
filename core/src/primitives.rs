@@ -111,7 +111,7 @@ impl From<&Subject> for uuid::Uuid {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(async_graphql::Enum, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Role {
     Superuser,
     Admin,
