@@ -25,10 +25,18 @@ type Customer {
 	applicantId: String
 	balance: CustomerBalance!
 	loans: [Loan!]!
+	deposits: [Deposit!]!
 }
 
 type CustomerBalance {
 	checking: Checking!
+}
+
+type Deposit {
+	customerId: UUID!
+	depositId: UUID!
+	amount: UsdCents!
+	customer: Customer
 }
 
 type Duration {
