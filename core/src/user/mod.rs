@@ -99,7 +99,10 @@ impl Users {
         }
     }
 
-    pub async fn find_all(&self, ids: &[UserId]) -> Result<HashMap<UserId, User>, UserError> {
+    pub async fn find_all<T: From<User>>(
+        &self,
+        ids: &[UserId],
+    ) -> Result<HashMap<UserId, T>, UserError> {
         self.repo.find_all(ids).await
     }
 

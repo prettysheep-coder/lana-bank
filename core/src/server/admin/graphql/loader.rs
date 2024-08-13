@@ -1,10 +1,7 @@
 use async_graphql::dataloader::Loader;
 
-use crate::{
-    app::LavaApp,
-    primitives::UserId,
-    user::{error::UserError, User},
-};
+use super::user::User;
+use crate::{app::LavaApp, primitives::UserId, user::error::UserError};
 
 use std::{collections::HashMap, sync::Arc};
 

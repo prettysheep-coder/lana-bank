@@ -101,7 +101,10 @@ impl UserRepo {
         Ok(())
     }
 
-    pub async fn find_all(&self, ids: &[UserId]) -> Result<HashMap<UserId, User>, UserError> {
+    pub async fn find_all<T: From<User>>(
+        &self,
+        ids: &[UserId],
+    ) -> Result<HashMap<UserId, T>, UserError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT a.id, e.sequence, e.event,
@@ -110,15 +113,13 @@ impl UserRepo {
             JOIN user_events e
             ON a.id = e.id
             WHERE a.id = ANY($1)"#,
-            // is this the right way to do this?
-            &ids.into_iter().map(|id| Uuid::from(id)).collect::<Vec<_>>()
+            ids as &[UserId]
         )
         .fetch_all(&self.pool)
         .await?;
         let n = rows.len();
         let res = EntityEvents::load_n::<User>(rows, n)?;
 
-        todo!("return a hashmap of <UserId, User> instead of vec<User>");
-        // Ok(res.0)
+        Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
     }
 }
