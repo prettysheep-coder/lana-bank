@@ -39,7 +39,22 @@ impl AuditEntry {
     ) -> Self {
         let subject = match audit_log.subject {
             crate::primitives::Subject::User(id) => {
-                let user = users.find_by_id_internal(id).await.unwrap().unwrap();
+                let user = users.find_by_id_internal(id).await;
+                let user = match user {
+                    Ok(Some(user)) => user,
+                    _ => {
+                        return Self {
+                            id: audit_log.id.0.into(),
+                            subject: Subject::System(System {
+                                name: "Not found".to_string(),
+                            }),
+                            object: audit_log.object.as_ref().into(),
+                            action: audit_log.action.as_ref().into(),
+                            authorized: audit_log.authorized,
+                            created_at: audit_log.created_at.into(),
+                        }
+                    }
+                };
                 Subject::User(User::from(user))
             }
             crate::primitives::Subject::Customer(id) => {
