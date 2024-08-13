@@ -300,6 +300,7 @@ type Loan {
 	createdAt: Timestamp!
 	loanTerms: TermValues!
 	status: LoanStatus!
+	transactions: [Transaction!]!
 	balance: LoanBalance!
 	customer: Customer!
 }
@@ -518,6 +519,16 @@ input TermsInput {
 }
 
 scalar Timestamp
+
+type Transaction {
+	amount: UsdCents!
+	transactionType: TransactionType!
+}
+
+enum TransactionType {
+	INTEREST_PAYMENT
+	PRINCIPAL_PAYMENT
+}
 
 type TrialBalance {
 	name: String!

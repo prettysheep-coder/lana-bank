@@ -312,6 +312,7 @@ export type Loan = {
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
   status: LoanStatus;
+  transactions: Array<Transaction>;
 };
 
 export type LoanApproveInput = {
@@ -681,6 +682,17 @@ export type TermsInput = {
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
 };
+
+export type Transaction = {
+  __typename?: 'Transaction';
+  amount: Scalars['UsdCents']['output'];
+  transactionType: TransactionType;
+};
+
+export enum TransactionType {
+  InterestPayment = 'INTEREST_PAYMENT',
+  PrincipalPayment = 'PRINCIPAL_PAYMENT'
+}
 
 export type TrialBalance = {
   __typename?: 'TrialBalance';

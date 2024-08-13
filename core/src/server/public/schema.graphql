@@ -68,6 +68,7 @@ type Loan {
 	createdAt: Timestamp!
 	loanTerms: TermValues!
 	status: LoanStatus!
+	transactions: [Transaction!]!
 	balance: LoanBalance!
 	customer: Customer!
 }
@@ -123,6 +124,16 @@ type TermValues {
 }
 
 scalar Timestamp
+
+type Transaction {
+	amount: UsdCents!
+	transactionType: TransactionType!
+}
+
+enum TransactionType {
+	INTEREST_PAYMENT
+	PRINCIPAL_PAYMENT
+}
 
 scalar UUID
 

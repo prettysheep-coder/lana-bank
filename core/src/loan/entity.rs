@@ -151,6 +151,13 @@ impl Loan {
         }
     }
 
+    pub fn transactions(&self) -> Vec<&LoanEvent> {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, LoanEvent::PaymentRecorded { .. }))
+            .collect()
+    }
+
     pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
