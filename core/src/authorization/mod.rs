@@ -154,6 +154,8 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Loan, LoanAction::RecordPayment)
             .await?;
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::AdjustCollateral)
+            .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Update)
             .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Read)
@@ -452,6 +454,7 @@ pub enum LoanAction {
     Create,
     Approve,
     RecordPayment,
+    AdjustCollateral,
 }
 
 impl LoanAction {
@@ -460,6 +463,7 @@ impl LoanAction {
     const LIST_STR: &'static str = "loan-list";
     const APPROVE_STR: &'static str = "loan-approve";
     const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
+    const ADJUST_COLLATERAL_STR: &'static str = "loan-adjust-collateral";
 }
 
 impl AsRef<str> for LoanAction {
@@ -470,6 +474,7 @@ impl AsRef<str> for LoanAction {
             Self::List => Self::LIST_STR,
             Self::Approve => Self::APPROVE_STR,
             Self::RecordPayment => Self::RECORD_PAYMENT_STR,
+            Self::AdjustCollateral => Self::ADJUST_COLLATERAL_STR,
         }
     }
 }
