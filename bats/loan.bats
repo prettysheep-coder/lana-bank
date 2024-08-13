@@ -81,6 +81,20 @@ wait_for_interest() {
       input: {
         loanId: $loanId,
         collateral: 233334,
+        action: "ADD",
+      }
+    }'
+  )
+  exec_admin_graphql 'collateral-adjust' "$variables"
+  loan_id=$(graphql_output '.data.collateralAdjust.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
       }
     }'
   )

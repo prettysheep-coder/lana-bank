@@ -1,0 +1,7 @@
+mutation CollateralAdjust($input: CollateralAdjustInput!) {
+  collateralAdjust(input: $input) {
+    loan {
+      loanId
+    }
+  }
+}
