@@ -1,5 +1,4 @@
 use chrono::{DateTime, Utc};
-use std::str::FromStr;
 
 pub mod error;
 use error::AuditError;
@@ -8,11 +7,10 @@ mod cursor;
 pub use cursor::AuditCursor;
 
 use sqlx::prelude::FromRow;
-use uuid::Uuid;
 
 use crate::{
     authorization::{Action, Object},
-    primitives::{AuditEntryId, CustomerId, Subject, UserId},
+    primitives::{AuditEntryId, Subject},
 };
 
 pub struct AuditEntry {
@@ -27,41 +25,11 @@ pub struct AuditEntry {
 #[derive(Debug, FromRow)]
 struct RawAuditEntry {
     id: AuditEntryId,
-    subject_uuid: Uuid,
-    subject_type: String,
+    subject: String,
     object: String,
     action: String,
     authorized: bool,
     created_at: DateTime<Utc>,
-}
-
-pub enum SubjectType {
-    User,
-    Customer,
-    System,
-}
-
-impl SubjectType {
-    pub fn as_str(&self) -> &str {
-        match self {
-            Self::User => "user",
-            Self::Customer => "customer",
-            Self::System => "system",
-        }
-    }
-}
-
-impl FromStr for SubjectType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "user" => Ok(SubjectType::User),
-            "customer" => Ok(SubjectType::Customer),
-            "system" => Ok(SubjectType::System),
-            _ => Err(()),
-        }
-    }
 }
 
 #[derive(Clone)]
@@ -81,19 +49,12 @@ impl Audit {
         action: Action,
         authorized: bool,
     ) -> Result<(), AuditError> {
-        let (subject_uuid, subject_type): (Uuid, SubjectType) = match subject {
-            Subject::User(sub) => (sub.into(), SubjectType::User),
-            Subject::Customer(sub) => (sub.into(), SubjectType::Customer),
-            Subject::System => (Uuid::nil(), SubjectType::System),
-        };
-
         sqlx::query!(
             r#"
-                INSERT INTO audit_entries (subject_uuid, subject_type, object, action, authorized)
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO audit_entries (subject, object, action, authorized)
+                VALUES ($1, $2, $3, $4)
                 "#,
-            subject_uuid,
-            subject_type.as_str(),
+            subject.to_string(),
             object.as_ref(),
             action.as_ref(),
             authorized,
@@ -117,7 +78,7 @@ impl Audit {
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
             RawAuditEntry,
             r#"
-            SELECT id, subject_uuid, subject_type, object, action, authorized, created_at
+            SELECT id, subject, object, action, authorized, created_at
             FROM audit_entries
             WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
             ORDER BY id DESC
@@ -152,26 +113,13 @@ impl Audit {
         // Map raw events to the desired return type
         let audit_entries: Vec<AuditEntry> = events
             .into_iter()
-            .map(|raw_event| {
-                let subject_type =
-                    SubjectType::from_str(&raw_event.subject_type).expect("Unexpected type value");
-
-                let subject = match subject_type {
-                    SubjectType::User => Subject::User(UserId::from(raw_event.subject_uuid)),
-                    SubjectType::Customer => {
-                        Subject::Customer(CustomerId::from(raw_event.subject_uuid))
-                    }
-                    SubjectType::System => Subject::System,
-                };
-
-                AuditEntry {
-                    id: raw_event.id,
-                    subject,
-                    object: raw_event.object.parse().expect("Could not parse object"),
-                    action: raw_event.action.parse().expect("Could not parse action"),
-                    authorized: raw_event.authorized,
-                    created_at: raw_event.created_at,
-                }
+            .map(|raw_event| AuditEntry {
+                id: raw_event.id,
+                subject: raw_event.subject.parse().expect("Could not parse subject"),
+                object: raw_event.object.parse().expect("Could not parse object"),
+                action: raw_event.action.parse().expect("Could not parse action"),
+                authorized: raw_event.authorized,
+                created_at: raw_event.created_at,
             })
             .collect();
 

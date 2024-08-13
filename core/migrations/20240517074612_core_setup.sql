@@ -122,8 +122,7 @@ CREATE TABLE casbin_rule (
 
 CREATE TABLE audit_entries (
   id BIGSERIAL PRIMARY KEY,
-  subject_uuid UUID NOT NULL,
-  subject_type VARCHAR NOT NULL,
+  subject VARCHAR NOT NULL,
   object VARCHAR NOT NULL,
   action VARCHAR NOT NULL,
   authorized BOOLEAN NOT NULL,

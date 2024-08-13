@@ -82,6 +82,24 @@ pub enum Subject {
     System,
 }
 
+impl FromStr for Subject {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(':').collect();
+        if parts.len() != 2 {
+            return Err(());
+        }
+        let id = parts[1].parse().map_err(|_| ())?;
+        match parts[0] {
+            "customer" => Ok(Subject::Customer(CustomerId(id))),
+            "user" => Ok(Subject::User(UserId(id))),
+            "system" => Ok(Subject::System),
+            _ => Err(()),
+        }
+    }
+}
+
 impl From<UserId> for Subject {
     fn from(s: UserId) -> Self {
         Subject::User(s)
