@@ -5,6 +5,8 @@ pub mod error;
 mod kratos;
 mod repo;
 
+use std::collections::HashMap;
+
 use crate::{
     authorization::{Authorization, CustomerAction, Object},
     ledger::*,
@@ -160,5 +162,12 @@ impl Customers {
         db_tx.commit().await?;
 
         Ok(customer)
+    }
+
+    pub async fn find_all<T: From<Customer>>(
+        &self,
+        ids: &[CustomerId],
+    ) -> Result<HashMap<CustomerId, T>, CustomerError> {
+        self.repo.find_all(ids).await
     }
 }

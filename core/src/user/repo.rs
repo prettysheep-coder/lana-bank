@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use sqlx::{PgPool, Postgres, Transaction};
-use uuid::Uuid;
 
 use crate::{entity::*, primitives::UserId};
 
