@@ -40,21 +40,20 @@ impl AuditEntry {
             DomainSubject::User(id) => {
                 let user = loader.load_one(id).await?;
                 match user {
-                    None => return Err("User not found".into()),
+                    None => Err("User not found".into()),
                     Some(user) => Ok(Subject::User(user)),
                 }
             }
-
             DomainSubject::Customer(id) => {
                 let customer = loader.load_one(id).await?;
                 match customer {
-                    None => return Err("Customer not found".into()),
+                    None => Err("Customer not found".into()),
                     Some(customer) => Ok(Subject::Customer(customer)),
                 }
             }
             DomainSubject::System => {
                 let system = System {
-                    name: "System".to_string(), // Placeholder, could be anything
+                    name: "System".to_string(),
                 };
                 Ok(Subject::System(system))
             }
