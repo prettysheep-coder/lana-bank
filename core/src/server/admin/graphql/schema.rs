@@ -45,10 +45,9 @@ impl Query {
 
         let mut connection = Connection::new(false, res.has_next_page);
         for entry in res.entities {
-            let audit_entry = AuditEntry::from_async(entry, app.users(), app.customers()).await;
-            let cursor = AuditCursor {
-                id: audit_entry.id.parse().unwrap(),
-            };
+            let id = i64::from(entry.id);
+            let audit_entry = AuditEntry::from(entry);
+            let cursor = AuditCursor { id };
             connection.edges.push(Edge::new(cursor, audit_entry));
         }
 

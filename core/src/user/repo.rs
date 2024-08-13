@@ -1,4 +1,7 @@
+use std::collections::HashMap;
+
 use sqlx::{PgPool, Postgres, Transaction};
+use uuid::Uuid;
 
 use crate::{entity::*, primitives::UserId};
 
@@ -96,5 +99,26 @@ impl UserRepo {
         user.events.persist(&mut db).await?;
         db.commit().await?;
         Ok(())
+    }
+
+    pub async fn find_all(&self, ids: &[UserId]) -> Result<HashMap<UserId, User>, UserError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM users a
+            JOIN user_events e
+            ON a.id = e.id
+            WHERE a.id = ANY($1)"#,
+            // is this the right way to do this?
+            &ids.into_iter().map(|id| Uuid::from(id)).collect::<Vec<_>>()
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let n = rows.len();
+        let res = EntityEvents::load_n::<User>(rows, n)?;
+
+        todo!("return a hashmap of <UserId, User> instead of vec<User>");
+        // Ok(res.0)
     }
 }

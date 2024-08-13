@@ -396,12 +396,18 @@ impl PriceOfOneBTC {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct AuditEntryId(pub i64);
 
 impl From<i64> for AuditEntryId {
     fn from(value: i64) -> AuditEntryId {
         AuditEntryId(value)
+    }
+}
+
+impl From<AuditEntryId> for i64 {
+    fn from(value: AuditEntryId) -> i64 {
+        value.0
     }
 }
 

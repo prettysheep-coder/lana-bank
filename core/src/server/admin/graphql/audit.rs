@@ -1,13 +1,18 @@
-use async_graphql::{SimpleObject, Union, ID};
+use std::primitive;
+
+use async_graphql::{dataloader::DataLoader, ComplexObject, Context, SimpleObject, Union, ID};
 
 use crate::{
     customer::Customers,
+    primitives,
     server::{
         admin::graphql::user::User,
         shared_graphql::{customer::Customer, primitives::Timestamp},
     },
     user::Users,
 };
+
+use crate::server::admin::graphql::LavaDataLoader;
 
 #[derive(SimpleObject)]
 pub struct System {
@@ -22,60 +27,68 @@ enum Subject {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct AuditEntry {
-    pub id: ID,
-    subject: Subject,
+    id: ID,
+    #[graphql(skip)]
+    subject_str: String,
     object: String,
     action: String,
     authorized: bool,
     created_at: Timestamp,
 }
 
+#[ComplexObject]
 impl AuditEntry {
-    pub async fn from_async(
-        audit_log: crate::audit::AuditEntry,
-        users: &Users,
-        customers: &Customers,
-    ) -> Self {
-        let subject = match audit_log.subject {
-            crate::primitives::Subject::User(id) => {
-                let user = users.find_by_id_internal(id).await;
-                let user = match user {
-                    Ok(Some(user)) => user,
-                    _ => {
-                        return Self {
-                            id: audit_log.id.0.into(),
-                            subject: Subject::System(System {
-                                name: "Not found".to_string(),
-                            }),
-                            object: audit_log.object.as_ref().into(),
-                            action: audit_log.action.as_ref().into(),
-                            authorized: audit_log.authorized,
-                            created_at: audit_log.created_at.into(),
-                        }
+    async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<Subject> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+
+        let subject: primitives::Subject =
+            self.subject_str.parse().expect("decoding subject error");
+
+        match subject {
+            primitives::Subject::User(id) => {
+                let user = loader.load_one(id).await?;
+                match user {
+                    None => return Err("User not found".into()),
+                    Some(user) => {
+                        let user = User::from(user);
+                        Ok(Subject::User(user))
                     }
-                };
-                Subject::User(User::from(user))
+                }
             }
-            crate::primitives::Subject::Customer(id) => {
-                let customer = customers.find_by_id_internal(id).await.unwrap().unwrap();
-                Subject::Customer(Customer::from(customer))
+
+            primitives::Subject::Customer(id) => {
+                unimplemented!("Customer parsing not implemented");
+
+                // let customer = loader.load_one(id).await?;
+                // match customer {
+                //     None => return Err("Customer not found".into()),
+                //     Some(customer) => {
+                //         let customer = Customer::from(customer);
+                //         Ok(Subject::Customer(customer))
+                //     }
+                // }
             }
-            crate::primitives::Subject::System => {
+            primitives::Subject::System => {
                 let system = System {
                     name: "System".to_string(), // Placeholder, could be anything
                 };
-                Subject::System(system)
+                Ok(Subject::System(system))
             }
-        };
+        }
+    }
+}
 
+impl From<crate::audit::AuditEntry> for AuditEntry {
+    fn from(entry: crate::audit::AuditEntry) -> Self {
         Self {
-            id: audit_log.id.0.into(),
-            subject,
-            object: audit_log.object.as_ref().into(),
-            action: audit_log.action.as_ref().into(),
-            authorized: audit_log.authorized,
-            created_at: audit_log.created_at.into(),
+            id: entry.id.0.into(),
+            subject_str: entry.subject.to_string(),
+            object: entry.object.as_ref().into(),
+            action: entry.action.as_ref().into(),
+            authorized: entry.authorized,
+            created_at: entry.created_at.into(),
         }
     }
 }

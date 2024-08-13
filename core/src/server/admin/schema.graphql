@@ -63,11 +63,11 @@ scalar AnnualRatePct
 
 type AuditEntry {
 	id: ID!
-	subject: Subject!
 	object: String!
 	action: String!
 	authorized: Boolean!
 	createdAt: Timestamp!
+	subject: Subject!
 }
 
 type AuditEntryConnection {

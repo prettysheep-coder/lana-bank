@@ -3,6 +3,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::collections::HashMap;
+
 use crate::{
     authorization::{Authorization, Object, UserAction},
     primitives::{Role, Subject, UserId},
@@ -95,6 +97,10 @@ impl Users {
             Err(UserError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn find_all(&self, ids: &[UserId]) -> Result<HashMap<UserId, User>, UserError> {
+        self.repo.find_all(ids).await
     }
 
     pub async fn find_by_email(&self, email: impl Into<String>) -> Result<Option<User>, UserError> {

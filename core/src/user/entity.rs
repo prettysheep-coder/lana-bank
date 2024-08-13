@@ -20,7 +20,7 @@ impl EntityEvent for UserEvent {
     }
 }
 
-#[derive(Builder)]
+#[derive(Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct User {
     pub id: UserId,
