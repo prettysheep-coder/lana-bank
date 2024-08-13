@@ -198,6 +198,38 @@ pub struct PostApproveLoanTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/adjust-collateral.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AddCollateralTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/adjust-collateral.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostAddCollateralTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/adjust-collateral.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct RemoveCollateralTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/adjust-collateral.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostRemoveCollateralTransaction;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

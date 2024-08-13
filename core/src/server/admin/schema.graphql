@@ -141,6 +141,21 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+enum CollateralAction {
+	ADD
+	REMOVE
+}
+
+input CollateralAdjustInput {
+	loanId: UUID!
+	collateral: Satoshis!
+	action: CollateralAction!
+}
+
+type CollateralAdjustPayload {
+	loan: Loan!
+}
+
 type Customer {
 	customerId: UUID!
 	email: String!
@@ -384,6 +399,7 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
+	collateralAdjust(input: CollateralAdjustInput!): CollateralAdjustPayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!

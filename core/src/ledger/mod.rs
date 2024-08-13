@@ -13,6 +13,7 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
+    loan::CollateralAction,
     primitives::{
         CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
         LoanId, Satoshis, Subject, UsdCents, WithdrawId,
@@ -178,7 +179,6 @@ impl Ledger {
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        collateral: Satoshis,
         principal: UsdCents,
         external_id: String,
     ) -> Result<(), LedgerError> {
@@ -188,7 +188,6 @@ impl Ledger {
                 tx_id,
                 loan_account_ids,
                 customer_account_ids,
-                collateral.to_btc(),
                 principal.to_usd(),
                 external_id,
             )
@@ -259,6 +258,31 @@ impl Ledger {
                 collateral_tx_ref,
             )
             .await?)
+    }
+
+    #[instrument(name = "lava.ledger.manage_collateral", skip(self), err)]
+    pub async fn adjust_collateral(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
+        collateral_amount: Satoshis,
+        tx_ref: String,
+        action: CollateralAction,
+    ) -> Result<(), LedgerError> {
+        match action {
+            CollateralAction::Add => {
+                self.cala
+                    .add_collateral(tx_id, loan_account_ids, collateral_amount.to_btc(), tx_ref)
+                    .await?;
+            }
+            CollateralAction::Remove => {
+                self.cala
+                    .remove_collateral(tx_id, loan_account_ids, collateral_amount.to_btc(), tx_ref)
+                    .await?;
+            }
+        }
+
+        Ok(())
     }
 
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
@@ -453,7 +477,10 @@ impl Ledger {
 
         Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
-
+        Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
+            .await?;
+        Self::assert_remove_collateral_tx_template_exists(cala, constants::REMOVE_COLLATERAL_CODE)
+            .await?;
         Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
             .await?;
 
@@ -607,6 +634,56 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_approve_loan_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_add_collateral_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_add_collateral_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_remove_collateral_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_remove_collateral_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

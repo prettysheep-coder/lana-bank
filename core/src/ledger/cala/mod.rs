@@ -746,21 +746,9 @@ impl CalaClient {
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
-            self,
-            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
-        )
-        .await?
-        {
-            Some(id) => Ok(id),
-            None => Err(CalaError::CouldNotFindAccountByCode(
-                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
-            )),
-        }?;
         let variables = approve_loan_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
         let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
             &self.client,
@@ -781,18 +769,15 @@ impl CalaClient {
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
-        collateral_amount: Decimal,
         principal_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             loan_principal_receivable_account: loan_account_ids
                 .principal_receivable_account_id
                 .into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            collateral_amount,
             principal_amount,
             external_id,
         };
@@ -848,6 +833,138 @@ impl CalaClient {
         .await?;
         response.data.ok_or(CalaError::MissingDataField)?;
 
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_add_collateral_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_add_collateral_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = add_collateral_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
+        };
+        let response = Self::traced_gql_request::<AddCollateralTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    pub async fn add_collateral(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
+        collateral_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_add_collateral_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostAddCollateralTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.transaction_post.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_remove_collateral_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_remove_collateral_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
+        let variables = remove_collateral_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
+        };
+        let response = Self::traced_gql_request::<RemoveCollateralTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    pub async fn remove_collateral(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: LoanAccountIds,
+        collateral_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_remove_collateral_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostRemoveCollateralTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.transaction_post.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
 

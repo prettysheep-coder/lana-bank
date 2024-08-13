@@ -44,3 +44,5 @@ pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 pub(super) const RELEASE_COLLATERAL_CODE: &str = "RELEASE_COLLATERAL";
 pub(super) const ADD_EQUITY_CODE: &str = "ADD_EQUITY";
+pub(super) const ADD_COLLATERAL_CODE: &str = "ADD_COLLATERAL";
+pub(super) const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";

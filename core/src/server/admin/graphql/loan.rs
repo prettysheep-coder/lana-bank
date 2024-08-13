@@ -4,6 +4,7 @@ use async_graphql::connection::CursorType;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    loan::CollateralAction,
     primitives::LoanId,
     server::shared_graphql::{
         loan::*,
@@ -43,7 +44,6 @@ impl From<crate::loan::Loan> for LoanCreatePayload {
 #[derive(InputObject)]
 pub struct LoanApproveInput {
     pub loan_id: UUID,
-    pub collateral: Satoshis,
 }
 
 #[derive(SimpleObject)]
@@ -111,5 +111,23 @@ impl From<LoanCursor> for crate::loan::LoanCursor {
             id: cursor.id,
             created_at: cursor.created_at,
         }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CollateralAdjustInput {
+    pub loan_id: UUID,
+    pub collateral: Satoshis,
+    pub action: CollateralAction,
+}
+
+#[derive(SimpleObject)]
+pub struct CollateralAdjustPayload {
+    loan: Loan,
+}
+
+impl From<crate::loan::Loan> for CollateralAdjustPayload {
+    fn from(loan: crate::loan::Loan) -> Self {
+        Self { loan: loan.into() }
     }
 }

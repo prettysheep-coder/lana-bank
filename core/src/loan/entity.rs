@@ -41,6 +41,12 @@ impl LoanReceivable {
     }
 }
 
+#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+pub enum CollateralAction {
+    Add,
+    Remove,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LoanEvent {
@@ -57,7 +63,6 @@ pub enum LoanEvent {
     },
     Approved {
         tx_id: LedgerTxId,
-        initial_collateral: Satoshis,
     },
     InterestIncurred {
         tx_id: LedgerTxId,
@@ -74,6 +79,13 @@ pub enum LoanEvent {
         tx_id: LedgerTxId,
         tx_ref: String,
         amount: UsdCents,
+    },
+
+    CollateralAdjusted {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        action: CollateralAction,
+        collateral: Satoshis,
     },
 }
 
@@ -177,18 +189,11 @@ impl Loan {
         self.events.push(LoanEvent::TermsUpdated { terms });
     }
 
-    pub(super) fn approve(
-        &mut self,
-        tx_id: LedgerTxId,
-        initial_collateral: Satoshis,
-    ) -> Result<(), LoanError> {
+    pub(super) fn approve(&mut self, tx_id: LedgerTxId) -> Result<(), LoanError> {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
-        self.events.push(LoanEvent::Approved {
-            tx_id,
-            initial_collateral,
-        });
+        self.events.push(LoanEvent::Approved { tx_id });
 
         Ok(())
     }
@@ -313,6 +318,33 @@ impl Loan {
             .filter(|event| matches!(event, LoanEvent::PaymentRecorded { .. }))
             .count()
     }
+
+    fn count_collateral_adjustments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, LoanEvent::CollateralAdjusted { .. }))
+            .count()
+    }
+
+    pub(super) fn adjust_collateral(
+        &mut self,
+        tx_id: LedgerTxId,
+        collateral: Satoshis,
+        action: CollateralAction,
+    ) -> Result<String, LoanError> {
+        let tx_ref = format!(
+            "{}-collateral-{}",
+            self.id,
+            self.count_collateral_adjustments() + 1
+        );
+        self.events.push(LoanEvent::CollateralAdjusted {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+            action,
+            collateral,
+        });
+        Ok(tx_ref)
+    }
 }
 
 impl Entity for Loan {
@@ -348,6 +380,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
+                LoanEvent::CollateralAdjusted { .. } => (),
             }
         }
         builder.events(events).build()
@@ -489,16 +522,10 @@ mod test {
     #[test]
     fn prevent_double_approve() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let res = loan.approve(
-            LedgerTxId::new(),
-            Satoshis::try_from_btc(dec!(0.12)).unwrap(),
-        );
+        let res = loan.approve(LedgerTxId::new());
         assert!(res.is_ok());
 
-        let res = loan.approve(
-            LedgerTxId::new(),
-            Satoshis::try_from_btc(dec!(0.12)).unwrap(),
-        );
+        let res = loan.approve(LedgerTxId::new());
         assert!(res.is_err());
     }
 
@@ -506,10 +533,7 @@ mod test {
     fn test_status() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
-        let _ = loan.approve(
-            LedgerTxId::new(),
-            Satoshis::try_from_btc(dec!(0.12)).unwrap(),
-        );
+        let _ = loan.approve(LedgerTxId::new());
         assert_eq!(loan.status(), LoanStatus::Active);
         let _ = loan.record_if_not_exceeding_outstanding(
             LedgerTxId::new(),
