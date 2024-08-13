@@ -112,30 +112,11 @@ impl From<CustomerId> for Subject {
     }
 }
 
-impl From<Subject> for UserId {
-    fn from(s: Subject) -> Self {
-        match s {
-            Subject::User(id) => id,
-            _ => panic!("Cannot convert to UserId"),
-        }
-    }
-}
-
 impl From<&Subject> for UserId {
     fn from(s: &Subject) -> Self {
         match s {
             Subject::User(id) => *id,
             _ => panic!("Cannot convert to UserId"),
-        }
-    }
-}
-
-impl From<Subject> for String {
-    fn from(s: Subject) -> Self {
-        match s {
-            Subject::Customer(id) => format!("customer:{}", id),
-            Subject::User(id) => format!("user:{}", id),
-            Subject::System => format!("system:{}", Uuid::nil()),
         }
     }
 }
