@@ -7,7 +7,7 @@ mutation AddCollateralTemplateCreate(
     input: {
       txTemplateId: $templateId
       code: "ADD_COLLATERAL"
-      description: "Collateralize loan and payout principal."
+      description: "Add collateral to the loan."
       params: [
         {
           name: "loanCollateralAccount"
@@ -41,7 +41,7 @@ mutation AddCollateralTemplateCreate(
           accountId: $bankCollateralAccountId
           units: "params.collateralAmount"
           currency: "'BTC'"
-          entryType: "'APPROVE_LOAN_COLLATERAL_DR'"
+          entryType: "'ADD_COLLATERAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -49,7 +49,7 @@ mutation AddCollateralTemplateCreate(
           accountId: "params.loanCollateralAccount"
           units: "params.collateralAmount"
           currency: "'BTC'"
-          entryType: "'APPROVE_LOAN_COLLATERAL_CR'"
+          entryType: "'ADD_COLLATERAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
