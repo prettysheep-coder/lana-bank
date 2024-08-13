@@ -112,15 +112,6 @@ impl From<CustomerId> for Subject {
     }
 }
 
-impl From<&Subject> for UserId {
-    fn from(s: &Subject) -> Self {
-        match s {
-            Subject::User(id) => *id,
-            _ => panic!("Cannot convert to UserId"),
-        }
-    }
-}
-
 impl std::fmt::Display for Subject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
