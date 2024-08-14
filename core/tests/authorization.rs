@@ -6,7 +6,31 @@ use lava_core::{
     audit::*,
     authorization::{error::AuthorizationError, *},
     primitives::*,
+    user::{UserConfig, Users},
 };
+use uuid::Uuid;
+
+fn random_email() -> String {
+    format!(
+        "superuser+{}@integrationtest.com",
+        Uuid::new_v4().to_string()
+    )
+}
+
+async fn create_user(authz: Authorization, users: Users) -> UserId {
+    let _ = authz
+        .add_policy_for_test(
+            format!("system:{}", Uuid::nil()).as_str(),
+            Object::User,
+            Action::User(UserAction::Create),
+        )
+        .await;
+
+    let subject = &Subject::System;
+    let user = users.create_user(subject, random_email()).await;
+
+    user.expect("impossible to unwrap user").id
+}
 
 #[tokio::test]
 #[file_serial]
@@ -14,8 +38,16 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
+    let users = Users::init(
+        &pool,
+        &authz,
+        UserConfig {
+            superuser_email: None,
+        },
+    )
+    .await?;
 
-    let superuser_id = UserId::from(uuid::Uuid::new_v4());
+    let superuser_id = create_user(authz.clone(), users.clone()).await;
     let superuser_subject = Subject::from(superuser_id);
     authz
         .assign_role_to_subject(superuser_subject, &Role::Superuser)
@@ -72,8 +104,16 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
+    let users = Users::init(
+        &pool,
+        &authz,
+        UserConfig {
+            superuser_email: None,
+        },
+    )
+    .await?;
 
-    let admin_id = UserId::from(uuid::Uuid::new_v4());
+    let admin_id = create_user(authz.clone(), users.clone()).await;
     let admin_subject = Subject::from(admin_id);
     authz
         .assign_role_to_subject(admin_subject, &Role::Admin)
@@ -133,7 +173,16 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let audit = Audit::new(&pool);
     let authz = Authorization::init(&pool, audit).await?;
 
-    let bank_manager_id = UserId::from(uuid::Uuid::new_v4());
+    let users = Users::init(
+        &pool,
+        &authz,
+        UserConfig {
+            superuser_email: None,
+        },
+    )
+    .await?;
+
+    let bank_manager_id = create_user(authz.clone(), users.clone()).await;
     let bank_manager_subject = Subject::from(bank_manager_id);
     authz
         .assign_role_to_subject(bank_manager_subject, &Role::BankManager)

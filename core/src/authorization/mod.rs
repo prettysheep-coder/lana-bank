@@ -290,6 +290,33 @@ impl Authorization {
     }
 }
 
+// #[cfg(test)]
+impl Authorization {
+    pub async fn add_policy_for_test(
+        &self,
+        role: &str,
+        object: Object,
+        action: Action,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        match enforcer
+            .add_policy(vec![
+                role.to_string(),
+                object.to_string(),
+                action.to_string(),
+            ])
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
+                e => Err(e),
+            },
+        }
+    }
+}
+
 pub enum Object {
     Applicant,
     Loan,
