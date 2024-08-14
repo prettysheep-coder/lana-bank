@@ -163,6 +163,25 @@ impl Loan {
         }
     }
 
+    pub fn collateral(&self) -> Result<Satoshis, ConversionError> {
+        let mut current = SignedSatoshis::ZERO;
+
+        for event in self.events.iter() {
+            if let LoanEvent::CollateralAdjusted {
+                action, collateral, ..
+            } = event
+            {
+                let signed_collateral = SignedSatoshis::from(*collateral);
+                match action {
+                    CollateralAction::Add => current = current + signed_collateral,
+                    CollateralAction::Remove => current = current - signed_collateral,
+                }
+            }
+        }
+
+        Satoshis::try_from(current)
+    }
+
     pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
