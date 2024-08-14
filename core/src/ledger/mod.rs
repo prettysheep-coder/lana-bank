@@ -149,7 +149,7 @@ impl Ledger {
         external_id: String,
     ) -> Result<WithdrawId, LedgerError> {
         self.cala
-            .execute_confirm_withdraw_tx(
+            .execute_cancel_withdraw_tx(
                 ledger_tx_id,
                 uuid::Uuid::from(withdrawal_id),
                 debit_account_id,

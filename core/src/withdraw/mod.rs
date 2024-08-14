@@ -140,7 +140,7 @@ impl Withdraws {
         self.repo.persist_in_tx(&mut db_tx, &mut withdrawal).await?;
 
         self.ledger
-            .confirm_withdrawal_for_customer(
+            .cancel_withdrawal_for_customer(
                 tx_id,
                 withdrawal.id,
                 withdrawal.debit_account_id,

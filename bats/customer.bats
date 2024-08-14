@@ -58,60 +58,68 @@ teardown_file() {
   echo $(graphql_output) | jq .
 
   usd_balance=$(graphql_output '.data.depositRecord.deposit.customer.balance.checking.settled.usdBalance')
-  [[ "$usd_balance" == "15000" ]] || exit 1
+  [[ "$usd_balance" == "150000" ]] || exit 1
 }
 
-# @test "customer: withdraw can be cancelled" {
-#   customer_id=$(read_value "customer_id")
+@test "customer: withdraw can be cancelled" {
+  customer_id=$(read_value "customer_id")
 
-#   variables=$(
-#     jq -n \
-#       --arg customerId "$customer_id" \
-#     --arg date "$(date +%s%N)" \
-#     '{
-#       input: {
-#         customerId: $customerId,
-#         amount: 150000,
-#         reference: ("withdrawal-ref-" + $date)
-#       }
-#     }'
-#   )
-#   exec_admin_graphql 'initiate-withdrawal' "$variables"
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: 150000,
+        reference: ("withdrawal-ref-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
 
-#   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
-#   [[ "$withdrawal_id" != "null" ]] || exit 1
-#   status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
-#   [[ "$status" == "INITIATED" ]] || exit 1
-#   settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled.usdBalance')
-#   [[ "$settled_usd_balance" == "0" ]] || exit 1
-#   pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending.usdBalance')
-#   [[ "$pending_usd_balance" == "150000" ]] || exit 1
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+        id: $customerId
+    }'
+  )
 
-#   assert_accounts_balanced
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+  status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
+  [[ "$status" == "INITIATED" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled.usdBalance')
+  [[ "$settled_usd_balance" == "0" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending.usdBalance')
+  [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
-#   variables=$(
-#     jq -n \
-#       --arg withdrawalId "$withdrawal_id" \
-#     '{
-#       input: {
-#         withdrawalId: $withdrawalId
-#       }
-#     }'
-#   )
-#   exec_admin_graphql 'withdrawal-cancel' "$variables"
+  assert_accounts_balanced
 
-#   echo $(graphql_output) | jq . 
-#   withdrawal_id=$(graphql_output '.data.withdrawalCancel.withdrawal.withdrawalId')
-#   [[ "$withdrawal_id" != "null" ]] || exit 1
-#   withdrawal_id=$(graphql_output '.data.withdrawalCancel.withdrawal.status')
-#   [[ "$status" != "CANCELLED" ]] || exit 1
-#   settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.settled.usdBalance')
-#   [[ "$settled_usd_balance" == "150000" ]] || exit 1
-#   pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.pending.usdBalance')
-#   [[ "$pending_usd_balance" == "0" ]] || exit 1
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'withdrawal-cancel' "$variables"
+  echo $(graphql_output) | jq .
 
-#   assert_accounts_balanced
-# }
+  withdrawal_id=$(graphql_output '.data.withdrawalCancel.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+  status=$(graphql_output '.data.withdrawalCancel.withdrawal.status')
+  [[ "$status" == "CANCELLED" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.customer.balance.checking.settled.usdBalance')
+  [[ "$settled_usd_balance" == "150000" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalCancel.withdrawal.customer.balance.checking.pending.usdBalance')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
+
+  assert_accounts_balanced
+}
 
 @test "customer: can withdraw" {
   customer_id=$(read_value "customer_id")
