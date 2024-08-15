@@ -222,7 +222,7 @@ pub enum ConversionError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct Satoshis(u64);
+pub struct Satoshis(i64);
 
 impl fmt::Display for Satoshis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
@@ -244,8 +244,8 @@ impl std::ops::Sub<Satoshis> for Satoshis {
     }
 }
 
-impl From<u64> for Satoshis {
-    fn from(value: u64) -> Self {
+impl From<i64> for Satoshis {
+    fn from(value: i64) -> Self {
         Self(value)
     }
 }
@@ -260,14 +260,14 @@ impl Satoshis {
 
     pub fn try_from_btc(btc: Decimal) -> Result<Self, ConversionError> {
         let sats = btc * SATS_PER_BTC;
-        assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        if sats < Decimal::new(0, 0) {
-            return Err(ConversionError::UnexpectedNegativeNumber(sats));
-        }
-        Ok(Self(u64::try_from(sats)?))
+        // assert!(sats.trunc() == sats, "Satoshis must be an integer");
+        // if sats < Decimal::new(0, 0) {
+        //     return Err(ConversionError::UnexpectedNegativeNumber(sats));
+        // }
+        Ok(Self(i64::try_from(sats)?))
     }
 
-    pub fn into_inner(self) -> u64 {
+    pub fn into_inner(self) -> i64 {
         self.0
     }
 }
@@ -319,7 +319,7 @@ impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct UsdCents(u64);
+pub struct UsdCents(i64);
 
 impl std::ops::SubAssign for UsdCents {
     fn sub_assign(&mut self, other: Self) {
@@ -337,14 +337,14 @@ impl UsdCents {
 
     pub fn try_from_usd(usd: Decimal) -> Result<Self, ConversionError> {
         let cents = usd * CENTS_PER_USD;
-        assert!(cents.trunc() == cents, "Cents must be an integer");
-        if cents < Decimal::new(0, 0) {
-            return Err(ConversionError::UnexpectedNegativeNumber(cents));
-        }
-        Ok(Self(u64::try_from(cents)?))
+        // assert!(cents.trunc() == cents, "Cents must be an integer");
+        // if cents < Decimal::new(0, 0) {
+        //     return Err(ConversionError::UnexpectedNegativeNumber(cents));
+        // }
+        Ok(Self(i64::try_from(cents)?))
     }
 
-    pub fn into_inner(self) -> u64 {
+    pub fn into_inner(self) -> i64 {
         self.0
     }
 
@@ -353,9 +353,21 @@ impl UsdCents {
     }
 }
 
+impl From<i64> for UsdCents {
+    fn from(value: i64) -> Self {
+        Self(value)
+    }
+}
+
+impl From<i32> for UsdCents {
+    fn from(value: i32) -> Self {
+        Self(value as i64)
+    }
+}
+
 impl From<u64> for UsdCents {
     fn from(value: u64) -> Self {
-        Self(value)
+        Self(value as i64)
     }
 }
 

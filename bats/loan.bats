@@ -75,6 +75,8 @@ wait_for_interest() {
   loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
+  assert_accounts_balanced
+
   variables=$(
     jq -n \
       --arg customerId "$customer_id" \
@@ -85,6 +87,39 @@ wait_for_interest() {
   exec_admin_graphql 'customer' "$variables"
   usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == "$principal" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: 1500,
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+
+  echo $(graphql_output)
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending.usdBalance')
+  [[ "$pending_usd_balance" == "1500" ]] || exit 1
+
+  exec_admin_graphql 'balance-sheet'
+  echo $(graphql_output)
+
+  balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.netDebit')
+  balance=${balance_usd}
+  [[ "$balance" == "0" ]] || exit 1
+
+  debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.debit')
+  debit=${debit_usd}
+  [[ "$debit" -gt "0" ]] || exit 1
+
+  credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.credit')
+  credit=${credit_usd}
+  [[ "$credit" == "$debit" ]] || exit 1
 
   retry 20 1 wait_for_interest "$loan_id"
   interest_before=$(read_value "interest")
@@ -109,6 +144,8 @@ wait_for_interest() {
   )
   exec_admin_graphql 'record-deposit' "$variables"
 
+  assert_accounts_balanced
+
   variables=$(
     jq -n \
       --arg loanId "$loan_id" \
@@ -121,6 +158,8 @@ wait_for_interest() {
     }'
   )
   exec_admin_graphql 'loan-partial-payment' "$variables"
+
+  assert_accounts_balanced
 
   loan_balance "$loan_id"
   outstanding_after=$(read_value "outstanding")
@@ -141,6 +180,8 @@ wait_for_interest() {
   exec_admin_graphql 'customer' "$variables"
   usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == "$principal" ]] || exit 1
+
+  assert_accounts_balanced
 }
 
 @test "loan: paginated listing" {
