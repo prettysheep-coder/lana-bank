@@ -820,9 +820,9 @@ impl CalaClient {
         interest_payment_amount: Decimal,
         principal_payment_amount: Decimal,
         collateral_amount: Decimal,
-        payment_external_id: String,
-        collateral_external_id: String,
-    ) -> Result<(), CalaError> {
+        payment_external_id: &str,
+        collateral_external_id: &str,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_complete_loan_transaction::Variables {
             payment_transaction_id: payment_transaction_id.into(),
             collateral_transaction_id: collateral_transaction_id.into(),
@@ -837,8 +837,8 @@ impl CalaClient {
             interest_payment_amount,
             principal_payment_amount,
             collateral_amount,
-            payment_external_id,
-            collateral_external_id,
+            payment_external_id: payment_external_id.to_string(),
+            collateral_external_id: collateral_external_id.to_string(),
         };
         let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
             &self.client,
@@ -846,9 +846,11 @@ impl CalaClient {
             variables,
         )
         .await?;
-        response.data.ok_or(CalaError::MissingDataField)?;
-
-        Ok(())
+        let created_at = response
+            .data
+            .map(|d| d.return_collateral.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
     }
 
     #[instrument(
@@ -942,8 +944,8 @@ impl CalaClient {
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
         principal_payment_amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
+        external_id: &str,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
@@ -955,7 +957,7 @@ impl CalaClient {
                 .into(),
             interest_payment_amount,
             principal_payment_amount,
-            external_id,
+            external_id: external_id.to_string(),
         };
         let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
             &self.client,
@@ -964,11 +966,11 @@ impl CalaClient {
         )
         .await?;
 
-        response
+        let created_at = response
             .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.created_at)
             .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        Ok(created_at)
     }
 
     pub async fn trial_balance<T, E>(

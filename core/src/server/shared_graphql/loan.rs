@@ -13,6 +13,7 @@ use super::convert::ToGlobalId;
 pub struct Transaction {
     amount: UsdCents,
     transaction_type: TransactionType,
+    recorded_at: Timestamp,
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
@@ -129,6 +130,7 @@ impl From<&crate::loan::LoanEvent> for Vec<Transaction> {
             crate::loan::LoanEvent::PaymentRecorded {
                 interest_amount,
                 principal_amount,
+                transaction_recorded_at,
                 ..
             } => {
                 let mut transactions = Vec::new();
@@ -137,6 +139,7 @@ impl From<&crate::loan::LoanEvent> for Vec<Transaction> {
                     transactions.push(Transaction {
                         amount: *interest_amount,
                         transaction_type: TransactionType::InterestPayment,
+                        recorded_at: Timestamp::from(*transaction_recorded_at),
                     });
                 }
 
@@ -144,6 +147,7 @@ impl From<&crate::loan::LoanEvent> for Vec<Transaction> {
                     transactions.push(Transaction {
                         amount: *principal_amount,
                         transaction_type: TransactionType::PrincipalPayment,
+                        recorded_at: Timestamp::from(*transaction_recorded_at),
                     });
                 }
 

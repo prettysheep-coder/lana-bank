@@ -171,14 +171,10 @@ impl Loans {
         assert_eq!(balances.principal_receivable, loan.outstanding().principal);
         assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
-        let payment_tx_id = LedgerTxId::new();
-        let collateral_tx_id = LedgerTxId::new();
-        let (payment_tx_ref, collateral_tx_ref, loan_payment) =
-            loan.record_if_not_exceeding_outstanding(payment_tx_id, collateral_tx_id, amount)?;
+        let (payment_tx_ref, collateral_tx_ref, can_be_completed, payment) =
+            loan.can_loan_be_completed(amount)?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
-        let mut db_tx = self.pool.begin().await?;
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         let customer_balances = self
             .ledger
             .get_customer_balance(customer.account_ids)
@@ -189,30 +185,46 @@ impl Loans {
                 amount,
             ));
         }
-        if !loan.is_completed() {
-            self.ledger
-                .record_payment(
-                    payment_tx_id,
-                    loan.account_ids,
-                    customer.account_ids,
-                    loan_payment,
-                    payment_tx_ref,
-                )
-                .await?;
-        } else {
+
+        let payment_tx_id = LedgerTxId::new();
+        let collateral_tx_id = LedgerTxId::new();
+
+        let created_at = if can_be_completed {
             self.ledger
                 .complete_loan(
                     payment_tx_id,
                     collateral_tx_id,
                     loan.account_ids,
                     customer.account_ids,
-                    loan_payment,
+                    payment,
                     balances.collateral,
-                    payment_tx_ref,
-                    collateral_tx_ref,
+                    payment_tx_ref.as_str(),
+                    collateral_tx_ref.as_str(),
                 )
-                .await?;
-        }
+                .await?
+        } else {
+            self.ledger
+                .record_payment(
+                    payment_tx_id,
+                    loan.account_ids,
+                    customer.account_ids,
+                    payment,
+                    payment_tx_ref.as_str(),
+                )
+                .await?
+        };
+
+        loan.record(
+            payment_tx_id,
+            payment_tx_ref,
+            collateral_tx_id,
+            collateral_tx_ref,
+            payment,
+            created_at,
+        )?;
+
+        let mut db_tx = self.pool.begin().await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
 
         Ok(loan)

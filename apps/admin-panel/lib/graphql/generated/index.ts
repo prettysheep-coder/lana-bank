@@ -686,6 +686,7 @@ export type TermsInput = {
 export type Transaction = {
   __typename?: 'Transaction';
   amount: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
   transactionType: TransactionType;
 };
 

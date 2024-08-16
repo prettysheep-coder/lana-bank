@@ -216,9 +216,10 @@ impl Ledger {
         loan_account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
         payment: LoanPayment,
-        tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        self.cala
+        tx_ref: &str,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        let created_at = self
+            .cala
             .execute_repay_loan_tx(
                 tx_id,
                 loan_account_ids,
@@ -229,7 +230,7 @@ impl Ledger {
             )
             .await?;
 
-        Ok(())
+        Ok(created_at)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -242,10 +243,10 @@ impl Ledger {
         customer_account_ids: CustomerLedgerAccountIds,
         payment: LoanPayment,
         collateral_amount: Satoshis,
-        payment_tx_ref: String,
-        collateral_tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
+        payment_tx_ref: &str,
+        collateral_tx_ref: &str,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        let created_at = self
             .cala
             .execute_complete_loan_tx(
                 payment_tx_id,
@@ -258,7 +259,8 @@ impl Ledger {
                 payment_tx_ref,
                 collateral_tx_ref,
             )
-            .await?)
+            .await?;
+        Ok(created_at)
     }
 
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
