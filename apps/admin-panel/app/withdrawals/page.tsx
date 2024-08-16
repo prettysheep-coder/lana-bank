@@ -178,7 +178,7 @@ function WithdrawalsTable() {
                     <TableHead>Customer</TableHead>
                     <TableHead>Withdrawal ID</TableHead>
                     <TableHead>Withdrawal Amount</TableHead>
-                    <TableHead>Confirmed</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
