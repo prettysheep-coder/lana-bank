@@ -268,7 +268,7 @@ impl Loan {
         Ok((interest, tx_ref))
     }
 
-    pub(super) fn can_loan_be_completed(
+    pub(super) fn can_be_completed(
         &self,
         record_amount: UsdCents,
     ) -> Result<(String, String, bool, LoanPayment), LoanError> {
@@ -461,7 +461,7 @@ mod test {
         );
         let amount = UsdCents::from(4);
         let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_loan_be_completed(amount).unwrap();
+            loan.can_be_completed(amount).unwrap();
         let _ = loan.record(
             LedgerTxId::new(),
             payment_tx_ref,
@@ -479,7 +479,7 @@ mod test {
         );
         let amount = UsdCents::from(2);
         let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_loan_be_completed(amount).unwrap();
+            loan.can_be_completed(amount).unwrap();
 
         let _ = loan.record(
             LedgerTxId::new(),
@@ -498,12 +498,12 @@ mod test {
         );
 
         let amount = UsdCents::from(100);
-        let res = loan.can_loan_be_completed(amount);
+        let res = loan.can_be_completed(amount);
         assert!(res.is_err());
 
         let amount = UsdCents::from(99);
         let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_loan_be_completed(amount).unwrap();
+            loan.can_be_completed(amount).unwrap();
         let _ = loan.record(
             LedgerTxId::new(),
             payment_tx_ref,
@@ -550,7 +550,7 @@ mod test {
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
         let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_loan_be_completed(amount).unwrap();
+            loan.can_be_completed(amount).unwrap();
         let _ = loan.record(
             LedgerTxId::new(),
             payment_tx_ref,

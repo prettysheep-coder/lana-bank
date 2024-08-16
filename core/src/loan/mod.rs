@@ -172,7 +172,7 @@ impl Loans {
         assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
         let (payment_tx_ref, collateral_tx_ref, can_be_completed, payment) =
-            loan.can_loan_be_completed(amount)?;
+            loan.can_be_completed(amount)?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let customer_balances = self
