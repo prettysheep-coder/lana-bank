@@ -108,13 +108,13 @@ impl From<crate::loan::Loan> for Loan {
         let transactions = loan
             .transactions()
             .into_iter()
-            .flat_map(|event| Vec::<Transaction>::from(event))
+            .flat_map(Vec::<Transaction>::from)
             .collect();
         Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
             customer_id: UUID::from(loan.customer_id),
-            status: loan.status().into(),
+            status: loan.status(),
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
             created_at,
