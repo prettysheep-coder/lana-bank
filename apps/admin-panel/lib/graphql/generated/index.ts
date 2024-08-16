@@ -312,7 +312,7 @@ export type Loan = {
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
   status: LoanStatus;
-  transactions: Array<Transaction>;
+  transactions: Array<LoanTransaction>;
 };
 
 export type LoanApproveInput = {
@@ -382,6 +382,13 @@ export enum LoanStatus {
   Closed = 'CLOSED',
   New = 'NEW'
 }
+
+export type LoanTransaction = {
+  __typename?: 'LoanTransaction';
+  amount: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  transactionType: TransactionType;
+};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -681,13 +688,6 @@ export type TermsInput = {
   interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
-};
-
-export type Transaction = {
-  __typename?: 'Transaction';
-  amount: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  transactionType: TransactionType;
 };
 
 export enum TransactionType {

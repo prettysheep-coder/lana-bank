@@ -3,6 +3,7 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger,
+    loan::TransactionType,
     primitives::{CustomerId, LoanStatus},
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
@@ -10,16 +11,10 @@ use crate::{
 use super::convert::ToGlobalId;
 
 #[derive(SimpleObject)]
-pub struct Transaction {
+pub struct LoanTransaction {
     amount: UsdCents,
     transaction_type: TransactionType,
     recorded_at: Timestamp,
-}
-
-#[derive(Enum, Copy, Clone, Eq, PartialEq)]
-pub enum TransactionType {
-    InterestPayment,
-    PrincipalPayment,
 }
 
 #[derive(SimpleObject)]
@@ -34,7 +29,7 @@ pub struct Loan {
     #[graphql(skip)]
     account_ids: crate::ledger::loan::LoanAccountIds,
     status: LoanStatus,
-    transactions: Vec<Transaction>,
+    transactions: Vec<LoanTransaction>,
 }
 
 #[ComplexObject]
@@ -109,8 +104,9 @@ impl From<crate::loan::Loan> for Loan {
         let transactions = loan
             .transactions()
             .into_iter()
-            .flat_map(Vec::<Transaction>::from)
+            .map(LoanTransaction::from)
             .collect();
+
         Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
@@ -124,36 +120,12 @@ impl From<crate::loan::Loan> for Loan {
     }
 }
 
-impl From<&crate::loan::LoanEvent> for Vec<Transaction> {
-    fn from(event: &crate::loan::LoanEvent) -> Self {
-        match event {
-            crate::loan::LoanEvent::PaymentRecorded {
-                interest_amount,
-                principal_amount,
-                transaction_recorded_at,
-                ..
-            } => {
-                let mut transactions = Vec::new();
-
-                if *interest_amount != UsdCents::ZERO {
-                    transactions.push(Transaction {
-                        amount: *interest_amount,
-                        transaction_type: TransactionType::InterestPayment,
-                        recorded_at: Timestamp::from(*transaction_recorded_at),
-                    });
-                }
-
-                if *principal_amount != UsdCents::ZERO {
-                    transactions.push(Transaction {
-                        amount: *principal_amount,
-                        transaction_type: TransactionType::PrincipalPayment,
-                        recorded_at: Timestamp::from(*transaction_recorded_at),
-                    });
-                }
-
-                transactions
-            }
-            _ => unreachable!("unexpected event type in loan transaction list"),
+impl From<crate::loan::LoanTransaction> for LoanTransaction {
+    fn from(tx: crate::loan::LoanTransaction) -> Self {
+        Self {
+            amount: tx.amount,
+            transaction_type: tx.transaction_type,
+            recorded_at: tx.recorded_at.into(),
         }
     }
 }

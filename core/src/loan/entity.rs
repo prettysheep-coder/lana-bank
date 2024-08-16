@@ -20,6 +20,18 @@ pub struct LoanReceivable {
     pub interest: UsdCents,
 }
 
+pub struct LoanTransaction {
+    pub amount: UsdCents,
+    pub transaction_type: TransactionType,
+    pub recorded_at: DateTime<Utc>,
+}
+
+#[derive(async_graphql::Enum, Copy, Clone, Eq, PartialEq)]
+pub enum TransactionType {
+    InterestPayment,
+    PrincipalPayment,
+}
+
 impl LoanReceivable {
     pub fn total(&self) -> UsdCents {
         self.interest + self.principal
@@ -153,10 +165,40 @@ impl Loan {
         }
     }
 
-    pub fn transactions(&self) -> Vec<&LoanEvent> {
+    pub fn transactions(&self) -> Vec<LoanTransaction> {
         self.events
             .iter()
-            .filter(|event| matches!(event, LoanEvent::PaymentRecorded { .. }))
+            .flat_map(|event| {
+                if let LoanEvent::PaymentRecorded {
+                    principal_amount,
+                    interest_amount,
+                    transaction_recorded_at,
+                    ..
+                } = event
+                {
+                    let mut transactions = Vec::new();
+
+                    if *principal_amount != UsdCents::ZERO {
+                        transactions.push(LoanTransaction {
+                            amount: *principal_amount,
+                            transaction_type: TransactionType::PrincipalPayment,
+                            recorded_at: *transaction_recorded_at,
+                        });
+                    }
+
+                    if *interest_amount != UsdCents::ZERO {
+                        transactions.push(LoanTransaction {
+                            amount: *interest_amount,
+                            transaction_type: TransactionType::InterestPayment,
+                            recorded_at: *transaction_recorded_at,
+                        });
+                    }
+
+                    transactions
+                } else {
+                    Vec::new()
+                }
+            })
             .collect()
     }
 
@@ -305,7 +347,7 @@ impl Loan {
         collateral_tx_ref: String,
         payment: LoanPayment,
         transaction_recorded_at: DateTime<Utc>,
-    ) -> () {
+    ) {
         let outstanding = self.outstanding();
 
         self.events.push(LoanEvent::PaymentRecorded {
