@@ -77,7 +77,7 @@ impl Query {
     async fn customer_by_email(
         &self,
         ctx: &Context<'_>,
-        email:String,
+        email: String,
     ) -> async_graphql::Result<Option<Customer>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
