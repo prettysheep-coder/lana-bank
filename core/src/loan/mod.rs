@@ -221,7 +221,7 @@ impl Loans {
             collateral_tx_ref,
             payment,
             created_at,
-        )?;
+        );
 
         let mut db_tx = self.pool.begin().await?;
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;

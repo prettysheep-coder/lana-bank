@@ -305,7 +305,7 @@ impl Loan {
         collateral_tx_ref: String,
         payment: LoanPayment,
         transaction_recorded_at: DateTime<Utc>,
-    ) -> Result<(), LoanError> {
+    ) -> () {
         let outstanding = self.outstanding();
 
         self.events.push(LoanEvent::PaymentRecorded {
@@ -325,8 +325,6 @@ impl Loan {
                 transaction_recorded_at,
             });
         }
-
-        Ok(())
     }
 
     fn count_recorded_payments(&self) -> usize {
