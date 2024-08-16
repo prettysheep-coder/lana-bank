@@ -495,6 +495,7 @@ export type Query = {
   cashFlowStatement?: Maybe<CashFlowStatement>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   customer?: Maybe<Customer>;
+  customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
   defaultTerms?: Maybe<Terms>;
   deposit?: Maybe<Deposit>;
@@ -526,6 +527,11 @@ export type QueryAuditArgs = {
 
 export type QueryCustomerArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryCustomerByEmailArgs = {
+  email: Scalars['String']['input'];
 };
 
 
