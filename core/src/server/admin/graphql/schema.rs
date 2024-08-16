@@ -81,7 +81,7 @@ impl Query {
     ) -> async_graphql::Result<Option<Customer>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let customer = app.customers().find_by_email(Some(sub), email).await?;
+        let customer = app.customers().find_by_email(sub, email).await?;
         Ok(customer.map(Customer::from))
     }
 
