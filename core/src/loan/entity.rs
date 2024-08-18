@@ -164,7 +164,7 @@ impl Loan {
         }
     }
 
-    pub fn collateral(&self) -> Result<Satoshis, ConversionError> {
+    pub fn collateral(&self) -> Satoshis {
         let mut current = SignedSatoshis::ZERO;
 
         for event in self.events.iter() {
@@ -180,7 +180,7 @@ impl Loan {
             }
         }
 
-        Satoshis::try_from(current)
+        Satoshis::try_from(current).expect("should be a valid satoshi amount")
     }
 
     pub(super) fn is_approved(&self) -> bool {
@@ -350,7 +350,7 @@ impl Loan {
         &self,
         updated_collateral: Satoshis,
     ) -> Result<(String, Satoshis, CollateralAction), LoanError> {
-        let current_collateral = self.collateral()?;
+        let current_collateral = self.collateral();
         let diff =
             SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
 
@@ -380,6 +380,7 @@ impl Loan {
         &mut self,
         tx_id: LedgerTxId,
         collateral: Satoshis,
+        action: CollateralAction,
         tx_ref: String,
         recorded_at: DateTime<Utc>,
     ) {
@@ -387,7 +388,7 @@ impl Loan {
             tx_id,
             tx_ref,
             collateral,
-            action: CollateralAction::Add,
+            action,
             recorded_at,
         });
     }
