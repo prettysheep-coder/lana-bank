@@ -213,6 +213,11 @@ impl Loan {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
+
+        if self.collateral() == Satoshis::ZERO {
+            return Err(LoanError::NoCollateral);
+        }
+
         self.events.push(LoanEvent::Approved { tx_id });
 
         Ok(())
@@ -569,6 +574,9 @@ mod test {
     #[test]
     fn prevent_double_approve() {
         let mut loan = Loan::try_from(init_events()).unwrap();
+        let (tx_ref, collateral, action) =
+            loan.can_adjust_collateral(Satoshis::from(10000)).unwrap();
+        loan.adjust_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
         let res = loan.approve(LedgerTxId::new());
         assert!(res.is_ok());
 
@@ -580,6 +588,9 @@ mod test {
     fn test_status() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
+        let (tx_ref, collateral, action) =
+            loan.can_adjust_collateral(Satoshis::from(10000)).unwrap();
+        loan.adjust_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
         let _ = loan.approve(LedgerTxId::new());
         assert_eq!(loan.status(), LoanStatus::Active);
         let _ = loan.record_if_not_exceeding_outstanding(
