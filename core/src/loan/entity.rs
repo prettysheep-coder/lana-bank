@@ -351,7 +351,7 @@ impl Loan {
             .count()
     }
 
-    pub(super) fn can_adjust_collateral(
+    pub(super) fn can_update_collateral(
         &self,
         updated_collateral: Satoshis,
     ) -> Result<(String, Satoshis, CollateralAction), LoanError> {
@@ -381,7 +381,7 @@ impl Loan {
         Ok((tx_ref, collateral, action))
     }
 
-    pub(super) fn adjust_collateral(
+    pub(super) fn update_collateral(
         &mut self,
         tx_id: LedgerTxId,
         collateral: Satoshis,
@@ -575,8 +575,8 @@ mod test {
     fn prevent_double_approve() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         let (tx_ref, collateral, action) =
-            loan.can_adjust_collateral(Satoshis::from(10000)).unwrap();
-        loan.adjust_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
+            loan.can_update_collateral(Satoshis::from(10000)).unwrap();
+        loan.update_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
         let res = loan.approve(LedgerTxId::new());
         assert!(res.is_ok());
 
@@ -589,8 +589,8 @@ mod test {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
         let (tx_ref, collateral, action) =
-            loan.can_adjust_collateral(Satoshis::from(10000)).unwrap();
-        loan.adjust_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
+            loan.can_update_collateral(Satoshis::from(10000)).unwrap();
+        loan.update_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
         let _ = loan.approve(LedgerTxId::new());
         assert_eq!(loan.status(), LoanStatus::Active);
         let _ = loan.record_if_not_exceeding_outstanding(

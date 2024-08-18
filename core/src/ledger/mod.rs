@@ -261,7 +261,7 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.manage_collateral", skip(self), err)]
-    pub async fn adjust_collateral(
+    pub async fn update_collateral(
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,

@@ -154,7 +154,7 @@ impl Loans {
         Ok(loan)
     }
 
-    #[instrument(name = "lava.loan.adjust_collateral", skip(self), err)]
+    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
         sub: &Subject,
@@ -162,21 +162,21 @@ impl Loans {
         updated_collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, LoanAction::AdjustCollateral)
+            .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
         let tx_id = LedgerTxId::new();
-        let (tx_ref, collateral, action) = loan.can_adjust_collateral(updated_collateral)?;
+        let (tx_ref, collateral, action) = loan.can_update_collateral(updated_collateral)?;
         let mut db_tx = self.pool.begin().await?;
 
         let created_at = self
             .ledger
-            .adjust_collateral(tx_id, loan.account_ids, collateral, tx_ref.clone(), action)
+            .update_collateral(tx_id, loan.account_ids, collateral, tx_ref.clone(), action)
             .await?;
 
-        loan.adjust_collateral(tx_id, collateral, action, tx_ref, created_at);
+        loan.update_collateral(tx_id, collateral, action, tx_ref, created_at);
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)
