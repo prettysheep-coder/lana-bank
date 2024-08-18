@@ -42,7 +42,7 @@ mutation ApproveLoanTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanOutstandingAccount"
+          accountId: "params.loanPrincipalReceivableAccount"
           units: "params.principalAmount"
           currency: "'USD'"
           entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"

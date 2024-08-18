@@ -176,7 +176,7 @@ impl Loans {
             .adjust_collateral(tx_id, loan.account_ids, collateral, tx_ref.clone(), action)
             .await?;
 
-        loan.adjust_collateral(tx_id, collateral, tx_ref, created_at);
+        loan.adjust_collateral(tx_id, collateral, action, tx_ref, created_at);
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)

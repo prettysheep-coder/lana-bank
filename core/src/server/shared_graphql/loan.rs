@@ -29,6 +29,7 @@ pub struct Loan {
     #[graphql(skip)]
     account_ids: crate::ledger::loan::LoanAccountIds,
     status: LoanStatus,
+    collateral: Satoshis,
 }
 
 #[ComplexObject]
@@ -100,6 +101,7 @@ impl ToGlobalId for crate::primitives::LoanId {
 impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
         let created_at = loan.created_at().into();
+        let collateral = loan.collateral();
         Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
@@ -108,6 +110,7 @@ impl From<crate::loan::Loan> for Loan {
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
             created_at,
+            collateral,
         }
     }
 }

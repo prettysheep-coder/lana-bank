@@ -163,13 +163,13 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
-export type CollateralAdjustInput = {
+export type CollateralUpdateInput = {
   collateral: Scalars['Satoshis']['input'];
   loanId: Scalars['UUID']['input'];
 };
 
-export type CollateralAdjustPayload = {
-  __typename?: 'CollateralAdjustPayload';
+export type CollateralUpdatePayload = {
+  __typename?: 'CollateralUpdatePayload';
   loan: Loan;
 };
 
@@ -316,6 +316,7 @@ export type LayeredUsdAccountAmounts = {
 export type Loan = {
   __typename?: 'Loan';
   balance: LoanBalance;
+  collateral: Scalars['Satoshis']['output'];
   createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
   id: Scalars['ID']['output'];
@@ -393,7 +394,7 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  collateralAdjust: CollateralAdjustPayload;
+  collateralUpdate: CollateralUpdatePayload;
   customerCreate: CustomerCreatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   depositRecord: DepositRecordPayload;
@@ -411,8 +412,8 @@ export type Mutation = {
 };
 
 
-export type MutationCollateralAdjustArgs = {
-  input: CollateralAdjustInput;
+export type MutationCollateralUpdateArgs = {
+  input: CollateralUpdateInput;
 };
 
 

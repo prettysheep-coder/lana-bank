@@ -114,17 +114,17 @@ impl From<LoanCursor> for crate::loan::LoanCursor {
 }
 
 #[derive(InputObject)]
-pub struct CollateralAdjustInput {
+pub struct CollateralUpdateInput {
     pub loan_id: UUID,
     pub collateral: Satoshis,
 }
 
 #[derive(SimpleObject)]
-pub struct CollateralAdjustPayload {
+pub struct CollateralUpdatePayload {
     loan: Loan,
 }
 
-impl From<crate::loan::Loan> for CollateralAdjustPayload {
+impl From<crate::loan::Loan> for CollateralUpdatePayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
     }
