@@ -84,8 +84,9 @@ pub enum LoanEvent {
     CollateralAdjusted {
         tx_id: LedgerTxId,
         tx_ref: String,
-        action: CollateralAction,
         collateral: Satoshis,
+        action: CollateralAction,
+        recorded_at: DateTime<Utc>,
     },
 }
 
@@ -345,24 +346,50 @@ impl Loan {
             .count()
     }
 
-    pub(super) fn adjust_collateral(
-        &mut self,
-        tx_id: LedgerTxId,
-        collateral: Satoshis,
-        action: CollateralAction,
-    ) -> Result<String, LoanError> {
+    pub(super) fn can_adjust_collateral(
+        &self,
+        updated_collateral: Satoshis,
+    ) -> Result<(String, Satoshis, CollateralAction), LoanError> {
+        let current_collateral = self.collateral()?;
+        let diff =
+            SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
+
+        if diff == SignedSatoshis::ZERO {
+            return Err(LoanError::CollateralNotUpdated(
+                current_collateral,
+                updated_collateral,
+            ));
+        }
+
+        let (collateral, action) = if diff > SignedSatoshis::ZERO {
+            (Satoshis::try_from(diff)?, CollateralAction::Add)
+        } else {
+            (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
+        };
+
         let tx_ref = format!(
             "{}-collateral-{}",
             self.id,
             self.count_collateral_adjustments() + 1
         );
+
+        Ok((tx_ref, collateral, action))
+    }
+
+    pub(super) fn adjust_collateral(
+        &mut self,
+        tx_id: LedgerTxId,
+        collateral: Satoshis,
+        tx_ref: String,
+        recorded_at: DateTime<Utc>,
+    ) {
         self.events.push(LoanEvent::CollateralAdjusted {
             tx_id,
-            tx_ref: tx_ref.clone(),
-            action,
+            tx_ref,
             collateral,
+            action: CollateralAction::Add,
+            recorded_at,
         });
-        Ok(tx_ref)
     }
 }
 

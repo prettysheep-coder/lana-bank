@@ -535,11 +535,10 @@ impl Mutation {
         let CollateralAdjustInput {
             loan_id,
             collateral,
-            action,
         } = input;
         let loan = app
             .loans()
-            .adjust_collateral(sub, loan_id.into(), collateral, action)
+            .update_collateral(sub, loan_id.into(), collateral)
             .await?;
         Ok(CollateralAdjustPayload::from(loan))
     }

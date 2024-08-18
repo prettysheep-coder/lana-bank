@@ -36,4 +36,6 @@ pub enum LoanError {
     TermsNotSet,
     #[error("LoanError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("LoanError - CollateralNotUpdated: before({0}), after({1})")]
+    CollateralNotUpdated(Satoshis, Satoshis),
 }

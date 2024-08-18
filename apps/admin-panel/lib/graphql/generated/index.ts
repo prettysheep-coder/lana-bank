@@ -163,13 +163,7 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
-export enum CollateralAction {
-  Add = 'ADD',
-  Remove = 'REMOVE'
-}
-
 export type CollateralAdjustInput = {
-  action: CollateralAction;
   collateral: Scalars['Satoshis']['input'];
   loanId: Scalars['UUID']['input'];
 };

@@ -155,7 +155,7 @@ impl Loans {
     }
 
     #[instrument(name = "lava.loan.adjust_collateral", skip(self), err)]
-    pub async fn adjust_collateral(
+    pub async fn update_collateral(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -166,14 +166,18 @@ impl Loans {
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
-        let tx_id = LedgerTxId::new();
-        let tx_ref = loan.adjust_collateral(tx_id, collateral, action)?;
 
+        let tx_id = LedgerTxId::new();
+        let (tx_ref, collateral, action) = loan.can_adjust_collateral(updated_collateral)?;
         let mut db_tx = self.pool.begin().await?;
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.ledger
-            .adjust_collateral(tx_id, loan.account_ids, collateral, tx_ref, action)
+
+        let created_at = self
+            .ledger
+            .adjust_collateral(tx_id, loan.account_ids, collateral, tx_ref.clone(), action)
             .await?;
+
+        loan.adjust_collateral(tx_id, collateral, tx_ref, created_at);
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)
     }

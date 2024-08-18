@@ -141,15 +141,9 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
-enum CollateralAction {
-	ADD
-	REMOVE
-}
-
 input CollateralAdjustInput {
 	loanId: UUID!
 	collateral: Satoshis!
-	action: CollateralAction!
 }
 
 type CollateralAdjustPayload {

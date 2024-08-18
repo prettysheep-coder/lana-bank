@@ -210,6 +210,10 @@ impl SignedSatoshis {
         Decimal::from(self.0) / SATS_PER_BTC
     }
 
+    pub fn abs(self) -> SignedSatoshis {
+        SignedSatoshis(self.0.abs())
+    }
+
     pub fn from_btc(btc: Decimal) -> Self {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");

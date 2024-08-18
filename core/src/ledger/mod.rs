@@ -268,21 +268,20 @@ impl Ledger {
         collateral_amount: Satoshis,
         tx_ref: String,
         action: CollateralAction,
-    ) -> Result<(), LedgerError> {
-        match action {
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        let created_at = match action {
             CollateralAction::Add => {
                 self.cala
                     .add_collateral(tx_id, loan_account_ids, collateral_amount.to_btc(), tx_ref)
-                    .await?;
+                    .await
             }
             CollateralAction::Remove => {
                 self.cala
                     .remove_collateral(tx_id, loan_account_ids, collateral_amount.to_btc(), tx_ref)
-                    .await?;
+                    .await
             }
-        }
-
-        Ok(())
+        }?;
+        Ok(created_at)
     }
 
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]

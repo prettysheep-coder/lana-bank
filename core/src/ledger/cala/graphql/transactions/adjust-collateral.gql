@@ -150,6 +150,7 @@ mutation PostAddCollateralTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 }
@@ -174,6 +175,7 @@ mutation PostRemoveCollateralTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 }

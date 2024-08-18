@@ -881,7 +881,7 @@ impl CalaClient {
         loan_account_ids: LoanAccountIds,
         collateral_amount: Decimal,
         external_id: String,
-    ) -> Result<(), CalaError> {
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_add_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
@@ -895,11 +895,11 @@ impl CalaClient {
         )
         .await?;
 
-        response
+        let created_at = response
             .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.created_at)
             .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        Ok(created_at)
     }
 
     #[instrument(
@@ -947,7 +947,7 @@ impl CalaClient {
         loan_account_ids: LoanAccountIds,
         collateral_amount: Decimal,
         external_id: String,
-    ) -> Result<(), CalaError> {
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_remove_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
@@ -961,11 +961,11 @@ impl CalaClient {
         )
         .await?;
 
-        response
+        let created_at = response
             .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.created_at)
             .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        Ok(created_at)
     }
 
     #[instrument(
