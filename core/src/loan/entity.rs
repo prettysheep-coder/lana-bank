@@ -78,18 +78,17 @@ pub enum LoanEvent {
         interest_amount: UsdCents,
         transaction_recorded_at: DateTime<Utc>,
     },
-    Completed {
-        collateral_tx_id: LedgerTxId,
-        collateral_tx_ref: String,
-        transaction_recorded_at: DateTime<Utc>,
-    },
-
     CollateralUpdated {
         tx_id: LedgerTxId,
         tx_ref: String,
         collateral: Satoshis,
         action: CollateralAction,
         recorded_at: DateTime<Utc>,
+    },
+    Completed {
+        collateral_tx_id: LedgerTxId,
+        collateral_tx_ref: String,
+        transaction_recorded_at: DateTime<Utc>,
     },
 }
 
@@ -390,6 +389,7 @@ impl Loan {
                         interest,
                         principal,
                     },
+                collateral,
                 ..
             } => {
                 self.events.push(LoanEvent::PaymentRecorded {
@@ -398,6 +398,13 @@ impl Loan {
                     principal_amount: principal,
                     interest_amount: interest,
                     transaction_recorded_at,
+                });
+                self.events.push(LoanEvent::CollateralUpdated {
+                    tx_id: collateral_tx_id,
+                    tx_ref: collateral_tx_ref.clone(),
+                    collateral,
+                    action: CollateralAction::Remove,
+                    recorded_at: transaction_recorded_at,
                 });
                 self.events.push(LoanEvent::Completed {
                     collateral_tx_id,
