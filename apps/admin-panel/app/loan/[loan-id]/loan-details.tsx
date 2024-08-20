@@ -24,7 +24,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { LoanStatus, useGetLoanDetailsQuery } from "@/lib/graphql/generated"
+import {
+  LoanStatus,
+  useGetLoanDetailsQuery,
+  TransactionType,
+} from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 import { formatDate } from "@/lib/utils"
 
@@ -90,10 +94,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
           <>
             <CardHeader className="flex flex-row justify-between items-center">
               <div>
-                <h2 className="font-semibold leading-none tracking-tight">
+                <h2 className="font-semibold leading-none tracking-tight">Loan</h2>
+                <p className="text-textColor-secondary text-sm mt-2">
                   {loanDetails.loan.loanId}
-                </h2>
-                <p className="text-textColor-secondary text-sm mt-2">Loan ID</p>
+                </p>
               </div>
               <div className="flex flex-col gap-2">
                 <LoanBadge status={loanDetails.loan.status} className="p-1 px-4" />
@@ -198,21 +202,31 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
           <CardTitle>Loan Transactions</CardTitle>
         </CardHeader>
         <CardContent>
-          {loanDetails?.loan?.transactions.length ? (
+          {loading ? (
+            <p>Loading...</p>
+          ) : error ? (
+            <p className="text-destructive">{error.message}</p>
+          ) : loanDetails?.loan?.transactions.length ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Recorded At</TableHead>
+                  <TableHead>Transaction Type</TableHead>
+                  <TableHead>Amount (USD)</TableHead>
+                  <TableHead className="text-right">Recorded At</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loanDetails?.loan?.transactions.map((transaction, index) => (
+                {loanDetails.loan.transactions.map((transaction, index) => (
                   <TableRow key={index}>
-                    <TableCell>{transaction.transactionType}</TableCell>
-                    <TableCell>{transaction.amount}</TableCell>
-                    <TableCell>{transaction.recordedAt}</TableCell>
+                    <TableCell>
+                      {formatLoanTransactionType(transaction.transactionType)}
+                    </TableCell>
+                    <TableCell>
+                      <Balance amount={transaction.amount} currency="usd" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatDate(transaction.recordedAt)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -224,6 +238,14 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
       </Card>
     </>
   )
+}
+
+const formatLoanTransactionType = (transactionType: TransactionType) => {
+  return transactionType
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
 }
 
 export default LoanDetails
