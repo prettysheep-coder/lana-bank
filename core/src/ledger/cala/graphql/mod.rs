@@ -232,14 +232,6 @@ pub struct PostRemoveCollateralTransaction;
     query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct ReleaseCollateralTemplateCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
 pub struct PostCompleteLoanTransaction;
 
 #[derive(GraphQLQuery)]

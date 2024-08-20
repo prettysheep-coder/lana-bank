@@ -700,44 +700,6 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_release_collateral_tx_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_release_collateral_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
-            self,
-            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
-        )
-        .await?
-        {
-            Some(id) => Ok(id),
-            None => Err(CalaError::CouldNotFindAccountByCode(
-                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
-            )),
-        }?;
-        let variables = release_collateral_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
-        };
-        let response = Self::traced_gql_request::<ReleaseCollateralTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
         name = "lava.ledger.cala.create_approve_loan_template",
         skip(self),
         err

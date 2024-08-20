@@ -495,12 +495,6 @@ impl Ledger {
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
 
-        Self::assert_release_collateral_tx_template_exists(
-            cala,
-            constants::RELEASE_COLLATERAL_CODE,
-        )
-        .await?;
-
         Ok(())
     }
 
@@ -742,34 +736,6 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_record_payment_tx_template(template_id).await {
-            Ok(id) => {
-                return Ok(id);
-            }
-            Err(e) => e,
-        };
-
-        Ok(cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-            .map_err(|_| err)?)
-    }
-
-    async fn assert_release_collateral_tx_template_exists(
-        cala: &CalaClient,
-        template_code: &str,
-    ) -> Result<LedgerTxTemplateId, LedgerError> {
-        if let Ok(id) = cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let template_id = LedgerTxTemplateId::new();
-        let err = match cala
-            .create_release_collateral_tx_template(template_id)
-            .await
-        {
             Ok(id) => {
                 return Ok(id);
             }
