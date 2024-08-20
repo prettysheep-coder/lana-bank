@@ -176,6 +176,7 @@ impl Loan {
     pub fn transactions(&self) -> Vec<LoanTransaction> {
         self.events
             .iter()
+            .rev()
             .flat_map(|event| {
                 if let LoanEvent::PaymentRecorded {
                     principal_amount,
@@ -184,27 +185,20 @@ impl Loan {
                     ..
                 } = event
                 {
-                    let mut transactions = Vec::new();
-
-                    if *principal_amount != UsdCents::ZERO {
-                        transactions.push(LoanTransaction {
-                            amount: *principal_amount,
-                            transaction_type: TransactionType::PrincipalPayment,
-                            recorded_at: *transaction_recorded_at,
-                        });
-                    }
-
-                    if *interest_amount != UsdCents::ZERO {
-                        transactions.push(LoanTransaction {
-                            amount: *interest_amount,
-                            transaction_type: TransactionType::InterestPayment,
-                            recorded_at: *transaction_recorded_at,
-                        });
-                    }
-
-                    transactions
+                    [
+                        (*principal_amount, TransactionType::PrincipalPayment),
+                        (*interest_amount, TransactionType::InterestPayment),
+                    ]
+                    .into_iter()
+                    .filter(|(amount, _)| *amount != UsdCents::ZERO)
+                    .map(|(amount, transaction_type)| LoanTransaction {
+                        amount,
+                        transaction_type,
+                        recorded_at: *transaction_recorded_at,
+                    })
+                    .collect::<Vec<_>>()
                 } else {
-                    Vec::new()
+                    vec![]
                 }
             })
             .collect()
