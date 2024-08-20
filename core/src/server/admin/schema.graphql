@@ -310,6 +310,7 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	collateral: Satoshis!
+	transactions: [LoanTransaction!]!
 	balance: LoanBalance!
 	customer: Customer!
 }
@@ -384,6 +385,12 @@ enum LoanStatus {
 	NEW
 	ACTIVE
 	CLOSED
+}
+
+type LoanTransaction {
+	amount: UsdCents!
+	transactionType: TransactionType!
+	recordedAt: Timestamp!
 }
 
 type Mutation {
@@ -528,6 +535,11 @@ input TermsInput {
 }
 
 scalar Timestamp
+
+enum TransactionType {
+	INTEREST_PAYMENT
+	PRINCIPAL_PAYMENT
+}
 
 type TrialBalance {
 	name: String!
