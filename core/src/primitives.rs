@@ -464,3 +464,9 @@ mod test {
         );
     }
 }
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+pub enum CollateralAction {
+    Add,
+    Remove,
+}

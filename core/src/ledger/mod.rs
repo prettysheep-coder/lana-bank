@@ -13,10 +13,9 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
-    loan::CollateralAction,
     primitives::{
-        CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
-        LoanId, Satoshis, Subject, UsdCents, WithdrawId,
+        CollateralAction, CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
+        LedgerTxTemplateId, LoanId, Satoshis, Subject, UsdCents, WithdrawId,
     },
 };
 
@@ -263,21 +262,23 @@ impl Ledger {
     #[instrument(name = "lava.ledger.manage_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        collateral_amount: Satoshis,
-        tx_ref: String,
-        action: CollateralAction,
+        LoanCollateralUpdate {
+            tx_id,
+            loan_account_ids,
+            collateral,
+            tx_ref,
+            action,
+        }: LoanCollateralUpdate,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         let created_at = match action {
             CollateralAction::Add => {
                 self.cala
-                    .add_collateral(tx_id, loan_account_ids, collateral_amount.to_btc(), tx_ref)
+                    .add_collateral(tx_id, loan_account_ids, collateral.to_btc(), tx_ref)
                     .await
             }
             CollateralAction::Remove => {
                 self.cala
-                    .remove_collateral(tx_id, loan_account_ids, collateral_amount.to_btc(), tx_ref)
+                    .remove_collateral(tx_id, loan_account_ids, collateral.to_btc(), tx_ref)
                     .await
             }
         }?;

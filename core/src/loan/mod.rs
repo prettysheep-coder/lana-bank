@@ -167,16 +167,15 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
-        let tx_id = LedgerTxId::new();
-        let (tx_ref, collateral, action) = loan.can_update_collateral(updated_collateral)?;
-        let mut db_tx = self.pool.begin().await?;
+        let loan_collateral_update = loan.initiate_collateral_update(updated_collateral)?;
 
-        let created_at = self
+        let mut db_tx = self.pool.begin().await?;
+        let executed_at = self
             .ledger
-            .update_collateral(tx_id, loan.account_ids, collateral, tx_ref.clone(), action)
+            .update_collateral(loan_collateral_update.clone())
             .await?;
 
-        loan.update_collateral(tx_id, collateral, action, tx_ref, created_at);
+        loan.confirm_collateral_update(loan_collateral_update, executed_at);
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)

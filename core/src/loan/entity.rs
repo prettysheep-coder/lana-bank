@@ -6,7 +6,7 @@ use crate::{
     entity::*,
     ledger::{
         customer::CustomerLedgerAccountIds,
-        loan::{LoanAccountIds, LoanPayment},
+        loan::{LoanAccountIds, LoanCollateralUpdate, LoanPayment},
     },
     primitives::*,
 };
@@ -39,12 +39,6 @@ impl LoanReceivable {
             principal,
         })
     }
-}
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-pub enum CollateralAction {
-    Add,
-    Remove,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -81,7 +75,7 @@ pub enum LoanEvent {
         amount: UsdCents,
     },
 
-    CollateralAdjusted {
+    CollateralUpdated {
         tx_id: LedgerTxId,
         tx_ref: String,
         collateral: Satoshis,
@@ -168,7 +162,7 @@ impl Loan {
         let mut current = SignedSatoshis::ZERO;
 
         for event in self.events.iter() {
-            if let LoanEvent::CollateralAdjusted {
+            if let LoanEvent::CollateralUpdated {
                 action, collateral, ..
             } = event
             {
@@ -347,14 +341,14 @@ impl Loan {
     fn count_collateral_adjustments(&self) -> usize {
         self.events
             .iter()
-            .filter(|event| matches!(event, LoanEvent::CollateralAdjusted { .. }))
+            .filter(|event| matches!(event, LoanEvent::CollateralUpdated { .. }))
             .count()
     }
 
-    pub(super) fn can_update_collateral(
+    pub(super) fn initiate_collateral_update(
         &self,
         updated_collateral: Satoshis,
-    ) -> Result<(String, Satoshis, CollateralAction), LoanError> {
+    ) -> Result<LoanCollateralUpdate, LoanError> {
         let current_collateral = self.collateral();
         let diff =
             SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
@@ -378,23 +372,34 @@ impl Loan {
             self.count_collateral_adjustments() + 1
         );
 
-        Ok((tx_ref, collateral, action))
+        let tx_id = LedgerTxId::new();
+
+        Ok(LoanCollateralUpdate {
+            collateral,
+            loan_account_ids: self.account_ids,
+            tx_ref,
+            tx_id,
+            action,
+        })
     }
 
-    pub(super) fn update_collateral(
+    pub(super) fn confirm_collateral_update(
         &mut self,
-        tx_id: LedgerTxId,
-        collateral: Satoshis,
-        action: CollateralAction,
-        tx_ref: String,
-        recorded_at: DateTime<Utc>,
-    ) {
-        self.events.push(LoanEvent::CollateralAdjusted {
+        LoanCollateralUpdate {
             tx_id,
             tx_ref,
             collateral,
             action,
-            recorded_at,
+            ..
+        }: LoanCollateralUpdate,
+        executed_at: DateTime<Utc>,
+    ) {
+        self.events.push(LoanEvent::CollateralUpdated {
+            tx_id,
+            tx_ref,
+            collateral,
+            action,
+            recorded_at: executed_at,
         });
     }
 }
@@ -432,7 +437,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
-                LoanEvent::CollateralAdjusted { .. } => (),
+                LoanEvent::CollateralUpdated { .. } => (),
             }
         }
         builder.events(events).build()
@@ -574,9 +579,10 @@ mod test {
     #[test]
     fn prevent_double_approve() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let (tx_ref, collateral, action) =
-            loan.can_update_collateral(Satoshis::from(10000)).unwrap();
-        loan.update_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now());
         let res = loan.approve(LedgerTxId::new());
         assert!(res.is_ok());
 
@@ -588,9 +594,10 @@ mod test {
     fn test_status() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
-        let (tx_ref, collateral, action) =
-            loan.can_update_collateral(Satoshis::from(10000)).unwrap();
-        loan.update_collateral(LedgerTxId::new(), collateral, action, tx_ref, Utc::now());
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now());
         let _ = loan.approve(LedgerTxId::new());
         assert_eq!(loan.status(), LoanStatus::Active);
         let _ = loan.record_if_not_exceeding_outstanding(
