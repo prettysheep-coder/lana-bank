@@ -6,13 +6,12 @@ use crate::{
     entity::*,
     ledger::{
         customer::CustomerLedgerAccountIds,
-        loan::{LoanAccountIds, LoanPayment},
+        loan::{LoanAccountIds, LoanPaymentAmounts, LoanRepayment},
     },
     primitives::*,
 };
 
-use super::error::LoanError;
-use super::terms::TermValues;
+use super::{error::LoanError, terms::TermValues};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoanReceivable {
@@ -37,7 +36,7 @@ impl LoanReceivable {
         self.interest + self.principal
     }
 
-    fn allocate_payment(&self, amount: UsdCents) -> Result<LoanPayment, LoanError> {
+    fn allocate_payment(&self, amount: UsdCents) -> Result<LoanPaymentAmounts, LoanError> {
         let mut remaining = amount;
 
         let interest = std::cmp::min(amount, self.interest);
@@ -46,7 +45,7 @@ impl LoanReceivable {
         let principal = std::cmp::min(remaining, self.principal);
         remaining -= principal;
 
-        Ok(LoanPayment {
+        Ok(LoanPaymentAmounts {
             interest,
             principal,
         })
@@ -63,9 +62,6 @@ pub enum LoanEvent {
         terms: TermValues,
         account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-    },
-    TermsUpdated {
-        terms: TermValues,
     },
     Approved {
         tx_id: LedgerTxId,
@@ -84,9 +80,8 @@ pub enum LoanEvent {
         transaction_recorded_at: DateTime<Utc>,
     },
     Completed {
-        tx_id: LedgerTxId,
-        tx_ref: String,
-        amount: UsdCents,
+        collateral_tx_id: LedgerTxId,
+        collateral_tx_ref: String,
         transaction_recorded_at: DateTime<Utc>,
     },
 }
@@ -122,6 +117,19 @@ impl Loan {
         } else {
             unreachable!("Initialized event not found")
         }
+    }
+
+    fn collateral(&self) -> Satoshis {
+        self.events.iter().rfold(Satoshis::ZERO, |acc, event| {
+            if let LoanEvent::Approved {
+                initial_collateral, ..
+            } = event
+            {
+                *initial_collateral
+            } else {
+                acc
+            }
+        })
     }
 
     fn principal_payments(&self) -> UsdCents {
@@ -222,12 +230,6 @@ impl Loan {
         }
     }
 
-    #[allow(dead_code)]
-    pub(super) fn set_terms(&mut self, terms: TermValues) {
-        self.terms = terms.clone();
-        self.events.push(LoanEvent::TermsUpdated { terms });
-    }
-
     pub(super) fn approve(
         &mut self,
         tx_id: LedgerTxId,
@@ -310,14 +312,13 @@ impl Loan {
         Ok((interest, tx_ref))
     }
 
-    pub(super) fn can_be_completed(
+    pub(super) fn initiate_repayment(
         &self,
         record_amount: UsdCents,
-    ) -> Result<(String, String, bool, LoanPayment), LoanError> {
+    ) -> Result<LoanRepayment, LoanError> {
         if self.is_completed() {
             return Err(LoanError::AlreadyCompleted);
         }
-
         let outstanding = self.outstanding();
         if outstanding.total() < record_amount {
             return Err(LoanError::PaymentExceedsOutstandingLoanAmount(
@@ -325,47 +326,81 @@ impl Loan {
                 outstanding.total(),
             ));
         }
-        let payment = outstanding.allocate_payment(record_amount)?;
-        let payment_tx_ref: &str =
-            &format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
-        let collateral_tx_ref: &str = &format!("{}-collateral-returned", self.id);
-        let can_be_completed = outstanding.total() == record_amount;
-
-        Ok((
-            payment_tx_ref.to_string(),
-            collateral_tx_ref.to_string(),
-            can_be_completed,
-            payment,
-        ))
+        let amounts = outstanding.allocate_payment(record_amount)?;
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
+        let res = if outstanding.total() == record_amount {
+            let collateral_tx_ref = format!("{}-collateral", self.id,);
+            LoanRepayment::Final {
+                payment_tx_id: LedgerTxId::new(),
+                payment_tx_ref: tx_ref,
+                collateral_tx_id: LedgerTxId::new(),
+                collateral_tx_ref,
+                collateral: self.collateral(),
+                loan_account_ids: self.account_ids,
+                customer_account_ids: self.customer_account_ids,
+                amounts,
+            }
+        } else {
+            LoanRepayment::Partial {
+                tx_id: LedgerTxId::new(),
+                tx_ref,
+                loan_account_ids: self.account_ids,
+                customer_account_ids: self.customer_account_ids,
+                amounts,
+            }
+        };
+        Ok(res)
     }
 
-    pub fn record(
+    pub fn confirm_repayment(
         &mut self,
-        payment_tx_id: LedgerTxId,
-        payment_tx_ref: String,
-        collateral_tx_id: LedgerTxId,
-        collateral_tx_ref: String,
-        payment: LoanPayment,
+        repayment: LoanRepayment,
         transaction_recorded_at: DateTime<Utc>,
     ) {
-        let outstanding = self.outstanding();
-
-        self.events.push(LoanEvent::PaymentRecorded {
-            tx_id: payment_tx_id,
-            tx_ref: payment_tx_ref,
-            principal_amount: payment.principal,
-            interest_amount: payment.interest,
-            transaction_recorded_at,
-        });
-
-        let record_amount = payment.principal + payment.interest;
-        if outstanding.total() == record_amount {
-            self.events.push(LoanEvent::Completed {
-                tx_id: collateral_tx_id,
-                tx_ref: collateral_tx_ref,
-                amount: record_amount,
-                transaction_recorded_at,
-            });
+        match repayment {
+            LoanRepayment::Partial {
+                tx_id,
+                tx_ref,
+                amounts:
+                    LoanPaymentAmounts {
+                        interest,
+                        principal,
+                    },
+                ..
+            } => {
+                self.events.push(LoanEvent::PaymentRecorded {
+                    tx_id,
+                    tx_ref,
+                    principal_amount: principal,
+                    interest_amount: interest,
+                    transaction_recorded_at,
+                });
+            }
+            LoanRepayment::Final {
+                payment_tx_id,
+                payment_tx_ref,
+                collateral_tx_id,
+                collateral_tx_ref,
+                amounts:
+                    LoanPaymentAmounts {
+                        interest,
+                        principal,
+                    },
+                ..
+            } => {
+                self.events.push(LoanEvent::PaymentRecorded {
+                    tx_id: payment_tx_id,
+                    tx_ref: payment_tx_ref,
+                    principal_amount: principal,
+                    interest_amount: interest,
+                    transaction_recorded_at,
+                });
+                self.events.push(LoanEvent::Completed {
+                    collateral_tx_id,
+                    collateral_tx_ref,
+                    transaction_recorded_at,
+                });
+            }
         }
     }
 
@@ -402,9 +437,6 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .terms(terms.clone())
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
-                }
-                LoanEvent::TermsUpdated { terms } => {
-                    builder = builder.terms(terms.clone());
                 }
                 LoanEvent::Approved { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
@@ -452,7 +484,7 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{AnnualRatePct, Duration, InterestInterval};
+    use crate::loan::{Duration, InterestInterval};
 
     use super::*;
 
@@ -500,16 +532,8 @@ mod test {
             }
         );
         let amount = UsdCents::from(4);
-        let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_be_completed(amount).unwrap();
-        let _ = loan.record(
-            LedgerTxId::new(),
-            payment_tx_ref,
-            LedgerTxId::new(),
-            collateral_tx_ref,
-            payment,
-            Utc::now(),
-        );
+        let repayment = loan.initiate_repayment(amount).unwrap();
+        loan.confirm_repayment(repayment, Utc::now());
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -518,17 +542,8 @@ mod test {
             }
         );
         let amount = UsdCents::from(2);
-        let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_be_completed(amount).unwrap();
-
-        let _ = loan.record(
-            LedgerTxId::new(),
-            payment_tx_ref,
-            LedgerTxId::new(),
-            collateral_tx_ref,
-            payment,
-            Utc::now(),
-        );
+        let repayment = loan.initiate_repayment(amount).unwrap();
+        loan.confirm_repayment(repayment, Utc::now());
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -538,20 +553,12 @@ mod test {
         );
 
         let amount = UsdCents::from(100);
-        let res = loan.can_be_completed(amount);
+        let res = loan.initiate_repayment(amount);
         assert!(res.is_err());
 
         let amount = UsdCents::from(99);
-        let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_be_completed(amount).unwrap();
-        let _ = loan.record(
-            LedgerTxId::new(),
-            payment_tx_ref,
-            LedgerTxId::new(),
-            collateral_tx_ref,
-            payment,
-            Utc::now(),
-        );
+        let repayment = loan.initiate_repayment(amount).unwrap();
+        loan.confirm_repayment(repayment, Utc::now());
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -589,51 +596,8 @@ mod test {
         );
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
-        let (payment_tx_ref, collateral_tx_ref, _can_be_completed, payment) =
-            loan.can_be_completed(amount).unwrap();
-        let _ = loan.record(
-            LedgerTxId::new(),
-            payment_tx_ref,
-            LedgerTxId::new(),
-            collateral_tx_ref,
-            payment,
-            Utc::now(),
-        );
+        let repayment = loan.initiate_repayment(amount).unwrap();
+        loan.confirm_repayment(repayment, Utc::now());
         assert_eq!(loan.status(), LoanStatus::Closed);
-    }
-
-    #[test]
-    fn can_update_terms() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
-        assert_eq!(loan.terms.annual_rate, AnnualRatePct::from(dec!(12)));
-
-        let new_terms = TermValues::builder()
-            .annual_rate(dec!(15))
-            .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
-            .liquidation_cvl(dec!(105))
-            .margin_call_cvl(dec!(125))
-            .initial_cvl(dec!(140))
-            .build()
-            .expect("should build a valid term");
-        loan.set_terms(new_terms);
-
-        assert_eq!(
-            loan.events
-                .iter()
-                .filter_map(|event| match event {
-                    LoanEvent::TermsUpdated { .. } => Some(()),
-                    _ => None,
-                })
-                .count(),
-            1
-        );
-
-        assert!(matches!(
-            loan.events.iter().last().unwrap(),
-            LoanEvent::TermsUpdated { .. }
-        ));
-
-        assert_eq!(loan.terms.annual_rate, AnnualRatePct::from(dec!(15)));
     }
 }

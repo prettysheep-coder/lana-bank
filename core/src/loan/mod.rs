@@ -167,12 +167,6 @@ impl Loans {
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
-        let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(balances.principal_receivable, loan.outstanding().principal);
-        assert_eq!(balances.interest_receivable, loan.outstanding().interest);
-
-        let (payment_tx_ref, collateral_tx_ref, can_be_completed, payment) =
-            loan.can_be_completed(amount)?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let customer_balances = self
@@ -186,45 +180,18 @@ impl Loans {
             ));
         }
 
-        let payment_tx_id = LedgerTxId::new();
-        let collateral_tx_id = LedgerTxId::new();
-
-        let created_at = if can_be_completed {
-            self.ledger
-                .complete_loan(
-                    payment_tx_id,
-                    collateral_tx_id,
-                    loan.account_ids,
-                    customer.account_ids,
-                    payment,
-                    balances.collateral,
-                    payment_tx_ref.as_str(),
-                    collateral_tx_ref.as_str(),
-                )
-                .await?
-        } else {
-            self.ledger
-                .record_payment(
-                    payment_tx_id,
-                    loan.account_ids,
-                    customer.account_ids,
-                    payment,
-                    payment_tx_ref.as_str(),
-                )
-                .await?
-        };
-
-        loan.record(
-            payment_tx_id,
-            payment_tx_ref,
-            collateral_tx_id,
-            collateral_tx_ref,
-            payment,
-            created_at,
-        );
+        let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
+        assert_eq!(balances.principal_receivable, loan.outstanding().principal);
+        assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
         let mut db_tx = self.pool.begin().await?;
+
+        let repayment = loan.initiate_repayment(amount)?;
+        let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
+        loan.confirm_repayment(repayment, executed_at);
+
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+
         db_tx.commit().await?;
 
         Ok(loan)

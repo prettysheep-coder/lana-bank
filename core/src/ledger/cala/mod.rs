@@ -820,8 +820,8 @@ impl CalaClient {
         interest_payment_amount: Decimal,
         principal_payment_amount: Decimal,
         collateral_amount: Decimal,
-        payment_external_id: &str,
-        collateral_external_id: &str,
+        payment_external_id: String,
+        collateral_external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_complete_loan_transaction::Variables {
             payment_transaction_id: payment_transaction_id.into(),
@@ -837,8 +837,8 @@ impl CalaClient {
             interest_payment_amount,
             principal_payment_amount,
             collateral_amount,
-            payment_external_id: payment_external_id.to_string(),
-            collateral_external_id: collateral_external_id.to_string(),
+            payment_external_id,
+            collateral_external_id,
         };
         let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
             &self.client,
@@ -944,7 +944,7 @@ impl CalaClient {
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
         principal_payment_amount: Decimal,
-        external_id: &str,
+        external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
@@ -957,7 +957,7 @@ impl CalaClient {
                 .into(),
             interest_payment_amount,
             principal_payment_amount,
-            external_id: external_id.to_string(),
+            external_id,
         };
         let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
             &self.client,
