@@ -218,7 +218,7 @@ const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void })
                   )}
                   {loan.status === LoanStatus.New && (
                     <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                      <LoanApproveDialog refetch={refetch} loanId={loan.loanId}>
+                      <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
                         <span>Approve Loan</span>
                       </LoanApproveDialog>
                     </DropdownMenuItem>
