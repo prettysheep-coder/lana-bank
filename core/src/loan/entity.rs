@@ -86,9 +86,9 @@ pub enum LoanEvent {
         recorded_at: DateTime<Utc>,
     },
     Completed {
-        collateral_tx_id: LedgerTxId,
-        collateral_tx_ref: String,
-        transaction_recorded_at: DateTime<Utc>,
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        completed_at: DateTime<Utc>,
     },
 }
 
@@ -407,9 +407,9 @@ impl Loan {
                     recorded_at: transaction_recorded_at,
                 });
                 self.events.push(LoanEvent::Completed {
-                    collateral_tx_id,
-                    collateral_tx_ref,
-                    transaction_recorded_at,
+                    tx_id: collateral_tx_id,
+                    tx_ref: collateral_tx_ref,
+                    completed_at: transaction_recorded_at,
                 });
             }
         }
