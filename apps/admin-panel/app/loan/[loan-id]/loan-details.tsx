@@ -211,8 +211,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Transaction Type</TableHead>
-                  <TableHead>Amount (USD)</TableHead>
-                  <TableHead className="text-right">Recorded At</TableHead>
+                  <TableHead>Recorded At</TableHead>
+                  <TableHead className="text-right">Amount (USD)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -221,11 +221,9 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     <TableCell>
                       {formatLoanTransactionType(transaction.transactionType)}
                     </TableCell>
-                    <TableCell>
-                      <Balance amount={transaction.amount} currency="usd" />
-                    </TableCell>
+                    <TableCell>{formatDate(transaction.recordedAt)}</TableCell>
                     <TableCell className="text-right">
-                      {formatDate(transaction.recordedAt)}
+                      <Balance amount={transaction.amount} currency="usd" />
                     </TableCell>
                   </TableRow>
                 ))}
