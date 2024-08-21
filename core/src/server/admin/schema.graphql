@@ -388,7 +388,7 @@ enum LoanStatus {
 }
 
 type LoanTransaction {
-	amount: UsdCents!
+	amount: TransactionAmount!
 	transactionType: TransactionType!
 	recordedAt: Timestamp!
 }
@@ -474,6 +474,10 @@ enum Role {
 	BANK_MANAGER
 }
 
+type SatoshiAmount {
+	value: Satoshis!
+}
+
 scalar Satoshis
 
 input ShareholderEquityAddInput {
@@ -536,9 +540,13 @@ input TermsInput {
 
 scalar Timestamp
 
+union TransactionAmount = SatoshiAmount | UsdCentAmount
+
 enum TransactionType {
 	INTEREST_PAYMENT
 	PRINCIPAL_PAYMENT
+	COLLATERAL_ADDED
+	COLLATERAL_REMOVED
 }
 
 type TrialBalance {
@@ -560,6 +568,10 @@ type UsdAccountAmountsInPeriod {
 	openingBalance: LayeredUsdAccountAmounts!
 	closingBalance: LayeredUsdAccountAmounts!
 	amount: LayeredUsdAccountAmounts!
+}
+
+type UsdCentAmount {
+	value: UsdCents!
 }
 
 scalar UsdCents

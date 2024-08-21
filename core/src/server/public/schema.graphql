@@ -91,7 +91,7 @@ enum LoanStatus {
 }
 
 type LoanTransaction {
-	amount: UsdCents!
+	amount: TransactionAmount!
 	transactionType: TransactionType!
 	recordedAt: Timestamp!
 }
@@ -108,6 +108,10 @@ enum Period {
 type Query {
 	loan(id: UUID!): Loan
 	me: Customer
+}
+
+type SatoshiAmount {
+	value: Satoshis!
 }
 
 scalar Satoshis
@@ -132,12 +136,20 @@ type TermValues {
 
 scalar Timestamp
 
+union TransactionAmount = SatoshiAmount | UsdCentAmount
+
 enum TransactionType {
 	INTEREST_PAYMENT
 	PRINCIPAL_PAYMENT
+	COLLATERAL_ADDED
+	COLLATERAL_REMOVED
 }
 
 scalar UUID
+
+type UsdCentAmount {
+	value: UsdCents!
+}
 
 scalar UsdCents
 

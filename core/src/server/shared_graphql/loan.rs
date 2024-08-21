@@ -11,10 +11,26 @@ use crate::{
 use super::convert::ToGlobalId;
 
 #[derive(SimpleObject)]
-pub struct LoanTransaction {
-    amount: UsdCents,
+struct LoanTransaction {
+    amount: TransactionAmount,
     transaction_type: TransactionType,
     recorded_at: Timestamp,
+}
+
+#[derive(Union)]
+enum TransactionAmount {
+    Sats(SatoshiAmount),
+    Cents(UsdCentAmount),
+}
+
+#[derive(SimpleObject)]
+struct SatoshiAmount {
+    value: Satoshis,
+}
+
+#[derive(SimpleObject)]
+struct UsdCentAmount {
+    value: UsdCents,
 }
 
 #[derive(SimpleObject)]
@@ -125,8 +141,17 @@ impl From<crate::loan::Loan> for Loan {
 
 impl From<crate::loan::LoanTransaction> for LoanTransaction {
     fn from(tx: crate::loan::LoanTransaction) -> Self {
+        let amount = match tx.amount {
+            crate::loan::TransactionAmount::Sats(amt) => {
+                TransactionAmount::Sats(SatoshiAmount { value: amt })
+            }
+            crate::loan::TransactionAmount::Cents(amt) => {
+                TransactionAmount::Cents(UsdCentAmount { value: amt })
+            }
+        };
+
         Self {
-            amount: tx.amount,
+            amount,
             transaction_type: tx.transaction_type,
             recorded_at: tx.recorded_at.into(),
         }

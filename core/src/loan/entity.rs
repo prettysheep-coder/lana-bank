@@ -20,15 +20,22 @@ pub struct LoanReceivable {
 }
 
 pub struct LoanTransaction {
-    pub amount: UsdCents,
+    pub amount: TransactionAmount,
     pub transaction_type: TransactionType,
     pub recorded_at: DateTime<Utc>,
+}
+
+pub enum TransactionAmount {
+    Sats(Satoshis),
+    Cents(UsdCents),
 }
 
 #[derive(async_graphql::Enum, Copy, Clone, Eq, PartialEq)]
 pub enum TransactionType {
     InterestPayment,
     PrincipalPayment,
+    CollateralAdded,
+    CollateralRemoved,
 }
 
 impl LoanReceivable {
@@ -185,34 +192,59 @@ impl Loan {
     }
 
     pub fn transactions(&self) -> Vec<LoanTransaction> {
-        self.events
-            .iter()
-            .rev()
-            .flat_map(|event| {
-                if let LoanEvent::PaymentRecorded {
+        let mut transacions = vec![];
+
+        for event in self.events.iter().rev() {
+            match event {
+                LoanEvent::PaymentRecorded {
                     principal_amount,
                     interest_amount,
                     transaction_recorded_at,
                     ..
-                } = event
-                {
-                    [
-                        (*principal_amount, TransactionType::PrincipalPayment),
-                        (*interest_amount, TransactionType::InterestPayment),
-                    ]
-                    .into_iter()
-                    .filter(|(amount, _)| *amount != UsdCents::ZERO)
-                    .map(|(amount, transaction_type)| LoanTransaction {
-                        amount,
-                        transaction_type,
-                        recorded_at: *transaction_recorded_at,
-                    })
-                    .collect::<Vec<_>>()
-                } else {
-                    vec![]
+                } => {
+                    if *principal_amount != UsdCents::ZERO {
+                        transacions.push(LoanTransaction {
+                            amount: TransactionAmount::Cents(*principal_amount),
+                            transaction_type: TransactionType::PrincipalPayment,
+                            recorded_at: *transaction_recorded_at,
+                        });
+                    }
+                    if *interest_amount != UsdCents::ZERO {
+                        transacions.push(LoanTransaction {
+                            amount: TransactionAmount::Cents(*interest_amount),
+                            transaction_type: TransactionType::InterestPayment,
+                            recorded_at: *transaction_recorded_at,
+                        });
+                    }
                 }
-            })
-            .collect()
+
+                LoanEvent::CollateralUpdated {
+                    collateral,
+                    action,
+                    recorded_at,
+                    ..
+                } => match action {
+                    CollateralAction::Add => {
+                        transacions.push(LoanTransaction {
+                            amount: TransactionAmount::Sats(*collateral),
+                            transaction_type: TransactionType::CollateralAdded,
+                            recorded_at: *recorded_at,
+                        });
+                    }
+                    CollateralAction::Remove => {
+                        transacions.push(LoanTransaction {
+                            amount: TransactionAmount::Sats(*collateral),
+                            transaction_type: TransactionType::CollateralRemoved,
+                            recorded_at: *recorded_at,
+                        });
+                    }
+                },
+
+                _ => {}
+            }
+        }
+
+        transacions
     }
 
     pub(super) fn is_approved(&self) -> bool {
