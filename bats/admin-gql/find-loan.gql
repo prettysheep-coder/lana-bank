@@ -13,7 +13,14 @@ query loan($id: UUID!) {
       }
     }
     transactions {
-      amount
+      amount {
+        ... on SatoshiAmount {
+          value
+        }
+        ... on UsdCentAmount {
+          value
+        }
+      }
       transactionType
       recordedAt
     }

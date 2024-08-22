@@ -83,7 +83,7 @@ pub enum LoanEvent {
         tx_ref: String,
         principal_amount: UsdCents,
         interest_amount: UsdCents,
-        transaction_recorded_at: DateTime<Utc>,
+        recorded_at: DateTime<Utc>,
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
@@ -192,25 +192,25 @@ impl Loan {
     }
 
     pub fn transactions(&self) -> Vec<LoanTransaction> {
-        let mut transacions = vec![];
+        let mut transactions = vec![];
 
         for event in self.events.iter().rev() {
             match event {
                 LoanEvent::PaymentRecorded {
                     principal_amount,
                     interest_amount,
-                    transaction_recorded_at,
+                    recorded_at: transaction_recorded_at,
                     ..
                 } => {
                     if *principal_amount != UsdCents::ZERO {
-                        transacions.push(LoanTransaction {
+                        transactions.push(LoanTransaction {
                             amount: TransactionAmount::Cents(*principal_amount),
                             transaction_type: TransactionType::PrincipalPayment,
                             recorded_at: *transaction_recorded_at,
                         });
                     }
                     if *interest_amount != UsdCents::ZERO {
-                        transacions.push(LoanTransaction {
+                        transactions.push(LoanTransaction {
                             amount: TransactionAmount::Cents(*interest_amount),
                             transaction_type: TransactionType::InterestPayment,
                             recorded_at: *transaction_recorded_at,
@@ -225,14 +225,14 @@ impl Loan {
                     ..
                 } => match action {
                     CollateralAction::Add => {
-                        transacions.push(LoanTransaction {
+                        transactions.push(LoanTransaction {
                             amount: TransactionAmount::Sats(*collateral),
                             transaction_type: TransactionType::CollateralAdded,
                             recorded_at: *recorded_at,
                         });
                     }
                     CollateralAction::Remove => {
-                        transacions.push(LoanTransaction {
+                        transactions.push(LoanTransaction {
                             amount: TransactionAmount::Sats(*collateral),
                             transaction_type: TransactionType::CollateralRemoved,
                             recorded_at: *recorded_at,
@@ -244,7 +244,7 @@ impl Loan {
             }
         }
 
-        transacions
+        transactions
     }
 
     pub(super) fn is_approved(&self) -> bool {
@@ -408,7 +408,7 @@ impl Loan {
                     tx_ref,
                     principal_amount: principal,
                     interest_amount: interest,
-                    transaction_recorded_at,
+                    recorded_at: transaction_recorded_at,
                 });
             }
             LoanRepayment::Final {
@@ -429,7 +429,7 @@ impl Loan {
                     tx_ref: payment_tx_ref,
                     principal_amount: principal,
                     interest_amount: interest,
-                    transaction_recorded_at,
+                    recorded_at: transaction_recorded_at,
                 });
                 self.events.push(LoanEvent::CollateralUpdated {
                     tx_id: collateral_tx_id,
