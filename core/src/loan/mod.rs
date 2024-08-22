@@ -14,6 +14,7 @@ use crate::{
     audit::Audit,
     authorization::{Authorization, LoanAction, Object, TermAction},
     customer::Customers,
+    data_export::Export,
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
@@ -35,6 +36,7 @@ pub struct Loans {
     pool: PgPool,
     jobs: Option<Jobs>,
     authz: Authorization,
+    export: Export,
 }
 
 impl Loans {
@@ -45,6 +47,7 @@ impl Loans {
         ledger: &Ledger,
         authz: &Authorization,
         audit: &Audit,
+        export: &Export,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
@@ -61,10 +64,12 @@ impl Loans {
             pool: pool.clone(),
             jobs: None,
             authz: authz.clone(),
+            export: export.clone(),
         }
     }
 
     pub fn set_jobs(&mut self, jobs: &Jobs) {
+        self.export.set_jobs(jobs);
         self.jobs = Some(jobs.clone());
     }
 
@@ -105,7 +110,7 @@ impl Loans {
         if !customer.may_create_loan() {
             return Err(LoanError::CustomerNotAllowedToCreateLoan(customer_id));
         }
-        let mut tx = self.pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
 
         let new_loan = NewLoan::builder(audit_info)
             .id(LoanId::new())
@@ -117,11 +122,12 @@ impl Loans {
             .build()
             .expect("could not build new loan");
 
-        let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
+        let loan = self.loan_repo.create_in_tx(&mut db_tx, new_loan).await?;
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
             .await?;
-        tx.commit().await?;
+        self.export.export_all(&mut db_tx, &loan.events).await?;
+        db_tx.commit().await?;
         Ok(loan)
     }
 
