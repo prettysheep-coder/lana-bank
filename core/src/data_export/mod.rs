@@ -1,3 +1,4 @@
+mod cala;
 mod job;
 
 use chrono::{DateTime, Utc};
@@ -16,20 +17,24 @@ use job::{DataExportConfig, DataExportInitializer};
 pub struct ExportData {
     id: uuid::Uuid,
     event_type: String,
-    event: serde_json::Value,
+    event: String,
     sequence: usize,
     recorded_at: DateTime<Utc>,
 }
 
 #[derive(Clone)]
 pub struct Export {
+    cala_url: String,
     jobs: Option<Jobs>,
 }
 
 impl Export {
-    pub fn new(registry: &mut JobRegistry) -> Self {
+    pub fn new(cala_url: String, registry: &mut JobRegistry) -> Self {
         registry.add_initializer(DataExportInitializer::new());
-        Self { jobs: None }
+        Self {
+            cala_url,
+            jobs: None,
+        }
     }
 
     pub fn set_jobs(&mut self, jobs: &Jobs) {
@@ -43,15 +48,17 @@ impl Export {
     pub async fn export_all<T: EntityEvent + 'static>(
         &self,
         db: &mut Transaction<'_, Postgres>,
+        table_name: &'static str,
         events: &EntityEvents<T>,
     ) -> Result<(), JobError> {
         let n_events = events.len_persisted();
-        self.export_last(db, n_events, events).await
+        self.export_last(db, table_name, n_events, events).await
     }
 
     pub async fn export_last<T: EntityEvent + 'static>(
         &self,
         db: &mut Transaction<'_, Postgres>,
+        table_name: &'static str,
         last: usize,
         events: &EntityEvents<T>,
     ) -> Result<(), JobError> {
@@ -67,6 +74,7 @@ impl Export {
                 .as_str()
                 .expect("Type must be a string")
                 .to_string();
+            let event = serde_json::to_string(&event).expect("Couldn't serialize event");
             let data = ExportData {
                 id,
                 event,
@@ -79,7 +87,11 @@ impl Export {
                     db,
                     JobId::new(),
                     format!("export:{}:{}", id, sequence),
-                    DataExportConfig { data },
+                    DataExportConfig {
+                        table_name: std::borrow::Cow::Borrowed(table_name),
+                        cala_url: self.cala_url.clone(),
+                        data,
+                    },
                 )
                 .await?;
         }

@@ -27,6 +27,8 @@ use job::*;
 use repo::*;
 pub use terms::*;
 
+const BQ_TABLE_NAME: &str = "loan_events";
+
 #[derive(Clone)]
 pub struct Loans {
     loan_repo: LoanRepo,
@@ -89,10 +91,11 @@ impl Loans {
         self.term_repo.update_default(terms).await
     }
 
+    #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
     pub async fn create_loan_for_customer(
         &self,
         sub: &Subject,
-        customer_id: impl Into<CustomerId>,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         desired_principal: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
@@ -126,7 +129,9 @@ impl Loans {
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
             .await?;
-        self.export.export_all(&mut db_tx, &loan.events).await?;
+        self.export
+            .export_all(&mut db_tx, BQ_TABLE_NAME, &loan.events)
+            .await?;
         db_tx.commit().await?;
         Ok(loan)
     }

@@ -218,7 +218,7 @@ where
     }
 
     pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = (usize, &T)> {
-        let start = self.persisted_events.len() - n;
+        let start = self.persisted_events.len() - n + 1;
         self.persisted_events[start..]
             .iter()
             .enumerate()

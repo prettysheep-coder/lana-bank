@@ -39,7 +39,7 @@ pub struct LavaApp {
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         let mut registry = JobRegistry::new();
-        let export = Export::new(&mut registry);
+        let export = Export::new(config.ledger.cala_url.clone(), &mut registry);
         let audit = Audit::new(&pool);
         let authz = Authorization::init(&pool, &audit).await?;
         let ledger = Ledger::init(config.ledger, &authz).await?;

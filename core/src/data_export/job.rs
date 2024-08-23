@@ -1,13 +1,17 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use std::borrow::Cow;
+
 use crate::job::*;
 
-use super::ExportData;
+use super::{cala::CalaClient, ExportData};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataExportConfig {
-    pub data: ExportData,
+    pub(super) cala_url: String,
+    pub(super) table_name: Cow<'static, str>,
+    pub(super) data: ExportData,
 }
 
 pub struct DataExportInitializer {}
@@ -40,11 +44,11 @@ pub struct DataExportJobRunner {
 
 #[async_trait]
 impl JobRunner for DataExportJobRunner {
-    async fn run(
-        &self,
-        _current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        println!("export: {:?}", self.config.data);
+    #[tracing::instrument(name = "lava.data_export.job.run", skip_all, fields(insert_id), err)]
+    async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let cala = CalaClient::new(self.config.cala_url.clone());
+        cala.insert_bq_row(&self.config.table_name, &self.config.data)
+            .await?;
         Ok(JobCompletion::Complete)
     }
 }
