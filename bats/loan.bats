@@ -17,7 +17,6 @@ loan_balance() {
     '{ id: $loanId }'
   )
   exec_admin_graphql 'find-loan' "$variables"
-  echo $(graphql_output) | jq .
 
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"

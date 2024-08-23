@@ -376,7 +376,7 @@ impl Loan {
         }: LoanInterestAccrual,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) -> () {
+    ) {
         self.events.push(LoanEvent::InterestIncurred {
             tx_id,
             tx_ref,
