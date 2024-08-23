@@ -33,6 +33,13 @@ type CustomerBalance {
 	checking: Checking!
 }
 
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
 type Deposit {
 	customerId: UUID!
 	depositId: UUID!
@@ -90,11 +97,7 @@ enum LoanStatus {
 	CLOSED
 }
 
-type LoanTransaction {
-	amount: TransactionAmount!
-	transactionType: TransactionType!
-	recordedAt: Timestamp!
-}
+union LoanTransaction = SatsTransaction | UsdCentsTransaction
 
 type Mutation {
 	sumsubTokenCreate: SumsubTokenCreatePayload!
@@ -110,11 +113,13 @@ type Query {
 	me: Customer
 }
 
-type SatoshiAmount {
-	value: Satoshis!
-}
-
 scalar Satoshis
+
+type SatsTransaction {
+	amount: Satoshis!
+	transactionType: TransactionType!
+	recordedAt: DateTime!
+}
 
 
 type SumsubPermalinkCreatePayload {
@@ -136,22 +141,23 @@ type TermValues {
 
 scalar Timestamp
 
-union TransactionAmount = SatoshiAmount | UsdCentAmount
-
 enum TransactionType {
-	INTEREST_PAYMENT
-	PRINCIPAL_PAYMENT
+	INTEREST_INSTALLMENT
+	INTEREST_CHARGED
+	PRINCIPAL_REDUCTION
 	COLLATERAL_ADDED
 	COLLATERAL_REMOVED
 }
 
 scalar UUID
 
-type UsdCentAmount {
-	value: UsdCents!
-}
-
 scalar UsdCents
+
+type UsdCentsTransaction {
+	amount: UsdCents!
+	transactionType: TransactionType!
+	recordedAt: DateTime!
+}
 
 type Withdrawal {
 	customerId: UUID!

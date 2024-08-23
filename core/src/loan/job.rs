@@ -2,11 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use super::{error::LoanError, repo::*};
-use crate::{
-    job::*,
-    ledger::*,
-    primitives::{LedgerTxId, LoanId},
-};
+use crate::{job::*, ledger::*, primitives::LoanId};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LoanJobConfig {
@@ -58,8 +54,7 @@ impl JobRunner for LoanProcessingJobRunner {
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
-        let tx_id = LedgerTxId::new();
-        let (interest, tx_ref) = match loan.add_interest(tx_id) {
+        let interest_accrual = match loan.initiate_interest() {
             Err(LoanError::AlreadyCompleted) => {
                 return Ok(JobCompletion::Complete);
             }
@@ -68,11 +63,15 @@ impl JobRunner for LoanProcessingJobRunner {
         };
 
         let mut db_tx = current_job.pool().begin().await?;
-        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
-        self.ledger
-            .record_loan_interest(tx_id, loan.account_ids, tx_ref, interest)
+        let executed_at = self
+            .ledger
+            .record_loan_interest(interest_accrual.clone())
             .await?;
+
+        loan.confirm_interest(interest_accrual, executed_at);
+
+        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         match loan.next_interest_at() {
             Some(next_interest_at) => {

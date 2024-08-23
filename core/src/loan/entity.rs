@@ -11,7 +11,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues};
+use super::{error::LoanError, terms::TermValues, LoanInterestAccrual};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoanReceivable {
@@ -19,23 +19,33 @@ pub struct LoanReceivable {
     pub interest: UsdCents,
 }
 
-pub struct LoanTransaction {
-    pub amount: TransactionAmount,
-    pub transaction_type: TransactionType,
-    pub recorded_at: DateTime<Utc>,
-}
-
-pub enum TransactionAmount {
-    Sats(Satoshis),
-    Cents(UsdCents),
-}
-
 #[derive(async_graphql::Enum, Copy, Clone, Eq, PartialEq)]
-pub enum TransactionType {
-    InterestPayment,
-    PrincipalPayment,
+enum TransactionType {
+    InterestInstallment,
+    InterestCharged,
+    PrincipalReduction,
     CollateralAdded,
     CollateralRemoved,
+}
+
+#[derive(async_graphql::Union)]
+pub enum LoanTransaction {
+    Sats(SatsTransaction),
+    UsdCents(UsdCentsTransaction),
+}
+
+#[derive(async_graphql::SimpleObject)]
+pub struct SatsTransaction {
+    amount: Satoshis,
+    transaction_type: TransactionType,
+    recorded_at: DateTime<Utc>,
+}
+
+#[derive(async_graphql::SimpleObject)]
+pub struct UsdCentsTransaction {
+    amount: UsdCents,
+    transaction_type: TransactionType,
+    recorded_at: DateTime<Utc>,
 }
 
 impl LoanReceivable {
@@ -77,6 +87,7 @@ pub enum LoanEvent {
         tx_id: LedgerTxId,
         tx_ref: String,
         amount: UsdCents,
+        recorded_at: DateTime<Utc>,
     },
     PaymentRecorded {
         tx_id: LedgerTxId,
@@ -196,28 +207,6 @@ impl Loan {
 
         for event in self.events.iter().rev() {
             match event {
-                LoanEvent::PaymentRecorded {
-                    principal_amount,
-                    interest_amount,
-                    recorded_at: transaction_recorded_at,
-                    ..
-                } => {
-                    if *principal_amount != UsdCents::ZERO {
-                        transactions.push(LoanTransaction {
-                            amount: TransactionAmount::Cents(*principal_amount),
-                            transaction_type: TransactionType::PrincipalPayment,
-                            recorded_at: *transaction_recorded_at,
-                        });
-                    }
-                    if *interest_amount != UsdCents::ZERO {
-                        transactions.push(LoanTransaction {
-                            amount: TransactionAmount::Cents(*interest_amount),
-                            transaction_type: TransactionType::InterestPayment,
-                            recorded_at: *transaction_recorded_at,
-                        });
-                    }
-                }
-
                 LoanEvent::CollateralUpdated {
                     collateral,
                     action,
@@ -225,20 +214,54 @@ impl Loan {
                     ..
                 } => match action {
                     CollateralAction::Add => {
-                        transactions.push(LoanTransaction {
-                            amount: TransactionAmount::Sats(*collateral),
+                        transactions.push(LoanTransaction::Sats(SatsTransaction {
+                            amount: *collateral,
                             transaction_type: TransactionType::CollateralAdded,
                             recorded_at: *recorded_at,
-                        });
+                        }));
                     }
                     CollateralAction::Remove => {
-                        transactions.push(LoanTransaction {
-                            amount: TransactionAmount::Sats(*collateral),
+                        transactions.push(LoanTransaction::Sats(SatsTransaction {
+                            amount: *collateral,
                             transaction_type: TransactionType::CollateralRemoved,
                             recorded_at: *recorded_at,
-                        });
+                        }));
                     }
                 },
+
+                LoanEvent::InterestIncurred {
+                    amount,
+                    recorded_at,
+                    ..
+                } => {
+                    transactions.push(LoanTransaction::UsdCents(UsdCentsTransaction {
+                        amount: *amount,
+                        transaction_type: TransactionType::InterestCharged,
+                        recorded_at: *recorded_at,
+                    }));
+                }
+
+                LoanEvent::PaymentRecorded {
+                    principal_amount,
+                    interest_amount,
+                    recorded_at: transaction_recorded_at,
+                    ..
+                } => {
+                    if *principal_amount != UsdCents::ZERO {
+                        transactions.push(LoanTransaction::UsdCents(UsdCentsTransaction {
+                            amount: *principal_amount,
+                            transaction_type: TransactionType::PrincipalReduction,
+                            recorded_at: *transaction_recorded_at,
+                        }));
+                    }
+                    if *interest_amount != UsdCents::ZERO {
+                        transactions.push(LoanTransaction::UsdCents(UsdCentsTransaction {
+                            amount: *interest_amount,
+                            transaction_type: TransactionType::InterestInstallment,
+                            recorded_at: *transaction_recorded_at,
+                        }));
+                    }
+                }
 
                 _ => {}
             }
@@ -324,7 +347,7 @@ impl Loan {
         }
     }
 
-    pub fn add_interest(&mut self, tx_id: LedgerTxId) -> Result<(UsdCents, String), LoanError> {
+    pub fn initiate_interest(&self) -> Result<LoanInterestAccrual, LoanError> {
         if self.is_completed() {
             return Err(LoanError::AlreadyCompleted);
         }
@@ -339,12 +362,30 @@ impl Loan {
             self.id,
             self.count_interest_incurred() + 1
         );
+        Ok(LoanInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id: LedgerTxId::new(),
+            loan_account_ids: self.account_ids,
+        })
+    }
+
+    pub fn confirm_interest(
+        &mut self,
+        LoanInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id,
+            ..
+        }: LoanInterestAccrual,
+        executed_at: DateTime<Utc>,
+    ) -> () {
         self.events.push(LoanEvent::InterestIncurred {
             tx_id,
-            tx_ref: tx_ref.clone(),
+            tx_ref,
             amount: interest,
+            recorded_at: executed_at,
         });
-        Ok((interest, tx_ref))
     }
 
     pub(super) fn initiate_repayment(
@@ -625,6 +666,7 @@ mod test {
                     tx_id: LedgerTxId::new(),
                     tx_ref: "tx_ref".to_string(),
                     amount: UsdCents::from(5),
+                    recorded_at: Utc::now(),
                 },
             ],
         )

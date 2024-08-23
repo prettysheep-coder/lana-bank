@@ -203,6 +203,13 @@ type CustomerEdge {
 	cursor: String!
 }
 
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
 input DefaultTermsUpdateInput {
 	annualRate: AnnualRatePct!
 	interval: InterestInterval!
@@ -387,11 +394,7 @@ enum LoanStatus {
 	CLOSED
 }
 
-type LoanTransaction {
-	amount: TransactionAmount!
-	transactionType: TransactionType!
-	recordedAt: Timestamp!
-}
+union LoanTransaction = SatsTransaction | UsdCentsTransaction
 
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
@@ -474,11 +477,13 @@ enum Role {
 	BANK_MANAGER
 }
 
-type SatoshiAmount {
-	value: Satoshis!
-}
-
 scalar Satoshis
+
+type SatsTransaction {
+	amount: Satoshis!
+	transactionType: TransactionType!
+	recordedAt: DateTime!
+}
 
 input ShareholderEquityAddInput {
 	amount: UsdCents!
@@ -540,11 +545,10 @@ input TermsInput {
 
 scalar Timestamp
 
-union TransactionAmount = SatoshiAmount | UsdCentAmount
-
 enum TransactionType {
-	INTEREST_PAYMENT
-	PRINCIPAL_PAYMENT
+	INTEREST_INSTALLMENT
+	INTEREST_CHARGED
+	PRINCIPAL_REDUCTION
 	COLLATERAL_ADDED
 	COLLATERAL_REMOVED
 }
@@ -570,11 +574,13 @@ type UsdAccountAmountsInPeriod {
 	amount: LayeredUsdAccountAmounts!
 }
 
-type UsdCentAmount {
-	value: UsdCents!
-}
-
 scalar UsdCents
+
+type UsdCentsTransaction {
+	amount: UsdCents!
+	transactionType: TransactionType!
+	recordedAt: DateTime!
+}
 
 type User {
 	userId: UUID!
