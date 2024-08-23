@@ -26,6 +26,17 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+enum CollateralAction {
+	ADD
+	REMOVE
+}
+
+type CollateralUpdated {
+	satoshis: Satoshis!
+	recordedAt: DateTime!
+	action: CollateralAction!
+}
+
 type Customer {
 	customerId: UUID!
 	email: String!
@@ -64,6 +75,16 @@ type Duration {
 
 
 
+type IncrementalPayment {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
+
+
+type InterestAccrued {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
 
 type InterestIncome {
 	usdBalance: UsdCents!
@@ -107,7 +128,7 @@ enum LoanStatus {
 	CLOSED
 }
 
-union LoanTransaction = SatsTransaction | UsdCentsTransaction
+union LoanTransaction = IncrementalPayment | InterestAccrued | CollateralUpdated
 
 type Mutation {
 	sumsubTokenCreate: SumsubTokenCreatePayload!
@@ -130,12 +151,6 @@ enum Role {
 }
 
 scalar Satoshis
-
-type SatsTransaction {
-	amount: Satoshis!
-	transactionType: TransactionType!
-	recordedAt: DateTime!
-}
 
 
 union Subject = User | Customer | System
@@ -163,23 +178,9 @@ type TermValues {
 
 scalar Timestamp
 
-enum TransactionType {
-	INTEREST_INSTALLMENT
-	INTEREST_CHARGED
-	PRINCIPAL_REDUCTION
-	COLLATERAL_ADDED
-	COLLATERAL_REMOVED
-}
-
 scalar UUID
 
 scalar UsdCents
-
-type UsdCentsTransaction {
-	amount: UsdCents!
-	transactionType: TransactionType!
-	recordedAt: DateTime!
-}
 
 type User {
 	userId: UUID!

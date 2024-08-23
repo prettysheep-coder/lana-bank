@@ -13,16 +13,19 @@ query loan($id: UUID!) {
       }
     }
     transactions {
-      amount {
-        ... on SatoshiAmount {
-          value
-        }
-        ... on UsdCentAmount {
-          value
-        }
+      ... on IncrementalPayment {
+        cents
+        recordedAt
       }
-      transactionType
-      recordedAt
+      ... on InterestAccrued {
+        cents
+        recordedAt
+      }
+      ... on CollateralUpdated {
+        satoshis
+        recordedAt
+        action
+      }
     }
   }
 }

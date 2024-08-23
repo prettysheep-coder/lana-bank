@@ -19,33 +19,30 @@ pub struct LoanReceivable {
     pub interest: UsdCents,
 }
 
-#[derive(async_graphql::Enum, Copy, Clone, Eq, PartialEq)]
-enum TransactionType {
-    InterestInstallment,
-    InterestCharged,
-    PrincipalReduction,
-    CollateralAdded,
-    CollateralRemoved,
-}
-
 #[derive(async_graphql::Union)]
 pub enum LoanTransaction {
-    Sats(SatsTransaction),
-    UsdCents(UsdCentsTransaction),
+    Payment(IncrementalPayment),
+    Interest(InterestAccrued),
+    Collateral(CollateralUpdated),
 }
 
 #[derive(async_graphql::SimpleObject)]
-pub struct SatsTransaction {
-    amount: Satoshis,
-    transaction_type: TransactionType,
-    recorded_at: DateTime<Utc>,
+pub struct IncrementalPayment {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
 }
 
 #[derive(async_graphql::SimpleObject)]
-pub struct UsdCentsTransaction {
-    amount: UsdCents,
-    transaction_type: TransactionType,
-    recorded_at: DateTime<Utc>,
+pub struct InterestAccrued {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
+}
+
+#[derive(async_graphql::SimpleObject)]
+pub struct CollateralUpdated {
+    pub satoshis: Satoshis,
+    pub recorded_at: DateTime<Utc>,
+    pub action: CollateralAction,
 }
 
 impl LoanReceivable {
@@ -220,16 +217,16 @@ impl Loan {
                     ..
                 } => match action {
                     CollateralAction::Add => {
-                        transactions.push(LoanTransaction::Sats(SatsTransaction {
-                            amount: *collateral,
-                            transaction_type: TransactionType::CollateralAdded,
+                        transactions.push(LoanTransaction::Collateral(CollateralUpdated {
+                            satoshis: *collateral,
+                            action: *action,
                             recorded_at: *recorded_at,
                         }));
                     }
                     CollateralAction::Remove => {
-                        transactions.push(LoanTransaction::Sats(SatsTransaction {
-                            amount: *collateral,
-                            transaction_type: TransactionType::CollateralRemoved,
+                        transactions.push(LoanTransaction::Collateral(CollateralUpdated {
+                            satoshis: *collateral,
+                            action: *action,
                             recorded_at: *recorded_at,
                         }));
                     }
@@ -240,9 +237,8 @@ impl Loan {
                     recorded_at,
                     ..
                 } => {
-                    transactions.push(LoanTransaction::UsdCents(UsdCentsTransaction {
-                        amount: *amount,
-                        transaction_type: TransactionType::InterestCharged,
+                    transactions.push(LoanTransaction::Interest(InterestAccrued {
+                        cents: *amount,
                         recorded_at: *recorded_at,
                     }));
                 }
@@ -253,20 +249,10 @@ impl Loan {
                     recorded_at: transaction_recorded_at,
                     ..
                 } => {
-                    if *principal_amount != UsdCents::ZERO {
-                        transactions.push(LoanTransaction::UsdCents(UsdCentsTransaction {
-                            amount: *principal_amount,
-                            transaction_type: TransactionType::PrincipalReduction,
-                            recorded_at: *transaction_recorded_at,
-                        }));
-                    }
-                    if *interest_amount != UsdCents::ZERO {
-                        transactions.push(LoanTransaction::UsdCents(UsdCentsTransaction {
-                            amount: *interest_amount,
-                            transaction_type: TransactionType::InterestInstallment,
-                            recorded_at: *transaction_recorded_at,
-                        }));
-                    }
+                    transactions.push(LoanTransaction::Payment(IncrementalPayment {
+                        cents: *principal_amount + *interest_amount,
+                        recorded_at: *transaction_recorded_at,
+                    }));
                 }
 
                 _ => {}

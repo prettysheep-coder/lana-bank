@@ -141,6 +141,11 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+enum CollateralAction {
+	ADD
+	REMOVE
+}
+
 input CollateralUpdateInput {
 	loanId: UUID!
 	collateral: Satoshis!
@@ -148,6 +153,12 @@ input CollateralUpdateInput {
 
 type CollateralUpdatePayload {
 	loan: Loan!
+}
+
+type CollateralUpdated {
+	satoshis: Satoshis!
+	recordedAt: DateTime!
+	action: CollateralAction!
 }
 
 type Customer {
@@ -282,6 +293,16 @@ input DurationInput {
 
 
 
+type IncrementalPayment {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
+
+
+type InterestAccrued {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
 
 type InterestIncome {
 	usdBalance: UsdCents!
@@ -395,7 +416,7 @@ enum LoanStatus {
 	CLOSED
 }
 
-union LoanTransaction = SatsTransaction | UsdCentsTransaction
+union LoanTransaction = IncrementalPayment | InterestAccrued | CollateralUpdated
 
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
@@ -480,12 +501,6 @@ enum Role {
 
 scalar Satoshis
 
-type SatsTransaction {
-	amount: Satoshis!
-	transactionType: TransactionType!
-	recordedAt: DateTime!
-}
-
 input ShareholderEquityAddInput {
 	amount: UsdCents!
 	reference: String!
@@ -546,14 +561,6 @@ input TermsInput {
 
 scalar Timestamp
 
-enum TransactionType {
-	INTEREST_INSTALLMENT
-	INTEREST_CHARGED
-	PRINCIPAL_REDUCTION
-	COLLATERAL_ADDED
-	COLLATERAL_REMOVED
-}
-
 type TrialBalance {
 	name: String!
 	total: AccountAmountsByCurrency!
@@ -576,12 +583,6 @@ type UsdAccountAmountsInPeriod {
 }
 
 scalar UsdCents
-
-type UsdCentsTransaction {
-	amount: UsdCents!
-	transactionType: TransactionType!
-	recordedAt: DateTime!
-}
 
 type User {
 	userId: UUID!
