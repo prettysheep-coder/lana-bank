@@ -830,7 +830,7 @@ mod test {
 
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan = Loan::try_from(init_events()).unwrap();
         let res = loan.initiate_approval();
         assert!(matches!(res, Err(LoanError::NoCollateral)));
     }

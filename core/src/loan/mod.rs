@@ -149,21 +149,24 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
 
-        let mut tx = self.pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
         let loan_approval = loan.initiate_approval()?;
         let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
         loan.confirm_approval(loan_approval, executed_at, audit_info);
 
-        self.loan_repo.persist_in_tx(&mut tx, &mut loan).await?;
+        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.jobs()
             .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
-                &mut tx,
+                &mut db_tx,
                 loan.id,
                 format!("loan-processing-{}", loan.id),
                 LoanJobConfig { loan_id: loan.id },
             )
             .await?;
-        tx.commit().await?;
+        self.export
+            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
+        db_tx.commit().await?;
         Ok(loan)
     }
 
@@ -190,7 +193,10 @@ impl Loans {
             .await?;
 
         loan.confirm_collateral_update(loan_collateral_update, executed_at, audit_info);
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.export
+            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
         db_tx.commit().await?;
         Ok(loan)
     }
@@ -231,7 +237,10 @@ impl Loans {
         let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
         loan.confirm_repayment(repayment, executed_at, audit_info);
 
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.export
+            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
 
         db_tx.commit().await?;
 
