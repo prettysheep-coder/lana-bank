@@ -135,6 +135,23 @@ type Mutation {
 	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
 
+enum Object {
+	APPLICANT
+	LOAN
+	TERM
+	USER
+	CUSTOMER
+	DEPOSIT
+	WITHDRAW
+	AUDIT
+	LEDGER
+}
+
+type ObjectPermission {
+	object: Object!
+	actions: [String!]!
+}
+
 enum Period {
 	MONTHS
 }
@@ -186,6 +203,7 @@ type User {
 	userId: UUID!
 	email: String!
 	roles: [Role!]!
+	userPermissions: [ObjectPermission!]!
 }
 
 type Withdrawal {

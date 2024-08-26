@@ -1,6 +1,11 @@
-use std::{str::FromStr, sync::Arc};
-use tokio::sync::RwLock;
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+    sync::Arc,
+};
 
+use async_graphql::*;
+use tokio::sync::RwLock;
 pub mod error;
 
 use error::AuthorizationError;
@@ -289,8 +294,51 @@ impl Authorization {
 
         Ok(roles)
     }
+
+    pub async fn get_subject_permissions(
+        &self,
+        sub: &Subject,
+    ) -> Result<Vec<ObjectPermission>, AuthorizationError> {
+        let enforcer = self.enforcer.read().await;
+        let roles = self.roles_for_subject(*sub).await?;
+        let mut object_permissions_map: HashMap<Object, HashSet<Action>> = HashMap::new();
+
+        for role in &roles {
+            let policies = enforcer.get_filtered_policy(0, vec![role.to_string()]);
+            for policy in policies {
+                if let (Some(object_str), Some(action_str)) = (policy.get(1), policy.get(2)) {
+                    if let (Ok(object), Ok(action)) =
+                        (Object::from_str(object_str), Action::from_str(action_str))
+                    {
+                        object_permissions_map
+                            .entry(object)
+                            .or_default()
+                            .insert(action);
+                    }
+                }
+            }
+        }
+
+        Ok(object_permissions_map
+            .into_iter()
+            .map(|(object, actions)| ObjectPermission {
+                object,
+                actions: actions
+                    .into_iter()
+                    .map(|action| action.to_string())
+                    .collect(),
+            })
+            .collect())
+    }
 }
 
+#[derive(SimpleObject, Clone, Debug)]
+pub struct ObjectPermission {
+    pub object: Object,
+    pub actions: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Enum)]
 pub enum Object {
     Applicant,
     Loan,
@@ -354,6 +402,7 @@ impl FromStr for Object {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
@@ -363,6 +412,12 @@ pub enum Action {
     Withdraw(WithdrawAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
+}
+
+impl From<Action> for String {
+    fn from(action: Action) -> Self {
+        action.as_ref().to_string()
+    }
 }
 
 impl AsRef<str> for Action {
@@ -447,6 +502,7 @@ impl FromStr for Action {
 
 impl_deref_to_str!(Action);
 
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum LoanAction {
     List,
     Read,
@@ -484,6 +540,7 @@ impl AsRef<str> for LoanAction {
 impl_deref_to_str!(LoanAction);
 impl_from_for_action!(LoanAction, Loan);
 
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum TermAction {
     Update,
     Read,
@@ -505,7 +562,7 @@ impl AsRef<str> for TermAction {
 
 impl_deref_to_str!(TermAction);
 impl_from_for_action!(TermAction, Term);
-
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum AuditAction {
     List,
 }
@@ -525,6 +582,7 @@ impl AsRef<str> for AuditAction {
 impl_deref_to_str!(AuditAction);
 impl_from_for_action!(AuditAction, Audit);
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum UserAction {
     Create,
     Read,
@@ -574,6 +632,7 @@ impl AsRef<str> for UserAction {
 impl_deref_to_str!(UserAction);
 impl_from_for_action!(UserAction, User);
 
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum CustomerAction {
     Create,
     StartKyc,
@@ -610,7 +669,7 @@ impl AsRef<str> for CustomerAction {
 
 impl_deref_to_str!(CustomerAction);
 impl_from_for_action!(CustomerAction, Customer);
-
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum DepositAction {
     Record,
     Read,
@@ -635,7 +694,7 @@ impl AsRef<str> for DepositAction {
 
 impl_deref_to_str!(DepositAction);
 impl_from_for_action!(DepositAction, Deposit);
-
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum WithdrawAction {
     Initiate,
     Confirm,
@@ -666,7 +725,7 @@ impl AsRef<str> for WithdrawAction {
 
 impl_deref_to_str!(WithdrawAction);
 impl_from_for_action!(WithdrawAction, Withdraw);
-
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub enum LedgerAction {
     Read,
 }

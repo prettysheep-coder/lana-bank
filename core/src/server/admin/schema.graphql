@@ -436,6 +436,23 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 }
 
+enum Object {
+	APPLICANT
+	LOAN
+	TERM
+	USER
+	CUSTOMER
+	DEPOSIT
+	WITHDRAW
+	AUDIT
+	LEDGER
+}
+
+type ObjectPermission {
+	object: Object!
+	actions: [String!]!
+}
+
 """
 Information about pagination in a connection
 """
@@ -588,6 +605,7 @@ type User {
 	userId: UUID!
 	email: String!
 	roles: [Role!]!
+	userPermissions: [ObjectPermission!]!
 }
 
 input UserAssignRoleInput {

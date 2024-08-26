@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{
     audit::Audit,
-    authorization::{Authorization, Object, UserAction},
+    authorization::{Authorization, Object, ObjectPermission, UserAction},
     primitives::{Role, Subject, SystemNode, UserId},
 };
 
@@ -104,6 +104,17 @@ impl Users {
             Err(UserError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn get_user_permissions(
+        &self,
+        id: UserId,
+    ) -> Result<Vec<ObjectPermission>, UserError> {
+        let sub = Subject::User(id);
+        self.authz
+            .get_subject_permissions(&sub)
+            .await
+            .map_err(UserError::AuthorizationError)
     }
 
     pub async fn find_by_id_internal(&self, id: UserId) -> Result<Option<User>, UserError> {
