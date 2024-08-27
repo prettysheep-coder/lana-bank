@@ -292,7 +292,7 @@ impl Authorization {
         Ok(roles)
     }
 
-    async fn check_permissions(
+    async fn check_all_permissions(
         &self,
         sub: &Subject,
         object: Object,
@@ -300,12 +300,12 @@ impl Authorization {
     ) -> Result<bool, AuthorizationError> {
         for action in actions {
             match self.check_permission(sub, object, action.clone()).await {
-                Ok(_) => return Ok(true),
-                Err(AuthorizationError::NotAuthorized) => continue,
+                Ok(_) => continue,
+                Err(AuthorizationError::NotAuthorized) => return Ok(false),
                 Err(e) => return Err(e),
             }
         }
-        Ok(false)
+        Ok(true)
     }
 
     pub async fn get_visible_navigation_items(
@@ -314,7 +314,7 @@ impl Authorization {
     ) -> Result<VisibleNavigationItems, AuthorizationError> {
         Ok(VisibleNavigationItems {
             loan: self
-                .check_permissions(
+                .check_all_permissions(
                     sub,
                     Object::Loan,
                     &[
@@ -324,10 +324,10 @@ impl Authorization {
                 )
                 .await?,
             term: self
-                .check_permissions(sub, Object::Term, &[Action::Term(TermAction::Read)])
+                .check_all_permissions(sub, Object::Term, &[Action::Term(TermAction::Read)])
                 .await?,
             user: self
-                .check_permissions(
+                .check_all_permissions(
                     sub,
                     Object::User,
                     &[
@@ -337,7 +337,7 @@ impl Authorization {
                 )
                 .await?,
             customer: self
-                .check_permissions(
+                .check_all_permissions(
                     sub,
                     Object::Customer,
                     &[
@@ -347,7 +347,7 @@ impl Authorization {
                 )
                 .await?,
             deposit: self
-                .check_permissions(
+                .check_all_permissions(
                     sub,
                     Object::Deposit,
                     &[
@@ -357,7 +357,7 @@ impl Authorization {
                 )
                 .await?,
             withdraw: self
-                .check_permissions(
+                .check_all_permissions(
                     sub,
                     Object::Withdraw,
                     &[
@@ -367,10 +367,10 @@ impl Authorization {
                 )
                 .await?,
             audit: self
-                .check_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
+                .check_all_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
                 .await?,
             financials: self
-                .check_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
+                .check_all_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
                 .await?,
         })
     }
@@ -389,7 +389,7 @@ pub enum Object {
     Ledger,
 }
 
-#[derive(async_graphql::SimpleObject, Clone, Default)]
+#[derive(async_graphql::SimpleObject)]
 pub struct VisibleNavigationItems {
     pub loan: bool,
     pub term: bool,
