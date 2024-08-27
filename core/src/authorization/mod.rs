@@ -1,5 +1,3 @@
-use tokio::sync::RwLock;
-
 pub mod error;
 
 use sqlx_adapter::{
@@ -10,6 +8,7 @@ use sqlx_adapter::{
     SqlxAdapter,
 };
 use std::{str::FromStr, sync::Arc};
+use tokio::sync::RwLock;
 use tracing::instrument;
 
 use super::audit::Audit;
