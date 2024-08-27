@@ -298,7 +298,7 @@ impl Authorization {
         actions: &[Action],
     ) -> Result<bool, AuthorizationError> {
         for action in actions {
-            match self.check_permission(sub, object, action.clone()).await {
+            match self.check_permission(sub, object, *action).await {
                 Ok(_) => continue,
                 Err(AuthorizationError::NotAuthorized) => return Ok(false),
                 Err(e) => return Err(e),
@@ -451,7 +451,7 @@ impl FromStr for Object {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
@@ -545,7 +545,7 @@ impl FromStr for Action {
 }
 
 impl_deref_to_str!(Action);
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum LoanAction {
     List,
     Read,
@@ -583,7 +583,7 @@ impl AsRef<str> for LoanAction {
 impl_deref_to_str!(LoanAction);
 impl_from_for_action!(LoanAction, Loan);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum TermAction {
     Update,
     Read,
@@ -606,7 +606,7 @@ impl AsRef<str> for TermAction {
 impl_deref_to_str!(TermAction);
 impl_from_for_action!(TermAction, Term);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum AuditAction {
     List,
 }
@@ -626,7 +626,7 @@ impl AsRef<str> for AuditAction {
 impl_deref_to_str!(AuditAction);
 impl_from_for_action!(AuditAction, Audit);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum UserAction {
     Create,
     Read,
@@ -676,7 +676,7 @@ impl AsRef<str> for UserAction {
 impl_deref_to_str!(UserAction);
 impl_from_for_action!(UserAction, User);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum CustomerAction {
     Create,
     StartKyc,
@@ -714,7 +714,7 @@ impl AsRef<str> for CustomerAction {
 impl_deref_to_str!(CustomerAction);
 impl_from_for_action!(CustomerAction, Customer);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum DepositAction {
     Record,
     Read,
@@ -740,7 +740,7 @@ impl AsRef<str> for DepositAction {
 impl_deref_to_str!(DepositAction);
 impl_from_for_action!(DepositAction, Deposit);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum WithdrawAction {
     Initiate,
     Confirm,
@@ -772,7 +772,7 @@ impl AsRef<str> for WithdrawAction {
 impl_deref_to_str!(WithdrawAction);
 impl_from_for_action!(WithdrawAction, Withdraw);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum LedgerAction {
     Read,
 }
