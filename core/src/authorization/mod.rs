@@ -1,4 +1,3 @@
-use async_graphql::SimpleObject;
 use tokio::sync::RwLock;
 
 pub mod error;
@@ -293,42 +292,93 @@ impl Authorization {
         Ok(roles)
     }
 
- 
-   pub async fn get_visible_navigation_items(&self, sub: &Subject) -> Result<VisibleNavigationItems, AuthorizationError> {
-        let mut visible_items = VisibleNavigationItems {
-            loan: false,
-            term: false,
-            user: false,
-            customer: false,
-            deposit: false,
-            withdraw: false,
-            audit: false,
-            financials: false,
-        };
-
-        visible_items.loan = self.check_object_visibility(sub, Object::Loan, &[Action::Loan(LoanAction::Read), Action::Loan(LoanAction::List)]).await?;
-        visible_items.term = self.check_object_visibility(sub, Object::Term, &[Action::Term(TermAction::Read)]).await?;
-        visible_items.user = self.check_object_visibility(sub, Object::User, &[Action::User(UserAction::Read), Action::User(UserAction::List)]).await?;
-        visible_items.customer = self.check_object_visibility(sub, Object::Customer, &[Action::Customer(CustomerAction::Read), Action::Customer(CustomerAction::List)]).await?;
-        visible_items.deposit = self.check_object_visibility(sub, Object::Deposit, &[Action::Deposit(DepositAction::Read), Action::Deposit(DepositAction::List)]).await?;
-        visible_items.withdraw = self.check_object_visibility(sub, Object::Withdraw, &[Action::Withdraw(WithdrawAction::Read), Action::Withdraw(WithdrawAction::List)]).await?;
-        visible_items.audit = self.check_object_visibility(sub, Object::Audit, &[Action::Audit(AuditAction::List)]).await?;
-        visible_items.financials = self.check_object_visibility(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)]).await?;
-
-        Ok(visible_items)
-    }
-
-    async fn check_object_visibility(&self, sub: &Subject, object: Object, actions: &[Action]) -> Result<bool, AuthorizationError> {
+    async fn check_permissions(
+        &self,
+        sub: &Subject,
+        object: Object,
+        actions: &[Action],
+    ) -> Result<bool, AuthorizationError> {
         for action in actions {
-            if self.check_permission(sub, object.clone(), action.clone()).await.is_ok() {
-                return Ok(true);
+            match self.check_permission(sub, object, action.clone()).await {
+                Ok(_) => return Ok(true),
+                Err(AuthorizationError::NotAuthorized) => continue,
+                Err(e) => return Err(e),
             }
         }
         Ok(false)
     }
+
+    pub async fn get_visible_navigation_items(
+        &self,
+        sub: &Subject,
+    ) -> Result<VisibleNavigationItems, AuthorizationError> {
+        let mut visible_items = VisibleNavigationItems::default();
+
+        visible_items.loan = self
+            .check_permissions(
+                sub,
+                Object::Loan,
+                &[
+                    Action::Loan(LoanAction::Read),
+                    Action::Loan(LoanAction::List),
+                ],
+            )
+            .await?;
+        visible_items.term = self
+            .check_permissions(sub, Object::Term, &[Action::Term(TermAction::Read)])
+            .await?;
+        visible_items.user = self
+            .check_permissions(
+                sub,
+                Object::User,
+                &[
+                    Action::User(UserAction::Read),
+                    Action::User(UserAction::List),
+                ],
+            )
+            .await?;
+        visible_items.customer = self
+            .check_permissions(
+                sub,
+                Object::Customer,
+                &[
+                    Action::Customer(CustomerAction::Read),
+                    Action::Customer(CustomerAction::List),
+                ],
+            )
+            .await?;
+        visible_items.deposit = self
+            .check_permissions(
+                sub,
+                Object::Deposit,
+                &[
+                    Action::Deposit(DepositAction::Read),
+                    Action::Deposit(DepositAction::List),
+                ],
+            )
+            .await?;
+        visible_items.withdraw = self
+            .check_permissions(
+                sub,
+                Object::Withdraw,
+                &[
+                    Action::Withdraw(WithdrawAction::Read),
+                    Action::Withdraw(WithdrawAction::List),
+                ],
+            )
+            .await?;
+        visible_items.audit = self
+            .check_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
+            .await?;
+        visible_items.financials = self
+            .check_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
+            .await?;
+
+        Ok(visible_items)
+    }
 }
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Object {
     Applicant,
     Loan,
@@ -341,7 +391,7 @@ pub enum Object {
     Ledger,
 }
 
-#[derive(SimpleObject, Clone)]
+#[derive(async_graphql::SimpleObject, Clone, Default)]
 pub struct VisibleNavigationItems {
     pub loan: bool,
     pub term: bool,
@@ -352,7 +402,6 @@ pub struct VisibleNavigationItems {
     pub audit: bool,
     pub financials: bool,
 }
-
 
 impl Object {
     const APPLICANT_STR: &'static str = "applicant";
@@ -405,8 +454,7 @@ impl FromStr for Object {
     }
 }
 
-
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
@@ -500,7 +548,7 @@ impl FromStr for Action {
 }
 
 impl_deref_to_str!(Action);
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum LoanAction {
     List,
     Read,
@@ -538,7 +586,7 @@ impl AsRef<str> for LoanAction {
 impl_deref_to_str!(LoanAction);
 impl_from_for_action!(LoanAction, Loan);
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum TermAction {
     Update,
     Read,
@@ -561,7 +609,7 @@ impl AsRef<str> for TermAction {
 impl_deref_to_str!(TermAction);
 impl_from_for_action!(TermAction, Term);
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum AuditAction {
     List,
 }
@@ -581,8 +629,7 @@ impl AsRef<str> for AuditAction {
 impl_deref_to_str!(AuditAction);
 impl_from_for_action!(AuditAction, Audit);
 
-
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum UserAction {
     Create,
     Read,
@@ -632,7 +679,7 @@ impl AsRef<str> for UserAction {
 impl_deref_to_str!(UserAction);
 impl_from_for_action!(UserAction, User);
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum CustomerAction {
     Create,
     StartKyc,
@@ -670,7 +717,7 @@ impl AsRef<str> for CustomerAction {
 impl_deref_to_str!(CustomerAction);
 impl_from_for_action!(CustomerAction, Customer);
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum DepositAction {
     Record,
     Read,
@@ -696,7 +743,7 @@ impl AsRef<str> for DepositAction {
 impl_deref_to_str!(DepositAction);
 impl_from_for_action!(DepositAction, Deposit);
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum WithdrawAction {
     Initiate,
     Confirm,
@@ -728,7 +775,7 @@ impl AsRef<str> for WithdrawAction {
 impl_deref_to_str!(WithdrawAction);
 impl_from_for_action!(WithdrawAction, Withdraw);
 
-#[derive(Clone,Debug)]
+#[derive(Clone, Debug)]
 pub enum LedgerAction {
     Read,
 }
