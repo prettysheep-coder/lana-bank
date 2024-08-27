@@ -1,7 +1,10 @@
 use async_graphql::*;
 
 use crate::{
-    app::LavaApp, authorization::VisibleNavigationItems, primitives::{Role, UserId}, server::shared_graphql::primitives::UUID
+    app::LavaApp,
+    authorization::VisibleNavigationItems,
+    primitives::{Role, Subject, UserId},
+    server::shared_graphql::primitives::UUID,
 };
 
 #[derive(InputObject)]
@@ -24,10 +27,8 @@ impl User {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<VisibleNavigationItems> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let permissions = app
-            .users()
-            .get_user_visible_navigation_items(UserId::from(&self.user_id))
-            .await?;
+        let sub = Subject::User(UserId::from(&self.user_id));
+        let permissions = app.authz().get_visible_navigation_items(&sub).await?;
         Ok(permissions)
     }
 }

@@ -105,17 +105,6 @@ impl Users {
             Err(e) => Err(e),
         }
     }
-    
-    pub async fn get_user_visible_navigation_items(
-        &self,
-        id: UserId,
-    ) -> Result<VisibleNavigationItems, UserError> {
-        let sub = Subject::User(id);
-        self.authz
-            .get_visible_navigation_items(&sub)
-            .await
-            .map_err(UserError::AuthorizationError)
-    }
 
     pub async fn find_by_id_internal(&self, id: UserId) -> Result<Option<User>, UserError> {
         match self.repo.find_by_id(id).await {
