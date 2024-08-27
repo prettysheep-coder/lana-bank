@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{
     audit::Audit,
-    authorization::{Authorization, Object, UserAction, VisibleNavigationItems},
+    authorization::{Authorization, Object, UserAction},
     primitives::{Role, Subject, SystemNode, UserId},
 };
 

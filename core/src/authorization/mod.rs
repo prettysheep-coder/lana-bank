@@ -312,69 +312,67 @@ impl Authorization {
         &self,
         sub: &Subject,
     ) -> Result<VisibleNavigationItems, AuthorizationError> {
-        let mut visible_items = VisibleNavigationItems::default();
-
-        visible_items.loan = self
-            .check_permissions(
-                sub,
-                Object::Loan,
-                &[
-                    Action::Loan(LoanAction::Read),
-                    Action::Loan(LoanAction::List),
-                ],
-            )
-            .await?;
-        visible_items.term = self
-            .check_permissions(sub, Object::Term, &[Action::Term(TermAction::Read)])
-            .await?;
-        visible_items.user = self
-            .check_permissions(
-                sub,
-                Object::User,
-                &[
-                    Action::User(UserAction::Read),
-                    Action::User(UserAction::List),
-                ],
-            )
-            .await?;
-        visible_items.customer = self
-            .check_permissions(
-                sub,
-                Object::Customer,
-                &[
-                    Action::Customer(CustomerAction::Read),
-                    Action::Customer(CustomerAction::List),
-                ],
-            )
-            .await?;
-        visible_items.deposit = self
-            .check_permissions(
-                sub,
-                Object::Deposit,
-                &[
-                    Action::Deposit(DepositAction::Read),
-                    Action::Deposit(DepositAction::List),
-                ],
-            )
-            .await?;
-        visible_items.withdraw = self
-            .check_permissions(
-                sub,
-                Object::Withdraw,
-                &[
-                    Action::Withdraw(WithdrawAction::Read),
-                    Action::Withdraw(WithdrawAction::List),
-                ],
-            )
-            .await?;
-        visible_items.audit = self
-            .check_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
-            .await?;
-        visible_items.financials = self
-            .check_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
-            .await?;
-
-        Ok(visible_items)
+        Ok(VisibleNavigationItems {
+            loan: self
+                .check_permissions(
+                    sub,
+                    Object::Loan,
+                    &[
+                        Action::Loan(LoanAction::Read),
+                        Action::Loan(LoanAction::List),
+                    ],
+                )
+                .await?,
+            term: self
+                .check_permissions(sub, Object::Term, &[Action::Term(TermAction::Read)])
+                .await?,
+            user: self
+                .check_permissions(
+                    sub,
+                    Object::User,
+                    &[
+                        Action::User(UserAction::Read),
+                        Action::User(UserAction::List),
+                    ],
+                )
+                .await?,
+            customer: self
+                .check_permissions(
+                    sub,
+                    Object::Customer,
+                    &[
+                        Action::Customer(CustomerAction::Read),
+                        Action::Customer(CustomerAction::List),
+                    ],
+                )
+                .await?,
+            deposit: self
+                .check_permissions(
+                    sub,
+                    Object::Deposit,
+                    &[
+                        Action::Deposit(DepositAction::Read),
+                        Action::Deposit(DepositAction::List),
+                    ],
+                )
+                .await?,
+            withdraw: self
+                .check_permissions(
+                    sub,
+                    Object::Withdraw,
+                    &[
+                        Action::Withdraw(WithdrawAction::Read),
+                        Action::Withdraw(WithdrawAction::List),
+                    ],
+                )
+                .await?,
+            audit: self
+                .check_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
+                .await?,
+            financials: self
+                .check_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
+                .await?,
+        })
     }
 }
 
