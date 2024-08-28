@@ -37,16 +37,6 @@ impl Export {
         }
     }
 
-    pub async fn export_all<T: EntityEvent + 'static>(
-        &self,
-        db: &mut Transaction<'_, Postgres>,
-        table_name: &'static str,
-        events: &EntityEvents<T>,
-    ) -> Result<(), JobError> {
-        let n_events = events.len_persisted();
-        self.export_last(db, table_name, n_events, events).await
-    }
-
     pub async fn export_last<T: EntityEvent + 'static>(
         &self,
         db: &mut Transaction<'_, Postgres>,

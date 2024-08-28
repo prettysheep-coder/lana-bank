@@ -30,8 +30,6 @@ use jobs::*;
 use repo::*;
 pub use terms::*;
 
-const BQ_TABLE_NAME: &str = "loan_events";
-
 #[derive(Clone)]
 pub struct Loans {
     loan_repo: LoanRepo,
@@ -41,7 +39,6 @@ pub struct Loans {
     pool: PgPool,
     jobs: Jobs,
     authz: Authorization,
-    export: Export,
     price: Price,
     config: LoanConfig,
 }
@@ -58,7 +55,7 @@ impl Loans {
         audit: &Audit,
         export: &Export,
     ) -> Self {
-        let loan_repo = LoanRepo::new(pool);
+        let loan_repo = LoanRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
         let price = Price::new();
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
@@ -78,7 +75,6 @@ impl Loans {
             pool: pool.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
-            export: export.clone(),
             price,
             config,
         }
@@ -134,9 +130,6 @@ impl Loans {
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
             .await?;
-        self.export
-            .export_all(&mut db_tx, BQ_TABLE_NAME, &loan.events)
-            .await?;
         db_tx.commit().await?;
         Ok(loan)
     }
@@ -159,7 +152,7 @@ impl Loans {
         let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
         loan.confirm_approval(loan_approval, executed_at, audit_info);
 
-        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.jobs
             .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
@@ -167,9 +160,6 @@ impl Loans {
                 format!("loan-interest-processing-{}", loan.id),
                 interest::LoanJobConfig { loan_id: loan.id },
             )
-            .await?;
-        self.export
-            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
             .await?;
         db_tx.commit().await?;
         Ok(loan)
@@ -206,10 +196,7 @@ impl Loans {
             price,
             self.config.upgrade_buffer_cvl_pct,
         );
-        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.export
-            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
-            .await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)
     }
@@ -258,10 +245,7 @@ impl Loans {
             self.config.upgrade_buffer_cvl_pct,
         );
 
-        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.export
-            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
-            .await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         db_tx.commit().await?;
 
