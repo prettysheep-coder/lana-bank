@@ -2,19 +2,25 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 
+import { formatCurrency } from "../utils"
+
 type PriceContextType = {
-  price: number
+  price: number | null
+  livePriceData: string
   satsToCents: null | ((sats: number) => number)
+  centsToSats: null | ((cents: number) => number)
 }
 
 const initialPriceValues: PriceContextType = {
-  price: 60000_00, // 1BTC = 6000000 cents
+  price: null,
   satsToCents: null,
+  centsToSats: null,
+  livePriceData: "",
 }
 
 const PriceContext = createContext(initialPriceValues)
 const PriceProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [price, setPrice] = useState(initialPriceValues.price)
+  const [price, setPrice] = useState(60000_00) // 1BTC = 6000000 cents
 
   /* THIS ENTIRE USEEFFECT YIELDS DUMMY CHANGING VALUES TO PRICE
    * TODO: Remove this and query the price from the server
@@ -27,7 +33,7 @@ const PriceProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
       const changeFactor =
         Math.random() > 0.5 ? 1 + randomPercentage : 1 - randomPercentage
       setPrice((prevPrice) => prevPrice * changeFactor)
-    }, 1000)
+    }, 60000)
 
     return () => clearInterval(intervalId)
   }, [])
@@ -36,9 +42,12 @@ const PriceProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
     (sats: number) => sats * (1 / 100000000) * price,
     [price],
   )
+  const centsToSats = useCallback((cents: number) => (cents / price) * 100000000, [price])
+
+  const livePriceData = `BTC/USD: ${formatCurrency({ amount: price / 100, currency: "USD" })}`
 
   return (
-    <PriceContext.Provider value={{ price, satsToCents }}>
+    <PriceContext.Provider value={{ price, satsToCents, centsToSats, livePriceData }}>
       {children}
     </PriceContext.Provider>
   )

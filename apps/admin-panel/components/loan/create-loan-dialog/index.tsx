@@ -22,10 +22,11 @@ import {
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter } from "@/lib/utils"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
 import { DetailItem } from "@/components/details"
+import { usePrice } from "@/lib/contexts/price"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -87,6 +88,11 @@ export const CreateLoanDialog = ({
     durationUnits: "",
     durationPeriod: "",
   })
+
+  const { price, centsToSats, livePriceData } = usePrice()
+  const requiredCollateralInSats = centsToSats
+    ? centsToSats(Number(formValues.desiredPrincipal) * 100)
+    : 0
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -215,6 +221,15 @@ export const CreateLoanDialog = ({
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
+            {formValues.desiredPrincipal && price && (
+              <div className="mt-2 text-sm">
+                {formatCurrency({
+                  currency: "SATS",
+                  amount: requiredCollateralInSats,
+                })}{" "}
+                collateral required ({livePriceData})
+              </div>
+            )}
           </div>
           {useDefaultTerms ? (
             <>
