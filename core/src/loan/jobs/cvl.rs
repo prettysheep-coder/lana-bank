@@ -59,7 +59,7 @@ pub struct LoanProcessingJobRunner {
 impl JobRunner for LoanProcessingJobRunner {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -77,10 +77,7 @@ impl JobRunner for LoanProcessingJobRunner {
                     .maybe_update_collateralization(price, self.config.upgrade_buffer_cvl_pct)
                     .is_some()
                 {
-                    let mut db_tx = current_job.pool().begin().await?;
-
-                    self.repo.persist_in_tx(&mut db_tx, loan).await?;
-                    db_tx.commit().await?;
+                    self.repo.persist(loan).await?;
                 }
             }
         }

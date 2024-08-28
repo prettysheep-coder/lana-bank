@@ -57,7 +57,7 @@ impl LavaApp {
             &audit,
             &export,
         );
-        let users = Users::init(&pool, config.user, &authz, &audit).await?;
+        let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         jobs.start_poll().await?;
 
         Ok(Self {
