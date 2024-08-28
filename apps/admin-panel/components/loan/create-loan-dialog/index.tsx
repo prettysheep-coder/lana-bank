@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
@@ -19,6 +19,7 @@ import {
   InterestInterval,
   Period,
   useDefaultTermsQuery,
+  useGetRealtimePriceUpdatesQuery,
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
@@ -26,7 +27,6 @@ import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
 import { DetailItem } from "@/components/details"
-import { usePrice } from "@/lib/contexts/price"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -73,10 +73,16 @@ export const CreateLoanDialog = ({
 }) => {
   const router = useRouter()
 
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({ pollInterval: 5000 })
+
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { loading, error, reset }] = useLoanCreateMutation()
   const [useDefaultTerms, setUseDefaultTerms] = useState(true)
+
+  useEffect(() => {
+    if (!defaultTermsData) setUseDefaultTerms(false)
+  }, [defaultTermsData, setUseDefaultTerms])
 
   const [formValues, setFormValues] = useState({
     desiredPrincipal: "",
@@ -88,11 +94,6 @@ export const CreateLoanDialog = ({
     durationUnits: "",
     durationPeriod: "",
   })
-
-  const { price, centsToSats, livePriceData } = usePrice()
-  const requiredCollateralInSats = centsToSats
-    ? centsToSats(Number(formValues.desiredPrincipal) * 100)
-    : 0
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -161,7 +162,7 @@ export const CreateLoanDialog = ({
   }
 
   const resetForm = () => {
-    setUseDefaultTerms(true)
+    setUseDefaultTerms(!!defaultTermsData)
     if (defaultTermsData && defaultTermsData.defaultTerms) {
       const terms = defaultTermsData.defaultTerms.values
       setFormValues({
@@ -221,13 +222,21 @@ export const CreateLoanDialog = ({
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
-            {formValues.desiredPrincipal && price && (
+            {formValues.desiredPrincipal && priceInfo && (
               <div className="mt-2 text-sm">
                 {formatCurrency({
                   currency: "SATS",
-                  amount: requiredCollateralInSats,
+                  amount:
+                    ((Number(formValues.desiredPrincipal) * 100) /
+                      priceInfo.realtimePrice.usdCentsPerBtc) *
+                    100_000_000,
                 })}{" "}
-                collateral required ({livePriceData})
+                collateral required (BTC/USD:{" "}
+                {formatCurrency({
+                  amount: priceInfo.realtimePrice.usdCentsPerBtc / 100,
+                  currency: "USD",
+                })}
+                )
               </div>
             )}
           </div>
