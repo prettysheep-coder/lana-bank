@@ -16,7 +16,7 @@ use crate::{
             deposit::Deposit,
             loan::Loan,
             objects::SuccessPayload,
-            primitives::{Timestamp, UUID},
+            primitives::{Timestamp, UsdCents, UUID},
             sumsub::SumsubPermalinkCreatePayload,
             terms::Terms,
             withdraw::Withdrawal,
@@ -411,6 +411,12 @@ impl Query {
             },
         )
         .await
+    }
+
+    async fn usd_cents_per_btc(&self, ctx: &Context<'_>) -> async_graphql::Result<UsdCents> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let cents_per_btc = app.price().usd_cents_per_btc().await?;
+        Ok(cents_per_btc.into_inner())
     }
 }
 

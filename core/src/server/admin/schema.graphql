@@ -501,6 +501,7 @@ type Query {
 	deposits(first: Int!, after: String): DepositConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
+	usdCentsPerBtc: UsdCents!
 }
 
 enum Role {

@@ -576,6 +576,7 @@ export type Query = {
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   trialBalance?: Maybe<TrialBalance>;
+  usdCentsPerBtc: Scalars['UsdCents']['output'];
   user?: Maybe<User>;
   users: Array<User>;
   withdrawal?: Maybe<Withdrawal>;
