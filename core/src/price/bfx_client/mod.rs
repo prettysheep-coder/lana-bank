@@ -1,10 +1,10 @@
-mod bfx_response;
 pub mod error;
+mod response;
 
 use reqwest::Client as ReqwestClient;
 
-use bfx_response::{BfxErrorResponse, BtcUsdTick};
 use error::BfxClientError;
+use response::{BfxErrorResponse, BtcUsdTick};
 
 const BASE_URL: &str = "https://api-pub.bitfinex.com/v2/";
 
