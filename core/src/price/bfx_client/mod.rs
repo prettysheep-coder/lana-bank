@@ -14,10 +14,13 @@ pub struct BfxClient {
 }
 
 impl BfxClient {
-    pub fn init() -> Result<Self, BfxClientError> {
-        Ok(BfxClient {
-            client: ReqwestClient::builder().use_rustls_tls().build()?,
-        })
+    pub fn new() -> Self {
+        BfxClient {
+            client: ReqwestClient::builder()
+                .use_rustls_tls()
+                .build()
+                .expect("should always build BfxClient"),
+        }
     }
 
     pub async fn btc_usd_tick(&self) -> Result<BtcUsdTick, BfxClientError> {
