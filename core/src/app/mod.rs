@@ -45,7 +45,7 @@ impl LavaApp {
         let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
-        let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz);
+        let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz);
         let loans = Loans::new(
             &pool,
