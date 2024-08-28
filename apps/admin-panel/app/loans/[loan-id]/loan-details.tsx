@@ -316,8 +316,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
 
 export default LoanDetails
 
-const formatCollateralizationState = (interval: LoanCollaterizationState) => {
-  return interval
+const formatCollateralizationState = (
+  collateralizationState: LoanCollaterizationState,
+) => {
+  return collateralizationState
     .toLowerCase()
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
