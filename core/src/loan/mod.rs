@@ -17,7 +17,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     entity::EntityError,
-    job::{JobRegistry, Jobs},
+    job::Jobs,
     ledger::{loan::*, Ledger},
     price::Price,
     primitives::*,
@@ -39,7 +39,7 @@ pub struct Loans {
     customers: Customers,
     ledger: Ledger,
     pool: PgPool,
-    jobs: Option<Jobs>,
+    jobs: Jobs,
     authz: Authorization,
     export: Export,
     price: Price,
@@ -51,7 +51,7 @@ impl Loans {
     pub fn new(
         pool: &PgPool,
         config: LoanConfig,
-        registry: &mut JobRegistry,
+        jobs: &Jobs,
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
@@ -61,16 +61,14 @@ impl Loans {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
         let price = Price::new();
-        registry.add_initializer(interest::LoanProcessingJobInitializer::new(
+        jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
             audit,
-            export,
         ));
-        registry.add_initializer(cvl::LoanProcessingJobInitializer::new(
+        jobs.add_initializer(cvl::LoanProcessingJobInitializer::new(
             loan_repo.clone(),
-            export.clone(),
-            price.clone(),
+            &price,
         ));
         Self {
             loan_repo,
@@ -78,21 +76,12 @@ impl Loans {
             customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
-            jobs: None,
+            jobs: jobs.clone(),
             authz: authz.clone(),
             export: export.clone(),
             price,
             config,
         }
-    }
-
-    pub fn set_jobs(&mut self, jobs: &Jobs) {
-        self.export.set_jobs(jobs);
-        self.jobs = Some(jobs.clone());
-    }
-
-    fn jobs(&self) -> &Jobs {
-        self.jobs.as_ref().expect("Jobs must already be set")
     }
 
     pub async fn update_default_terms(
@@ -171,7 +160,7 @@ impl Loans {
         loan.confirm_approval(loan_approval, executed_at, audit_info);
 
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.jobs()
+        self.jobs
             .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
                 loan.id,

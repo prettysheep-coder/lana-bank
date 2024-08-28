@@ -7,7 +7,7 @@ use sqlx::{Postgres, Transaction};
 
 use crate::{
     entity::{EntityEvent, EntityEvents},
-    job::{error::JobError, JobRegistry, Jobs},
+    job::{error::JobError, Jobs},
     primitives::JobId,
 };
 
@@ -25,24 +25,16 @@ pub struct ExportData {
 #[derive(Clone)]
 pub struct Export {
     cala_url: String,
-    jobs: Option<Jobs>,
+    jobs: Jobs,
 }
 
 impl Export {
-    pub fn new(cala_url: String, registry: &mut JobRegistry) -> Self {
-        registry.add_initializer(DataExportInitializer::new());
+    pub fn new(cala_url: String, jobs: &Jobs) -> Self {
+        jobs.add_initializer(DataExportInitializer::new());
         Self {
             cala_url,
-            jobs: None,
+            jobs: jobs.clone(),
         }
-    }
-
-    pub fn set_jobs(&mut self, jobs: &Jobs) {
-        self.jobs = Some(jobs.clone());
-    }
-
-    fn jobs(&self) -> &Jobs {
-        self.jobs.as_ref().expect("Jobs must already be set")
     }
 
     pub async fn export_all<T: EntityEvent + 'static>(
@@ -82,7 +74,7 @@ impl Export {
                 sequence,
                 recorded_at,
             };
-            self.jobs()
+            self.jobs
                 .create_and_spawn_job::<DataExportInitializer, _>(
                     db,
                     JobId::new(),
