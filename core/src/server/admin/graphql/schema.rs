@@ -2,8 +2,8 @@ use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, shareholder_equity::*,
-    terms::*, user::*, withdraw::*,
+    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*,
+    shareholder_equity::*, terms::*, user::*, withdraw::*,
 };
 use crate::{
     app::LavaApp,
@@ -16,7 +16,7 @@ use crate::{
             deposit::Deposit,
             loan::Loan,
             objects::SuccessPayload,
-            primitives::{Timestamp, UsdCents, UUID},
+            primitives::{Timestamp, UUID},
             sumsub::SumsubPermalinkCreatePayload,
             terms::Terms,
             withdraw::Withdrawal,
@@ -413,10 +413,10 @@ impl Query {
         .await
     }
 
-    async fn usd_cents_per_btc(&self, ctx: &Context<'_>) -> async_graphql::Result<UsdCents> {
+    async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let cents_per_btc = app.price().usd_cents_per_btc().await?;
-        Ok(cents_per_btc.into_inner())
+        let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
+        Ok(usd_cents_per_btc.into())
     }
 }
 
