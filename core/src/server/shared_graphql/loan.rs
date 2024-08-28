@@ -23,6 +23,15 @@ pub struct Loan {
     status: LoanStatus,
     collateral: Satoshis,
     transactions: Vec<LoanTransaction>,
+    collateralization_state: LoanCollaterizationState,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LoanCollaterizationState {
+    FullyCollateralized,
+    UnderMarginCallThreshold,
+    UnderLiquidationThreshold,
+    NoCollateral,
 }
 
 #[derive(async_graphql::Union)]
@@ -137,6 +146,7 @@ impl From<crate::loan::Loan> for Loan {
             .into_iter()
             .map(LoanTransaction::from)
             .collect();
+        let collateralization_state = loan.collateralization_state().into();
 
         Loan {
             id: loan.id.to_global_id(),
@@ -148,6 +158,26 @@ impl From<crate::loan::Loan> for Loan {
             created_at,
             collateral,
             transactions,
+            collateralization_state,
+        }
+    }
+}
+
+impl From<crate::loan::LoanCollaterizationState> for LoanCollaterizationState {
+    fn from(state: crate::loan::LoanCollaterizationState) -> Self {
+        match state {
+            crate::loan::LoanCollaterizationState::FullyCollateralized => {
+                LoanCollaterizationState::FullyCollateralized
+            }
+            crate::loan::LoanCollaterizationState::NoCollateral => {
+                LoanCollaterizationState::NoCollateral
+            }
+            crate::loan::LoanCollaterizationState::UnderLiquidationThreshold => {
+                LoanCollaterizationState::UnderLiquidationThreshold
+            }
+            crate::loan::LoanCollaterizationState::UnderMarginCallThreshold => {
+                LoanCollaterizationState::UnderMarginCallThreshold
+            }
         }
     }
 }
