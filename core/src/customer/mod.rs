@@ -6,6 +6,7 @@ mod kratos;
 mod repo;
 
 use std::collections::HashMap;
+use tracing::instrument;
 
 use crate::{
     audit::Audit,
@@ -57,6 +58,7 @@ impl Customers {
         &self.repo
     }
 
+    #[instrument(name = "lava.customer.create_customer_through_admin", skip(self), err)]
     pub async fn create_customer_through_admin(
         &self,
         sub: &Subject,

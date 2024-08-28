@@ -4,6 +4,7 @@ mod job;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
+use tracing::instrument;
 
 use crate::{
     entity::{EntityEvent, EntityEvents},
@@ -37,6 +38,7 @@ impl Export {
         }
     }
 
+    #[instrument(name = "lava.export.export_last", skip(self, db, events), err)]
     pub async fn export_last<T: EntityEvent + 'static>(
         &self,
         db: &mut Transaction<'_, Postgres>,
