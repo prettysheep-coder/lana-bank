@@ -73,7 +73,7 @@ export const CreateLoanDialog = ({
 }) => {
   const router = useRouter()
 
-  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({ pollInterval: 5000 })
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery()
 
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
