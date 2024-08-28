@@ -36,15 +36,15 @@ export default async function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthSessionProvider session={session}>
-          <ApolloServerWrapper>
-            <PriceProvider>
+          <PriceProvider>
+            <ApolloServerWrapper>
               <Toaster />
               <main className="flex flex-col md:flex-row min-h-screen w-full">
                 <SideBar />
                 <div className="flex-1 p-6 h-screen overflow-y-auto">{children}</div>
               </main>
-            </PriceProvider>
-          </ApolloServerWrapper>
+            </ApolloServerWrapper>
+          </PriceProvider>
         </AuthSessionProvider>
       </body>
     </html>
