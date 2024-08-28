@@ -95,6 +95,7 @@ gql`
           units
         }
       }
+      currentCvl @client
     }
   }
 `
@@ -210,6 +211,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                   <DetailItem
                     label="Initial CVL"
                     value={`${loanDetails.loan.loanTerms.initialCvl}%`}
+                  />
+                  <DetailItem
+                    label="Current CVL"
+                    value={`${loanDetails.loan.currentCvl}%`}
                   />
                 </div>
                 <div className="grid auto-rows-min">

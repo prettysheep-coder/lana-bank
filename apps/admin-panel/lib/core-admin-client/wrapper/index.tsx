@@ -1,4 +1,5 @@
 "use client"
+
 import { ApolloLink, HttpLink } from "@apollo/client"
 import { relayStylePagination } from "@apollo/client/utilities"
 import {
@@ -7,6 +8,8 @@ import {
   InMemoryCache,
   SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support"
+
+import { Loan } from "@/lib/graphql/generated"
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   const httpLink = new HttpLink({
@@ -37,6 +40,14 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
         },
       },
     }),
+    resolvers: {
+      Loan: {
+        currentCvl: (loan: Loan, _, { cache }) => {
+          console.log(loan, cache)
+          return 100
+        },
+      },
+    },
     link:
       typeof window === "undefined"
         ? ApolloLink.from([
