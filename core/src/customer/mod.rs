@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use crate::{
     audit::Audit,
     authorization::{Action, Authorization, CustomerAction, Object},
+    data_export::Export,
     ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
 };
@@ -38,8 +39,9 @@ impl Customers {
         ledger: &Ledger,
         authz: &Authorization,
         audit: &Audit,
+        export: &Export,
     ) -> Self {
-        let repo = CustomerRepo::new(pool);
+        let repo = CustomerRepo::new(pool, export);
         let kratos = KratosClient::new(&config.kratos);
         Self {
             pool: pool.clone(),
