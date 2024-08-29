@@ -650,8 +650,7 @@ impl Loan {
                 _,
                 LoanCollaterizationState::UnderMarginCallThreshold,
                 LoanCollaterizationState::FullyCollateralized,
-            )
-            | (_, LoanCollaterizationState::UnderLiquidationThreshold, _) => {
+            ) => {
                 let margin_call_cvl = self.terms.margin_call_cvl;
                 let current_cvl = self.cvl(price);
 
@@ -674,7 +673,8 @@ impl Loan {
             // Valid other collateral changes
             (_, LoanCollaterizationState::NoCollateral, _)
             | (_, LoanCollaterizationState::FullyCollateralized, _)
-            | (_, LoanCollaterizationState::UnderMarginCallThreshold, _) => {
+            | (_, LoanCollaterizationState::UnderMarginCallThreshold, _)
+            | (_, LoanCollaterizationState::UnderLiquidationThreshold, _) => {
                 self.events.push(LoanEvent::CollateralizationChanged {
                     state: *calculated_collateralization,
                     collateral,
