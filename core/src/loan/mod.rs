@@ -6,7 +6,7 @@ mod repo;
 mod terms;
 
 mod cursor;
-pub use cursor::LoanByCreatedAtCursor;
+pub use cursor::*;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -330,5 +330,18 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::List)
             .await?;
         self.loan_repo.list(query).await
+    }
+
+    #[instrument(name = "lava.loan.list_by_collateralization_ratio", skip(self), err)]
+    pub async fn list_by_collateralization_ratio(
+        &self,
+        sub: &Subject,
+        query: crate::query::PaginatedQueryArgs<LoanByCollateralizationRatioCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCollateralizationRatioCursor>, LoanError>
+    {
+        self.authz
+            .check_permission(sub, Object::Loan, LoanAction::List)
+            .await?;
+        self.loan_repo.list_by_collateralization_ratio(query).await
     }
 }
