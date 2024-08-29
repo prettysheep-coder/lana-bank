@@ -332,6 +332,10 @@ impl Loan {
             .unwrap_or((LoanCollaterizationState::NoCollateral, self.collateral()))
     }
 
+    pub(super) fn collateralization_ratio(&self) -> f64 {
+        self.collateral().into_inner() as f64 / self.outstanding().total().into_inner() as f64
+    }
+
     pub(super) fn initiate_approval(&mut self) -> Result<LoanApproval, LoanError> {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
