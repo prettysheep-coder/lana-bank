@@ -585,7 +585,7 @@ impl Loan {
         }
     }
 
-    pub fn cvl(&mut self, price: PriceOfOneBTC) -> CVLPct {
+    pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         let collateral_value = price.sats_to_cents_round_down(self.collateral());
 
         if collateral_value == UsdCents::ZERO {
@@ -595,26 +595,30 @@ impl Loan {
         }
     }
 
+    fn calculate_collaterization(&self, price: PriceOfOneBTC) -> LoanCollaterizationState {
+        let margin_call_cvl = self.terms.margin_call_cvl;
+        let liquidation_cvl = self.terms.liquidation_cvl;
+
+        let current_cvl = self.cvl(price);
+        if current_cvl == CVLPct::ZERO {
+            LoanCollaterizationState::NoCollateral
+        } else if current_cvl >= margin_call_cvl {
+            LoanCollaterizationState::FullyCollateralized
+        } else if current_cvl >= liquidation_cvl {
+            LoanCollaterizationState::UnderMarginCallThreshold
+        } else {
+            LoanCollaterizationState::UnderLiquidationThreshold
+        }
+    }
+
     pub fn maybe_update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
         audit_info: AuditInfo,
     ) -> Option<LoanCollaterizationState> {
-        let margin_call_cvl = self.terms.margin_call_cvl;
-        let liquidation_cvl = self.terms.liquidation_cvl;
-        let current_cvl = self.cvl(price);
-
         let (current_collateralization, collateral) = self.collateralization();
-        let calculated_collateralization = if current_cvl == CVLPct::ZERO {
-            &LoanCollaterizationState::NoCollateral
-        } else if current_cvl >= margin_call_cvl {
-            &LoanCollaterizationState::FullyCollateralized
-        } else if current_cvl >= liquidation_cvl {
-            &LoanCollaterizationState::UnderMarginCallThreshold
-        } else {
-            &LoanCollaterizationState::UnderLiquidationThreshold
-        };
+        let calculated_collateralization = &self.calculate_collaterization(price);
 
         match (
             self.status(),
@@ -649,6 +653,9 @@ impl Loan {
                 LoanCollaterizationState::FullyCollateralized,
             )
             | (_, LoanCollaterizationState::UnderLiquidationThreshold, _) => {
+                let margin_call_cvl = self.terms.margin_call_cvl;
+                let current_cvl = self.cvl(price);
+
                 if margin_call_cvl.is_significantly_lower_than(current_cvl, upgrade_buffer_cvl_pct)
                 {
                     self.events.push(LoanEvent::CollateralizationChanged {
