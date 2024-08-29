@@ -316,21 +316,19 @@ impl Loan {
         }
     }
 
-    pub fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
+    pub fn collateralization(&self) -> LoanCollaterizationState {
         if self.status() == LoanStatus::Closed {
-            return (LoanCollaterizationState::NoCollateral, Satoshis::ZERO);
+            return LoanCollaterizationState::NoCollateral;
         }
 
         self.events
             .iter()
             .rev()
             .find_map(|event| match event {
-                LoanEvent::CollateralizationChanged {
-                    state, collateral, ..
-                } => Some((*state, *collateral)),
+                LoanEvent::CollateralizationChanged { state, .. } => Some(*state),
                 _ => None,
             })
-            .unwrap_or((LoanCollaterizationState::NoCollateral, self.collateral()))
+            .unwrap_or(LoanCollaterizationState::NoCollateral)
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
@@ -617,7 +615,8 @@ impl Loan {
         upgrade_buffer_cvl_pct: CVLPct,
         audit_info: AuditInfo,
     ) -> Option<LoanCollaterizationState> {
-        let (current_collateralization, collateral) = self.collateralization();
+        let collateral = self.collateral();
+        let current_collateralization = self.collateralization();
         let calculated_collateralization = &self.calculate_collaterization(price);
 
         match (
@@ -1093,8 +1092,9 @@ mod test {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(
             loan.collateralization(),
-            (LoanCollaterizationState::NoCollateral, Satoshis::ZERO)
+            LoanCollaterizationState::NoCollateral
         );
+        assert_eq!(loan.collateral(), Satoshis::ZERO);
 
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(12000000))
@@ -1115,11 +1115,9 @@ mod test {
         );
         assert_eq!(
             loan.collateralization(),
-            (
-                LoanCollaterizationState::FullyCollateralized,
-                Satoshis::from(12000000)
-            )
+            LoanCollaterizationState::FullyCollateralized,
         );
+        assert_eq!(loan.collateral(), Satoshis::from(12000000));
     }
 
     #[test]
@@ -1163,8 +1161,9 @@ mod test {
             let mut loan = Loan::try_from(init_events()).unwrap();
             assert_eq!(
                 loan.collateralization(),
-                (LoanCollaterizationState::NoCollateral, Satoshis::ZERO)
+                LoanCollaterizationState::NoCollateral
             );
+            assert_eq!(loan.collateral(), Satoshis::ZERO);
             assert_eq!(
                 loan.maybe_update_collateralization(
                     price_from(7500000),
@@ -1185,7 +1184,7 @@ mod test {
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             let loan_approval = loan.initiate_approval();
@@ -1201,7 +1200,7 @@ mod test {
                 ),
                 None
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             // FullyCollateralized -> UnderMarginCallThreshold
@@ -1213,7 +1212,7 @@ mod test {
                 ),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
             // UnderMarginCallThreshold -> None (CVL above margin_call but below buffer)
@@ -1225,7 +1224,7 @@ mod test {
                 ),
                 None
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
             // UnderMarginCallThreshold -> FullyCollateralized (CVL above margin_call and buffer)
@@ -1237,7 +1236,7 @@ mod test {
                 ),
                 Some(LoanCollaterizationState::FullyCollateralized)
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             // UnderMarginCallThreshold -> UnderLiquidationThreshold
@@ -1249,7 +1248,7 @@ mod test {
                 ),
                 Some(LoanCollaterizationState::UnderLiquidationThreshold)
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
 
             // UnderLiquidationThreshold -> None (CVL above Collaterization requirement)
@@ -1261,7 +1260,7 @@ mod test {
                 ),
                 None
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
         }
 
@@ -1281,7 +1280,7 @@ mod test {
                 ),
                 None
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::NoCollateral);
 
             let loan_collateral_update = loan
@@ -1294,7 +1293,7 @@ mod test {
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
 
             let loan_collateral_update = loan
@@ -1307,7 +1306,7 @@ mod test {
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             // LoanStatus::Active
@@ -1323,7 +1322,7 @@ mod test {
                 ),
                 Some(LoanCollaterizationState::UnderMarginCallThreshold)
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::UnderMarginCallThreshold);
 
             // LoanStatus::Closed
@@ -1337,7 +1336,7 @@ mod test {
                 default_upgrade_buffer_cvl_pct(),
             );
             assert_eq!(loan.status(), LoanStatus::Closed);
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::NoCollateral);
 
             assert_eq!(
@@ -1348,7 +1347,7 @@ mod test {
                 ),
                 None
             );
-            let (c, _) = loan.collateralization();
+            let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::NoCollateral);
         }
     }
