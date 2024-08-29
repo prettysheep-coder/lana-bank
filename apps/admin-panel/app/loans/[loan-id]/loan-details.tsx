@@ -45,6 +45,9 @@ gql`
       id
       loanId
       createdAt
+      approvedAt
+      principal
+      expiresAt
       status
       collateralizationState
       customer {
@@ -185,6 +188,28 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                   <DetailItem
                     label="Date created"
                     value={formatDate(loanDetails.loan.createdAt)}
+                  />
+                  <DetailItem
+                    label="Date approved"
+                    value={
+                      loanDetails.loan.approvedAt
+                        ? formatDate(loanDetails.loan.approvedAt)
+                        : "n/a"
+                    }
+                  />
+                  <DetailItem
+                    label="Term ends"
+                    value={
+                      loanDetails.loan.expiresAt
+                        ? formatDate(loanDetails.loan.expiresAt)
+                        : "n/a"
+                    }
+                  />
+                  <DetailItem
+                    label="Principal"
+                    valueComponent={
+                      <Balance amount={loanDetails.loan.principal} currency="usd" />
+                    }
                   />
                   <DetailItem
                     label="Duration"
