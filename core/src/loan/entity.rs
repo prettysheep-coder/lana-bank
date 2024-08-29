@@ -609,6 +609,32 @@ impl Loan {
         }
     }
 
+    pub fn maybe_update_collateralization_with_liquidation_override(
+        &mut self,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+        audit_info: AuditInfo,
+    ) -> Option<LoanCollaterizationState> {
+        let current_collateralization = self.collateralization();
+        let calculated_collateralization = &self.calculate_collaterization(price);
+
+        if current_collateralization == LoanCollaterizationState::UnderLiquidationThreshold
+            && current_collateralization != *calculated_collateralization
+        {
+            self.events.push(LoanEvent::CollateralizationChanged {
+                state: *calculated_collateralization,
+                collateral: self.collateral(),
+                outstanding: self.outstanding(),
+                price,
+                audit_info,
+            });
+
+            return Some(*calculated_collateralization);
+        }
+
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
+    }
+
     pub fn maybe_update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
@@ -1349,6 +1375,65 @@ mod test {
             );
             let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::NoCollateral);
+        }
+
+        #[test]
+        fn test_liquidation_override() {
+            // Setup initial state
+            let mut loan = Loan::try_from(init_events()).unwrap();
+            let loan_collateral_update = loan
+                .initiate_collateral_update(Satoshis::from(100))
+                .unwrap();
+            loan.confirm_collateral_update(
+                loan_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let c = loan.collateralization();
+            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+
+            let loan_approval = loan.initiate_approval();
+            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            assert_eq!(loan.status(), LoanStatus::Active);
+
+            // Check allowed changes from Liquidation state
+            let loan_collateral_update = loan
+                .initiate_collateral_update(Satoshis::from(2900))
+                .unwrap();
+            loan.confirm_collateral_update(
+                loan_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let c = loan.collateralization();
+            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+
+            let price = price_from(100_000_00);
+            assert_eq!(
+                loan.maybe_update_collateralization(
+                    price,
+                    default_upgrade_buffer_cvl_pct(),
+                    dummy_audit_info()
+                ),
+                None
+            );
+            let c = loan.collateralization();
+            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+
+            assert_eq!(
+                loan.maybe_update_collateralization_with_liquidation_override(
+                    price,
+                    default_upgrade_buffer_cvl_pct(),
+                    dummy_audit_info()
+                ),
+                Some(LoanCollaterizationState::FullyCollateralized)
+            );
+            let c = loan.collateralization();
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
         }
     }
 }
