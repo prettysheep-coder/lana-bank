@@ -73,7 +73,9 @@ export const CreateLoanDialog = ({
 }) => {
   const router = useRouter()
 
-  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery()
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
 
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
@@ -162,7 +164,7 @@ export const CreateLoanDialog = ({
   }
 
   const resetForm = () => {
-    setUseDefaultTerms(!!defaultTermsData)
+    setUseDefaultTerms(!!defaultTermsData?.defaultTerms?.id)
     if (defaultTermsData && defaultTermsData.defaultTerms) {
       const terms = defaultTermsData.defaultTerms.values
       setFormValues({

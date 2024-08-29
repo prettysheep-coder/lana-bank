@@ -107,7 +107,9 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     useState<boolean>(false)
 
-  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery()
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
 
   const {
     data: loanDetails,

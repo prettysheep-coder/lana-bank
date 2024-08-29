@@ -62,19 +62,17 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
 
           const priceInfo = (await fetchData()) as GetRealtimePriceUpdatesQuery
 
-          const collateral_value_in_sats = loan.balance.collateral.btcBalance
-          const collateral_value_in_cents =
-            (priceInfo.realtimePrice.usdCentsPerBtc * collateral_value_in_sats) /
-            100_000_000
-          const collateral_value_in_usd = collateral_value_in_cents / 100
+          const collateralValueInSats = loan.balance.collateral.btcBalance
+          const collateralValueInCents =
+            (priceInfo.realtimePrice.usdCentsPerBtc * collateralValueInSats) / 100_000_000
+          const collateralValueInUsd = collateralValueInCents / 100
 
-          const outstanding_amount_in_usd = loan.balance.outstanding.usdBalance / 100
+          const outstandingAmountInUsd = loan.balance.outstanding.usdBalance / 100
 
-          if (collateral_value_in_usd == 0 || outstanding_amount_in_usd == 0) return 0
+          if (collateralValueInUsd == 0 || outstandingAmountInUsd == 0) return 0
+          const cvl = (collateralValueInUsd / outstandingAmountInUsd) * 100
 
-          const cvl = (collateral_value_in_usd / outstanding_amount_in_usd) * 100
-
-          return cvl.toFixed(2)
+          return Number(cvl.toFixed(2))
         },
       },
     },
