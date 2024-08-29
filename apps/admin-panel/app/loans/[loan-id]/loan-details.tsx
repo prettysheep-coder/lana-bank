@@ -153,18 +153,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
         case "CollateralizationUpdated":
           return (
             <div className="flex flex-col gap-1 justify-end">
-              <div className="flex gap-0.5 justify-end items-center">
-                <Balance amount={transaction.collateral} currency="btc" align="end" />
-              </div>
-              <div className="flex gap-1 justify-end text-textColor-secondary text-xs">
-                <span>Interest</span>({" "}
-                <Balance
-                  amount={transaction.outstandingPrincipal}
-                  currency="usd"
-                  align="end"
-                />
-                )
-              </div>
+              <Balance amount={transaction.collateral} currency="btc" align="end" />
             </div>
           )
         case "LoanOrigination":
@@ -206,7 +195,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
 
     return (
       <TableRow>
-        <TableCell className="py-5">{renderTransactionType()}</TableCell>
+        <TableCell>{renderTransactionType()}</TableCell>
         <TableCell>{txId || "-"}</TableCell>
         <TableCell>{recordedAt ? formatDate(recordedAt) : "-"}</TableCell>
         <TableCell className="text-right">{renderAmount()}</TableCell>
