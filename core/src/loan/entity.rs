@@ -647,7 +647,7 @@ impl Loan {
 
             // Valid buffered collateral upgraded change
             (
-                _,
+                LoanStatus::Active,
                 LoanCollaterizationState::UnderMarginCallThreshold,
                 LoanCollaterizationState::FullyCollateralized,
             ) => {
