@@ -6,7 +6,7 @@ mod repo;
 mod terms;
 
 mod cursor;
-pub use cursor::LoanCursor;
+pub use cursor::LoanByCreatedAtCursor;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -324,8 +324,8 @@ impl Loans {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<LoanCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanCursor>, LoanError> {
+        query: crate::query::PaginatedQueryArgs<LoanByCreatedAtCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCreatedAtCursor>, LoanError> {
         self.authz
             .check_permission(sub, Object::Loan, LoanAction::List)
             .await?;

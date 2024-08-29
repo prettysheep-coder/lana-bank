@@ -7,7 +7,7 @@ use crate::{
     primitives::{CustomerId, LoanId},
 };
 
-use super::{error::LoanError, Loan, LoanCursor, NewLoan};
+use super::{error::LoanError, Loan, LoanByCreatedAtCursor, NewLoan};
 
 const BQ_TABLE_NAME: &str = "loan_events";
 
@@ -112,8 +112,8 @@ impl LoanRepo {
     #[instrument(name = "lava.loan.repo.list", skip(self), err)]
     pub async fn list(
         &self,
-        query: crate::query::PaginatedQueryArgs<LoanCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanCursor>, LoanError> {
+        query: crate::query::PaginatedQueryArgs<LoanByCreatedAtCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCreatedAtCursor>, LoanError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"
@@ -139,7 +139,7 @@ impl LoanRepo {
         let (entities, has_next_page) = EntityEvents::load_n::<Loan>(rows, query.first)?;
         let mut end_cursor = None;
         if let Some(last) = entities.last() {
-            end_cursor = Some(LoanCursor {
+            end_cursor = Some(LoanByCreatedAtCursor {
                 id: last.id,
                 created_at: last.created_at(),
             });

@@ -173,7 +173,7 @@ impl Query {
                         sub,
                         crate::query::PaginatedQueryArgs {
                             first,
-                            after: after.map(crate::loan::LoanCursor::from),
+                            after: after.map(crate::loan::LoanByCreatedAtCursor::from),
                         },
                     )
                     .await?;

@@ -102,7 +102,7 @@ impl From<(LoanId, chrono::DateTime<chrono::Utc>)> for LoanCursor {
     }
 }
 
-impl From<LoanCursor> for crate::loan::LoanCursor {
+impl From<LoanCursor> for crate::loan::LoanByCreatedAtCursor {
     fn from(cursor: LoanCursor) -> Self {
         Self {
             id: cursor.id,
