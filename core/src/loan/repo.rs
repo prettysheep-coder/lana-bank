@@ -65,9 +65,9 @@ impl LoanRepo {
     }
 
     pub async fn persist(&self, loan: &mut Loan) -> Result<(), LoanError> {
-        let mut tx = self.pool.begin().await?;
-        self.persist_in_tx(&mut tx, loan).await?;
-        tx.commit().await?;
+        let mut db_tx = self.pool.begin().await?;
+        self.persist_in_tx(&mut db_tx, loan).await?;
+        db_tx.commit().await?;
         Ok(())
     }
 
