@@ -76,6 +76,13 @@ impl LoanRepo {
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         loan: &mut Loan,
     ) -> Result<(), LoanError> {
+        sqlx::query!(
+            r#"UPDATE loans SET collateralization_ratio = $2 WHERE id = $1"#,
+            loan.id as LoanId,
+            loan.collateralization_ratio(),
+        )
+        .execute(&mut **db)
+        .await?;
         let n_events = loan.events.persist(db).await?;
         self.export
             .export_last(db, BQ_TABLE_NAME, n_events, &loan.events)

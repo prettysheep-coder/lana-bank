@@ -1,5 +1,6 @@
 use chrono::{DateTime, Datelike, Utc};
 use derive_builder::Builder;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -332,8 +333,13 @@ impl Loan {
             .unwrap_or((LoanCollaterizationState::NoCollateral, self.collateral()))
     }
 
-    pub(super) fn collateralization_ratio(&self) -> f64 {
-        self.collateral().into_inner() as f64 / self.outstanding().total().into_inner() as f64
+    pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
+        let outstanding = Decimal::from(self.outstanding().total().into_inner());
+        if outstanding > Decimal::ZERO {
+            Some(rust_decimal::Decimal::from(self.collateral().into_inner()) / outstanding)
+        } else {
+            None
+        }
     }
 
     pub(super) fn initiate_approval(&mut self) -> Result<LoanApproval, LoanError> {
