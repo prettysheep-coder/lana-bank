@@ -126,6 +126,11 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     fetchPolicy: "cache-only",
   })
 
+  const btcUsdPrice = formatCurrency({
+    amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+    currency: "USD",
+  })
+
   const {
     data: loanDetails,
     loading,
@@ -297,6 +302,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     label="Interest payment schedule"
                     value={formatInterval(loanDetails.loan.loanTerms.interval)}
                   />
+                  <DetailItem label={`BTC/USD Price`} value={`${btcUsdPrice}`} />
                 </div>
                 <div className="grid auto-rows-min">
                   <DetailItem
@@ -345,10 +351,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     />
                   ) : loanDetails.loan.currentCvl ? (
                     <DetailItem
-                      label={`Current CVL (BTC/USD: ${formatCurrency({
-                        amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
-                        currency: "USD",
-                      })})`}
+                      label={`Current CVL`}
                       value={`${loanDetails.loan.currentCvl}%`}
                     />
                   ) : (
@@ -359,11 +362,11 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     value={`${loanDetails.loan.loanTerms.initialCvl}%`}
                   />
                   <DetailItem
-                    label="Margin Call CVL"
+                    label={`Margin Call CVL`}
                     value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
                   />
                   <DetailItem
-                    label="Liquidation CVL"
+                    label={`Liquidation CVL`}
                     value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
                   />
                   <DetailItem
