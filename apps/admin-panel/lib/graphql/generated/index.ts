@@ -201,6 +201,7 @@ export type CollateralizationUpdated = {
   outstandingInterest: Scalars['UsdCents']['output'];
   outstandingPrincipal: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
   state: LoanCollaterizationState;
 };
 
