@@ -328,7 +328,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                         )
                       }
                     />
-                  ) : (
+                  ) : loanDetails.loan.currentCvl ? (
                     <DetailItem
                       label={`Current CVL (BTC/USD: ${formatCurrency({
                         amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
@@ -336,6 +336,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                       })})`}
                       value={`${loanDetails.loan.currentCvl}%`}
                     />
+                  ) : (
+                    <DetailItem label="Current CVL" value="Price not available" />
                   )}
                   <DetailItem
                     label="Initial CVL"
