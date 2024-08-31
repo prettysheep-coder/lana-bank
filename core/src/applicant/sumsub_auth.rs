@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::primitives::CustomerId;
 
+use super::error::ApplicantError;
 use super::SumsubConfig;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
@@ -44,7 +45,7 @@ impl SumsubClient {
         client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
-    ) -> Result<CreateAccessTokenResponse, anyhow::Error> {
+    ) -> Result<CreateAccessTokenResponse, ApplicantError> {
         let method = "POST";
         let url = format!(
             "/resources/accessTokens?levelName={}&userId={}",
@@ -86,7 +87,7 @@ impl SumsubClient {
         client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
-    ) -> Result<CreatePermalinkResponse, anyhow::Error> {
+    ) -> Result<CreatePermalinkResponse, ApplicantError> {
         let method = "POST";
         let url =
             format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
@@ -127,7 +128,7 @@ impl SumsubClient {
         url: &str,
         body: Option<&str>,
         timestamp: u64,
-    ) -> Result<String, anyhow::Error> {
+    ) -> Result<String, ApplicantError> {
         type HmacSha256 = Hmac<Sha256>;
         let mut mac = HmacSha256::new_from_slice(self.sumsub_secret.as_bytes())
             .expect("HMAC can take key of any size");

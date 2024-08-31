@@ -10,4 +10,10 @@ pub enum ApplicantError {
     Serde(#[from] serde_json::Error),
     #[error("ApplicantError - UserError: {0}")]
     CustomerError(#[from] crate::customer::error::CustomerError),
+    #[error("ApplicantError - SystemTimeError: {0}")]
+    SystemTimeError(#[from] std::time::SystemTimeError),
+    #[error("ApplicantError - InvalidHeaderValue: {0}")]
+    InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
+    #[error("ApplicantError - Reqwest: {0}")]
+    Reqwest(#[from] reqwest::Error),
 }
