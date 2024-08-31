@@ -42,7 +42,7 @@ gql`
           object
           action
           authorized
-          createdAt
+          recordedAt
         }
       }
       pageInfo {
@@ -90,7 +90,7 @@ function LogsPage() {
                 <TableHead>Object</TableHead>
                 <TableHead>Action</TableHead>
                 <TableHead>Authorized</TableHead>
-                <TableHead>Created At</TableHead>
+                <TableHead>Recorded At</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -111,7 +111,7 @@ function LogsPage() {
                   <TableCell>{item.node.object}</TableCell>
                   <TableCell>{item.node.action}</TableCell>
                   <TableCell>{item.node.authorized ? "Yes" : "No"}</TableCell>
-                  <TableCell>{formatDate(item.node.createdAt)}</TableCell>
+                  <TableCell>{formatDate(item.node.recordedAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
