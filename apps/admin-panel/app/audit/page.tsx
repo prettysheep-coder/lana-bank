@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
+import { formatDate } from "@/lib/utils"
 
 gql`
   query AuditLogs($first: Int!, $after: String) {
@@ -110,7 +111,7 @@ function LogsPage() {
                   <TableCell>{item.node.object}</TableCell>
                   <TableCell>{item.node.action}</TableCell>
                   <TableCell>{item.node.authorized ? "Yes" : "No"}</TableCell>
-                  <TableCell>{item.node.createdAt}</TableCell>
+                  <TableCell>{formatDate(item.node.createdAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
