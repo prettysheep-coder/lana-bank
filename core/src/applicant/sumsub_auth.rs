@@ -88,17 +88,13 @@ impl SumsubClient {
             .send()
             .await?;
 
-        let response_text = response.text().await?;
-        println!("Raw response: {}", response_text);
-
-        match serde_json::from_str(&response_text) {
-            Ok(SumsubResponse::Success(AccessTokenResponse { token, user_id })) => {
+        match response.json().await? {
+            SumsubResponse::Success(AccessTokenResponse { token, user_id }) => {
                 Ok(AccessTokenResponse { token, user_id })
             }
-            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+            SumsubResponse::Error(ApiError { description, code }) => {
                 Err(ApplicantError::Sumsub { description, code })
             }
-            Err(e) => Err(ApplicantError::Serde(e)),
         }
     }
 
@@ -135,15 +131,11 @@ impl SumsubClient {
             .send()
             .await?;
 
-        let response_text = response.text().await?;
-        println!("Raw response permalink: {}", response_text);
-
-        match serde_json::from_str(&response_text) {
-            Ok(SumsubResponse::Success(PermalinkResponse { url })) => Ok(PermalinkResponse { url }),
-            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+        match response.json().await? {
+            SumsubResponse::Success(PermalinkResponse { url }) => Ok(PermalinkResponse { url }),
+            SumsubResponse::Error(ApiError { description, code }) => {
                 Err(ApplicantError::Sumsub { description, code })
             }
-            Err(e) => Err(ApplicantError::Serde(e)),
         }
     }
 
