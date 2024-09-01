@@ -93,8 +93,6 @@ impl Customer {
 
     async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
         let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
-
-        // is clone needed here?
         let entries = loader.load_many(self.audit_ids.clone()).await?;
 
         Ok(entries.into_values().collect())
