@@ -21,14 +21,32 @@ pub struct SumsubClient {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct CreateAccessTokenResponse {
+#[serde(untagged)]
+enum CreateAccessTokenResponse {
+    Success {
+        token: String,
+        #[serde(rename = "userId")]
+        user_id: String,
+    },
+    Error {
+        description: String,
+        code: u16,
+    },
+}
+
+pub struct AccessTokenResponse {
     pub token: String,
-    #[serde(rename = "userId")]
     pub user_id: String,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct CreatePermalinkResponse {
+#[serde(untagged)]
+enum CreatePermalinkResponse {
+    Success { url: String },
+    Error { description: String, code: u16 },
+}
+
+pub struct PermalinkResponse {
     pub url: String,
 }
 
@@ -45,7 +63,7 @@ impl SumsubClient {
         client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
-    ) -> Result<CreateAccessTokenResponse, ApplicantError> {
+    ) -> Result<AccessTokenResponse, ApplicantError> {
         let method = "POST";
         let url = format!(
             "/resources/accessTokens?levelName={}&userId={}",
@@ -78,8 +96,15 @@ impl SumsubClient {
         let response_text = response.text().await?;
         println!("Raw response: {}", response_text);
 
-        let response_json = serde_json::from_str(&response_text)?;
-        Ok(response_json)
+        match serde_json::from_str(&response_text) {
+            Ok(CreateAccessTokenResponse::Success { token, user_id }) => {
+                Ok(AccessTokenResponse { token, user_id })
+            }
+            Ok(CreateAccessTokenResponse::Error {
+                description, code, ..
+            }) => Err(ApplicantError::Sumsub { description, code }),
+            Err(e) => Err(ApplicantError::Serde(e)),
+        }
     }
 
     pub async fn create_permalink(
@@ -87,7 +112,7 @@ impl SumsubClient {
         client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
-    ) -> Result<CreatePermalinkResponse, ApplicantError> {
+    ) -> Result<PermalinkResponse, ApplicantError> {
         let method = "POST";
         let url =
             format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
@@ -118,8 +143,13 @@ impl SumsubClient {
         let response_text = response.text().await?;
         println!("Raw response permalink: {}", response_text);
 
-        let response_json = serde_json::from_str(&response_text)?;
-        Ok(response_json)
+        match serde_json::from_str(&response_text) {
+            Ok(CreatePermalinkResponse::Success { url }) => Ok(PermalinkResponse { url }),
+            Ok(CreatePermalinkResponse::Error {
+                description, code, ..
+            }) => Err(ApplicantError::Sumsub { description, code }),
+            Err(e) => Err(ApplicantError::Serde(e)),
+        }
     }
 
     fn sign(
@@ -206,7 +236,7 @@ mod tests {
         let res = v.create_access_token(&client, user_id, level).await;
 
         match res {
-            Ok(CreateAccessTokenResponse { token, user_id }) => {
+            Ok(AccessTokenResponse { token, user_id }) => {
                 println!("Success response: token: {token}, user_id: {user_id}");
             }
             Err(e) => {
@@ -238,7 +268,7 @@ mod tests {
         let res = v.create_permalink(&client, user_id, level).await;
 
         match res {
-            Ok(CreatePermalinkResponse { url }) => {
+            Ok(PermalinkResponse { url }) => {
                 println!("Success response: url: {url}");
             }
             Err(e) => {

@@ -16,4 +16,6 @@ pub enum ApplicantError {
     InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
     #[error("ApplicantError - Reqwest: {0}")]
     Reqwest(#[from] reqwest::Error),
+    #[error("ApplicantError - Sumsub Error: {code}, {description}")]
+    Sumsub { code: u16, description: String },
 }
