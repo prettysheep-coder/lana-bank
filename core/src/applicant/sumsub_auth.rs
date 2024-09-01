@@ -21,31 +21,26 @@ pub struct SumsubClient {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(untagged)]
-enum CreateAccessTokenResponse {
-    Success {
-        token: String,
-        #[serde(rename = "userId")]
-        user_id: String,
-    },
-    Error {
-        description: String,
-        code: u16,
-    },
+struct ApiError {
+    description: String,
+    code: u16,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum SumsubResponse<T> {
+    Success(T),
+    Error(ApiError),
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct AccessTokenResponse {
     pub token: String,
     pub user_id: String,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(untagged)]
-enum CreatePermalinkResponse {
-    Success { url: String },
-    Error { description: String, code: u16 },
-}
-
 pub struct PermalinkResponse {
     pub url: String,
 }
@@ -97,12 +92,12 @@ impl SumsubClient {
         println!("Raw response: {}", response_text);
 
         match serde_json::from_str(&response_text) {
-            Ok(CreateAccessTokenResponse::Success { token, user_id }) => {
+            Ok(SumsubResponse::Success(AccessTokenResponse { token, user_id })) => {
                 Ok(AccessTokenResponse { token, user_id })
             }
-            Ok(CreateAccessTokenResponse::Error {
-                description, code, ..
-            }) => Err(ApplicantError::Sumsub { description, code }),
+            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
             Err(e) => Err(ApplicantError::Serde(e)),
         }
     }
@@ -144,10 +139,10 @@ impl SumsubClient {
         println!("Raw response permalink: {}", response_text);
 
         match serde_json::from_str(&response_text) {
-            Ok(CreatePermalinkResponse::Success { url }) => Ok(PermalinkResponse { url }),
-            Ok(CreatePermalinkResponse::Error {
-                description, code, ..
-            }) => Err(ApplicantError::Sumsub { description, code }),
+            Ok(SumsubResponse::Success(PermalinkResponse { url })) => Ok(PermalinkResponse { url }),
+            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
             Err(e) => Err(ApplicantError::Serde(e)),
         }
     }
