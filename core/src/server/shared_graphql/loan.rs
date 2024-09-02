@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger,
-    loan::LoanCollaterizationState,
+    loan::{ApprovalStatus, LoanCollaterizationState},
     primitives::{CollateralAction, CustomerId, LoanStatus},
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
@@ -28,6 +28,7 @@ pub struct Loan {
     principal: UsdCents,
     transactions: Vec<LoanHistory>,
     collateralization_state: LoanCollaterizationState,
+    approval_status: ApprovalStatus,
 }
 
 #[derive(async_graphql::Union)]
@@ -154,6 +155,7 @@ impl From<crate::loan::Loan> for Loan {
         let principal = loan.initial_principal();
         let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
         let collateralization_state = loan.collateralization();
+        let approval_status = loan.approval_status();
 
         Loan {
             id: loan.id.to_global_id(),
@@ -169,6 +171,7 @@ impl From<crate::loan::Loan> for Loan {
             principal,
             transactions,
             collateralization_state,
+            approval_status,
         }
     }
 }

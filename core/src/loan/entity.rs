@@ -91,6 +91,12 @@ pub enum LoanCollaterizationState {
     NoCollateral,
 }
 
+#[derive(async_graphql::SimpleObject, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalStatus {
+    pub admin: bool,
+    pub bank_manager: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum LoanEvent {
@@ -119,6 +125,11 @@ pub enum LoanEvent {
         price: PriceOfOneBTC,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+    },
+    ApprovalAdded {
+        role: Role,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     Approved {
         tx_id: LedgerTxId,
@@ -365,6 +376,42 @@ impl Loan {
             Some(rust_decimal::Decimal::from(self.collateral().into_inner()) / outstanding)
         } else {
             None
+        }
+    }
+
+    pub(super) fn add_approval(&mut self, role: Role, audit_info: AuditInfo) {
+        self.events.push(LoanEvent::ApprovalAdded {
+            role,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+    }
+
+    pub(super) fn can_be_approved(&self) -> bool {
+        let ApprovalStatus {
+            admin,
+            bank_manager,
+        } = self.approval_status();
+
+        admin && bank_manager
+    }
+
+    pub fn approval_status(&self) -> ApprovalStatus {
+        let mut bank_manager_approval = false;
+        let mut admin_approval = false;
+        for event in self.events.iter() {
+            match event {
+                LoanEvent::ApprovalAdded { role, .. } => match role {
+                    Role::BankManager => bank_manager_approval = true,
+                    Role::Admin => admin_approval = true,
+                    _ => continue,
+                },
+                _ => continue,
+            }
+        }
+        ApprovalStatus {
+            admin: admin_approval,
+            bank_manager: bank_manager_approval,
         }
     }
 
@@ -862,6 +909,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
                 LoanEvent::CollateralUpdated { .. } => (),
+                LoanEvent::ApprovalAdded { .. } => (),
             }
         }
         builder.events(events).build()

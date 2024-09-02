@@ -158,8 +158,7 @@ impl Loans {
         Ok(loan)
     }
 
-    #[instrument(name = "lava.loan.approve_loan", skip(self), err)]
-    pub async fn approve_loan(
+    pub async fn add_approval(
         &self,
         sub: &Subject,
         loan_id: impl Into<LoanId> + std::fmt::Debug,
@@ -170,13 +169,30 @@ impl Loans {
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
+        // remove this hard coded value
+        loan.add_approval(Role::BankManager, audit_info);
 
+        if loan.can_be_approved() {
+            self.approve_loan(audit_info, &mut loan).await?;
+        } else {
+            self.loan_repo.persist(&mut loan).await?;
+        }
+
+        Ok(loan)
+    }
+
+    #[instrument(name = "lava.loan.approve_loan", skip(self, loan), err)]
+    pub async fn approve_loan(
+        &self,
+        audit_info: AuditInfo,
+        loan: &mut Loan,
+    ) -> Result<(), LoanError> {
         let mut db_tx = self.pool.begin().await?;
         let loan_approval = loan.initiate_approval()?;
         let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
         loan.confirm_approval(loan_approval, executed_at, audit_info);
 
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, loan).await?;
         self.jobs
             .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
@@ -186,7 +202,7 @@ impl Loans {
             )
             .await?;
         db_tx.commit().await?;
-        Ok(loan)
+        Ok(())
     }
 
     #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
