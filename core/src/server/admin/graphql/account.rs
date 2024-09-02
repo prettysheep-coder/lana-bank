@@ -47,7 +47,6 @@ struct LayeredBtcAccountAmounts {
     all: BtcAccountAmounts,
     settled: BtcAccountAmounts,
     pending: BtcAccountAmounts,
-    encumbrance: BtcAccountAmounts,
 }
 
 impl From<crate::ledger::account::LayeredBtcAccountBalances> for LayeredBtcAccountAmounts {
@@ -56,7 +55,6 @@ impl From<crate::ledger::account::LayeredBtcAccountBalances> for LayeredBtcAccou
             all: balances.all_layers.into(),
             settled: balances.settled.into(),
             pending: balances.pending.into(),
-            encumbrance: balances.encumbrance.into(),
         }
     }
 }
@@ -66,7 +64,6 @@ struct LayeredUsdAccountAmounts {
     all: UsdAccountAmounts,
     settled: UsdAccountAmounts,
     pending: UsdAccountAmounts,
-    encumbrance: UsdAccountAmounts,
 }
 
 impl From<crate::ledger::account::LayeredUsdAccountBalances> for LayeredUsdAccountAmounts {
@@ -75,7 +72,6 @@ impl From<crate::ledger::account::LayeredUsdAccountBalances> for LayeredUsdAccou
             all: balances.all_layers.into(),
             settled: balances.settled.into(),
             pending: balances.pending.into(),
-            encumbrance: balances.encumbrance.into(),
         }
     }
 }
