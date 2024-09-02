@@ -158,6 +158,21 @@ impl std::fmt::Display for Subject {
     }
 }
 
+impl Subject {
+    pub fn inner(&self) -> uuid::Uuid {
+        match self {
+            Subject::Customer(id) => id.0,
+            Subject::User(id) => id.0,
+            Subject::System(node) => match node {
+                SystemNode::Init => SYSTEM_INIT,
+                SystemNode::Core => SYSTEM_CORE,
+                SystemNode::Kratos => SYSTEM_KRATOS,
+                SystemNode::Sumsub => SYSTEM_SUMSUB,
+            },
+        }
+    }
+}
+
 impl From<String> for Subject {
     fn from(s: String) -> Self {
         s.parse().expect("cannot parse subject from String")

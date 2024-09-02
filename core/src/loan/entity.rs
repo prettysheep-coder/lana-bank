@@ -379,7 +379,17 @@ impl Loan {
         }
     }
 
-    pub(super) fn add_approval(&mut self, role: Role, audit_info: AuditInfo) {
+    pub(super) fn add_approval(
+        &mut self,
+        roles: std::collections::HashSet<Role>,
+        audit_info: AuditInfo,
+    ) {
+        let role = if roles.contains(&Role::Admin) {
+            Role::Admin
+        } else {
+            Role::BankManager
+        };
+
         self.events.push(LoanEvent::ApprovalAdded {
             role,
             audit_info,
@@ -1514,5 +1524,33 @@ mod test {
             let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
         }
+    }
+
+    #[test]
+    fn loan_approval() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+
+        let mut roles = std::collections::HashSet::new();
+        roles.insert(Role::Admin);
+        loan.add_approval(roles.clone(), dummy_audit_info());
+        assert!(loan.approval_status().admin);
+
+        roles.remove(&Role::Admin);
+
+        roles.insert(Role::BankManager);
+        loan.add_approval(roles, dummy_audit_info());
+        assert!(loan.approval_status().bank_manager);
+
+        assert!(loan.can_be_approved());
     }
 }

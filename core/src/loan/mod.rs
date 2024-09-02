@@ -21,6 +21,7 @@ use crate::{
     ledger::{loan::*, Ledger},
     price::Price,
     primitives::*,
+    user::*,
 };
 
 pub use config::*;
@@ -39,6 +40,7 @@ pub struct Loans {
     pool: PgPool,
     jobs: Jobs,
     authz: Authorization,
+    users: Users,
     price: Price,
     config: LoanConfig,
 }
@@ -55,6 +57,7 @@ impl Loans {
         audit: &Audit,
         export: &Export,
         price: &Price,
+        users: &Users,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
@@ -76,6 +79,7 @@ impl Loans {
             pool: pool.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
+            users: users.clone(),
             price: price.clone(),
             config,
         }
@@ -169,11 +173,12 @@ impl Loans {
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
-        // remove this hard coded value
-        loan.add_approval(Role::BankManager, audit_info);
+
+        let roles = self.users.roles_for_user(sub.inner()).await?;
+        loan.add_approval(roles, audit_info);
 
         if loan.can_be_approved() {
-            self.approve_loan(audit_info, &mut loan).await?;
+            self.approve_loan(&mut loan, audit_info).await?;
         } else {
             self.loan_repo.persist(&mut loan).await?;
         }
@@ -184,8 +189,8 @@ impl Loans {
     #[instrument(name = "lava.loan.approve_loan", skip(self, loan), err)]
     pub async fn approve_loan(
         &self,
-        audit_info: AuditInfo,
         loan: &mut Loan,
+        audit_info: AuditInfo,
     ) -> Result<(), LoanError> {
         let mut db_tx = self.pool.begin().await?;
         let loan_approval = loan.initiate_approval()?;

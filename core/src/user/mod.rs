@@ -138,6 +138,13 @@ impl Users {
         self.repo.list().await
     }
 
+    pub(super) async fn roles_for_user(
+        &self,
+        id: impl Into<uuid::Uuid>,
+    ) -> Result<std::collections::HashSet<Role>, UserError> {
+        let id = UserId::from(id.into());
+        Ok(self.repo.find_by_id(id).await?.current_roles())
+    }
     pub async fn assign_role_to_user(
         &self,
         sub: &Subject,

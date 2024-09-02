@@ -62,6 +62,7 @@ impl LavaApp {
             &audit,
             &export,
             &price,
+            &users,
         );
         jobs.start_poll().await?;
 
