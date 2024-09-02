@@ -1424,7 +1424,7 @@ mod test {
             // Setup initial state
             let mut loan = Loan::try_from(init_events()).unwrap();
             let loan_collateral_update = loan
-                .initiate_collateral_update(Satoshis::from(100))
+                .initiate_collateral_update(Satoshis::from(10000))
                 .unwrap();
             loan.confirm_collateral_update(
                 loan_collateral_update,
@@ -1434,7 +1434,7 @@ mod test {
                 default_upgrade_buffer_cvl_pct(),
             );
             let c = loan.collateralization();
-            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             let loan_approval = loan.initiate_approval(default_price());
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
@@ -1442,7 +1442,7 @@ mod test {
 
             // Check allowed changes from Liquidation state
             let loan_collateral_update = loan
-                .initiate_collateral_update(Satoshis::from(2900))
+                .initiate_collateral_update(Satoshis::from(1900))
                 .unwrap();
             loan.confirm_collateral_update(
                 loan_collateral_update,
