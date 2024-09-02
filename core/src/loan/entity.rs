@@ -1478,4 +1478,23 @@ mod test {
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
         }
     }
+
+    #[test]
+    fn reject_loan_approval_below_margin_limit() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(100))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+
+        let loan_approval = loan.initiate_approval(default_price());
+        assert!(matches!(loan_approval, Err(LoanError::BelowMarginLimit)));
+    }
 }
