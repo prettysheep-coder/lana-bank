@@ -3,6 +3,8 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashSet;
+
 use crate::{
     entity::*,
     ledger::{
@@ -127,7 +129,8 @@ pub enum LoanEvent {
         audit_info: AuditInfo,
     },
     ApprovalAdded {
-        role: Role,
+        approving_user_id: UserId,
+        approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -381,66 +384,37 @@ impl Loan {
 
     pub(super) fn add_approval(
         &mut self,
-        roles: std::collections::HashSet<Role>,
+        approving_user_id: UserId,
+        approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
-    ) {
-        let role = if roles.contains(&Role::Admin) {
-            Role::Admin
-        } else {
-            Role::BankManager
-        };
-
-        self.events.push(LoanEvent::ApprovalAdded {
-            role,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
-    }
-
-    pub(super) fn can_be_approved(&self) -> bool {
-        let ApprovalStatus {
-            admin,
-            bank_manager,
-        } = self.approval_status();
-
-        admin && bank_manager
-    }
-
-    pub fn approval_status(&self) -> ApprovalStatus {
-        let mut bank_manager_approval = false;
-        let mut admin_approval = false;
-        for event in self.events.iter() {
-            match event {
-                LoanEvent::ApprovalAdded { role, .. } => match role {
-                    Role::BankManager => bank_manager_approval = true,
-                    Role::Admin => admin_approval = true,
-                    _ => continue,
-                },
-                _ => continue,
-            }
-        }
-        ApprovalStatus {
-            admin: admin_approval,
-            bank_manager: bank_manager_approval,
-        }
-    }
-
-    pub(super) fn initiate_approval(&mut self) -> Result<LoanApproval, LoanError> {
+    ) -> Result<Option<LoanApproval>, LoanError> {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
 
-        if self.collateral() == Satoshis::ZERO {
-            return Err(LoanError::NoCollateral);
+        self.events.push(LoanEvent::ApprovalAdded {
+            approving_user_id,
+            approving_user_roles,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+
+        if self.approval_threshold_met() {
+            let tx_ref = format!("{}-approval", self.id);
+            Ok(Some(LoanApproval {
+                initial_principal: self.initial_principal(),
+                tx_ref,
+                tx_id: LedgerTxId::new(),
+                loan_account_ids: self.account_ids,
+                customer_account_ids: self.customer_account_ids,
+            }))
+        } else {
+            Ok(None)
         }
-        let tx_ref = format!("{}-approval", self.id);
-        Ok(LoanApproval {
-            initial_principal: self.initial_principal(),
-            tx_ref,
-            tx_id: LedgerTxId::new(),
-            loan_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
-        })
+    }
+
+    fn approval_threshold_met(&self) -> bool {
+        true
     }
 
     pub(super) fn confirm_approval(

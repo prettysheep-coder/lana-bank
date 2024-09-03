@@ -40,7 +40,7 @@ pub struct Loans {
     pool: PgPool,
     jobs: Jobs,
     authz: Authorization,
-    users: Users,
+    user_repo: UserRepo,
     price: Price,
     config: LoanConfig,
 }
@@ -79,7 +79,7 @@ impl Loans {
             pool: pool.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
-            users: users.clone(),
+            user_repo: users.repo().clone(),
             price: price.clone(),
             config,
         }
@@ -174,40 +174,27 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
 
-        let roles = self.users.roles_for_user(sub.inner()).await?;
-        loan.add_approval(roles, audit_info);
+        let subject_id = uuid::Uuid::from(sub);
+        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
 
-        if loan.can_be_approved() {
-            self.approve_loan(&mut loan, audit_info).await?;
-        } else {
+        let mut db_tx = self.pool.begin().await?;
+        if let Some(loan_approval) = loan.add_approval(user.id, user.current_roles(), audit_info)? {
+            let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
+            loan.confirm_approval(loan_approval, executed_at, audit_info);
+
+            self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+            self.jobs
+                .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
+                    &mut db_tx,
+                    loan.id,
+                    format!("loan-interest-processing-{}", loan.id),
+                    interest::LoanJobConfig { loan_id: loan.id },
+                )
+                .await?;
             self.loan_repo.persist(&mut loan).await?;
         }
 
         Ok(loan)
-    }
-
-    #[instrument(name = "lava.loan.approve_loan", skip(self, loan), err)]
-    pub async fn approve_loan(
-        &self,
-        loan: &mut Loan,
-        audit_info: AuditInfo,
-    ) -> Result<(), LoanError> {
-        let mut db_tx = self.pool.begin().await?;
-        let loan_approval = loan.initiate_approval()?;
-        let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
-        loan.confirm_approval(loan_approval, executed_at, audit_info);
-
-        self.loan_repo.persist_in_tx(&mut db_tx, loan).await?;
-        self.jobs
-            .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
-                &mut db_tx,
-                loan.id,
-                format!("loan-interest-processing-{}", loan.id),
-                interest::LoanJobConfig { loan_id: loan.id },
-            )
-            .await?;
-        db_tx.commit().await?;
-        Ok(())
     }
 
     #[instrument(name = "lava.loan.update_collateral", skip(self), err)]

@@ -158,9 +158,9 @@ impl std::fmt::Display for Subject {
     }
 }
 
-impl Subject {
-    pub fn inner(&self) -> uuid::Uuid {
-        match self {
+impl From<&Subject> for uuid::Uuid {
+    fn from(s: &Subject) -> Self {
+        match s {
             Subject::Customer(id) => id.0,
             Subject::User(id) => id.0,
             Subject::System(node) => match node {
