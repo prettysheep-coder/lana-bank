@@ -1672,4 +1672,33 @@ mod test {
 
         assert!(!loan.approval_threshold_met());
     }
+
+    #[test]
+    fn two_bank_managers_cannot_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        let _first_bank_manager_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+        let _second_bank_manager_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(!loan.approval_threshold_met());
+    }
 }
