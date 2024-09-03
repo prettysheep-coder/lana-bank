@@ -13,7 +13,7 @@ use tracing::instrument;
 
 use crate::{
     audit::Audit,
-    authorization::{Authorization, LoanAction, Object, TermAction},
+    authorization::{Action, Authorization, LoanAction, Object, TermAction},
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -110,7 +110,7 @@ impl Loans {
         terms: TermValues,
     ) -> Result<Terms, LoanError> {
         self.authz
-            .check_permission(sub, Object::Term, TermAction::Update)
+            .check_permission(sub, Object::Term, Action::Term(TermAction::Update))
             .await?;
 
         self.term_repo.update_default(terms).await
@@ -126,7 +126,7 @@ impl Loans {
     ) -> Result<Loan, LoanError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::Create)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Create))
             .await?;
 
         let customer_id = customer_id.into();
@@ -166,7 +166,7 @@ impl Loans {
     ) -> Result<Loan, LoanError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::Approve)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Approve))
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
@@ -199,7 +199,11 @@ impl Loans {
     ) -> Result<Loan, LoanError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
+            .check_permission(
+                sub,
+                Object::Loan,
+                Action::Loan(LoanAction::UpdateCollateral),
+            )
             .await?;
 
         let price = self.price.usd_cents_per_btc().await?;
@@ -234,7 +238,11 @@ impl Loans {
     ) -> Result<Loan, LoanError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::UpdateCollateralizationState)
+            .check_permission(
+                sub,
+                Object::Loan,
+                Action::Loan(LoanAction::UpdateCollateralizationState),
+            )
             .await?;
 
         let price = self.price.usd_cents_per_btc().await?;
@@ -265,7 +273,7 @@ impl Loans {
 
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::RecordPayment))
             .await?;
 
         let price = self.price.usd_cents_per_btc().await?;
@@ -313,7 +321,7 @@ impl Loans {
     ) -> Result<Option<Loan>, LoanError> {
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Loan, LoanAction::Read)
+                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Read))
                 .await?;
         }
 
@@ -332,7 +340,7 @@ impl Loans {
     ) -> Result<Vec<Loan>, LoanError> {
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Loan, LoanAction::List)
+                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
                 .await?;
         }
 
@@ -341,7 +349,7 @@ impl Loans {
 
     pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Term, TermAction::Read)
+            .check_permission(sub, Object::Term, Action::Term(TermAction::Read))
             .await?;
         match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
@@ -357,7 +365,7 @@ impl Loans {
         query: crate::query::PaginatedQueryArgs<LoanByCreatedAtCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCreatedAtCursor>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, LoanAction::List)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
             .await?;
         self.loan_repo.list(query).await
     }
@@ -370,7 +378,7 @@ impl Loans {
     ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCollateralizationRatioCursor>, LoanError>
     {
         self.authz
-            .check_permission(sub, Object::Loan, LoanAction::List)
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
             .await?;
         self.loan_repo.list_by_collateralization_ratio(query).await
     }

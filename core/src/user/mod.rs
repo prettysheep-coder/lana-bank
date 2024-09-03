@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{
     audit::Audit,
-    authorization::{Authorization, Object, UserAction},
+    authorization::{Action, Authorization, Object, UserAction},
     data_export::Export,
     primitives::{Role, Subject, SystemNode, UserId},
 };
@@ -52,7 +52,12 @@ impl Users {
         let subject = Subject::System(SystemNode::Init);
         let audit_info = self
             .audit
-            .record_entry(&subject, Object::User, UserAction::Create, true)
+            .record_entry(
+                &subject,
+                Object::User,
+                Action::User(UserAction::Create),
+                true,
+            )
             .await?;
 
         if self.find_by_email(&email).await?.is_none() {
@@ -84,7 +89,7 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::Create)
+            .check_permission(sub, Object::User, Action::User(UserAction::Create))
             .await?;
         let new_user = NewUser::builder()
             .email(email)
@@ -99,7 +104,7 @@ impl Users {
 
     pub async fn find_by_id(&self, sub: &Subject, id: UserId) -> Result<Option<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, UserAction::Read)
+            .check_permission(sub, Object::User, Action::User(UserAction::Read))
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -133,7 +138,7 @@ impl Users {
 
     pub async fn list_users(&self, sub: &Subject) -> Result<Vec<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, UserAction::List)
+            .check_permission(sub, Object::User, Action::User(UserAction::List))
             .await?;
         self.repo.list().await
     }
@@ -146,7 +151,11 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::AssignRole(role))
+            .check_permission(
+                sub,
+                Object::User,
+                Action::User(UserAction::AssignRole(role)),
+            )
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
@@ -166,7 +175,11 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_role = self
             .authz
-            .check_permission(sub, Object::User, UserAction::RevokeRole(role))
+            .check_permission(
+                sub,
+                Object::User,
+                Action::User(UserAction::RevokeRole(role)),
+            )
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;

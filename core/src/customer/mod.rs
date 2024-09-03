@@ -66,7 +66,11 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Customer, CustomerAction::Create)
+            .check_permission(
+                sub,
+                Object::Customer,
+                Action::Customer(CustomerAction::Create),
+            )
             .await?;
         let customer_id = self.kratos.create_identity(&email).await?.into();
 
@@ -129,7 +133,11 @@ impl Customers {
     ) -> Result<Option<Customer>, CustomerError> {
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Customer, CustomerAction::Read)
+                .check_permission(
+                    sub,
+                    Object::Customer,
+                    Action::Customer(CustomerAction::Read),
+                )
                 .await?;
         }
         match self.repo.find_by_id(id.into()).await {
@@ -145,7 +153,11 @@ impl Customers {
         email: String,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
-            .check_permission(sub, Object::Customer, CustomerAction::Read)
+            .check_permission(
+                sub,
+                Object::Customer,
+                Action::Customer(CustomerAction::Read),
+            )
             .await?;
 
         match self.repo.find_by_email(&email).await {
@@ -173,7 +185,11 @@ impl Customers {
     ) -> Result<crate::query::PaginatedQueryRet<Customer, CustomerByNameCursor>, CustomerError>
     {
         self.authz
-            .check_permission(sub, Object::Customer, CustomerAction::List)
+            .check_permission(
+                sub,
+                Object::Customer,
+                Action::Customer(CustomerAction::List),
+            )
             .await?;
         self.repo.list(query).await
     }

@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use crate::{
     audit::*,
-    authorization::{LoanAction, Object},
+    authorization::{Action, LoanAction, Object},
     job::*,
     loan::{repo::*, terms::CVLPct, LoanByCollateralizationRatioCursor, Subject, SystemNode},
     price::Price,
@@ -91,7 +91,7 @@ impl JobRunner for LoanProcessingJobRunner {
                     &mut db,
                     &Subject::System(SystemNode::Core),
                     Object::Loan,
-                    LoanAction::UpdateCollateralizationState,
+                    Action::Loan(LoanAction::UpdateCollateralizationState),
                     true,
                 )
                 .await?;

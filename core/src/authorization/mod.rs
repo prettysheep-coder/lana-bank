@@ -18,16 +18,6 @@ use crate::primitives::{AuditInfo, Role, Subject};
 
 use error::AuthorizationError;
 
-macro_rules! impl_from_for_action {
-    ($from_type:ty, $variant:ident) => {
-        impl From<$from_type> for Action {
-            fn from(action: $from_type) -> Self {
-                Action::$variant(action)
-            }
-        }
-    };
-}
-
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
@@ -93,47 +83,63 @@ impl Authorization {
     async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Superuser;
 
-        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole(Role::Admin))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole(Role::Admin))
-            .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::User,
+            Action::User(UserAction::AssignRole(Role::Admin)),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::User,
+            Action::User(UserAction::RevokeRole(Role::Admin)),
+        )
+        .await?;
         Ok(())
     }
 
     async fn add_permissions_for_admin(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Admin;
 
-        self.add_permission_to_role(&role, Object::User, UserAction::Create)
+        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Create))
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::List)
+        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::List))
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::Read)
+        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Read))
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::Update)
+        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Update))
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::Delete)
+        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Delete))
             .await?;
         self.add_permission_to_role(
             &role,
             Object::User,
-            UserAction::AssignRole(Role::BankManager),
+            Action::User(UserAction::AssignRole(Role::BankManager)),
         )
         .await?;
         self.add_permission_to_role(
             &role,
             Object::User,
-            UserAction::RevokeRole(Role::BankManager),
+            Action::User(UserAction::RevokeRole(Role::BankManager)),
         )
         .await?;
 
-        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole(Role::Admin))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole(Role::Admin))
-            .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::User,
+            Action::User(UserAction::AssignRole(Role::Admin)),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::User,
+            Action::User(UserAction::RevokeRole(Role::Admin)),
+        )
+        .await?;
 
-        self.add_permission_to_role(&role, Object::Ledger, LedgerAction::Read)
+        self.add_permission_to_role(&role, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
-        self.add_permission_to_role(&role, Object::Audit, AuditAction::List)
+        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
             .await?;
         Ok(())
     }
@@ -141,52 +147,96 @@ impl Authorization {
     async fn add_permissions_for_bank_manager(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::BankManager;
 
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::Read)
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::List)
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::List))
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::Create)
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Create))
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::Approve)
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::RecordPayment)
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::UpdateCollateral)
+        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
             .await?;
         self.add_permission_to_role(
             &role,
             Object::Loan,
-            LoanAction::UpdateCollateralizationState,
+            Action::Loan(LoanAction::UpdateCollateral),
         )
         .await?;
-        self.add_permission_to_role(&role, Object::Term, TermAction::Update)
+        self.add_permission_to_role(
+            &role,
+            Object::Loan,
+            Action::Loan(LoanAction::UpdateCollateralizationState),
+        )
+        .await?;
+        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
             .await?;
-        self.add_permission_to_role(&role, Object::Term, TermAction::Read)
+        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
             .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Create)
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Create),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::List),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Read),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Update),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Deposit,
+            Action::Deposit(DepositAction::Record),
+        )
+        .await?;
+        self.add_permission_to_role(&role, Object::Deposit, Action::Deposit(DepositAction::Read))
             .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::List)
+        self.add_permission_to_role(&role, Object::Deposit, Action::Deposit(DepositAction::List))
             .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Read)
-            .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Update)
-            .await?;
-        self.add_permission_to_role(&role, Object::Deposit, DepositAction::Record)
-            .await?;
-        self.add_permission_to_role(&role, Object::Deposit, DepositAction::Read)
-            .await?;
-        self.add_permission_to_role(&role, Object::Deposit, DepositAction::List)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Initiate)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Confirm)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Cancel)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
-            .await?;
-        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
-            .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Withdraw,
+            Action::Withdraw(WithdrawAction::Initiate),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Withdraw,
+            Action::Withdraw(WithdrawAction::Confirm),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Withdraw,
+            Action::Withdraw(WithdrawAction::Cancel),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Withdraw,
+            Action::Withdraw(WithdrawAction::Read),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Withdraw,
+            Action::Withdraw(WithdrawAction::List),
+        )
+        .await?;
 
         Ok(())
     }
@@ -196,12 +246,11 @@ impl Authorization {
         &self,
         sub: &Subject,
         object: Object,
-        action: impl Into<Action> + std::fmt::Debug,
+        action: Action,
     ) -> Result<AuditInfo, AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
 
-        let action = action.into();
         match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
             Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
             Ok(false) => {
@@ -216,11 +265,10 @@ impl Authorization {
         &self,
         role: &Role,
         object: Object,
-        action: impl Into<Action>,
+        action: Action,
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
-        let action = action.into();
         match enforcer
             .add_policy(vec![
                 role.to_string(),
@@ -519,7 +567,6 @@ impl FromStr for Action {
     }
 }
 
-// If you need to convert serde_json::Error to AuthorizationError
 impl From<serde_json::Error> for crate::authorization::AuthorizationError {
     fn from(error: serde_json::Error) -> Self {
         crate::authorization::AuthorizationError::ActionParseError {
@@ -541,8 +588,6 @@ pub enum LoanAction {
     UpdateCollateralizationState,
 }
 
-impl_from_for_action!(LoanAction, Loan);
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum TermAction {
@@ -550,15 +595,11 @@ pub enum TermAction {
     Read,
 }
 
-impl_from_for_action!(TermAction, Term);
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum AuditAction {
     List,
 }
-
-impl_from_for_action!(AuditAction, Audit);
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -572,8 +613,6 @@ pub enum UserAction {
     RevokeRole(Role),
 }
 
-impl_from_for_action!(UserAction, User);
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum CustomerAction {
@@ -586,8 +625,6 @@ pub enum CustomerAction {
     Update,
 }
 
-impl_from_for_action!(CustomerAction, Customer);
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum DepositAction {
@@ -595,8 +632,6 @@ pub enum DepositAction {
     Read,
     List,
 }
-
-impl_from_for_action!(DepositAction, Deposit);
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
@@ -608,12 +643,8 @@ pub enum WithdrawAction {
     Cancel,
 }
 
-impl_from_for_action!(WithdrawAction, Withdraw);
-
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum LedgerAction {
     Read,
 }
-
-impl_from_for_action!(LedgerAction, Ledger);

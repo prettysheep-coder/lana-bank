@@ -12,7 +12,7 @@ use chrono::{DateTime, Utc};
 use tracing::instrument;
 
 use crate::{
-    authorization::{Authorization, LedgerAction, Object},
+    authorization::{Action, Authorization, LedgerAction, Object},
     primitives::{
         CollateralAction, CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
         LedgerTxTemplateId, LoanId, Subject, UsdCents, WithdrawId,
@@ -316,7 +316,7 @@ impl Ledger {
         until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         self.cala
             .trial_balance::<LedgerTrialBalance, LedgerError>(from, until)
@@ -330,7 +330,7 @@ impl Ledger {
         until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         self.cala
             .obs_trial_balance::<LedgerTrialBalance, LedgerError>(from, until)
@@ -342,7 +342,7 @@ impl Ledger {
         sub: &Subject,
     ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         self.cala
             .chart_of_accounts::<LedgerChartOfAccounts, LedgerError>()
@@ -354,7 +354,7 @@ impl Ledger {
         sub: &Subject,
     ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         Ok(self
             .cala
@@ -370,7 +370,7 @@ impl Ledger {
         until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         Ok(self
             .cala
@@ -386,7 +386,7 @@ impl Ledger {
         until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerProfitAndLossStatement>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         Ok(self
             .cala
@@ -402,7 +402,7 @@ impl Ledger {
         until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerCashFlowStatement>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         Ok(self
             .cala
@@ -421,7 +421,7 @@ impl Ledger {
         until: Option<DateTime<Utc>>,
     ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
         self.authz
-            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .check_permission(sub, Object::Ledger, Action::Ledger(LedgerAction::Read))
             .await?;
         Ok(self.cala
             .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance, LedgerError>(
