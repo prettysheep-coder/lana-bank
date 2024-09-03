@@ -26,6 +26,7 @@ gql`
       withdrawal {
         withdrawalId
         amount
+        reference
         customer {
           customerId
           email
@@ -122,6 +123,15 @@ export function WithdrawalConfirmDialog({
                 currency: "USD",
                 amount: currencyConverter.centsToUsd(withdrawalData.amount),
               })}
+            />
+            <DetailItem
+              className="text-sm"
+              label="Withdrawal Reference"
+              value={
+                withdrawalData.reference === withdrawalData.withdrawalId
+                  ? "n/a"
+                  : withdrawalData.reference
+              }
             />
           </DetailsGroup>
           {error && <p className="text-destructive">{error}</p>}
