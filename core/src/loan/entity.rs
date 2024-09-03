@@ -437,7 +437,7 @@ impl Loan {
             }
         }
 
-        n_admin > 1 || n_admin + n_bank_manager >= 2
+        n_admin >= 1 && n_admin + n_bank_manager >= 2
     }
 
     pub(super) fn confirm_approval(
