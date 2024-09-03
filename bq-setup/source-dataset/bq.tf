@@ -3,7 +3,7 @@ resource "google_bigquery_dataset" "dataset" {
   dataset_id                 = local.dataset_id
   friendly_name              = "Dataset for lava-bank ${local.name_prefix}"
   description                = "Dataset for lava-bank ${local.name_prefix}"
-  location                   = "EU"
+  location                   = local.gcp_region
   delete_contents_on_destroy = true
 }
 

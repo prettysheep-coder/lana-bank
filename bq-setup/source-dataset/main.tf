@@ -23,7 +23,7 @@ output "service_account_key_base64" {
 }
 
 output "service_account_email" {
-  value   = google_service_account_key.bq_access_sa_key.email
+  value   = google_service_account.bq_access_sa.email
 }
 
 output "dataset_id" {

@@ -1,6 +1,6 @@
 locals {
   project                = "cala-enterprise"
-  location               = "US-EAST1"
+  location               = "EU"
   tf_state_bucket_name   = "lava-bank-tf-state"
   objects_list_role_name = "lava_objects_list"
 
@@ -28,6 +28,10 @@ module "source_dataset" {
 output "bq_dev_sa_keys_base64" {
   value = { for key, value in module.source_dataset : key => value.service_account_key_base64 }
   sensitive = true
+}
+
+output "bq_dev_sa_emails" {
+  value = { for key, value in module.source_dataset : key => value.service_account_email }
 }
 
 terraform {
