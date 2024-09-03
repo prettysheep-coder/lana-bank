@@ -185,8 +185,6 @@ impl Loans {
         {
             let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
             loan.confirm_approval(loan_approval, executed_at, audit_info);
-
-            self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
             self.jobs
                 .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
                     &mut db_tx,
@@ -196,7 +194,8 @@ impl Loans {
                 )
                 .await?;
         }
-        self.loan_repo.persist(&mut loan).await?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        db_tx.commit().await?;
 
         Ok(loan)
     }
