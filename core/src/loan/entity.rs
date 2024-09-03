@@ -387,9 +387,22 @@ impl Loan {
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
+        price: PriceOfOneBTC,
     ) -> Result<Option<LoanApproval>, LoanError> {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
+        }
+
+        if self.collateral() == Satoshis::ZERO {
+            return Err(LoanError::NoCollateral);
+        }
+
+        // move below logic to terms ?
+        let current_cvl = self.cvl(price);
+        let margin_call_cvl = self.terms.margin_call_cvl;
+
+        if current_cvl < margin_call_cvl {
+            return Err(LoanError::BelowMarginLimit);
         }
 
         self.events.push(LoanEvent::ApprovalAdded {
@@ -414,7 +427,23 @@ impl Loan {
     }
 
     fn approval_threshold_met(&self) -> bool {
-        true
+        let mut n_admin = 0;
+        let mut n_bank_manager = 0;
+        for event in self.events.iter() {
+            if let LoanEvent::ApprovalAdded {
+                approving_user_roles,
+                ..
+            } = event
+            {
+                if approving_user_roles.contains(&Role::Admin) {
+                    n_admin += 1;
+                } else if approving_user_roles.contains(&Role::BankManager) {
+                    n_bank_manager += 1;
+                }
+            }
+        }
+
+        n_admin > 1 || n_admin + n_bank_manager >= 2
     }
 
     pub(super) fn confirm_approval(
@@ -1076,11 +1105,11 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval();
+        let loan_approval = loan.initiate_approval(default_price());
         assert!(loan_approval.is_ok());
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
 
-        let loan_approval = loan.initiate_approval();
+        let loan_approval = loan.initiate_approval(default_price());
         assert!(loan_approval.is_err())
     }
 
@@ -1102,7 +1131,7 @@ mod test {
         );
 
         let approval_time = Utc::now();
-        let loan_approval = loan.initiate_approval();
+        let loan_approval = loan.initiate_approval(default_price());
         assert!(loan_approval.is_ok());
         loan.confirm_approval(loan_approval.unwrap(), approval_time, dummy_audit_info());
         assert_eq!(loan.approved_at(), Some(approval_time));
@@ -1123,7 +1152,7 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval().unwrap();
+        let loan_approval = loan.initiate_approval(default_price()).unwrap();
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
@@ -1172,7 +1201,7 @@ mod test {
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let res = loan.initiate_approval();
+        let res = loan.initiate_approval(default_price());
         assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
 
@@ -1195,7 +1224,7 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval();
+        let loan_approval = loan.initiate_approval(default_price());
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
         loan.maybe_update_collateralization(
             default_price(),
@@ -1222,7 +1251,7 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval();
+        let loan_approval = loan.initiate_approval(default_price());
         loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
 
         let expected_cvl = CVLPct::from(dec!(142));
@@ -1276,7 +1305,7 @@ mod test {
             let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            let loan_approval = loan.initiate_approval();
+            let loan_approval = loan.initiate_approval(default_price());
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
 
@@ -1399,7 +1428,7 @@ mod test {
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             // LoanStatus::Active
-            let loan_approval = loan.initiate_approval();
+            let loan_approval = loan.initiate_approval(default_price());
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
 
@@ -1445,7 +1474,7 @@ mod test {
             // Setup initial state
             let mut loan = Loan::try_from(init_events()).unwrap();
             let loan_collateral_update = loan
-                .initiate_collateral_update(Satoshis::from(100))
+                .initiate_collateral_update(Satoshis::from(10000))
                 .unwrap();
             loan.confirm_collateral_update(
                 loan_collateral_update,
@@ -1455,15 +1484,15 @@ mod test {
                 default_upgrade_buffer_cvl_pct(),
             );
             let c = loan.collateralization();
-            assert_eq!(c, LoanCollaterizationState::UnderLiquidationThreshold);
+            assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            let loan_approval = loan.initiate_approval();
+            let loan_approval = loan.initiate_approval(default_price());
             loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             // Check allowed changes from Liquidation state
             let loan_collateral_update = loan
-                .initiate_collateral_update(Satoshis::from(2900))
+                .initiate_collateral_update(Satoshis::from(1900))
                 .unwrap();
             loan.confirm_collateral_update(
                 loan_collateral_update,
@@ -1501,10 +1530,11 @@ mod test {
     }
 
     #[test]
-    fn loan_approval() {
+    fn reject_loan_approval_below_margin_limit() {
         let mut loan = Loan::try_from(init_events()).unwrap();
+
         let loan_collateral_update = loan
-            .initiate_collateral_update(Satoshis::from(10000))
+            .initiate_collateral_update(Satoshis::from(100))
             .unwrap();
         loan.confirm_collateral_update(
             loan_collateral_update,
@@ -1514,17 +1544,7 @@ mod test {
             default_upgrade_buffer_cvl_pct(),
         );
 
-        let mut roles = std::collections::HashSet::new();
-        roles.insert(Role::Admin);
-        loan.add_approval(roles.clone(), dummy_audit_info());
-        assert!(loan.approval_status().admin);
-
-        roles.remove(&Role::Admin);
-
-        roles.insert(Role::BankManager);
-        loan.add_approval(roles, dummy_audit_info());
-        assert!(loan.approval_status().bank_manager);
-
-        assert!(loan.can_be_approved());
+        let loan_approval = loan.initiate_approval(default_price());
+        assert!(matches!(loan_approval, Err(LoanError::BelowMarginLimit)));
     }
 }

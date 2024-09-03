@@ -44,6 +44,6 @@ pub enum LoanError {
     CollateralNotUpdated(Satoshis, Satoshis),
     #[error("LoanError - NoCollateral")]
     NoCollateral,
-    #[error("LoanError - ApprovalMustComeFromUser")]
-    ApprovalMustComeFromUser(Subject),
+    #[error("LoanError - BelowMarginLimit")]
+    BelowMarginLimit,
 }

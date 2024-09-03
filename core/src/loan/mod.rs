@@ -178,7 +178,11 @@ impl Loans {
         let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
 
         let mut db_tx = self.pool.begin().await?;
-        if let Some(loan_approval) = loan.add_approval(user.id, user.current_roles(), audit_info)? {
+        let price = self.price.usd_cents_per_btc().await?;
+
+        if let Some(loan_approval) =
+            loan.add_approval(user.id, user.current_roles(), audit_info, price)?
+        {
             let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
             loan.confirm_approval(loan_approval, executed_at, audit_info);
 
@@ -191,8 +195,8 @@ impl Loans {
                     interest::LoanJobConfig { loan_id: loan.id },
                 )
                 .await?;
-            self.loan_repo.persist(&mut loan).await?;
         }
+        self.loan_repo.persist(&mut loan).await?;
 
         Ok(loan)
     }
