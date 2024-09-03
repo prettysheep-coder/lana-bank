@@ -61,11 +61,6 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
-type ApprovalStatus {
-	admin: Boolean!
-	bankManager: Boolean!
-}
-
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -362,7 +357,6 @@ type Loan {
 	principal: UsdCents!
 	transactions: [LoanHistory!]!
 	collateralizationState: LoanCollaterizationState!
-	approvalStatus: ApprovalStatus!
 	balance: LoanBalance!
 	customer: Customer!
 }

@@ -88,12 +88,6 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
-export type ApprovalStatus = {
-  __typename?: 'ApprovalStatus';
-  admin: Scalars['Boolean']['output'];
-  bankManager: Scalars['Boolean']['output'];
-};
-
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
@@ -368,7 +362,6 @@ export type LayeredUsdAccountAmounts = {
 
 export type Loan = {
   __typename?: 'Loan';
-  approvalStatus: ApprovalStatus;
   approvedAt?: Maybe<Scalars['Timestamp']['output']>;
   balance: LoanBalance;
   collateral: Scalars['Satoshis']['output'];
