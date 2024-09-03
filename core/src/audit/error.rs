@@ -6,4 +6,8 @@ pub enum AuditError {
     Sqlx(#[from] sqlx::Error),
     #[error("AuditError - ParseCursorError: {0}")]
     ParseCursorError(#[from] std::num::TryFromIntError),
+    #[error("AuditError - ObjectParseError: value:{value} error:{error}")]
+    ObjectParseError { value: String, error: String },
+    #[error("AuditError - ActionParseError: value:{value} error:{error}")]
+    ActionParseError { value: String, error: String },
 }

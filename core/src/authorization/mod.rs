@@ -1,5 +1,7 @@
 pub mod error;
 
+use serde::{Deserialize, Serialize};
+
 use sqlx_adapter::{
     casbin::{
         prelude::{DefaultModel, Enforcer},
@@ -21,17 +23,6 @@ macro_rules! impl_from_for_action {
         impl From<$from_type> for Action {
             fn from(action: $from_type) -> Self {
                 Action::$variant(action)
-            }
-        }
-    };
-}
-
-macro_rules! impl_deref_to_str {
-    ($type:ty) => {
-        impl std::ops::Deref for $type {
-            type Target = str;
-            fn deref(&self) -> &Self::Target {
-                self.as_ref()
             }
         }
     };
@@ -211,7 +202,7 @@ impl Authorization {
         enforcer.load_policy().await?;
 
         let action = action.into();
-        match enforcer.enforce((sub.to_string(), object.as_ref(), action.as_ref())) {
+        match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
             Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
             Ok(false) => {
                 self.audit.record_entry(sub, object, action, false).await?;
@@ -385,7 +376,8 @@ impl Authorization {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Object {
     Applicant,
     Loan,
@@ -410,58 +402,14 @@ pub struct VisibleNavigationItems {
     pub financials: bool,
 }
 
-impl Object {
-    const APPLICANT_STR: &'static str = "applicant";
-    const LOAN_STR: &'static str = "loan";
-    const TERM_STR: &'static str = "term";
-    const USER_STR: &'static str = "user";
-    const DEPOSIT_STR: &'static str = "deposit";
-    const WITHDRAW_STR: &'static str = "withdraw";
-    const CUSTOMER_STR: &'static str = "customer";
-    const AUDIT_STR: &'static str = "audit";
-    const LEDGER_STR: &'static str = "ledger";
-}
-
-impl AsRef<str> for Object {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Applicant => Self::APPLICANT_STR,
-            Self::Loan => Self::LOAN_STR,
-            Self::Term => Self::TERM_STR,
-            Self::User => Self::USER_STR,
-            Self::Deposit => Self::DEPOSIT_STR,
-            Self::Withdraw => Self::WITHDRAW_STR,
-            Self::Customer => Self::CUSTOMER_STR,
-            Self::Audit => Self::AUDIT_STR,
-            Self::Ledger => Self::LEDGER_STR,
-        }
+impl std::fmt::Display for Object {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", serde_json::to_string(self).unwrap())
     }
 }
 
-impl_deref_to_str!(Object);
-
-impl FromStr for Object {
-    type Err = crate::authorization::AuthorizationError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            Self::APPLICANT_STR => Ok(Self::Applicant),
-            Self::LOAN_STR => Ok(Self::Loan),
-            Self::TERM_STR => Ok(Self::Term),
-            Self::USER_STR => Ok(Self::User),
-            Self::AUDIT_STR => Ok(Self::Audit),
-            Self::CUSTOMER_STR => Ok(Self::Customer),
-            Self::DEPOSIT_STR => Ok(Self::Deposit),
-            Self::WITHDRAW_STR => Ok(Self::Withdraw),
-            Self::LEDGER_STR => Ok(Self::Ledger),
-            _ => Err(AuthorizationError::ObjectParseError {
-                value: s.to_string(),
-            }),
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(tag = "type", content = "action")]
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
@@ -473,83 +421,97 @@ pub enum Action {
     Ledger(LedgerAction),
 }
 
-impl AsRef<str> for Action {
-    fn as_ref(&self) -> &str {
+impl std::fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Loan(action) => action.as_ref(),
-            Self::Term(action) => action.as_ref(),
-            Self::User(action) => action.as_ref(),
-            Self::Customer(action) => action.as_ref(),
-            Self::Deposit(action) => action.as_ref(),
-            Self::Withdraw(action) => action.as_ref(),
-            Self::Audit(action) => action.as_ref(),
-            Self::Ledger(action) => action.as_ref(),
+            Action::Loan(action) => write!(
+                f,
+                "loan:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::Term(action) => write!(
+                f,
+                "term:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::User(action) => write!(
+                f,
+                "user:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::Customer(action) => write!(
+                f,
+                "customer:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::Deposit(action) => write!(
+                f,
+                "deposit:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::Withdraw(action) => write!(
+                f,
+                "withdraw:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::Audit(action) => write!(
+                f,
+                "audit:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
+            Action::Ledger(action) => write!(
+                f,
+                "ledger:{}",
+                serde_json::to_string(action).unwrap().trim_matches('"')
+            ),
         }
     }
 }
-
 impl FromStr for Action {
     type Err = crate::authorization::AuthorizationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            LoanAction::READ_STR => Ok(Self::Loan(LoanAction::Read)),
-            LoanAction::CREATE_STR => Ok(Self::Loan(LoanAction::Create)),
-            LoanAction::LIST_STR => Ok(Self::Loan(LoanAction::List)),
-            LoanAction::APPROVE_STR => Ok(Self::Loan(LoanAction::Approve)),
-            LoanAction::RECORD_PAYMENT_STR => Ok(Self::Loan(LoanAction::RecordPayment)),
-            LoanAction::UPDATE_COLLATERAL_STR => Ok(Self::Loan(LoanAction::UpdateCollateral)),
-            LoanAction::RECORD_INTEREST_STR => Ok(Self::Loan(LoanAction::RecordInterest)),
-            LoanAction::UPDATE_COLLATERALIZATION_STATE_STR => {
-                Ok(Self::Loan(LoanAction::UpdateCollateralizationState))
-            }
+        let parts: Vec<&str> = s.splitn(2, ':').collect();
+        if parts.len() != 2 {
+            return Err(AuthorizationError::ActionParseError {
+                value: s.to_string(),
+            });
+        }
 
-            TermAction::UPDATE_STR => Ok(Self::Term(TermAction::Update)),
-            TermAction::READ_STR => Ok(Self::Term(TermAction::Read)),
-
-            UserAction::CREATE_STR => Ok(Self::User(UserAction::Create)),
-            UserAction::READ_STR => Ok(Self::User(UserAction::Read)),
-            UserAction::LIST_STR => Ok(Self::User(UserAction::List)),
-            UserAction::UPDATE_STR => Ok(Self::User(UserAction::Update)),
-            UserAction::DELETE_STR => Ok(Self::User(UserAction::Delete)),
-            UserAction::ASSIGN_ROLE_SUPERUSER_STR => {
-                Ok(Self::User(UserAction::AssignRole(Role::Superuser)))
-            }
-            UserAction::ASSIGN_ROLE_ADMIN_STR => {
-                Ok(Self::User(UserAction::AssignRole(Role::Admin)))
-            }
-            UserAction::ASSIGN_ROLE_BANK_MANAGER_STR => {
-                Ok(Self::User(UserAction::AssignRole(Role::BankManager)))
-            }
-            UserAction::REVOKE_ROLE_SUPERUSER_STR => {
-                Ok(Self::User(UserAction::RevokeRole(Role::Superuser)))
-            }
-            UserAction::REVOKE_ROLE_ADMIN_STR => {
-                Ok(Self::User(UserAction::RevokeRole(Role::Admin)))
-            }
-            UserAction::REVOKE_ROLE_BANK_MANAGER_STR => {
-                Ok(Self::User(UserAction::RevokeRole(Role::BankManager)))
-            }
-
-            AuditAction::LIST_STR => Ok(Self::Audit(AuditAction::List)),
-
-            CustomerAction::CREATE_STR => Ok(Self::Customer(CustomerAction::Create)),
-            CustomerAction::READ_STR => Ok(Self::Customer(CustomerAction::Read)),
-            CustomerAction::LIST_STR => Ok(Self::Customer(CustomerAction::List)),
-            CustomerAction::UPDATE_STR => Ok(Self::Customer(CustomerAction::Update)),
-
-            DepositAction::RECORD_STR => Ok(Self::Deposit(DepositAction::Record)),
-            DepositAction::READ_STR => Ok(Self::Deposit(DepositAction::Read)),
-            DepositAction::LIST_STR => Ok(Self::Deposit(DepositAction::List)),
-
-            WithdrawAction::INITIATE_STR => Ok(Self::Withdraw(WithdrawAction::Initiate)),
-            WithdrawAction::CONFIRM_STR => Ok(Self::Withdraw(WithdrawAction::Confirm)),
-            WithdrawAction::READ_STR => Ok(Self::Withdraw(WithdrawAction::Read)),
-            WithdrawAction::LIST_STR => Ok(Self::Withdraw(WithdrawAction::List)),
-            WithdrawAction::CANCEL_STR => Ok(Self::Withdraw(WithdrawAction::Cancel)),
-
-            LedgerAction::READ_STR => Ok(Self::Ledger(LedgerAction::Read)),
-
+        let (action_type, action_value) = (parts[0], parts[1]);
+        match action_type {
+            "loan" => Ok(Action::Loan(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "term" => Ok(Action::Term(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "user" => Ok(Action::User(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "customer" => Ok(Action::Customer(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "deposit" => Ok(Action::Deposit(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "withdraw" => Ok(Action::Withdraw(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "audit" => Ok(Action::Audit(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
+            "ledger" => Ok(Action::Ledger(serde_json::from_str(&format!(
+                "\"{}\"",
+                action_value
+            ))?)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
@@ -557,8 +519,17 @@ impl FromStr for Action {
     }
 }
 
-impl_deref_to_str!(Action);
-#[derive(Clone, Copy, Debug)]
+// If you need to convert serde_json::Error to AuthorizationError
+impl From<serde_json::Error> for crate::authorization::AuthorizationError {
+    fn from(error: serde_json::Error) -> Self {
+        crate::authorization::AuthorizationError::ActionParseError {
+            value: error.to_string(),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum LoanAction {
     List,
     Read,
@@ -570,79 +541,27 @@ pub enum LoanAction {
     UpdateCollateralizationState,
 }
 
-impl LoanAction {
-    const READ_STR: &'static str = "loan-read";
-    const CREATE_STR: &'static str = "loan-create";
-    const LIST_STR: &'static str = "loan-list";
-    const APPROVE_STR: &'static str = "loan-approve";
-    const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
-    const UPDATE_COLLATERAL_STR: &'static str = "loan-update-collateral";
-    const RECORD_INTEREST_STR: &'static str = "loan-record-interest";
-    const UPDATE_COLLATERALIZATION_STATE_STR: &'static str = "loan-update-collateralization-state";
-}
-
-impl AsRef<str> for LoanAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Read => Self::READ_STR,
-            Self::Create => Self::CREATE_STR,
-            Self::List => Self::LIST_STR,
-            Self::Approve => Self::APPROVE_STR,
-            Self::RecordPayment => Self::RECORD_PAYMENT_STR,
-            Self::UpdateCollateral => Self::UPDATE_COLLATERAL_STR,
-            Self::RecordInterest => Self::RECORD_INTEREST_STR,
-            Self::UpdateCollateralizationState => Self::UPDATE_COLLATERALIZATION_STATE_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(LoanAction);
 impl_from_for_action!(LoanAction, Loan);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum TermAction {
     Update,
     Read,
 }
 
-impl TermAction {
-    const UPDATE_STR: &'static str = "term-update";
-    const READ_STR: &'static str = "term-read";
-}
-
-impl AsRef<str> for TermAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Update => Self::UPDATE_STR,
-            Self::Read => Self::READ_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(TermAction);
 impl_from_for_action!(TermAction, Term);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum AuditAction {
     List,
 }
 
-impl AuditAction {
-    const LIST_STR: &'static str = "audit-list";
-}
-
-impl AsRef<str> for AuditAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::List => Self::LIST_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(AuditAction);
 impl_from_for_action!(AuditAction, Audit);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum UserAction {
     Create,
     Read,
@@ -653,46 +572,10 @@ pub enum UserAction {
     RevokeRole(Role),
 }
 
-impl UserAction {
-    const CREATE_STR: &'static str = "user-create";
-    const READ_STR: &'static str = "user-read";
-    const LIST_STR: &'static str = "user-list";
-    const UPDATE_STR: &'static str = "user-update";
-    const DELETE_STR: &'static str = "user-delete";
-    const ASSIGN_ROLE_SUPERUSER_STR: &'static str = "user-assign-role-superuser";
-    const ASSIGN_ROLE_ADMIN_STR: &'static str = "user-assign-role-admin";
-    const ASSIGN_ROLE_BANK_MANAGER_STR: &'static str = "user-assign-role-bank-manager";
-    const REVOKE_ROLE_SUPERUSER_STR: &'static str = "user-revoke-role-superuser";
-    const REVOKE_ROLE_ADMIN_STR: &'static str = "user-revoke-role-admin";
-    const REVOKE_ROLE_BANK_MANAGER_STR: &'static str = "user-revoke-role-bank-manager";
-}
-
-impl AsRef<str> for UserAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Create => Self::CREATE_STR,
-            Self::Read => Self::READ_STR,
-            Self::List => Self::LIST_STR,
-            Self::Update => Self::UPDATE_STR,
-            Self::Delete => Self::DELETE_STR,
-            Self::AssignRole(role) => match role {
-                Role::Superuser => Self::ASSIGN_ROLE_SUPERUSER_STR,
-                Role::Admin => Self::ASSIGN_ROLE_ADMIN_STR,
-                Role::BankManager => Self::ASSIGN_ROLE_BANK_MANAGER_STR,
-            },
-            Self::RevokeRole(role) => match role {
-                Role::Superuser => Self::REVOKE_ROLE_SUPERUSER_STR,
-                Role::Admin => Self::REVOKE_ROLE_ADMIN_STR,
-                Role::BankManager => Self::REVOKE_ROLE_BANK_MANAGER_STR,
-            },
-        }
-    }
-}
-
-impl_deref_to_str!(UserAction);
 impl_from_for_action!(UserAction, User);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum CustomerAction {
     Create,
     StartKyc,
@@ -703,60 +586,20 @@ pub enum CustomerAction {
     Update,
 }
 
-impl CustomerAction {
-    const CREATE_STR: &'static str = "customer-create";
-    const START_KYC_STR: &'static str = "customer-start-kyc";
-    const APPROVE_KYC_STR: &'static str = "customer-approve-kyc";
-    const DECLINE_KYC_STR: &'static str = "customer-decline-kyc";
-    const READ_STR: &'static str = "customer-read";
-    const LIST_STR: &'static str = "customer-list";
-    const UPDATE_STR: &'static str = "customer-update";
-}
-
-impl AsRef<str> for CustomerAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Create => Self::CREATE_STR,
-            Self::StartKyc => Self::START_KYC_STR,
-            Self::ApproveKyc => Self::APPROVE_KYC_STR,
-            Self::DeclineKyc => Self::DECLINE_KYC_STR,
-            Self::Read => Self::READ_STR,
-            Self::List => Self::LIST_STR,
-            Self::Update => Self::UPDATE_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(CustomerAction);
 impl_from_for_action!(CustomerAction, Customer);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum DepositAction {
     Record,
     Read,
     List,
 }
 
-impl DepositAction {
-    const RECORD_STR: &'static str = "deposit-record";
-    const READ_STR: &'static str = "deposit-read";
-    const LIST_STR: &'static str = "deposit-list";
-}
-
-impl AsRef<str> for DepositAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Record => Self::RECORD_STR,
-            Self::Read => Self::READ_STR,
-            Self::List => Self::LIST_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(DepositAction);
 impl_from_for_action!(DepositAction, Deposit);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum WithdrawAction {
     Initiate,
     Confirm,
@@ -765,45 +608,12 @@ pub enum WithdrawAction {
     Cancel,
 }
 
-impl WithdrawAction {
-    const INITIATE_STR: &'static str = "withdraw-initiate";
-    const CONFIRM_STR: &'static str = "withdraw-confirm";
-    const READ_STR: &'static str = "withdraw-read";
-    const LIST_STR: &'static str = "withdraw-list";
-    const CANCEL_STR: &'static str = "withdraw-cancel";
-}
-
-impl AsRef<str> for WithdrawAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Initiate => Self::INITIATE_STR,
-            Self::Confirm => Self::CONFIRM_STR,
-            Self::Read => Self::READ_STR,
-            Self::List => Self::LIST_STR,
-            Self::Cancel => Self::CANCEL_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(WithdrawAction);
 impl_from_for_action!(WithdrawAction, Withdraw);
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum LedgerAction {
     Read,
 }
 
-impl LedgerAction {
-    const READ_STR: &'static str = "ledger-read";
-}
-
-impl AsRef<str> for LedgerAction {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Read => Self::READ_STR,
-        }
-    }
-}
-
-impl_deref_to_str!(LedgerAction);
 impl_from_for_action!(LedgerAction, Ledger);

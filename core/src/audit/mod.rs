@@ -75,8 +75,8 @@ impl Audit {
                 RETURNING id, subject
                 "#,
             subject.to_string(),
-            object.as_ref(),
-            action.as_ref(),
+            object.to_string(),
+            action.to_string(),
             authorized,
         )
         .fetch_one(&mut **db)
@@ -130,17 +130,31 @@ impl Audit {
             None
         };
 
-        let audit_entries: Vec<AuditEntry> = events
+        let audit_entries: Result<Vec<AuditEntry>, AuditError> = events
             .into_iter()
-            .map(|raw_event| AuditEntry {
-                id: raw_event.id,
-                subject: raw_event.subject.parse().expect("Could not parse subject"),
-                object: raw_event.object.parse().expect("Could not parse object"),
-                action: raw_event.action.parse().expect("Could not parse action"),
-                authorized: raw_event.authorized,
-                recorded_at: raw_event.recorded_at,
+            .map(|raw_event| {
+                Ok(AuditEntry {
+                    id: raw_event.id,
+                    subject: raw_event.subject.parse().expect("Could not parse subject"),
+                    object: serde_json::from_str(&raw_event.object).map_err(|e| {
+                        AuditError::ObjectParseError {
+                            value: raw_event.object.clone(),
+                            error: e.to_string(),
+                        }
+                    })?,
+                    action: serde_json::from_str(&raw_event.action).map_err(|e| {
+                        AuditError::ActionParseError {
+                            value: raw_event.action.clone(),
+                            error: e.to_string(),
+                        }
+                    })?,
+                    authorized: raw_event.authorized,
+                    recorded_at: raw_event.recorded_at,
+                })
             })
             .collect();
+
+        let audit_entries = audit_entries?;
 
         Ok(crate::query::PaginatedQueryRet {
             entities: audit_entries,
@@ -165,21 +179,31 @@ impl Audit {
         .fetch_all(&self.pool)
         .await?;
 
-        let audit_entries: HashMap<AuditEntryId, T> = raw_entries
+        let audit_entries: Result<HashMap<AuditEntryId, T>, AuditError> = raw_entries
             .into_iter()
-            .map(|raw_entry| {
+            .map(|raw_event| {
                 let audit_entry = AuditEntry {
-                    id: raw_entry.id,
-                    subject: raw_entry.subject.parse().expect("Could not parse subject"),
-                    object: raw_entry.object.parse().expect("Could not parse object"),
-                    action: raw_entry.action.parse().expect("Could not parse action"),
-                    authorized: raw_entry.authorized,
-                    recorded_at: raw_entry.recorded_at,
+                    id: raw_event.id,
+                    subject: raw_event.subject.parse().expect("Could not parse subject"),
+                    object: serde_json::from_str(&raw_event.object).map_err(|e| {
+                        AuditError::ObjectParseError {
+                            value: raw_event.object.clone(),
+                            error: e.to_string(),
+                        }
+                    })?,
+                    action: serde_json::from_str(&raw_event.action).map_err(|e| {
+                        AuditError::ActionParseError {
+                            value: raw_event.action.clone(),
+                            error: e.to_string(),
+                        }
+                    })?,
+                    authorized: raw_event.authorized,
+                    recorded_at: raw_event.recorded_at,
                 };
-                (raw_entry.id, T::from(audit_entry))
+                Ok((raw_event.id, T::from(audit_entry)))
             })
             .collect();
 
-        Ok(audit_entries)
+        audit_entries
     }
 }
