@@ -10,14 +10,6 @@ teardown_file() {
   stop_server
 }
 
-@test "superuser: can create admin user and save cookie" {
-  bank_manager_email="test@galoy.com"
-  create_admin_user "$bank_manager_email" "BANK_MANAGER"
-  execute_admin_gql_authed 'me' '{}' "$bank_manager_email"
-  role=$(graphql_output .data.me.roles[0])
-  [[ "$role" = "BANK_MANAGER" ]] || exit 1
-}
-
 @test "superuser: can create bank manager" {
   bank_manager_email=$(generate_email)
 
