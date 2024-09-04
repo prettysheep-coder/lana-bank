@@ -8,6 +8,8 @@ KRATOS_PUBLIC_ENDPOINT="http://localhost:4455"
 GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
+EXTAUTH_URL="http://localhost:4455/admin-panel/api/auth"
+CALLBACK_URL="/admin-panel/profile"
 
 LAVA_HOME="${LAVA_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
@@ -137,7 +139,6 @@ exec_admin_graphql() {
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"
 }
-
 exec_cala_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
@@ -354,4 +355,102 @@ net_usd_revenue() {
 
 from_utc() {
   date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
+}
+
+get_csrf_token() {
+  local admin_email=$1
+  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
+  mkdir -p "${CACHE_DIR}/admin"
+  csrf_response=$(curl -s -X GET "$NEXTAUTH_URL/csrf" --cookie-jar "$cookie_file")
+  echo "$csrf_response" | grep -oP '(?<="csrfToken":")[^"]*'
+}
+
+initiate_sign_in() {
+  local admin_email=$1
+  local csrf_token=$2
+  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
+
+  sign_in_response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$NEXTAUTH_URL/signin/email" \
+    -H "Content-Type: application/json" \
+    -b "$cookie_file" \
+    -d '{
+      "email": "'"$admin_email"'",
+      "csrfToken": "'"$csrf_token"'",
+      "callbackUrl": "'"$CALLBACK_URL"'",
+      "json": true
+    }')
+
+  if [ "$sign_in_response" -eq 302 ]; then
+    echo "Email sign-in initiated successfully for $admin_email. Check your email for the login link."
+  else
+    echo "Failed to send login email for $admin_email. Response Code: $sign_in_response"
+    exit 1
+  fi
+}
+
+get_magic_link() {
+  curl -s http://localhost:8025/api/v2/messages |
+    jq -r '.items[0].MIME.Parts[0].Body' |
+    perl -MMIME::QuotedPrint -pe '$_=MIME::QuotedPrint::decode($_);' |
+    grep -o 'http://.*' |
+    sed 's/=3D/=/g; s/%3A/:/g; s/%2F/\//g; s/%3F/?/g; s/%3D/=/g; s/%26/\&/g; s/%40/@/g'
+}
+
+use_magic_link() {
+  local magic_link=$1
+  local admin_email=$2
+  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
+
+  curl -s "$magic_link" -b "$cookie_file" -c "$cookie_file" -o /dev/null
+}
+
+create_admin_user() {
+  local admin_email=$1
+  variables=$(
+    jq -n \
+    --arg email "$admin_email" \
+    '{
+      input: {
+        email: $email
+        }
+      }'
+  )
+
+  exec_admin_graphql 'user-create' "$variables"
+  csrf_token=$(get_csrf_token "$admin_email")
+  initiate_sign_in "$admin_email" "$csrf_token"
+
+  echo "Waiting for the magic link..."
+  sleep 5 
+  magic_link=$(get_magic_link)
+
+  if [ -z "$magic_link" ]; then
+    echo "Failed to retrieve magic link."
+    exit 1
+  fi
+
+  echo "Magic Link: $magic_link"
+  use_magic_link "$magic_link" "$admin_email"
+  echo "Admin user $admin_email is authenticated and cookies are saved."
+}
+
+execute_admin_gql_authed() {
+  local query_name=$1
+  local variables=${2:-"{}"}
+  local admin_email=$3
+  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
+
+  csrf_token=$(grep 'next-auth.csrf-token' "$cookie_file" | awk '{print $7}' | cut -d'%' -f1)
+  session_token=$(grep 'next-auth.session-token' "$cookie_file" | awk '{print $7}')
+
+  if [[ -z "$csrf_token" || -z "$session_token" ]]; then
+    echo "Failed to retrieve tokens for $admin_email."
+    exit 1
+  fi
+
+  curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -H "Cookie: next-auth.csrf-token=${csrf_token}%7C$(grep 'next-auth.csrf-token' "$cookie_file" | cut -d'%' -f2); next-auth.session-token=${session_token}" \
+    -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
+    "${GQL_ADMIN_ENDPOINT}"
 }
