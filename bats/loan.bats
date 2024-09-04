@@ -97,7 +97,13 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'loan-approve' "$variables"
+
+  bank_manager_email=$(create_user "BANK_MANAGER")
+  exec_admin_gql_authed 'loan-approve' "$variables" "$bank_manager_email"
+
+  admin_email=$(create_user "ADMIN")
+  exec_admin_gql_authed 'loan-approve' "$variables" "$admin_email"
+
   loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
@@ -250,9 +256,15 @@ wait_for_interest() {
           }
         }'
       )
-    exec_admin_graphql 'loan-approve' "$variables"
+    bank_manager_email=$(create_user "BANK_MANAGER")
+    exec_admin_gql_authed 'loan-approve' "$variables" "$bank_manager_email"
+
+    admin_email=$(create_user "ADMIN")
+    exec_admin_gql_authed 'loan-approve' "$variables" "$admin_email"
+
     loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
     [[ "$loan_id" != "null" ]] || exit 1
+
   done
 
   variables=$(
@@ -342,7 +354,12 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'loan-approve' "$variables"
+  bank_manager_email=$(create_user "BANK_MANAGER")
+  exec_admin_gql_authed 'loan-approve' "$variables" "$bank_manager_email"
+
+  admin_email=$(create_user "ADMIN")
+  exec_admin_gql_authed 'loan-approve' "$variables" "$admin_email"
+
   collateralization_state=$(graphql_output '.data.loanApprove.loan.collateralizationState')
   [[ "$collateralization_state" == "FULLY_COLLATERALIZED" ]] || exit 1
 

@@ -268,8 +268,8 @@ create_customer() {
 
   variables=$(
     jq -n \
-    --arg email "$customer_email" \
-    '{
+      --arg email "$customer_email" \
+      '{
       input: {
         email: $email
         }
@@ -302,8 +302,8 @@ sub() {
 assert_balance_sheet_balanced() {
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+      --arg from "$(from_utc)" \
+      '{ from: $from }'
   )
   exec_admin_graphql 'balance-sheet' "$variables"
   echo $(graphql_output)
@@ -324,8 +324,8 @@ assert_balance_sheet_balanced() {
 assert_trial_balance() {
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+      --arg from "$(from_utc)" \
+      '{ from: $from }'
   )
   exec_admin_graphql 'trial-balance' "$variables"
 
@@ -344,8 +344,8 @@ assert_accounts_balanced() {
 net_usd_revenue() {
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+      --arg from "$(from_utc)" \
+      '{ from: $from }'
   )
   exec_admin_graphql 'profit-and-loss' "$variables"
 
@@ -380,12 +380,7 @@ initiate_sign_in() {
       "json": true
     }')
 
-  if [ "$sign_in_response" -eq 302 ]; then
-    echo "Email sign-in initiated successfully for $admin_email. Check your email for the login link."
-  else
-    echo "Failed to send login email for $admin_email. Response Code: $sign_in_response"
-    exit 1
-  fi
+  [[ "$sign_in_response" -eq 302 ]] || exit 1
 }
 
 get_magic_link() {
@@ -404,13 +399,14 @@ use_magic_link() {
   curl -s "$magic_link" -b "$cookie_file" -c "$cookie_file" -o /dev/null
 }
 
-create_admin_user() {
-  local admin_email=$1
-  local admin_role=${2:-"ADMIN"}
-  variables=$(
+create_user() {
+  local role=${2:-"ADMIN"}
+  local email=$(generate_email)
+
+  local variables=$(
     jq -n \
-    --arg email "$admin_email" \
-    '{
+      --arg email "$email" \
+      '{
       input: {
         email: $email
         }
@@ -421,49 +417,43 @@ create_admin_user() {
   user_id=$(graphql_output .data.userCreate.user.userId)
   [[ "$user_id" != "null" ]] || exit 1
 
-  variables=$(
+  local variables=$(
     jq -n \
-    --arg userId "$user_id" \
-    '{
+      --arg userId "$user_id" \
+      '{
       input: {
         id: $userId,
-        role: "'"$admin_role"'"
+        role: "'"$role"'"
         }
       }'
   )
 
-  exec_admin_graphql 'user-assign-role' "$variables" 
+  exec_admin_graphql 'user-assign-role' "$variables"
   role=$(graphql_output .data.userAssignRole.user.roles[0])
-  [[ "$role" = $admin_role ]] || exit 1
+  [[ "$role" = $role ]] || exit 1
 
-  csrf_token=$(get_csrf_token "$admin_email")
-  initiate_sign_in "$admin_email" "$csrf_token"
+  csrf_token=$(get_csrf_token "$email")
+  initiate_sign_in "$email" "$csrf_token"
   sleep 3
   magic_link=$(get_magic_link)
 
-  if [ -z "$magic_link" ]; then
-    echo "Failed to retrieve magic link."
-    exit 1
-  fi
+  [[ -z "$magic_link" ]] && exit 1
+  use_magic_link "$magic_link" "$email"
 
-  echo "Magic Link: $magic_link"
-  use_magic_link "$magic_link" "$admin_email"
-  echo "Admin user $admin_email is authenticated and cookies are saved."
+  echo "$email"
 }
 
-execute_admin_gql_authed() {
+exec_admin_gql_authed() {
+  local email=$3
   local query_name=$1
   local variables=${2:-"{}"}
-  local admin_email=$3
-  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
+
+  local cookie_file="${CACHE_DIR}/admin/${email}-cookie.jar"
 
   csrf_token=$(grep 'next-auth.csrf-token' "$cookie_file" | awk '{print $7}' | cut -d'%' -f1)
   session_token=$(grep 'next-auth.session-token' "$cookie_file" | awk '{print $7}')
 
-  if [[ -z "$csrf_token" || -z "$session_token" ]]; then
-    echo "Failed to retrieve tokens for $admin_email."
-    exit 1
-  fi
+  [[ -z "$csrf_token" || -z "$session_token" ]] && exit 1
 
   if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
     run_cmd="run"
