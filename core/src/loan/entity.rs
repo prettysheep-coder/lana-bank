@@ -376,6 +376,22 @@ impl Loan {
         }
     }
 
+    pub(super) fn has_user_previously_approved(&self, user_id: UserId) -> bool {
+        for event in self.events.iter() {
+            match event {
+                LoanEvent::ApprovalAdded {
+                    approving_user_id, ..
+                } => {
+                    if user_id == *approving_user_id {
+                        return true;
+                    }
+                }
+                _ => continue,
+            }
+        }
+        false
+    }
+
     pub(super) fn add_approval(
         &mut self,
         approving_user_id: UserId,
@@ -383,6 +399,9 @@ impl Loan {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
     ) -> Result<Option<LoanApproval>, LoanError> {
+        if self.has_user_previously_approved(approving_user_id) {
+            return Err(LoanError::UserCannotApproveTwice);
+        }
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
@@ -391,7 +410,6 @@ impl Loan {
             return Err(LoanError::NoCollateral);
         }
 
-        // move below logic to terms ?
         let current_cvl = self.cvl(price);
         let margin_call_cvl = self.terms.margin_call_cvl;
 
@@ -1700,5 +1718,43 @@ mod test {
         );
 
         assert!(!loan.approval_threshold_met());
+    }
+
+    #[test]
+    fn same_user_cannot_approve_twice() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+
+        let user_id = UserId::new();
+
+        let first_approval = loan.add_approval(
+            user_id,
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(first_approval.is_ok());
+
+        let second_approval = loan.add_approval(
+            user_id,
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(matches!(
+            second_approval,
+            Err(LoanError::UserCannotApproveTwice)
+        ));
     }
 }
