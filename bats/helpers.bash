@@ -8,7 +8,7 @@ KRATOS_PUBLIC_ENDPOINT="http://localhost:4455"
 GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
-EXTAUTH_URL="http://localhost:4455/admin-panel/api/auth"
+NEXTAUTH_URL="http://localhost:4455/admin-panel/api/auth"
 CALLBACK_URL="/admin-panel/profile"
 
 LAVA_HOME="${LAVA_HOME:-.lava}"
@@ -406,6 +406,7 @@ use_magic_link() {
 
 create_admin_user() {
   local admin_email=$1
+  local admin_role=${2:-"ADMIN"}
   variables=$(
     jq -n \
     --arg email "$admin_email" \
@@ -417,11 +418,27 @@ create_admin_user() {
   )
 
   exec_admin_graphql 'user-create' "$variables"
+  user_id=$(graphql_output .data.userCreate.user.userId)
+  [[ "$user_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+    --arg userId "$user_id" \
+    '{
+      input: {
+        id: $userId,
+        role: "'"$admin_role"'"
+        }
+      }'
+  )
+
+  exec_admin_graphql 'user-assign-role' "$variables" 
+  role=$(graphql_output .data.userAssignRole.user.roles[0])
+  [[ "$role" = $admin_role ]] || exit 1
+
   csrf_token=$(get_csrf_token "$admin_email")
   initiate_sign_in "$admin_email" "$csrf_token"
-
-  echo "Waiting for the magic link..."
-  sleep 5 
+  sleep 3
   magic_link=$(get_magic_link)
 
   if [ -z "$magic_link" ]; then
@@ -448,7 +465,14 @@ execute_admin_gql_authed() {
     exit 1
   fi
 
-  curl -s -X POST \
+  if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
+    run_cmd="run"
+  else
+    run_cmd=""
+  fi
+
+  ${run_cmd} curl -s \
+    -X POST \
     -H "Content-Type: application/json" \
     -H "Cookie: next-auth.csrf-token=${csrf_token}%7C$(grep 'next-auth.csrf-token' "$cookie_file" | cut -d'%' -f2); next-auth.session-token=${session_token}" \
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
