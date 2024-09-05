@@ -106,8 +106,8 @@ push-dataform-branch:
 	git push -f origin HEAD:${DATAFORM_BRANCH}
 
 dataform-install:
-	yarn install --cwd ./dataform
-	dataform/node_modules/.bin/dataform install dataform
+	yarn install 
+	node_modules/.bin/dataform install
 
 dataform-run:
-	dataform/node_modules/.bin/dataform run dataform --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars=${DATAFORM_VARS}
+	node_modules/.bin/dataform run --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars=${DATAFORM_VARS}
