@@ -19,7 +19,7 @@ locals {
 }
 
 module "setup" {
-  source = "../setup"
+  source = "../bq-setup"
 
   for_each = local.lava_dev
 
@@ -32,7 +32,7 @@ module "setup" {
 }
 
 module "gha_setup" {
-  source = "../setup"
+  source = "../bq-setup"
 
   name_prefix = "gha"
 
