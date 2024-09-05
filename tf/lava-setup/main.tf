@@ -28,7 +28,7 @@ locals {
   dataform_release_config_name     = "${var.name_prefix}-release"
   dataset_id            = "${replace(local.name_prefix, "-", "_")}_dataset"
   dataform_git_branch = "${var.name_prefix}-dataform"
-  dataform_git_commitish = var.dataform_git_commitish != "" var.dataform_git_commitish : "${var.name_prefix}-dataform"
+  dataform_git_commitish = var.dataform_git_commitish != "" ? var.dataform_git_commitish : "${var.name_prefix}-dataform"
 
 
   dataform_repo_name = "${local.name_prefix}-repo"

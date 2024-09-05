@@ -102,8 +102,9 @@ ngrok:
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
-dataform-push-branch:
+push-dataform-branch:
 	git push -f origin HEAD:${DATAFORM_BRANCH}
+
 dataform-install:
 	yarn install --cwd ./dataform
 	dataform/node_modules/.bin/dataform install dataform
