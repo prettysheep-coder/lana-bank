@@ -3,11 +3,11 @@
 load "helpers"
 
 setup_file() {
-  start_server
+  start_suite
 }
 
 teardown_file() {
-  stop_server
+  stop_suite
 }
 
 loan_balance() {

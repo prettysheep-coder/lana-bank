@@ -14,6 +14,7 @@ CALLBACK_URL="/admin-panel/profile"
 LAVA_HOME="${LAVA_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
 SERVER_PID_FILE="${LAVA_HOME}/server-pid"
+TILT_PID_FILE="${LAVA_HOME}/.tilt_pid"
 
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
@@ -72,6 +73,27 @@ stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
     kill -9 $(cat "$SERVER_PID_FILE") || true
   fi
+}
+
+start_suite() {
+  background tilt up --file "${REPO_ROOT}/dev/Tiltfile" >.e2e-logs 2>&1
+  echo $! >"$TILT_PID_FILE"
+  await_server_is_up
+}
+
+await_server_is_up() {
+  server_is_up() {
+    nc -zv localhost 5253 || exit 1
+  }
+
+  retry 360 1 server_is_up
+}
+
+stop_suite() {
+  if [[ -f "$TILT_PID_FILE" ]]; then
+    kill "$(cat "$TILT_PID_FILE")" >/dev/null || true
+  fi
+  tilt down --file "${REPO_ROOT}/dev/Tiltfile"
 }
 
 gql_query() {
