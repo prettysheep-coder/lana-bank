@@ -80,7 +80,7 @@ export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
           {!customerLoans ||
           !customerLoans.customer?.loans ||
           customerLoans.customer?.loans.length === 0 ? (
-            <CardContent className="p-6">No loans found for this customer</CardContent>
+            <CardContent>No loans found for this customer</CardContent>
           ) : (
             <CardContent>
               <Table>
