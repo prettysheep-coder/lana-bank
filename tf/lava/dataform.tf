@@ -6,8 +6,8 @@ resource "google_dataform_repository" "repository" {
   count    = local.setup_bq ? 1 : 0
   provider = google-beta
 
-  project  = local.project_id
-  region   = local.gcp_region
+  project = local.project_id
+  region  = local.gcp_region
 
   name         = local.dataform_repo_name
   display_name = "Dataform Repository for ${local.dataform_repo_name}"
@@ -27,14 +27,14 @@ resource "google_dataform_repository_release_config" "release" {
   region     = google_dataform_repository.repository[0].region
   repository = google_dataform_repository.repository[0].name
 
-  name          =  local.dataform_release_config_name
+  name          = local.dataform_release_config_name
   git_commitish = local.dataform_git_commitish
 
   code_compilation_config {
     default_database = local.project_id
     default_schema   = "dataform"
     default_location = local.gcp_region
-    assertion_schema   = "dataform_assertions"
+    assertion_schema = "dataform_assertions"
     schema_suffix    = local.name_prefix
     vars = {
       executionEnv = "volcano-dev"
@@ -45,7 +45,7 @@ resource "google_dataform_repository_workflow_config" "workflow" {
   provider = google-beta
   count    = local.setup_bq ? 1 : 0
 
-  name           = local.dataform_workflow_config_name
+  name = local.dataform_workflow_config_name
 
   project    = google_dataform_repository.repository[0].project
   region     = google_dataform_repository.repository[0].region

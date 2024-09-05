@@ -23,7 +23,7 @@ module "setup" {
 
   for_each = local.lava_dev
 
-  name_prefix = "${each.key}-dev"
+  name_prefix = "${each.key}"
 
   additional_owners = [each.value]
   gcp_project       = local.project
@@ -47,7 +47,7 @@ data "google_project" "project" {
 resource "google_project_iam_member" "service_account_impersonation" {
   project = local.project
   role    = "roles/iam.serviceAccountTokenCreator"
-  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com"
+  member  = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com"
 }
 
 terraform {
