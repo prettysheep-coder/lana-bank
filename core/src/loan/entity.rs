@@ -14,7 +14,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues, CVLPct, LoanApproval, LoanInterestAccrual};
+use super::{error::LoanError, terms::TermValues, CVLPct, LoanApprovalData, LoanInterestAccrual};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {
@@ -64,7 +64,7 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
-pub struct LoanApprover {
+pub struct LoanApproval {
     pub user_id: UserId,
     pub approved_at: DateTime<Utc>,
 }
@@ -381,7 +381,7 @@ impl Loan {
         }
     }
 
-    pub(super) fn has_user_previously_approved(&self, user_id: UserId) -> bool {
+    fn has_user_previously_approved(&self, user_id: UserId) -> bool {
         for event in self.events.iter() {
             match event {
                 LoanEvent::ApprovalAdded {
@@ -403,7 +403,7 @@ impl Loan {
         approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
-    ) -> Result<Option<LoanApproval>, LoanError> {
+    ) -> Result<Option<LoanApprovalData>, LoanError> {
         if self.has_user_previously_approved(approving_user_id) {
             return Err(LoanError::UserCannotApproveTwice);
         }
@@ -431,7 +431,7 @@ impl Loan {
 
         if self.approval_threshold_met() {
             let tx_ref = format!("{}-approval", self.id);
-            Ok(Some(LoanApproval {
+            Ok(Some(LoanApprovalData {
                 initial_principal: self.initial_principal(),
                 tx_ref,
                 tx_id: LedgerTxId::new(),
@@ -466,8 +466,8 @@ impl Loan {
         n_admin >= 1 && n_admin + n_bank_manager >= 2
     }
 
-    pub fn approvers(&self) -> Vec<LoanApprover> {
-        let mut loan_approvers = vec![];
+    pub fn approvals(&self) -> Vec<LoanApproval> {
+        let mut loan_approvals = vec![];
 
         for event in self.events.iter().rev() {
             if let LoanEvent::ApprovalAdded {
@@ -476,19 +476,19 @@ impl Loan {
                 ..
             } = event
             {
-                loan_approvers.push(LoanApprover {
+                loan_approvals.push(LoanApproval {
                     user_id: *approving_user_id,
                     approved_at: *recorded_at,
                 });
             }
         }
 
-        loan_approvers
+        loan_approvals
     }
 
     pub(super) fn confirm_approval(
         &mut self,
-        LoanApproval { tx_id, .. }: LoanApproval,
+        LoanApprovalData { tx_id, .. }: LoanApprovalData,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
@@ -1613,7 +1613,7 @@ mod test {
         assert!(matches!(first_approval, Err(LoanError::BelowMarginLimit)));
     }
 
-    fn add_approvals(loan: &mut Loan) -> LoanApproval {
+    fn add_approvals(loan: &mut Loan) -> LoanApprovalData {
         let first_approval = loan.add_approval(
             UserId::new(),
             bank_manager_role(),

@@ -358,10 +358,16 @@ type Loan {
 	collateral: Satoshis!
 	principal: UsdCents!
 	transactions: [LoanHistory!]!
-	approvers: [LoanApprover!]!
+	approvals: [LoanApproval!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+}
+
+type LoanApproval {
+	userId: UUID!
+	approvedAt: Timestamp!
+	user: User!
 }
 
 input LoanApproveInput {
@@ -370,11 +376,6 @@ input LoanApproveInput {
 
 type LoanApprovePayload {
 	loan: Loan!
-}
-
-type LoanApprover {
-	userId: UUID!
-	approvedAt: Timestamp!
 }
 
 type LoanBalance {

@@ -162,6 +162,7 @@ impl Loans {
         Ok(loan)
     }
 
+    #[instrument(name = "lava.loan.add_approval", skip(self), err)]
     pub async fn add_approval(
         &self,
         sub: &Subject,
