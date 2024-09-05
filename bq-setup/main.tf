@@ -40,6 +40,16 @@ output "bq_dev_sa_emails" {
   value = { for key, value in module.source_dataset : key => value.service_account_email }
 }
 
+data "google_project" "project" {
+  project_id = local.project
+}
+
+resource "google_project_iam_member" "service_account_impersonation" {
+  project = local.project
+  role    = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com"
+}
+
 terraform {
   backend "gcs" {
     bucket = "lava-bank-tf-state"

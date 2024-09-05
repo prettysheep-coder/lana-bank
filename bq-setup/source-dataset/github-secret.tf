@@ -27,3 +27,9 @@ resource "google_secret_manager_secret_iam_binding" "git_token" {
     "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com",
   ]
 }
+
+resource "google_service_account_iam_member" "service_account_impersonation_target" {
+  service_account_id = google_service_account.bq_access_sa.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com"
+}

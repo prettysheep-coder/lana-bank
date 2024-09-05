@@ -41,3 +41,22 @@ resource "google_dataform_repository_release_config" "release" {
     }
   }
 }
+resource "google_dataform_repository_workflow_config" "workflow" {
+  provider = google-beta
+  count    = local.setup_bq ? 1 : 0
+
+  name           = local.dataform_workflow_config_name
+
+  project    = google_dataform_repository.repository[0].project
+  region     = google_dataform_repository.repository[0].region
+  repository = google_dataform_repository.repository[0].name
+
+  release_config = google_dataform_repository_release_config.release[0].id
+
+  invocation_config {
+    transitive_dependencies_included         = true
+    transitive_dependents_included           = true
+    fully_refresh_incremental_tables_enabled = false
+    service_account                          = local.sa_email
+  }
+}

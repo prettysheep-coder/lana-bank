@@ -26,6 +26,7 @@ locals {
   dataform_keyring_name = "${var.name_prefix}-dataform-keyring"
   dataform_key_name     = "${var.name_prefix}-dataform-key"
   dataform_release_config_name     = "${var.name_prefix}-release"
+  dataform_workflow_config_name     = "${var.name_prefix}-workflow"
   dataset_id            = "${replace(local.name_prefix, "-", "_")}_dataset"
   dataform_git_branch = "${var.name_prefix}-dataform"
   dataform_git_commitish = var.dataform_git_commitish != "" ? var.dataform_git_commitish : "${var.name_prefix}-dataform"
