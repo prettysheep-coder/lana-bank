@@ -14,11 +14,11 @@ variable "bq_creds" {
 }
 
 locals {
-  name_prefix                   = var.name_prefix
-  gcp_region                    = var.gcp_region
-  setup_bq                      = var.bq_creds != "dummy"
-  git_token_secret_name         = "${local.name_prefix}-git-token"
-  dataset_id                    = "${replace(local.name_prefix, "-", "_")}_dataset"
+  name_prefix           = var.name_prefix
+  gcp_region            = var.gcp_region
+  setup_bq              = var.bq_creds != "dummy"
+  git_token_secret_name = "${local.name_prefix}-git-token"
+  dataset_id            = "${replace(local.name_prefix, "-", "_")}_dataset"
   bq_tables = local.setup_bq ? [
     "user_events",
     "customer_events",

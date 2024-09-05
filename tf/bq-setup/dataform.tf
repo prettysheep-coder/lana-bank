@@ -35,11 +35,11 @@ resource "google_dataform_repository" "repository" {
 resource "google_dataform_repository_iam_member" "member" {
   provider = google-beta
 
-  project = google_dataform_repository.repository.project
-  region = google_dataform_repository.repository.region
+  project    = google_dataform_repository.repository.project
+  region     = google_dataform_repository.repository.region
   repository = google_dataform_repository.repository.name
-  role = "roles/owner"
-  member = "serviceAccount:${google_service_account.bq_access_sa.email}"
+  role       = "roles/owner"
+  member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
 }
 
 resource "google_dataform_repository_release_config" "release" {
