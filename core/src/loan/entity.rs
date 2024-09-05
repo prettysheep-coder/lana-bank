@@ -444,7 +444,6 @@ impl Loan {
     }
 
     fn approval_threshold_met(&self) -> bool {
-        let mut n_superuser = 0;
         let mut n_admin = 0;
         let mut n_bank_manager = 0;
 
@@ -455,7 +454,7 @@ impl Loan {
             } = event
             {
                 if approving_user_roles.contains(&Role::Superuser) {
-                    n_superuser += 1;
+                    return true;
                 } else if approving_user_roles.contains(&Role::Admin) {
                     n_admin += 1;
                 } else {
@@ -464,7 +463,7 @@ impl Loan {
             }
         }
 
-        n_superuser > 0 || (n_admin >= 1 && n_admin + n_bank_manager >= 2)
+        n_admin >= 1 && n_admin + n_bank_manager >= 2
     }
 
     pub fn approvers(&self) -> Vec<LoanApprover> {

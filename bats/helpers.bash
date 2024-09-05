@@ -8,8 +8,6 @@ KRATOS_PUBLIC_ENDPOINT="http://localhost:4455"
 GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
-NEXTAUTH_URL="http://localhost:4455/admin-panel/api/auth"
-CALLBACK_URL="/admin-panel/profile"
 
 LAVA_HOME="${LAVA_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
@@ -139,6 +137,7 @@ exec_admin_graphql() {
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"
 }
+
 exec_cala_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
