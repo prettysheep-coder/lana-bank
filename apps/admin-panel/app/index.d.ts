@@ -1,4 +1,4 @@
-type Layers = "all" | "settled" | "pending" | "encumbrance"
+type Layers = "all" | "settled" | "pending"
 type TransactionType = "netCredit" | "netDebit" | "debit" | "credit"
 
 type WithdrawalWithCustomer = {
@@ -6,6 +6,7 @@ type WithdrawalWithCustomer = {
   status: WithdrawalStatus
   customerId: string
   withdrawalId: string
+  reference: string
   amount: number
   customer?: {
     __typename?: "Customer"

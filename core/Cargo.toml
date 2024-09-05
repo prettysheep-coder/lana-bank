@@ -1,6 +1,6 @@
 [package]
 name = "lava-core"
-version = "0.1.92-dev"
+version = "0.1.96-dev"
 edition = "2021"
 
 [features]
@@ -24,6 +24,7 @@ futures = { workspace = true }
 thiserror = { workspace = true }
 clap = { workspace = true }
 sqlx = { workspace = true }
+strum = { workspace = true }
 serde = { workspace = true }
 serde_yaml = { workspace = true }
 serde_json = { workspace = true }

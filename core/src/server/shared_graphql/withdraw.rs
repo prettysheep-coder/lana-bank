@@ -5,7 +5,7 @@ use crate::{
     primitives::UsdCents,
     server::{
         admin::AdminAuthContext,
-        shared_graphql::{customer::Customer, primitives::UUID},
+        shared_graphql::{customer::Customer, primitives::*},
     },
     withdraw::WithdrawalStatus,
 };
@@ -17,6 +17,8 @@ pub struct Withdrawal {
     withdrawal_id: UUID,
     amount: UsdCents,
     status: WithdrawalStatus,
+    reference: String,
+    created_at: Timestamp,
 }
 
 #[ComplexObject]
@@ -35,10 +37,12 @@ impl Withdrawal {
 impl From<crate::withdraw::Withdraw> for Withdrawal {
     fn from(withdraw: crate::withdraw::Withdraw) -> Self {
         Withdrawal {
+            created_at: withdraw.created_at().into(),
             withdrawal_id: UUID::from(withdraw.id),
             customer_id: UUID::from(withdraw.customer_id),
             amount: withdraw.amount,
             status: withdraw.status(),
+            reference: withdraw.reference,
         }
     }
 }

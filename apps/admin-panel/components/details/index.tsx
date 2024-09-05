@@ -13,7 +13,7 @@ const DetailItem = ({
   labelComponent,
   valueComponent,
 }: {
-  label: string
+  label?: string
   value?: string
   className?: string
   labelComponent?: React.ReactNode
@@ -21,10 +21,7 @@ const DetailItem = ({
 }) => {
   return (
     <div
-      className={cn(
-        "flex justify-between items-center hover:bg-secondary-foreground p-1 px-2 rounded-md",
-        className,
-      )}
+      className={cn("flex justify-between items-center p-1 px-2 rounded-md", className)}
     >
       {labelComponent ? (
         labelComponent
