@@ -12,7 +12,7 @@ resource "google_bigquery_dataset" "dataform_assertions_dev" {
   for_each = local.lava_dev
   project  = local.project
 
-  dataset_id    = "dataform_assertions_${each.key}"
+  dataset_id    = "dataform_assertions_${each.key}_dev"
   friendly_name = "${each.key} assertions dataform"
   description   = "Dataform assertions for ${each.key}"
   location      = "EU"
