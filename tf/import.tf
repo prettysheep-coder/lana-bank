@@ -22,12 +22,12 @@ import {
 
 import {
   for_each = local.setup_bq ? toset([""]) : []
-  to       =  module.setup.google_dataform_repository_release_config.release[0]
+  to       = module.setup.google_dataform_repository_release_config.release[0]
   id       = "projects/${local.project_id}/locations/${local.gcp_region}/repositories/${local.name_prefix}-repo/releaseConfigs/${local.name_prefix}-release"
 }
 
 import {
   for_each = local.setup_bq ? toset([""]) : []
-  to       =  module.setup.google_dataform_repository_workflow_config.workflow[0]
+  to       = module.setup.google_dataform_repository_workflow_config.workflow[0]
   id       = "projects/${local.project_id}/locations/${local.gcp_region}/repositories/${local.name_prefix}-repo/workflowConfigs/${local.name_prefix}-workflow"
 }

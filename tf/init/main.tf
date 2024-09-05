@@ -23,7 +23,7 @@ module "setup" {
 
   for_each = local.lava_dev
 
-  name_prefix = "${each.key}"
+  name_prefix = each.key
 
   additional_owners = [each.value]
   gcp_project       = local.project
@@ -52,7 +52,7 @@ output "bq_dev_sa_emails" {
 }
 
 output "gha_sa_keys_base64" {
-  value = module.gha_setup.service_account_key_base64
+  value     = module.gha_setup.service_account_key_base64
   sensitive = true
 }
 

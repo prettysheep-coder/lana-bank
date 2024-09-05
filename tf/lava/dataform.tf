@@ -1,7 +1,3 @@
-data "google_secret_manager_secret_version" "git_token" {
-  secret = local.git_token_secret_name
-}
-
 resource "google_dataform_repository" "repository" {
   count    = local.setup_bq ? 1 : 0
   provider = google-beta
@@ -15,7 +11,7 @@ resource "google_dataform_repository" "repository" {
   git_remote_settings {
     url                                 = "https://github.com/GaloyMoney/lava-bank.git"
     default_branch                      = local.dataform_git_branch
-    authentication_token_secret_version = data.google_secret_manager_secret_version.git_token.id
+    authentication_token_secret_version = local.git_token_secret_name
   }
 }
 

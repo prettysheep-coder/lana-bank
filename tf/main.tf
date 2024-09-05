@@ -9,9 +9,9 @@ variable "name_prefix" {
 }
 
 locals {
-  setup_bq = var.bq_creds != "dummy"
+  setup_bq    = var.bq_creds != "dummy"
   name_prefix = var.name_prefix
-  gcp_region = "europe-west6"
+  gcp_region  = "europe-west6"
 
   service_account_creds = local.setup_bq ? jsondecode(base64decode(var.bq_creds)) : null
   project_id            = local.setup_bq ? local.service_account_creds.project_id : null
@@ -34,7 +34,7 @@ module "setup" {
 
   name_prefix = var.name_prefix
   bq_creds    = var.bq_creds
-  gcp_region = local.gcp_region
+  gcp_region  = local.gcp_region
 }
 
 terraform {
