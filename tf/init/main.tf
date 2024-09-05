@@ -18,8 +18,8 @@ locals {
   }
 }
 
-module "source_dataset" {
-  source = "./source-dataset"
+module "setup" {
+  source = "../setup"
 
   for_each = local.lava_dev
 
@@ -32,12 +32,12 @@ module "source_dataset" {
 }
 
 output "bq_dev_sa_keys_base64" {
-  value     = { for key, value in module.source_dataset : key => value.service_account_key_base64 }
+  value     = { for key, value in module.setup : key => value.service_account_key_base64 }
   sensitive = true
 }
 
 output "bq_dev_sa_emails" {
-  value = { for key, value in module.source_dataset : key => value.service_account_email }
+  value = { for key, value in module.setup : key => value.service_account_email }
 }
 
 data "google_project" "project" {
