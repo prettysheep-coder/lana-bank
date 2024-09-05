@@ -118,9 +118,15 @@ type Loan {
 	collateral: Satoshis!
 	principal: UsdCents!
 	transactions: [LoanHistory!]!
+	approvers: [LoanApprover!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+}
+
+type LoanApprover {
+	userId: UUID!
+	approvedAt: Timestamp!
 }
 
 type LoanBalance {

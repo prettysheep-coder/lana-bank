@@ -27,6 +27,7 @@ pub struct Loan {
     collateral: Satoshis,
     principal: UsdCents,
     transactions: Vec<LoanHistory>,
+    approvers: Vec<LoanApprover>,
     collateralization_state: LoanCollaterizationState,
 }
 
@@ -66,6 +67,12 @@ pub struct LoanOrigination {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanApprover {
+    user_id: UUID,
+    approved_at: Timestamp,
 }
 
 #[derive(SimpleObject)]
@@ -154,6 +161,11 @@ impl From<crate::loan::Loan> for Loan {
         let principal = loan.initial_principal();
         let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
         let collateralization_state = loan.collateralization();
+        let approvers = loan
+            .approvers()
+            .into_iter()
+            .map(LoanApprover::from)
+            .collect();
 
         Loan {
             id: loan.id.to_global_id(),
@@ -168,6 +180,7 @@ impl From<crate::loan::Loan> for Loan {
             collateral,
             principal,
             transactions,
+            approvers,
             collateralization_state,
         }
     }
@@ -241,6 +254,15 @@ impl From<crate::loan::CollateralizationUpdated> for CollateralizationUpdated {
             outstanding_principal: collateralization.outstanding_principal,
             price: collateralization.price.into_inner(),
             recorded_at: collateralization.recorded_at.into(),
+        }
+    }
+}
+
+impl From<crate::loan::LoanApprover> for LoanApprover {
+    fn from(approver: crate::loan::LoanApprover) -> Self {
+        LoanApprover {
+            user_id: UUID::from(approver.user_id),
+            approved_at: approver.approved_at.into(),
         }
     }
 }

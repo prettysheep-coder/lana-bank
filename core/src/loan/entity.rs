@@ -64,6 +64,11 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
+pub struct LoanApprover {
+    pub user_id: UserId,
+    pub approved_at: DateTime<Utc>,
+}
+
 impl LoanReceivable {
     pub fn total(&self) -> UsdCents {
         self.interest + self.principal
@@ -460,6 +465,26 @@ impl Loan {
         }
 
         n_superuser > 0 || (n_admin >= 1 && n_admin + n_bank_manager >= 2)
+    }
+
+    pub fn approvers(&self) -> Vec<LoanApprover> {
+        let mut loan_approvers = vec![];
+
+        for event in self.events.iter().rev() {
+            if let LoanEvent::ApprovalAdded {
+                approving_user_id,
+                recorded_at,
+                ..
+            } = event
+            {
+                loan_approvers.push(LoanApprover {
+                    user_id: *approving_user_id,
+                    approved_at: *recorded_at,
+                });
+            }
+        }
+
+        loan_approvers
     }
 
     pub(super) fn confirm_approval(

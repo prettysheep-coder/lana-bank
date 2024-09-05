@@ -366,6 +366,7 @@ export type LayeredUsdAccountAmounts = {
 export type Loan = {
   __typename?: 'Loan';
   approvedAt?: Maybe<Scalars['Timestamp']['output']>;
+  approvers: Array<LoanApprover>;
   balance: LoanBalance;
   collateral: Scalars['Satoshis']['output'];
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -389,6 +390,12 @@ export type LoanApproveInput = {
 export type LoanApprovePayload = {
   __typename?: 'LoanApprovePayload';
   loan: Loan;
+};
+
+export type LoanApprover = {
+  __typename?: 'LoanApprover';
+  approvedAt: Scalars['Timestamp']['output'];
+  userId: Scalars['UUID']['output'];
 };
 
 export type LoanBalance = {
