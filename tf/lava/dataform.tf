@@ -15,6 +15,15 @@ resource "google_dataform_repository" "repository" {
   }
 }
 
+resource "google_dataform_repository_iam_member" "member" {
+  provider = google-beta
+  project = google_dataform_repository.repository[0].project
+  region = google_dataform_repository.repository[0].region
+  repository = google_dataform_repository.repository[0].name
+  role = "roles/owner"
+  member = local.sa_member
+}
+
 resource "google_dataform_repository_release_config" "release" {
   provider = google-beta
   count    = local.setup_bq ? 1 : 0
