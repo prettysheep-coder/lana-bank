@@ -1,3 +1,8 @@
+variable "git_token" {
+  default   = "dummy"
+  sensitive = true
+}
+
 locals {
   project                = "cala-enterprise"
   location               = "EU"
@@ -21,12 +26,13 @@ module "source_dataset" {
   name_prefix = "${each.key}-dev"
 
   additional_owners = [each.value]
-  gcp_project = local.project
-  gcp_region  = local.location
+  gcp_project       = local.project
+  gcp_region        = local.location
+  git_token         = var.git_token
 }
 
 output "bq_dev_sa_keys_base64" {
-  value = { for key, value in module.source_dataset : key => value.service_account_key_base64 }
+  value     = { for key, value in module.source_dataset : key => value.service_account_key_base64 }
   sensitive = true
 }
 

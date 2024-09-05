@@ -15,7 +15,7 @@ locals {
   project_id            = local.setup_bq ? local.service_account_creds.project_id : null
   sa_email              = local.setup_bq ? local.service_account_creds.client_email : null
   sa_member             = local.setup_bq ? "serviceAccount:${local.sa_email}" : null
-  dataset_id            = local.setup_bq ? "${var.name_prefix}_dataset" : null
+  dataset_id            = local.setup_bq ? "${replace(var.name_prefix, "-", "_")}_dataset" : null
 }
 
 
@@ -30,8 +30,8 @@ provider "cala" {
 module "setup" {
   source = "./lava-setup"
 
-  bq_creds   = var.bq_creds
-  dataset_id = local.dataset_id
+  name_prefix = var.name_prefix
+  bq_creds    = var.bq_creds
 }
 
 terraform {

@@ -1,0 +1,43 @@
+data "google_secret_manager_secret_version" "git_token" {
+  secret = local.git_token_secret_name
+}
+
+resource "google_dataform_repository" "repository" {
+  count    = local.setup_bq ? 1 : 0
+  provider = google-beta
+
+  project  = local.project_id
+  region   = local.gcp_region
+
+  name         = local.dataform_repo_name
+  display_name = "Dataform Repository for ${local.dataform_repo_name}"
+
+  git_remote_settings {
+    url                                 = "https://github.com/GaloyMoney/lava-bank.git"
+    default_branch                      = local.dataform_git_branch
+    authentication_token_secret_version = data.google_secret_manager_secret_version.git_token.id
+  }
+}
+
+resource "google_dataform_repository_release_config" "release" {
+  provider = google-beta
+  count    = local.setup_bq ? 1 : 0
+
+  project    = google_dataform_repository.repository[0].project
+  region     = google_dataform_repository.repository[0].region
+  repository = google_dataform_repository.repository[0].name
+
+  name          =  local.dataform_release_config_name
+  git_commitish = local.dataform_git_commitish
+
+  code_compilation_config {
+    default_database = local.project_id
+    default_schema   = "dataform"
+    default_location = local.gcp_region
+    assertion_schema   = "dataform_assertions"
+    schema_suffix    = local.name_prefix
+    vars = {
+      executionEnv = "volcano-dev"
+    }
+  }
+}
