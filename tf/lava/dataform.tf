@@ -17,6 +17,8 @@ resource "google_dataform_repository" "repository" {
 
 resource "google_dataform_repository_iam_member" "member" {
   provider = google-beta
+  count    = local.setup_bq ? 1 : 0
+
   project = google_dataform_repository.repository[0].project
   region = google_dataform_repository.repository[0].region
   repository = google_dataform_repository.repository[0].name
