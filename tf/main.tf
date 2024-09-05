@@ -5,7 +5,7 @@ variable "bq_creds" {
 
 variable "name_prefix" {
   type    = string
-  default = "lava_ci"
+  default = "gha"
 }
 
 locals {
