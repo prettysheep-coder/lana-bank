@@ -121,9 +121,7 @@ export const CustomerTransactionsTable = ({ customerId }: { customerId: string }
                           {isDeposit ? "n/a" : tx.status.toLocaleLowerCase()}
                         </TableCell>
                         <TableCell>
-                          <Link
-                            href={isDeposit ? `/deposits/${id}` : `/withdrawals/${id}`}
-                          >
+                          <Link href={isDeposit ? `/deposits` : `/withdrawals/${id}`}>
                             <FaExternalLinkAlt className="text-primary" />
                           </Link>
                         </TableCell>

@@ -16,7 +16,7 @@ function customerDetails({
 }) {
   const { "customer-id": customerId } = params
   return (
-    <main>
+    <main className="max-w-7xl m-auto">
       <PageHeading>Customer Details</PageHeading>
       <CustomerDetailsCard customerId={customerId} />
       <Tabs defaultValue="overview" className="mt-4">

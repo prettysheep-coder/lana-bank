@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { gql } from "@apollo/client"
 
 import { DetailItem, DetailsGroup } from "@/components/details"
@@ -47,6 +47,15 @@ gql`
 export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
   const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState(false)
+
+  const closeWithdrawalInitiateDialog = () => {
+    setOpenWithdrawalInitiateDialog(false)
+    window.location.reload()
+  }
+  const closeOpenRecordDepositDialog = () => {
+    setOpenRecordDepositDialog(false)
+    window.location.reload()
+  }
 
   const {
     loading,
@@ -104,14 +113,14 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
         <WithdrawalInitiateDialog
           customerId={customerId}
           openWithdrawalInitiateDialog={openWithdrawalInitiateDialog}
-          setOpenWithdrawalInitiateDialog={() => setOpenWithdrawalInitiateDialog(false)}
+          setOpenWithdrawalInitiateDialog={closeWithdrawalInitiateDialog}
         />
       )}
       {openRecordDepositDialog && (
         <RecordDepositDialog
           customerId={customerId}
           openRecordDepositDialog={openRecordDepositDialog}
-          setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(false)}
+          setOpenRecordDepositDialog={closeOpenRecordDepositDialog}
         />
       )}
     </>
