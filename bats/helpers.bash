@@ -252,39 +252,6 @@ generate_email() {
   echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]'
 }
 
-create_user() {
-  email=$(echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]')
-
-  flowId=$(curl -s -X GET \
-    -H "Accept: application/json" \
-    "$KRATOS_PUBLIC_ENDPOINT/self-service/registration/api" | jq -r '.id')
-
-  response=$(curl -s -X POST "$KRATOS_PUBLIC_ENDPOINT/self-service/registration?flow=$flowId" \
-    -H "Content-Type: application/json" \
-    -d '{
-    "method": "code",
-    "traits": {
-      "email": "'"$email"'"
-    }
-  }')
-
-  code=$(getEmailCode "$email")
-
-  verification_response=$(curl -s -X POST "$KRATOS_PUBLIC_ENDPOINT/self-service/registration?flow=$flowId" \
-    -H "Content-Type: application/json" \
-    -d '{
-    "code": "'"$code"'",
-    "method": "code",
-    "traits": {
-      "email": "'"$email"'"
-    }
-  }')
-
-  # Extract and print the session token if needed
-  token=$(echo $verification_response | jq -r '.session_token')
-  echo $token
-}
-
 create_customer() {
   customer_email=$(generate_email)
 
@@ -422,7 +389,7 @@ use_magic_link() {
 }
 
 create_user() {
-  local role=${2:-"ADMIN"}
+  local role=${1:-"ADMIN"}
   local email=$(generate_email)
 
   local variables=$(
