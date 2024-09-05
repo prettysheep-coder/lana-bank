@@ -86,9 +86,7 @@ export const CustomerTransactionsTable = ({ customerId }: { customerId: string }
           {!data ||
           !data.customer?.transactions ||
           data.customer.transactions.length === 0 ? (
-            <CardContent className="p-6">
-              No transactions found for this customer
-            </CardContent>
+            <CardContent>No transactions found for this customer</CardContent>
           ) : (
             <CardContent>
               <Table>
