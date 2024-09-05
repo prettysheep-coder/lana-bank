@@ -14,7 +14,6 @@ CALLBACK_URL="/admin-panel/profile"
 LAVA_HOME="${LAVA_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
 SERVER_PID_FILE="${LAVA_HOME}/server-pid"
-TILT_PID_FILE="${LAVA_HOME}/.tilt_pid"
 
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
@@ -73,27 +72,6 @@ stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
     kill -9 $(cat "$SERVER_PID_FILE") || true
   fi
-}
-
-start_suite() {
-  background tilt up --file "${REPO_ROOT}/dev/Tiltfile" >.e2e-logs 2>&1
-  echo $! >"$TILT_PID_FILE"
-  await_server_is_up
-}
-
-await_server_is_up() {
-  server_is_up() {
-    nc -zv localhost 5253 || exit 1
-  }
-
-  retry 360 1 server_is_up
-}
-
-stop_suite() {
-  if [[ -f "$TILT_PID_FILE" ]]; then
-    kill "$(cat "$TILT_PID_FILE")" >/dev/null || true
-  fi
-  tilt down --file "${REPO_ROOT}/dev/Tiltfile"
 }
 
 gql_query() {
@@ -344,116 +322,4 @@ net_usd_revenue() {
 
 from_utc() {
   date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
-}
-
-get_csrf_token() {
-  local admin_email=$1
-  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
-  mkdir -p "${CACHE_DIR}/admin"
-  csrf_response=$(curl -s -X GET "$NEXTAUTH_URL/csrf" --cookie-jar "$cookie_file")
-  echo "$csrf_response" | grep -oP '(?<="csrfToken":")[^"]*'
-}
-
-initiate_sign_in() {
-  local admin_email=$1
-  local csrf_token=$2
-  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
-
-  sign_in_response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$NEXTAUTH_URL/signin/email" \
-    -H "Content-Type: application/json" \
-    -b "$cookie_file" \
-    -d '{
-      "email": "'"$admin_email"'",
-      "csrfToken": "'"$csrf_token"'",
-      "callbackUrl": "'"$CALLBACK_URL"'",
-      "json": true
-    }')
-
-  [[ "$sign_in_response" -eq 302 ]] || exit 1
-}
-
-get_magic_link() {
-  curl -s http://localhost:8025/api/v2/messages |
-    jq -r '.items[0].MIME.Parts[0].Body' |
-    perl -MMIME::QuotedPrint -pe '$_=MIME::QuotedPrint::decode($_);' |
-    grep -o 'http://.*' |
-    sed 's/=3D/=/g; s/%3A/:/g; s/%2F/\//g; s/%3F/?/g; s/%3D/=/g; s/%26/\&/g; s/%40/@/g'
-}
-
-use_magic_link() {
-  local magic_link=$1
-  local admin_email=$2
-  local cookie_file="${CACHE_DIR}/admin/${admin_email}-cookie.jar"
-
-  curl -s "$magic_link" -b "$cookie_file" -c "$cookie_file" -o /dev/null
-}
-
-create_user() {
-  local role=${1:-"ADMIN"}
-  local email=$(generate_email)
-
-  local variables=$(
-    jq -n \
-      --arg email "$email" \
-      '{
-      input: {
-        email: $email
-        }
-      }'
-  )
-
-  exec_admin_graphql 'user-create' "$variables"
-  user_id=$(graphql_output .data.userCreate.user.userId)
-  [[ "$user_id" != "null" ]] || exit 1
-
-  local variables=$(
-    jq -n \
-      --arg userId "$user_id" \
-      '{
-      input: {
-        id: $userId,
-        role: "'"$role"'"
-        }
-      }'
-  )
-
-  exec_admin_graphql 'user-assign-role' "$variables"
-  role=$(graphql_output .data.userAssignRole.user.roles[0])
-  [[ "$role" = $role ]] || exit 1
-
-  csrf_token=$(get_csrf_token "$email")
-  initiate_sign_in "$email" "$csrf_token"
-  sleep 3
-  magic_link=$(get_magic_link)
-
-  [[ -z "$magic_link" ]] && exit 1
-  use_magic_link "$magic_link" "$email"
-
-  echo "$email"
-}
-
-exec_admin_gql_authed() {
-  local email=$3
-  local query_name=$1
-  local variables=${2:-"{}"}
-
-  local cookie_file="${CACHE_DIR}/admin/${email}-cookie.jar"
-
-  csrf_token=$(grep 'next-auth.csrf-token' "$cookie_file" | awk '{print $7}' | cut -d'%' -f1)
-  session_token=$(grep 'next-auth.session-token' "$cookie_file" | awk '{print $7}')
-
-  [[ -z "$csrf_token" || -z "$session_token" ]] && exit 1
-
-  if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
-    run_cmd="run"
-  else
-    run_cmd=""
-  fi
-
-  ${run_cmd} curl -s \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -H "Cookie: next-auth.csrf-token=${csrf_token}%7C$(grep 'next-auth.csrf-token' "$cookie_file" | cut -d'%' -f2); next-auth.session-token=${session_token}" \
-    -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
-    "${GQL_ADMIN_ENDPOINT}"
 }

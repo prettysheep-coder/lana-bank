@@ -439,23 +439,27 @@ impl Loan {
     }
 
     fn approval_threshold_met(&self) -> bool {
+        let mut n_superuser = 0;
         let mut n_admin = 0;
         let mut n_bank_manager = 0;
+
         for event in self.events.iter() {
             if let LoanEvent::ApprovalAdded {
                 approving_user_roles,
                 ..
             } = event
             {
-                if approving_user_roles.contains(&Role::Admin) {
+                if approving_user_roles.contains(&Role::Superuser) {
+                    n_superuser += 1;
+                } else if approving_user_roles.contains(&Role::Admin) {
                     n_admin += 1;
-                } else if approving_user_roles.contains(&Role::BankManager) {
+                } else {
                     n_bank_manager += 1;
                 }
             }
         }
 
-        n_admin >= 1 && n_admin + n_bank_manager >= 2
+        n_superuser > 0 || (n_admin >= 1 && n_admin + n_bank_manager >= 2)
     }
 
     pub(super) fn confirm_approval(
