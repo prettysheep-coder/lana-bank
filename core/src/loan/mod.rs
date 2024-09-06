@@ -1,5 +1,6 @@
 mod config;
 mod cursor;
+mod disbursement;
 mod entity;
 pub mod error;
 mod history;
@@ -26,6 +27,7 @@ use crate::{
 
 pub use config::*;
 pub use cursor::*;
+pub use disbursement::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
@@ -38,6 +40,7 @@ pub use terms::*;
 pub struct Loans {
     loan_repo: LoanRepo,
     term_repo: TermRepo,
+    disbursement_repo: DisbursementRepo,
     customers: Customers,
     ledger: Ledger,
     pool: PgPool,
@@ -63,6 +66,7 @@ impl Loans {
         users: &Users,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
+        let disbursement_repo = DisbursementRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
@@ -77,6 +81,7 @@ impl Loans {
         Self {
             loan_repo,
             term_repo,
+            disbursement_repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
@@ -387,5 +392,29 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::List)
             .await?;
         self.loan_repo.list_by_collateralization_ratio(query).await
+    }
+
+    // Disbursements
+
+    pub async fn initiate_disbursement(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        amount: UsdCents,
+    ) -> Result<Disbursement, LoanError> {
+        let audit_info = self
+            .authz
+            .check_permission(sub, Object::Loan, LoanAction::InitiateDisbursement)
+            .await?;
+        let mut db_tx = self.pool.begin().await?;
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+        let new_disbursement = loan.initiate_disbursement(audit_info, amount)?;
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let disbursement = self
+            .disbursement_repo
+            .create_in_tx(&mut db_tx, new_disbursement)
+            .await?;
+        db_tx.commit().await?;
+        Ok(disbursement)
     }
 }
