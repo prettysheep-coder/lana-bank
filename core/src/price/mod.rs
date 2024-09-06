@@ -25,12 +25,7 @@ impl Price {
     }
 }
 
-#[cached(
-    time = 60,
-    result = true,
-    key = "String",
-    convert = r#"{ format!("btc_usd_cache") }"#
-)]
+#[cached(time = 60, result = true, key = "()", convert = r#"{}"#)]
 async fn usd_cents_per_btc_cached(bfx: &BfxClient) -> Result<PriceOfOneBTC, PriceError> {
     let last_price = bfx.btc_usd_tick().await?.last_price;
     Ok(PriceOfOneBTC::new(UsdCents::try_from_usd(last_price)?))
