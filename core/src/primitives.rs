@@ -200,7 +200,6 @@ impl From<&Subject> for uuid::Uuid {
     PartialEq,
     Eq,
     Hash,
-    strum::IntoStaticStr,
     strum::EnumString,
     strum::Display,
 )]
