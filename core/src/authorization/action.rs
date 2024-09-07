@@ -4,18 +4,6 @@ use std::{
     str::FromStr,
 };
 
-use crate::primitives::Role;
-
-macro_rules! impl_from_for_action {
-    ($from_type:ty, $variant:ident) => {
-        impl From<$from_type> for Action {
-            fn from(action: $from_type) -> Self {
-                Action::$variant(action)
-            }
-        }
-    };
-}
-
 macro_rules! impl_trivial_action {
     ($from_type:ty, $variant:ident) => {
         impl $from_type {
@@ -140,49 +128,19 @@ pub enum AuditAction {
 
 impl_trivial_action!(AuditAction, Audit);
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::IntoStaticStr, strum::EnumString))]
-#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+#[derive(PartialEq, Clone, Copy, Debug, strum::IntoStaticStr, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
 pub enum UserAction {
     Read,
     Create,
     List,
     Update,
     Delete,
-    AssignRole(Role),
-    RevokeRole(Role),
+    AssignRole,
+    RevokeRole,
 }
 
-impl UserAction {
-    fn add_to(&self, elems: &mut ActionElements<'_>) {
-        elems.push_static(UserActionDiscriminants::from(self));
-        use UserAction::*;
-        match self {
-            Create | Read | List | Update | Delete => (),
-            UserAction::AssignRole(role) | UserAction::RevokeRole(role) => elems.push_static(role),
-        }
-    }
-}
-
-impl TryFrom<&[Cow<'_, str>]> for UserAction {
-    type Error = strum::ParseError;
-
-    fn try_from(elems: &[Cow<'_, str>]) -> Result<Self, Self::Error> {
-        use UserActionDiscriminants::*;
-        let res = match UserActionDiscriminants::from_str(elems[0].as_ref())? {
-            Read => UserAction::Read,
-            Create => UserAction::Create,
-            List => UserAction::List,
-            Update => UserAction::Update,
-            Delete => UserAction::Delete,
-            AssignRole => UserAction::AssignRole(Role::from_str(elems[1].as_ref())?),
-            RevokeRole => UserAction::RevokeRole(Role::from_str(elems[1].as_ref())?),
-        };
-        Ok(res)
-    }
-}
-
-impl_from_for_action!(UserAction, User);
+impl_trivial_action!(UserAction, User);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::IntoStaticStr, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -281,14 +239,7 @@ mod test {
         test_to_and_from_string(Action::Loan(LoanAction::List), "loan:list")?;
 
         // UserAction
-        test_to_and_from_string(
-            Action::User(UserAction::AssignRole(Role::Admin)),
-            "user:assign-role:admin",
-        )?;
-        test_to_and_from_string(
-            Action::User(UserAction::AssignRole(Role::BankManager)),
-            "user:assign-role:bank-manager",
-        )?;
+        test_to_and_from_string(Action::User(UserAction::AssignRole), "user:assign-role")?;
         test_to_and_from_string(Action::User(UserAction::Read), "user:read")?;
         Ok(())
     }

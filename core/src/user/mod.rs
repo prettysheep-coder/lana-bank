@@ -146,7 +146,7 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::AssignRole(role))
+            .check_permission(sub, Object::User, UserAction::AssignRole)
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
@@ -166,7 +166,7 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_role = self
             .authz
-            .check_permission(sub, Object::User, UserAction::RevokeRole(role))
+            .check_permission(sub, Object::User, UserAction::RevokeRole)
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
