@@ -159,7 +159,6 @@ impl Customers {
         self.authz
             .check_permission(
                 sub,
-                // FIXME: should this be attached to the actual id?
                 Object::Customer(CustomerRef::All),
                 CustomerAction::Read,
             )

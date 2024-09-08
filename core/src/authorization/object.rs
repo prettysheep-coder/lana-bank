@@ -2,6 +2,8 @@ use std::{fmt::Display, str::FromStr};
 
 use crate::primitives::{CustomerId, LoanId};
 
+use super::error::AuthorizationError;
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -35,34 +37,36 @@ impl Display for Object {
 }
 
 impl FromStr for Object {
-    type Err = String;
+    type Err = AuthorizationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "applicant" => Ok(Object::Applicant),
             s if s.starts_with("loan:") => {
-                let loan_ref = s
-                    .trim_start_matches("loan:")
-                    .parse()
-                    // FIXME better error
-                    .map_err(|e| format!("Invalid LoanRef: {}", e))?;
+                let loan_ref = s.trim_start_matches("loan:").parse().map_err(|_| {
+                    AuthorizationError::ObjectParseError {
+                        value: s.to_string(),
+                    }
+                })?;
                 Ok(Object::Loan(loan_ref))
             }
             "term" => Ok(Object::Term),
             "user" => Ok(Object::User),
             s if s.starts_with("customer:") => {
-                let customer_ref = s
-                    .trim_start_matches("customer:")
-                    .parse()
-                    // FIXME better error
-                    .map_err(|e| format!("Invalid CustomerRef: {}", e))?;
+                let customer_ref = s.trim_start_matches("customer:").parse().map_err(|_| {
+                    AuthorizationError::ObjectParseError {
+                        value: s.to_string(),
+                    }
+                })?;
                 Ok(Object::Customer(customer_ref))
             }
             "deposit" => Ok(Object::Deposit),
             "withdraw" => Ok(Object::Withdraw),
             "audit" => Ok(Object::Audit),
             "ledger" => Ok(Object::Ledger),
-            _ => Err(format!("Invalid Object: {}", s)),
+            _ => Err(AuthorizationError::ObjectParseError {
+                value: format!("Invalid Object: {}", s),
+            }),
         }
     }
 }
@@ -72,9 +76,6 @@ pub enum Ref<T> {
     All,
     ById(T),
 }
-
-pub type LoanRef = Ref<LoanId>;
-pub type CustomerRef = Ref<CustomerId>;
 
 impl<T> FromStr for Ref<T>
 where
@@ -105,3 +106,6 @@ where
         }
     }
 }
+
+pub type LoanRef = Ref<LoanId>;
+pub type CustomerRef = Ref<CustomerId>;
