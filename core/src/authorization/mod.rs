@@ -120,21 +120,29 @@ impl Authorization {
     async fn add_permissions_for_bank_manager(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::BankManager;
 
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::Read)
+        self.add_permission_to_role(
+            &role,
+            Object::Customer(CustomerRef::All),
+            LoanAction::Create,
+        )
+        .await?;
+        self.add_permission_to_role(&role, Object::Loan(LoanRef::All), LoanAction::Read)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::List)
+        self.add_permission_to_role(&role, Object::Loan(LoanRef::All), LoanAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::Create)
+        self.add_permission_to_role(&role, Object::Loan(LoanRef::All), LoanAction::Approve)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::Approve)
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::RecordPayment)
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, LoanAction::UpdateCollateral)
+        self.add_permission_to_role(&role, Object::Loan(LoanRef::All), LoanAction::RecordPayment)
             .await?;
         self.add_permission_to_role(
             &role,
-            Object::Loan,
+            Object::Loan(LoanRef::All),
+            LoanAction::UpdateCollateral,
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Loan(LoanRef::All),
             LoanAction::UpdateCollateralizationState,
         )
         .await?;
@@ -142,14 +150,30 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Read)
             .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Create)
-            .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::List)
-            .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Read)
-            .await?;
-        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Update)
-            .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer(CustomerRef::All),
+            CustomerAction::Create,
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer(CustomerRef::All),
+            CustomerAction::List,
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer(CustomerRef::All),
+            CustomerAction::Read,
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer(CustomerRef::All),
+            CustomerAction::Update,
+        )
+        .await?;
         self.add_permission_to_role(&role, Object::Deposit, DepositAction::Record)
             .await?;
         self.add_permission_to_role(&role, Object::Deposit, DepositAction::Read)
@@ -295,7 +319,7 @@ impl Authorization {
             loan: self
                 .check_all_permissions(
                     sub,
-                    Object::Loan,
+                    Object::Loan(LoanRef::All),
                     &[
                         Action::Loan(LoanAction::Read),
                         Action::Loan(LoanAction::List),
@@ -318,7 +342,7 @@ impl Authorization {
             customer: self
                 .check_all_permissions(
                     sub,
-                    Object::Customer,
+                    Object::Customer(CustomerRef::All),
                     &[
                         Action::Customer(CustomerAction::Read),
                         Action::Customer(CustomerAction::List),
