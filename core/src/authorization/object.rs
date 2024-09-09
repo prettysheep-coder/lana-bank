@@ -40,34 +40,43 @@ impl FromStr for Object {
     type Err = AuthorizationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "applicant" => Ok(Object::Applicant),
-            s if s.starts_with("loan:") => {
-                let loan_ref = s.trim_start_matches("loan:").parse().map_err(|_| {
-                    AuthorizationError::ObjectParseError {
+        let mut elems = s.split(':');
+        let entity = elems.next().expect("missing first element");
+        use ObjectDiscriminants::*;
+        let res = match entity.parse()? {
+            Applicant => Object::Applicant,
+            Loan => {
+                let loan_ref = elems
+                    .next()
+                    .ok_or(AuthorizationError::ObjectParseError {
                         value: s.to_string(),
-                    }
-                })?;
-                Ok(Object::Loan(loan_ref))
-            }
-            "term" => Ok(Object::Term),
-            "user" => Ok(Object::User),
-            s if s.starts_with("customer:") => {
-                let customer_ref = s.trim_start_matches("customer:").parse().map_err(|_| {
-                    AuthorizationError::ObjectParseError {
+                    })?
+                    .parse()
+                    .map_err(|_| AuthorizationError::ObjectParseError {
                         value: s.to_string(),
-                    }
-                })?;
-                Ok(Object::Customer(customer_ref))
+                    })?;
+                Object::Loan(loan_ref)
             }
-            "deposit" => Ok(Object::Deposit),
-            "withdraw" => Ok(Object::Withdraw),
-            "audit" => Ok(Object::Audit),
-            "ledger" => Ok(Object::Ledger),
-            _ => Err(AuthorizationError::ObjectParseError {
-                value: format!("Invalid Object: {}", s),
-            }),
-        }
+            Term => Object::Term,
+            User => Object::User,
+            Customer => {
+                let customer_ref = elems
+                    .next()
+                    .ok_or(AuthorizationError::ObjectParseError {
+                        value: s.to_string(),
+                    })?
+                    .parse()
+                    .map_err(|_| AuthorizationError::ObjectParseError {
+                        value: s.to_string(),
+                    })?;
+                Object::Customer(customer_ref)
+            }
+            Deposit => Object::Deposit,
+            Withdraw => Object::Withdraw,
+            Audit => Object::Audit,
+            Ledger => Object::Ledger,
+        };
+        Ok(res)
     }
 }
 
