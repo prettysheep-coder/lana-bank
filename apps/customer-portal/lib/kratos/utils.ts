@@ -45,16 +45,6 @@ export const emailParserFromUiNodeRegister = (nodes: UiNode[]): string | null =>
   })
   return email
 }
-export const telegramIdParserFromUiNodeRegister = (nodes: UiNode[]): string | null => {
-  let telegramId = null
-  nodes.forEach((node) => {
-    const attributes = node.attributes as { name?: string; value?: string }
-    if (attributes.name === "traits.telegram_id") {
-      telegramId = attributes.value
-    }
-  })
-  return telegramId
-}
 
 export const emailParserFromUiNodeLogin = (nodes: UiNode[]): string | null => {
   let email = null
@@ -80,13 +70,4 @@ export const getCsrfCookiesAsString = (allCookies: RequestCookie[]): string => {
     .join("; ")
 
   return cookieString
-}
-
-export const generateRandomId = () => {
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  let result = ""
-  for (let i = 0; i < 8; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length))
-  }
-  return result
 }

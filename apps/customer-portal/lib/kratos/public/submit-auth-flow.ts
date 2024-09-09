@@ -8,7 +8,6 @@ import {
   emailParserFromUiNodeLogin,
   emailParserFromUiNodeRegister,
   getCsrfToken,
-  telegramIdParserFromUiNodeRegister,
 } from "@/lib/kratos/utils"
 
 type SubmitAuthData = {
@@ -30,7 +29,6 @@ export const submitAuthFlow = async ({ flowId, otp, type }: SubmitAuthData) => {
         code: otp,
         traits: {
           email: emailParserFromUiNodeRegister(flow.data.ui.nodes),
-          telegram_id: telegramIdParserFromUiNodeRegister(flow.data.ui.nodes),
         },
         csrf_token,
       },

@@ -95,7 +95,6 @@ impl Customers {
         &self,
         id: CustomerId,
         email: String,
-        telegram_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut db = self.pool.begin().await?;
 
@@ -114,7 +113,6 @@ impl Customers {
         let new_customer = NewCustomer::builder()
             .id(id)
             .email(email)
-            .telegram_id(telegram_id)
             .account_ids(ledger_account_ids)
             .audit_info(*audit_info)
             .build()
