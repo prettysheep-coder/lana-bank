@@ -23,7 +23,7 @@ SELECT
   , 'PD' AS `cod_activo` -- Anexo B, Tabla 2: Préstamos
   , loan_id AS `num_referencia`
   , principal AS `monto_referencia` -- Original loan amount
-  , principal + total_interest_incurred - total_paid AS `saldo_referencia` -- Remaining balance
+  , principal + total_interest_incurred - total_interest_paid - total_principal_paid AS `saldo_referencia` -- Remaining balance
   , CAST(NULL AS NUMERIC) AS `saldo_vigente_k`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_k`
   , CAST(NULL AS NUMERIC) AS `saldo_vigente_i`

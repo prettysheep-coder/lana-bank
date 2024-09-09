@@ -2,7 +2,12 @@ config {
 	type: "table",
 	assertions: {
 		uniqueKey: ["loan_id"],
-		nonNull: ["loan_id", "principal"],
+		nonNull: ["loan_id"
+			, "principal"
+			, "total_interest_paid"
+			, "total_principal_paid"
+			, "payment_interval"
+		],
 	},
 }
 
@@ -21,11 +26,11 @@ WITH approved AS (
 
 	SELECT DISTINCT id AS loan_id
 		, CAST(JSON_VALUE(event, "$.principal") AS NUMERIC) AS principal
-		, TIMESTAMP(SUBSTR(JSON_VALUE(event, "$.start_date"), 1, 26)) AS start_timestamp
+		, recorded_at AS start_timestamp
 		, CASE
 			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
 			THEN TIMESTAMP_ADD(
-				DATE(TIMESTAMP(SUBSTR(JSON_VALUE(event, "$.start_date"), 1, 26))),
+				DATE(recorded_at),
 				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
 			)
 		END AS end_date
@@ -41,7 +46,8 @@ WITH approved AS (
 ), payments AS (
 
 	SELECT id AS loan_id
-		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_paid
+		, SUM(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC)) AS total_interest_paid
+		, SUM(CAST(JSON_VALUE(event, "$.principal_amount") AS NUMERIC)) AS total_principal_paid
 		, MAX(recorded_at) AS most_recent_payment_timestamp
 
 	FROM ${ref({
@@ -75,7 +81,8 @@ SELECT loan_id
 	, payment_interval
 	, most_recent_payment_timestamp
 	, COALESCE(principal, 0) AS principal
-	, COALESCE(total_paid, 0) AS total_paid
+	, COALESCE(total_interest_paid, 0) AS total_interest_paid
+	, COALESCE(total_principal_paid, 0) AS total_principal_paid
 	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
 
 FROM approved
