@@ -3,7 +3,7 @@ import { AxiosError } from "axios"
 import { InvalidFlowError, UserNotExistError } from "../error"
 
 import { kratosPublic } from "@/lib/kratos/sdk"
-import { getCsrfToken, kratosUiMessageIds } from "@/lib/kratos/utils"
+import { generateRandomId, getCsrfToken, kratosUiMessageIds } from "@/lib/kratos/utils"
 
 import { OtpParams } from "@/components/auth/otp-form"
 
@@ -58,7 +58,8 @@ const createRegisterFlow = async ({ email }: IdentityTraits): Promise<OtpParams>
         method: "code",
         traits: {
           email,
-          telegram_id: "telegramId",
+          // TODO: This is a temporary solution to get the telegramId from the form, it should be changed.
+          telegram_id: generateRandomId(),
         },
         csrf_token,
       },

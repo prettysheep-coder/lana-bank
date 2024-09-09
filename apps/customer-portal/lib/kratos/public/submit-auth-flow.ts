@@ -8,6 +8,7 @@ import {
   emailParserFromUiNodeLogin,
   emailParserFromUiNodeRegister,
   getCsrfToken,
+  telegramIdParserFromUiNodeRegister,
 } from "@/lib/kratos/utils"
 
 type SubmitAuthData = {
@@ -30,7 +31,7 @@ export const submitAuthFlow = async ({ flowId, otp, type }: SubmitAuthData) => {
         traits: {
           email: emailParserFromUiNodeRegister(flow.data.ui.nodes),
           // TODO: This is a temporary solution to get the telegramId from the form, it should be changed.
-          telegram_id: "telegramId",
+          telegram_id: telegramIdParserFromUiNodeRegister(flow.data.ui.nodes),
         },
         csrf_token,
       },

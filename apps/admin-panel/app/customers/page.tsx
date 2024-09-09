@@ -34,6 +34,7 @@ gql`
     customer(id: $id) {
       customerId
       email
+      telegramId
       status
       level
       applicantId
