@@ -17,6 +17,7 @@ gql`
     customerByEmail(email: $email) {
       customerId
       email
+      telegramId
       status
       level
       applicantId

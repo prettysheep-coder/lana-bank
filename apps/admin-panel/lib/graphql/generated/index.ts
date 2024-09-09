@@ -216,6 +216,7 @@ export type Customer = {
   level: KycLevel;
   loans: Array<Loan>;
   status: AccountStatus;
+  telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
   withdrawals: Array<Withdrawal>;
 };
@@ -237,6 +238,7 @@ export type CustomerConnection = {
 
 export type CustomerCreateInput = {
   email: Scalars['String']['input'];
+  telegramId: Scalars['String']['input'];
 };
 
 export type CustomerCreatePayload = {
@@ -1013,7 +1015,7 @@ export type GetCustomerByCustomerEmailQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type GetCustomerByCustomerIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1250,7 +1252,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export const BtcBalancesFragmentDoc = gql`
     fragment btcBalances on LayeredBtcAccountAmounts {
@@ -1919,6 +1921,7 @@ export const GetCustomerByCustomerEmailDocument = gql`
   customerByEmail(email: $email) {
     customerId
     email
+    telegramId
     status
     level
     applicantId
@@ -3497,6 +3500,7 @@ export const CustomersDocument = gql`
     nodes {
       customerId
       email
+      telegramId
       balance {
         checking {
           settled
