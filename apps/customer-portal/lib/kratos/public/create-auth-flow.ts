@@ -58,6 +58,7 @@ const createRegisterFlow = async ({ email }: IdentityTraits): Promise<OtpParams>
         method: "code",
         traits: {
           email,
+          telegram_id: "telegramId",
         },
         csrf_token,
       },
