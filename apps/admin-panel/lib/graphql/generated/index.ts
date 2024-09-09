@@ -980,7 +980,7 @@ export type GetCustomerDetailsByCustomerIdQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerDetailsByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, loans: Array<{ __typename?: 'Loan', loanId: string }>, deposits: Array<{ __typename?: 'Deposit', depositId: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', withdrawalId: string }>, transactions: Array<{ __typename?: 'Deposit', depositId: string } | { __typename?: 'Withdrawal', withdrawalId: string }> } | null };
+export type GetCustomerDetailsByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, loans: Array<{ __typename?: 'Loan', loanId: string }>, deposits: Array<{ __typename?: 'Deposit', depositId: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', withdrawalId: string }>, transactions: Array<{ __typename?: 'Deposit', depositId: string } | { __typename?: 'Withdrawal', withdrawalId: string }> } | null };
 
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1683,6 +1683,7 @@ export const GetCustomerDetailsByCustomerIdDocument = gql`
   customer(id: $id) {
     customerId
     email
+    telegramId
     loans {
       loanId
     }
