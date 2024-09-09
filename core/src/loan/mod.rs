@@ -2,6 +2,7 @@ mod config;
 mod entity;
 pub mod error;
 mod jobs;
+mod projection;
 mod repo;
 mod terms;
 
@@ -28,6 +29,7 @@ pub use config::*;
 pub use entity::*;
 use error::*;
 use jobs::*;
+pub use projection::*;
 use repo::*;
 pub use terms::*;
 

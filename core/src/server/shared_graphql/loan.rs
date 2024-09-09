@@ -174,7 +174,12 @@ impl From<crate::loan::Loan> for Loan {
 
         let collateral = loan.collateral();
         let principal = loan.initial_principal();
-        let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
+        let transactions = loan
+            .projection()
+            .history()
+            .into_iter()
+            .map(LoanHistory::from)
+            .collect();
         let collateralization_state = loan.collateralization();
         let approvals = loan
             .approvals()
