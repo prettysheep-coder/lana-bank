@@ -34,6 +34,7 @@ WITH approved AS (
 				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
 			)
 		END AS end_date
+		, JSON_VALUE(event, "$.terms.annual_rate") AS annual_rate
 		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
 
 	FROM ${ref({
@@ -48,7 +49,8 @@ WITH approved AS (
 	SELECT id AS loan_id
 		, SUM(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC)) AS total_interest_paid
 		, SUM(CAST(JSON_VALUE(event, "$.principal_amount") AS NUMERIC)) AS total_principal_paid
-		, MAX(recorded_at) AS most_recent_payment_timestamp
+		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_interest_payment_timestamp
+		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.principal_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_principal_payment_timestamp
 
 	FROM ${ref({
 		name: "loan_events",
@@ -79,7 +81,9 @@ SELECT loan_id
 	, start_timestamp
 	, end_date
 	, payment_interval
-	, most_recent_payment_timestamp
+	, most_recent_interest_payment_timestamp
+	, most_recent_principal_payment_timestamp
+	, annual_rate
 	, COALESCE(principal, 0) AS principal
 	, COALESCE(total_interest_paid, 0) AS total_interest_paid
 	, COALESCE(total_principal_paid, 0) AS total_principal_paid
