@@ -23,15 +23,17 @@ impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use Object::*;
         match self {
-            Applicant => write!(f, "applicant"),
-            Loan(loan_ref) => write!(f, "loan:{}", loan_ref),
-            Term => write!(f, "term"),
-            User => write!(f, "user"),
-            Customer(customer_ref) => write!(f, "customer:{}", customer_ref),
-            Deposit => write!(f, "deposit"),
-            Withdraw => write!(f, "withdraw"),
-            Audit => write!(f, "audit"),
-            Ledger => write!(f, "ledger"),
+            Applicant => write!(f, "{}", ObjectDiscriminants::Applicant),
+            Loan(loan_ref) => write!(f, "{}:{}", ObjectDiscriminants::Loan, loan_ref),
+            Term => write!(f, "{}", ObjectDiscriminants::Term),
+            User => write!(f, "{}", ObjectDiscriminants::User),
+            Customer(customer_ref) => {
+                write!(f, "{}:{}", ObjectDiscriminants::Customer, customer_ref)
+            }
+            Deposit => write!(f, "{}", ObjectDiscriminants::Deposit),
+            Withdraw => write!(f, "{}", ObjectDiscriminants::Withdraw),
+            Audit => write!(f, "{}", ObjectDiscriminants::Audit),
+            Ledger => write!(f, "{}", ObjectDiscriminants::Ledger),
         }
     }
 }
