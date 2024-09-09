@@ -16,6 +16,7 @@ pub struct CustomerCallbackPayload {
     flow_type: String,
     identity_id: String,
     schema_id: String,
+    telegram_id: String,
     transient_payload: serde_json::Value,
 }
 
@@ -27,6 +28,7 @@ pub async fn customer_callback(
     println!("Received auth callback with payload: {:?}", payload);
 
     let email = payload.email;
+    let telegram_id = payload.telegram_id;
     let id = match payload.identity_id.parse() {
         Ok(id) => id,
         Err(error) => {
@@ -37,7 +39,7 @@ pub async fn customer_callback(
 
     match app
         .customers()
-        .create_customer_through_kratos(id, email)
+        .create_customer_through_kratos(id, email, telegram_id)
         .await
     {
         Ok(user) => axum::Json(serde_json::json!( {

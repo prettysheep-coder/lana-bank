@@ -29,6 +29,10 @@
               "via": "email"
             }
           }
+        },
+        "telegram_id": {
+          "type": "string",
+          "title": "Telegram ID"
         }
       },
       "required": ["email"],
