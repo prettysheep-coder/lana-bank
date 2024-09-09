@@ -10,7 +10,7 @@ use tracing::instrument;
 
 use crate::{
     audit::Audit,
-    authorization::{Action, Authorization, CustomerAction, CustomerRef, Object},
+    authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
@@ -69,7 +69,7 @@ impl Customers {
             .authz
             .check_permission(
                 sub,
-                Object::Customer(CustomerRef::All),
+                Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::Create,
             )
             .await?;
@@ -107,7 +107,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db,
                 &Subject::System(crate::primitives::SystemNode::Kratos),
-                Object::Customer(CustomerRef::All),
+                Object::Customer(CustomerAllOrOne::All),
                 Action::Customer(CustomerAction::Create),
                 true,
             )
@@ -139,7 +139,7 @@ impl Customers {
             self.authz
                 .check_permission(
                     sub,
-                    Object::Customer(CustomerRef::ById(id)),
+                    Object::Customer(CustomerAllOrOne::ById(id)),
                     CustomerAction::Read,
                 )
                 .await?;
@@ -159,7 +159,7 @@ impl Customers {
         self.authz
             .check_permission(
                 sub,
-                Object::Customer(CustomerRef::All),
+                Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::Read,
             )
             .await?;
@@ -191,7 +191,7 @@ impl Customers {
         self.authz
             .check_permission(
                 sub,
-                Object::Customer(CustomerRef::All),
+                Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::List,
             )
             .await?;
@@ -212,7 +212,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
-                Object::Customer(CustomerRef::ById(customer_id)),
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
                 true,
             )
@@ -240,7 +240,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
-                Object::Customer(CustomerRef::ById(customer_id)),
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
                 true,
             )
@@ -268,7 +268,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
-                Object::Customer(CustomerRef::ById(customer_id)),
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),
                 true,
             )
@@ -297,7 +297,11 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Customer, CustomerAction::Update)
+            .check_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                CustomerAction::Update,
+            )
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;

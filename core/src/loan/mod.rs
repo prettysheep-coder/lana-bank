@@ -13,7 +13,9 @@ use tracing::instrument;
 
 use crate::{
     audit::Audit,
-    authorization::{Authorization, CustomerRef, LoanAction, LoanRef, Object, TermAction},
+    authorization::{
+        Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object, TermAction,
+    },
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -137,7 +139,7 @@ impl Loans {
             .authz
             .check_permission(
                 sub,
-                Object::Customer(CustomerRef::ById(customer_id)),
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 LoanAction::Create,
             )
             .await?;
@@ -182,7 +184,7 @@ impl Loans {
             .authz
             .check_permission(
                 sub,
-                Object::Loan(LoanRef::ById(loan_id)),
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
                 LoanAction::Approve,
             )
             .await?;
@@ -226,7 +228,7 @@ impl Loans {
             .authz
             .check_permission(
                 sub,
-                Object::Loan(LoanRef::ById(loan_id)),
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
                 LoanAction::UpdateCollateral,
             )
             .await?;
@@ -265,7 +267,7 @@ impl Loans {
             .authz
             .check_permission(
                 sub,
-                Object::Loan(LoanRef::ById(loan_id)),
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
                 LoanAction::UpdateCollateralizationState,
             )
             .await?;
@@ -300,7 +302,7 @@ impl Loans {
             .authz
             .check_permission(
                 sub,
-                Object::Loan(LoanRef::ById(loan_id)),
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
                 LoanAction::RecordPayment,
             )
             .await?;
@@ -350,7 +352,7 @@ impl Loans {
     ) -> Result<Option<Loan>, LoanError> {
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Loan(LoanRef::ById(id)), LoanAction::Read)
+                .check_permission(sub, Object::Loan(LoanAllOrOne::ById(id)), LoanAction::Read)
                 .await?;
         }
 
@@ -371,7 +373,7 @@ impl Loans {
             self.authz
                 .check_permission(
                     sub,
-                    Object::Customer(CustomerRef::ById(customer_id)),
+                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
                     LoanAction::List,
                 )
                 .await?;
@@ -398,7 +400,7 @@ impl Loans {
         query: crate::query::PaginatedQueryArgs<LoanByCreatedAtCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCreatedAtCursor>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan(LoanRef::All), LoanAction::List)
+            .check_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
         self.loan_repo.list(query).await
     }
@@ -411,7 +413,7 @@ impl Loans {
     ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCollateralizationRatioCursor>, LoanError>
     {
         self.authz
-            .check_permission(sub, Object::Loan(LoanRef::All), LoanAction::List)
+            .check_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
         self.loan_repo.list_by_collateralization_ratio(query).await
     }

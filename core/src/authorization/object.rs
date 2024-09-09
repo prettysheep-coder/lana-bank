@@ -9,10 +9,10 @@ use super::error::AuthorizationError;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum Object {
     Applicant,
-    Loan(LoanRef),
+    Loan(LoanAllOrOne),
     Term,
     User,
-    Customer(CustomerRef),
+    Customer(CustomerAllOrOne),
     Deposit,
     Withdraw,
     Audit,
@@ -83,12 +83,12 @@ impl FromStr for Object {
 }
 
 #[derive(PartialEq, Clone, Copy, Debug)]
-pub enum Ref<T> {
+pub enum AllOrOne<T> {
     All,
     ById(T),
 }
 
-impl<T> FromStr for Ref<T>
+impl<T> FromStr for AllOrOne<T>
 where
     T: FromStr,
     T::Err: std::fmt::Display,
@@ -97,26 +97,26 @@ where
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "*" => Ok(Ref::All),
+            "*" => Ok(AllOrOne::All),
             _ => {
                 let id = T::from_str(s).map_err(|e| format!("Invalid ID: {}", e))?;
-                Ok(Ref::ById(id))
+                Ok(AllOrOne::ById(id))
             }
         }
     }
 }
 
-impl<T> Display for Ref<T>
+impl<T> Display for AllOrOne<T>
 where
     T: Display,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Ref::All => write!(f, "*"),
-            Ref::ById(id) => write!(f, "{}", id),
+            AllOrOne::All => write!(f, "*"),
+            AllOrOne::ById(id) => write!(f, "{}", id),
         }
     }
 }
 
-pub type LoanRef = Ref<LoanId>;
-pub type CustomerRef = Ref<CustomerId>;
+pub type LoanAllOrOne = AllOrOne<LoanId>;
+pub type CustomerAllOrOne = AllOrOne<CustomerId>;
