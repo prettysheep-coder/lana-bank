@@ -5,7 +5,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       getOTP(email: string): Chainable<string>
-      registerUser(email: string): Chainable<string>
+      registerUser(email: string, telegramId: string): Chainable<string>
       loginUser(email: string): Chainable<string>
       setupTotp(sessionToken: string): Chainable<string>
     }
@@ -28,7 +28,7 @@ Cypress.Commands.add("getOTP", (email) => {
   })
 })
 
-Cypress.Commands.add("registerUser", (email) => {
+Cypress.Commands.add("registerUser", (email, telegramId) => {
   cy.request("GET", "/self-service/registration/api").then((response) => {
     const flowId = response.body.id
     const registrationUrl = `http://localhost:4433/self-service/registration?flow=${flowId}`
@@ -39,6 +39,7 @@ Cypress.Commands.add("registerUser", (email) => {
         method: "code",
         traits: {
           email: email,
+          telegram_id: telegramId,
         },
       },
       failOnStatusCode: false,
@@ -57,6 +58,7 @@ Cypress.Commands.add("registerUser", (email) => {
               code: otpCode,
               traits: {
                 email: email,
+                telegram_id: telegramId,
               },
             },
           }).then((finalResponse) => {

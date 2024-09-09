@@ -3,7 +3,8 @@ import { generateRandomEmail } from "../../support/utils"
 describe("Login and OTP Submission", () => {
   it("successfully logs in using email and submits OTP", () => {
     const email = generateRandomEmail()
-    cy.registerUser(email).then(() => {
+    const telegram_id = generateRandomEmail()
+    cy.registerUser(email, telegram_id).then(() => {
       cy.visit("/auth")
       cy.get('[data-test-id="auth-email-input"]').type(email)
       cy.get('[data-test-id="auth-email-submit-btn"]').click()
@@ -15,7 +16,8 @@ describe("Login and OTP Submission", () => {
   })
   it("fail login for incorrect OTP", () => {
     const email = generateRandomEmail()
-    cy.registerUser(email).then(() => {
+    const telegram_id = generateRandomEmail()
+    cy.registerUser(email, telegram_id).then(() => {
       cy.visit("/auth")
       cy.get('[data-test-id="auth-email-input"]').type(email)
       cy.get('[data-test-id="auth-email-submit-btn"]').click()

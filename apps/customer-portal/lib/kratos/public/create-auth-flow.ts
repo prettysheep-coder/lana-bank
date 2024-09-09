@@ -58,7 +58,7 @@ const createRegisterFlow = async ({ email }: IdentityTraits): Promise<OtpParams>
         method: "code",
         traits: {
           email,
-          // TODO: This is a temporary solution to get the telegramId from the form, it should be changed.
+          // TODO: This is a temporary solution to get the telegramId, it should be changed.
           telegram_id: generateRandomId(),
         },
         csrf_token,

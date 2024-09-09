@@ -5,7 +5,8 @@ import { addVirtualAuthenticator, generateRandomEmail } from "../../support/util
 describe("Login with two factor", () => {
   it("successful login for TOTP", () => {
     const email = generateRandomEmail()
-    cy.registerUser(email).then((sessionToken) => {
+    const telegramId = generateRandomEmail()
+    cy.registerUser(email, telegramId).then((sessionToken) => {
       cy.setupTotp(sessionToken).then((totpSecretKey) => {
         cy.visit("/auth")
         cy.get('[data-test-id="auth-email-input"]').type(email)
@@ -24,7 +25,8 @@ describe("Login with two factor", () => {
 
   it("fail login for incorrect TOTP", () => {
     const email = generateRandomEmail()
-    cy.registerUser(email).then((sessionToken) => {
+    const telegramId = generateRandomEmail()
+    cy.registerUser(email, telegramId).then((sessionToken) => {
       cy.setupTotp(sessionToken).then(() => {
         cy.visit("/auth")
         cy.get('[data-test-id="auth-email-input"]').type(email)
@@ -46,9 +48,10 @@ describe("Login with two factor", () => {
   it("Setup and Login webauthn", () => {
     //TODO this test is flaky need improvements.
     const email = generateRandomEmail()
+    const telegramId = generateRandomEmail()
     const passkeyName = "test-passkey"
 
-    cy.registerUser(email).then(() => {
+    cy.registerUser(email, telegramId).then(() => {
       addVirtualAuthenticator()
 
       cy.visit("/auth")
