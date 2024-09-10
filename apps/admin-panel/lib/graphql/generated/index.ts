@@ -213,6 +213,8 @@ export type Customer = {
   customerId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
   email: Scalars['String']['output'];
+  firstName?: Maybe<Scalars['String']['output']>;
+  lastName?: Maybe<Scalars['String']['output']>;
   level: KycLevel;
   loans: Array<Loan>;
   status: AccountStatus;
@@ -1019,7 +1021,7 @@ export type GetCustomerDetailsByCustomerIdQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerDetailsByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, loans: Array<{ __typename?: 'Loan', loanId: string }>, deposits: Array<{ __typename?: 'Deposit', depositId: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', withdrawalId: string }>, transactions: Array<{ __typename?: 'Deposit', depositId: string } | { __typename?: 'Withdrawal', withdrawalId: string }> } | null };
+export type GetCustomerDetailsByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, firstName?: string | null, lastName?: string | null, loans: Array<{ __typename?: 'Loan', loanId: string }>, deposits: Array<{ __typename?: 'Deposit', depositId: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', withdrawalId: string }>, transactions: Array<{ __typename?: 'Deposit', depositId: string } | { __typename?: 'Withdrawal', withdrawalId: string }> } | null };
 
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1298,7 +1300,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, firstName?: string | null, lastName?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export const BtcBalancesFragmentDoc = gql`
     fragment btcBalances on LayeredBtcAccountAmounts {
@@ -1730,6 +1732,8 @@ export const GetCustomerDetailsByCustomerIdDocument = gql`
     customerId
     email
     telegramId
+    firstName
+    lastName
     loans {
       loanId
     }
@@ -3596,6 +3600,8 @@ export const CustomersDocument = gql`
       customerId
       email
       telegramId
+      firstName
+      lastName
       balance {
         checking {
           settled

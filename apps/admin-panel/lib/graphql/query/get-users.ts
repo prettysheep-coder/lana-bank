@@ -7,6 +7,8 @@ gql`
         customerId
         email
         telegramId
+        firstName
+        lastName
         balance {
           checking {
             settled

@@ -229,7 +229,34 @@ impl Customers {
             .await?;
 
         customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
+        self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
+        db_tx.commit().await?;
 
+        Ok(customer)
+    }
+
+    pub async fn update_name(
+        &self,
+        customer_id: CustomerId,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    ) -> Result<Customer, CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+
+        let mut db_tx = self.pool.begin().await?;
+
+        let audit_info = self
+            .audit
+            .record_entry_in_tx(
+                &mut db_tx,
+                &Subject::System(crate::primitives::SystemNode::Sumsub),
+                Object::Customer,
+                Action::Customer(CustomerAction::Update),
+                true,
+            )
+            .await?;
+
+        customer.update_name(first_name, last_name, audit_info);
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
 

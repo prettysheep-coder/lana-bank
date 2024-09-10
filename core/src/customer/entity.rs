@@ -30,6 +30,11 @@ pub enum CustomerEvent {
         telegram_id: String,
         audit_info: AuditInfo,
     },
+    NameUpdated {
+        first_name: Option<String>,
+        last_name: Option<String>,
+        audit_info: AuditInfo,
+    },
 }
 
 impl CustomerEvent {
@@ -40,6 +45,7 @@ impl CustomerEvent {
             CustomerEvent::KycApproved { audit_info, .. } => *audit_info,
             CustomerEvent::KycDeclined { audit_info, .. } => *audit_info,
             CustomerEvent::TelegramIdUpdated { audit_info, .. } => *audit_info,
+            CustomerEvent::NameUpdated { audit_info, .. } => *audit_info,
         }
     }
 }
@@ -62,6 +68,10 @@ pub struct Customer {
     pub level: KycLevel,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
+    #[builder(setter(into), default)]
+    pub first_name: Option<String>,
+    #[builder(setter(into), default)]
+    pub last_name: Option<String>,
     pub(super) events: EntityEvents<CustomerEvent>,
 }
 
@@ -120,6 +130,20 @@ impl Customer {
         });
         self.telegram_id = new_telegram_id;
     }
+    pub fn update_name(
+        &mut self,
+        first_name: Option<String>,
+        last_name: Option<String>,
+        audit_info: AuditInfo,
+    ) {
+        self.events.push(CustomerEvent::NameUpdated {
+            first_name: first_name.clone(),
+            last_name: last_name.clone(),
+            audit_info,
+        });
+        self.first_name = first_name;
+        self.last_name = last_name;
+    }
 }
 
 impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
@@ -166,6 +190,15 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                 }
                 CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
                     builder = builder.telegram_id(telegram_id.clone());
+                }
+                CustomerEvent::NameUpdated {
+                    first_name,
+                    last_name,
+                    ..
+                } => {
+                    builder = builder
+                        .first_name(first_name.clone())
+                        .last_name(last_name.clone());
                 }
             }
         }

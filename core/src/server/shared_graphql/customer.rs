@@ -42,6 +42,8 @@ pub struct Customer {
     account_ids: ledger::customer::CustomerLedgerAccountIds,
     #[graphql(skip)]
     audit_info: Vec<primitives::AuditInfo>,
+    first_name: Option<String>,
+    last_name: Option<String>,
 }
 
 #[ComplexObject]
@@ -132,6 +134,8 @@ impl From<crate::customer::Customer> for Customer {
             account_ids: customer.account_ids,
             status: AccountStatus::from(customer.status),
             level: KycLevel::from(customer.level),
+            first_name: customer.first_name,
+            last_name: customer.last_name,
         }
     }
 }

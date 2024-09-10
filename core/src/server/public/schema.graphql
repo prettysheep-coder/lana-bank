@@ -54,6 +54,8 @@ type Customer {
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String
+	firstName: String
+	lastName: String
 	balance: CustomerBalance!
 	loans: [Loan!]!
 	deposits: [Deposit!]!

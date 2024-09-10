@@ -28,6 +28,8 @@ gql`
       customerId
       email
       telegramId
+      firstName
+      lastName
       loans {
         loanId
       }
@@ -63,6 +65,11 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
     variables: {
       id: customerId,
     },
+  })
+
+  const customerName = formatName({
+    firstName: customerDetails?.customer?.firstName,
+    lastName: customerDetails?.customer?.lastName,
   })
 
   return (
@@ -102,6 +109,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                       </div>
                     }
                   />
+                  {customerName && <DetailItem label="Name" value={customerName} />}
                 </DetailsGroup>
               </CardContent>
               <CardFooter className="flex space-x-4 justify-end">
@@ -143,4 +151,20 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
       }
     </>
   )
+}
+
+const formatName = ({
+  firstName,
+  lastName,
+}: {
+  firstName: string | null | undefined
+  lastName: string | null | undefined
+}) => {
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`
+  }
+
+  if (firstName) {
+    return firstName
+  }
 }

@@ -156,6 +156,13 @@ impl Applicants {
                 self.users
                     .approve_basic(external_user_id, applicant_id)
                     .await?;
+
+                let details = self.get_applicant_details(external_user_id).await?;
+                let first_name = details.info.first_name;
+                let last_name = details.info.last_name;
+                self.users
+                    .update_name(external_user_id, first_name, last_name)
+                    .await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 review_result:
@@ -203,6 +210,16 @@ impl Applicants {
 
         self.sumsub_client
             .create_permalink(&client, user_id, &level_name.to_string())
+            .await
+    }
+
+    async fn get_applicant_details(
+        &self,
+        external_user_id: CustomerId,
+    ) -> Result<ApplicantDetails, ApplicantError> {
+        let client = reqwest::Client::new();
+        self.sumsub_client
+            .get_applicant_details(&client, external_user_id)
             .await
     }
 }

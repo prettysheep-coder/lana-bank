@@ -45,6 +45,19 @@ pub struct PermalinkResponse {
     pub url: String,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ApplicantDetails {
+    pub info: ApplicantInfo,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ApplicantInfo {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+}
+
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
         Self {
@@ -156,6 +169,40 @@ impl SumsubClient {
             mac.update(body.as_bytes());
         }
         Ok(hex::encode(mac.finalize().into_bytes()))
+    }
+
+    pub async fn get_applicant_details(
+        &self,
+        client: &Client,
+        external_user_id: CustomerId,
+    ) -> Result<ApplicantDetails, ApplicantError> {
+        let method = "GET";
+        let url = format!(
+            "/resources/applicants/-;externalUserId={}/one",
+            external_user_id
+        );
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let signature = self.sign(method, &url, None, timestamp)?;
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Accept", HeaderValue::from_static("application/json"));
+        headers.insert("X-App-Token", HeaderValue::from_str(&self.sumsub_key)?);
+        headers.insert(
+            "X-App-Access-Ts",
+            HeaderValue::from_str(&timestamp.to_string())?,
+        );
+        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+
+        let response = client.get(&full_url).headers(headers).send().await?;
+
+        match response.json().await? {
+            SumsubResponse::Success(details) => Ok(details),
+            SumsubResponse::Error(ApiError { description, code }) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
+        }
     }
 }
 
