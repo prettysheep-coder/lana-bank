@@ -270,4 +270,29 @@ impl Customers {
     ) -> Result<HashMap<CustomerId, T>, CustomerError> {
         self.repo.find_all(ids).await
     }
+
+    pub async fn update_telegram_id(
+        &self,
+        sub: &Subject,
+        customer_id: CustomerId,
+        new_telegram_id: String,
+    ) -> Result<Customer, CustomerError> {
+        let audit_info = self
+            .authz
+            .check_permission(sub, Object::Customer, CustomerAction::Update)
+            .await?;
+
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+        let mut db = self.pool.begin().await?;
+
+        self.repo
+            .update_telegram_id(&mut db, customer_id, &new_telegram_id)
+            .await?;
+        customer.update_telegram_id(new_telegram_id, audit_info);
+        self.repo.persist_in_tx(&mut db, &mut customer).await?;
+
+        db.commit().await?;
+
+        Ok(customer)
+    }
 }

@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { gql } from "@apollo/client"
 
+import UpdateTelegramIdDialog from "./update-telegram-id"
+
 import { DetailItem, DetailsGroup } from "@/components/details"
 import {
   Card,
@@ -48,6 +50,7 @@ gql`
 export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
   const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState(false)
+  const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
 
   const {
     loading,
@@ -100,6 +103,9 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                 <Button onClick={() => setOpenWithdrawalInitiateDialog(true)}>
                   Record Withdrawal
                 </Button>
+                <Button onClick={() => setOpenUpdateTelegramIdDialog(true)}>
+                  Update Telegram Id
+                </Button>
               </CardFooter>
             </div>
           </>
@@ -119,6 +125,14 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
           setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(false)}
         />
       )}
+      {
+        <UpdateTelegramIdDialog
+          customerId={customerId}
+          openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
+          setOpenUpdateTelegramIdDialog={() => setOpenUpdateTelegramIdDialog(false)}
+          refetch={refetch}
+        />
+      }
     </>
   )
 }

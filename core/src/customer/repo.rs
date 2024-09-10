@@ -162,4 +162,20 @@ impl CustomerRepo {
 
         Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
     }
+
+    pub async fn update_telegram_id(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        customer_id: CustomerId,
+        new_telegram_id: &str,
+    ) -> Result<(), CustomerError> {
+        sqlx::query!(
+            r#"UPDATE customers SET telegram_id = $1 WHERE id = $2"#,
+            new_telegram_id,
+            customer_id as CustomerId,
+        )
+        .execute(&mut **db)
+        .await?;
+        Ok(())
+    }
 }
