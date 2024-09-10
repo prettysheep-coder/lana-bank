@@ -27,7 +27,7 @@ pub enum CustomerEvent {
         audit_info: AuditInfo,
     },
     TelegramIdUpdated {
-        new_telegram_id: String,
+        telegram_id: String,
         audit_info: AuditInfo,
     },
 }
@@ -115,7 +115,7 @@ impl Customer {
 
     pub fn update_telegram_id(&mut self, new_telegram_id: String, audit_info: AuditInfo) {
         self.events.push(CustomerEvent::TelegramIdUpdated {
-            new_telegram_id: new_telegram_id.clone(),
+            telegram_id: new_telegram_id.clone(),
             audit_info,
         });
         self.telegram_id = new_telegram_id;
@@ -164,10 +164,8 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                         .applicant_id(applicant_id.clone())
                         .status(AccountStatus::Inactive);
                 }
-                CustomerEvent::TelegramIdUpdated {
-                    new_telegram_id, ..
-                } => {
-                    builder = builder.telegram_id(new_telegram_id.clone());
+                CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
+                    builder = builder.telegram_id(telegram_id.clone());
                 }
             }
         }
