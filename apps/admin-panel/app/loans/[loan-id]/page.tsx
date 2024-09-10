@@ -7,11 +7,13 @@ import { LoanSnapshot } from "./snapshot"
 import { LoanDetailsCard } from "./details"
 import { LoanTerms } from "./terms"
 import { LoanTransactionHistory } from "./transactions"
+import { RepaymentPlan } from "./repayment-plan"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 import { PageHeading } from "@/components/page-heading"
 
 import {
+  LoanStatus,
   useGetLoanDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -87,6 +89,14 @@ gql`
       }
       currentCvl @client
       collateralToMatchInitialCvl @client
+      repaymentPlan {
+        repaymentType
+        status
+        initial
+        outstanding
+        accrualAt
+        dueAt
+      }
     }
   }
 `
@@ -127,6 +137,9 @@ const Loan = ({
               <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="terms">Terms</TabsTrigger>
+              {data.loan.status === LoanStatus.Active && (
+                <TabsTrigger value="repayment-plan">Repayment Plan</TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="overview">
               <LoanSnapshot loan={data.loan} />
@@ -141,6 +154,9 @@ const Loan = ({
             </TabsContent>
             <TabsContent value="terms">
               <LoanTerms loan={data.loan} />
+            </TabsContent>
+            <TabsContent value="repayment-plan">
+              <RepaymentPlan loan={data.loan} />
             </TabsContent>
           </Tabs>
         </>
