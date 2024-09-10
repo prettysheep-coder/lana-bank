@@ -283,12 +283,9 @@ impl Customers {
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        let mut db = self.pool.begin().await?;
-
-        self.repo
-            .update_telegram_id(&mut db, customer_id, &new_telegram_id)
-            .await?;
         customer.update_telegram_id(new_telegram_id, audit_info);
+
+        let mut db = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db, &mut customer).await?;
 
         db.commit().await?;

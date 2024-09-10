@@ -93,6 +93,13 @@ impl CustomerRepo {
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         customer: &mut Customer,
     ) -> Result<(), CustomerError> {
+        sqlx::query!(
+            r#"UPDATE customers SET telegram_id = $2 WHERE id = $1"#,
+            customer.id as CustomerId,
+            customer.telegram_id,
+        )
+        .execute(&mut **db)
+        .await?;
         let n_events = customer.events.persist(db).await?;
         self.export
             .export_last(db, BQ_TABLE_NAME, n_events, &customer.events)
@@ -161,21 +168,5 @@ impl CustomerRepo {
         let res = EntityEvents::load_n::<Customer>(rows, n)?;
 
         Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
-    }
-
-    pub async fn update_telegram_id(
-        &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        customer_id: CustomerId,
-        new_telegram_id: &str,
-    ) -> Result<(), CustomerError> {
-        sqlx::query!(
-            r#"UPDATE customers SET telegram_id = $1 WHERE id = $2"#,
-            new_telegram_id,
-            customer_id as CustomerId,
-        )
-        .execute(&mut **db)
-        .await?;
-        Ok(())
     }
 }
