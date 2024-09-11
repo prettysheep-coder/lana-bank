@@ -2,7 +2,6 @@
 extend-exclude = [
 	"CHANGELOG.md",
 	"jwks.json",
-	"definitions/staging/stg_regulatory_report_list.sqlx",
 	"definitions/staging/stg_dim_01_npb4_17_tipos_de_cartera.sqlx",
 	"definitions/staging/stg_dim_02_npb4_17_tipos_de_activos_de_riesgo.sqlx",
 	"definitions/staging/stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo.sqlx",
