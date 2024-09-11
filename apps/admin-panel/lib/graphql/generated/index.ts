@@ -437,6 +437,21 @@ export type LoanCreatePayload = {
   loan: Loan;
 };
 
+export type LoanDisbursement = {
+  __typename?: 'LoanDisbursement';
+  id: Scalars['ID']['output'];
+};
+
+export type LoanDisbursementInitiateInput = {
+  amount: Scalars['UsdCents']['input'];
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanDisbursementInitiatePayload = {
+  __typename?: 'LoanDisbursementInitiatePayload';
+  disbursement: LoanDisbursement;
+};
+
 /** An edge in a connection. */
 export type LoanEdge = {
   __typename?: 'LoanEdge';
@@ -507,6 +522,7 @@ export type Mutation = {
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
+  loanDisbursementInitiate: LoanDisbursementInitiatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
@@ -551,6 +567,11 @@ export type MutationLoanApproveArgs = {
 
 export type MutationLoanCreateArgs = {
   input: LoanCreateInput;
+};
+
+
+export type MutationLoanDisbursementInitiateArgs = {
+  input: LoanDisbursementInitiateInput;
 };
 
 
