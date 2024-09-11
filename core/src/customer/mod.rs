@@ -256,7 +256,7 @@ impl Customers {
             )
             .await?;
 
-        customer.update_name(first_name, last_name, audit_info);
+        customer.update_name(first_name, last_name, audit_info)?;
         self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
         db_tx.commit().await?;
 

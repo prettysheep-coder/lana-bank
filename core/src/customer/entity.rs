@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, ledger::customer::CustomerLedgerAccountIds, primitives::*};
 
+use super::error::CustomerError;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustomerEvent {
@@ -68,9 +70,9 @@ pub struct Customer {
     pub level: KycLevel,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
-    #[builder(setter(into), default)]
+    #[builder(setter(strip_option, into), default)]
     pub first_name: Option<String>,
-    #[builder(setter(into), default)]
+    #[builder(setter(strip_option, into), default)]
     pub last_name: Option<String>,
     pub(super) events: EntityEvents<CustomerEvent>,
 }
@@ -135,7 +137,10 @@ impl Customer {
         first_name: Option<String>,
         last_name: Option<String>,
         audit_info: AuditInfo,
-    ) {
+    ) -> Result<(), CustomerError> {
+        if first_name.is_none() && last_name.is_none() {
+            return Err(CustomerError::InvalidNameUpdate);
+        }
         self.events.push(CustomerEvent::NameUpdated {
             first_name: first_name.clone(),
             last_name: last_name.clone(),
@@ -143,6 +148,7 @@ impl Customer {
         });
         self.first_name = first_name;
         self.last_name = last_name;
+        Ok(())
     }
 }
 
@@ -196,9 +202,12 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                     last_name,
                     ..
                 } => {
-                    builder = builder
-                        .first_name(first_name.clone())
-                        .last_name(last_name.clone());
+                    if let Some(first_name) = first_name {
+                        builder = builder.first_name(first_name.clone());
+                    }
+                    if let Some(last_name) = last_name {
+                        builder = builder.last_name(last_name.clone());
+                    }
                 }
             }
         }
