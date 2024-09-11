@@ -13,9 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive
 import { PageHeading } from "@/components/page-heading"
 
 import {
+  LoanStatus,
   useGetLoanDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
+import RepaymentPlan from "./repayment-plan"
 
 gql`
   query GetLoanDetails($id: UUID!) {
@@ -95,6 +97,14 @@ gql`
       }
       currentCvl @client
       collateralToMatchInitialCvl @client
+      repaymentPlan {
+        repaymentType
+        status
+        initial
+        outstanding
+        accrualAt
+        dueAt
+      }
     }
   }
 `
@@ -122,6 +132,7 @@ const Loan = ({
   }, [priceInfo?.realtimePrice.usdCentsPerBtc, refetch])
 
   const hasApprovers = !!data?.loan?.approvals?.length
+  const isActive = data?.loan?.status === LoanStatus.Active
 
   return (
     <main className="max-w-7xl m-auto">
@@ -138,6 +149,9 @@ const Loan = ({
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="terms">Terms</TabsTrigger>
               {hasApprovers && <TabsTrigger value="approvers">Approvers</TabsTrigger>}
+              {isActive && (
+                <TabsTrigger value="repayment-plan">Repayment Plan</TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="overview">
               <LoanSnapshot loan={data.loan} />
@@ -156,6 +170,11 @@ const Loan = ({
             {hasApprovers && (
               <TabsContent value="approvers">
                 <LoanApprovers loan={data.loan} />
+              </TabsContent>
+            )}
+            {isActive && (
+              <TabsContent value="repayment-plan">
+                <RepaymentPlan loan={data.loan} />
               </TabsContent>
             )}
           </Tabs>
