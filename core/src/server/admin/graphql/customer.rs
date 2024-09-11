@@ -14,17 +14,17 @@ pub struct CustomerCreateInput {
 
 #[derive(InputObject)]
 
-pub struct CustomerUpdateTelegramIdInput {
+pub struct CustomerUpdateInput {
     pub customer_id: UUID,
     pub telegram_id: String,
 }
 
 #[derive(SimpleObject)]
-pub struct CustomerUpdateTelegramIdPayload {
+pub struct CustomerUpdatePayload {
     pub customer: Customer,
 }
 
-impl From<crate::customer::Customer> for CustomerUpdateTelegramIdPayload {
+impl From<crate::customer::Customer> for CustomerUpdatePayload {
     fn from(customer: crate::customer::Customer) -> Self {
         Self {
             customer: Customer::from(customer),

@@ -13,11 +13,11 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
-import { useUpdateTelegramIdMutation } from "@/lib/graphql/generated"
+import { useCustomerUpdateMutation } from "@/lib/graphql/generated"
 
 gql`
-  mutation UpdateTelegramId($input: CustomerUpdateTelegramIdInput!) {
-    updateTelegramId(input: $input) {
+  mutation CustomerUpdate($input: CustomerUpdateInput!) {
+    customerUpdate(input: $input) {
       customer {
         customerId
         email
@@ -43,7 +43,7 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   refetch,
 }) => {
   const [updateTelegramId, { loading, error: mutationError, reset }] =
-    useUpdateTelegramIdMutation()
+    useCustomerUpdateMutation()
   const [newTelegramId, setNewTelegramId] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 

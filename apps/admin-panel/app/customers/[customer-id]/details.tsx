@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { gql } from "@apollo/client"
 
+import { PiPencilSimpleLineLight } from "react-icons/pi"
+
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import { DetailItem, DetailsGroup } from "@/components/details"
@@ -90,6 +92,15 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                   <DetailItem
                     label="Telegram"
                     value={customerDetails.customer.telegramId}
+                    valueComponent={
+                      <div className="flex items-center gap-2">
+                        {customerDetails.customer.telegramId}
+                        <PiPencilSimpleLineLight
+                          onClick={() => setOpenUpdateTelegramIdDialog(true)}
+                          className="w-5 h-5 cursor-pointer"
+                        />
+                      </div>
+                    }
                   />
                 </DetailsGroup>
               </CardContent>
@@ -102,9 +113,6 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                 </Button>
                 <Button onClick={() => setOpenWithdrawalInitiateDialog(true)}>
                   Record Withdrawal
-                </Button>
-                <Button onClick={() => setOpenUpdateTelegramIdDialog(true)}>
-                  Update Telegram Id
                 </Button>
               </CardFooter>
             </div>

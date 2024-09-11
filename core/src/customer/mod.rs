@@ -271,7 +271,7 @@ impl Customers {
         self.repo.find_all(ids).await
     }
 
-    pub async fn update_telegram_id(
+    pub async fn update(
         &self,
         sub: &Subject,
         customer_id: CustomerId,

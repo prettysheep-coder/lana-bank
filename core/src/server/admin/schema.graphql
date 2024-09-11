@@ -235,12 +235,12 @@ type CustomerEdge {
 	cursor: String!
 }
 
-input CustomerUpdateTelegramIdInput {
+input CustomerUpdateInput {
 	customerId: UUID!
 	telegramId: String!
 }
 
-type CustomerUpdateTelegramIdPayload {
+type CustomerUpdatePayload {
 	customer: Customer!
 }
 
@@ -504,7 +504,7 @@ type Mutation {
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
-	updateTelegramId(input: CustomerUpdateTelegramIdInput!): CustomerUpdateTelegramIdPayload!
+	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
