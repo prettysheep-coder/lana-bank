@@ -8,6 +8,7 @@ import { LoanDetailsCard } from "./details"
 import { LoanTerms } from "./terms"
 import { LoanTransactionHistory } from "./transactions"
 import { LoanApprovers } from "./approvers"
+import { RepaymentPlan } from "./repayment-plan"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 import { PageHeading } from "@/components/page-heading"
@@ -17,7 +18,6 @@ import {
   useGetLoanDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
-import RepaymentPlan from "./repayment-plan"
 
 gql`
   query GetLoanDetails($id: UUID!) {

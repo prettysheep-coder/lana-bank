@@ -41,7 +41,7 @@ import Balance from "@/components/balance/balance"
 type RepaymentPlanProps = {
   loan: NonNullable<GetLoanDetailsQuery["loan"]>
 }
-const RepaymentPlan: React.FC<RepaymentPlanProps> = ({ loan }) => {
+export const RepaymentPlan: React.FC<RepaymentPlanProps> = ({ loan }) => {
   return (
     <>
       <Card className="mt-4">
@@ -95,8 +95,6 @@ const RepaymentPlan: React.FC<RepaymentPlanProps> = ({ loan }) => {
     </>
   )
 }
-
-export default RepaymentPlan
 
 const LoanAmortizationGraph: React.FC<RepaymentPlanProps> = ({
   loan: { repaymentPlan: repaymentPlanData },
