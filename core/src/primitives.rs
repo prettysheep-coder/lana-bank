@@ -39,6 +39,18 @@ impl DisbursementIdx {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct DisbursementId {
+    pub loan_id: LoanId,
+    pub idx: DisbursementIdx,
+}
+
+impl fmt::Display for DisbursementId {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}", self.loan_id, self.idx)
+    }
+}
+
 // Consider importing from cala
 #[derive(Debug)]
 pub enum LedgerAccountSetMemberType {

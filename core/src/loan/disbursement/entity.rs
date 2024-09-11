@@ -3,16 +3,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    primitives::{AuditInfo, DisbursementIdx, LoanId, UsdCents},
+    primitives::{AuditInfo, DisbursementId, DisbursementIdx, LoanId, UsdCents},
 };
 
-crate::entity_id! { DisbursementId }
+crate::entity_id! { DisbursementDbRef }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DisbursementEvent {
     Initialized {
-        id: DisbursementId,
+        id: DisbursementDbRef,
         loan_id: LoanId,
         idx: DisbursementIdx,
         amount: UsdCents,
@@ -21,7 +21,7 @@ pub enum DisbursementEvent {
 }
 
 impl EntityEvent for DisbursementEvent {
-    type EntityId = DisbursementId;
+    type EntityId = DisbursementDbRef;
     fn event_table_name() -> &'static str {
         "disbursement_events"
     }
@@ -30,9 +30,8 @@ impl EntityEvent for DisbursementEvent {
 #[derive(Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Disbursement {
-    pub(super) _id: DisbursementId,
-    pub loan_id: LoanId,
-    pub idx: DisbursementIdx,
+    pub(super) _id: DisbursementDbRef,
+    pub id: DisbursementId,
     pub(super) _events: EntityEvents<DisbursementEvent>,
 }
 
@@ -49,22 +48,21 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
             match event {
                 DisbursementEvent::Initialized {
                     id, loan_id, idx, ..
-                } => builder = builder._id(*id).loan_id(*loan_id).idx(*idx),
+                } => {
+                    builder = builder._id(*id).id(DisbursementId {
+                        loan_id: *loan_id,
+                        idx: *idx,
+                    })
+                }
             }
         }
         builder._events(events).build()
     }
 }
 
-impl Disbursement {
-    pub fn id(&self) -> String {
-        format!("{}:{}", self.loan_id, self.idx)
-    }
-}
-
 #[derive(Debug)]
 pub struct NewDisbursement {
-    pub(super) id: DisbursementId,
+    pub(super) id: DisbursementDbRef,
     pub(super) loan_id: LoanId,
     pub(super) idx: DisbursementIdx,
     pub(super) amount: UsdCents,
@@ -79,7 +77,7 @@ impl NewDisbursement {
         amount: UsdCents,
     ) -> Self {
         Self {
-            id: DisbursementId::new(),
+            id: DisbursementDbRef::new(),
             loan_id,
             idx,
             amount,

@@ -413,7 +413,6 @@ impl Loans {
 
         let mut db_tx = self.pool.begin().await?;
         let new_disbursement = loan.initiate_disbursement(audit_info, amount)?;
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         let disbursement = self
             .disbursement_repo
             .create_in_tx(&mut db_tx, new_disbursement)
@@ -427,12 +426,12 @@ impl Loans {
                     customer.account_ids,
                     loan.account_ids,
                     amount,
-                    disbursement.id(),
+                    disbursement.id.to_string(),
                 )
                 .await?;
             loan.confirm_disbursement(&disbursement, executed_at, audit_info);
-            self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         }
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         db_tx.commit().await?;
         Ok(disbursement)

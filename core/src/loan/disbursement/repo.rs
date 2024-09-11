@@ -33,7 +33,7 @@ impl DisbursementRepo {
         sqlx::query!(
             r#"INSERT INTO disbursements (id, loan_id, idx)
             VALUES ($1, $2, $3)"#,
-            new_disbursement.id as DisbursementId,
+            new_disbursement.id as DisbursementDbRef,
             new_disbursement.loan_id as LoanId,
             new_disbursement.idx as DisbursementIdx,
         )

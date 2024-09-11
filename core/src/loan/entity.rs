@@ -868,8 +868,10 @@ impl Loan {
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
+        assert!(disbursement.id.loan_id == self.id);
+
         self.events.push(LoanEvent::DisbursementConcluded {
-            idx: disbursement.idx,
+            idx: disbursement.id.idx,
             recorded_at: executed_at,
             audit_info,
         });
