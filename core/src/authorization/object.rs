@@ -21,19 +21,14 @@ pub enum Object {
 
 impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let discriminant = ObjectDiscriminants::from(self);
         use Object::*;
         match self {
-            Applicant => write!(f, "{}", ObjectDiscriminants::Applicant),
-            Loan(loan_ref) => write!(f, "{}:{}", ObjectDiscriminants::Loan, loan_ref),
-            Term => write!(f, "{}", ObjectDiscriminants::Term),
-            User => write!(f, "{}", ObjectDiscriminants::User),
+            Loan(loan_ref) => write!(f, "{}/{}", discriminant, loan_ref),
             Customer(customer_ref) => {
-                write!(f, "{}:{}", ObjectDiscriminants::Customer, customer_ref)
+                write!(f, "{}/{}", discriminant, customer_ref)
             }
-            Deposit => write!(f, "{}", ObjectDiscriminants::Deposit),
-            Withdraw => write!(f, "{}", ObjectDiscriminants::Withdraw),
-            Audit => write!(f, "{}", ObjectDiscriminants::Audit),
-            Ledger => write!(f, "{}", ObjectDiscriminants::Ledger),
+            _ => write!(f, "{}", discriminant),
         }
     }
 }
@@ -42,7 +37,7 @@ impl FromStr for Object {
     type Err = AuthorizationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut elems = s.split(':');
+        let mut elems = s.split('/');
         let entity = elems.next().expect("missing first element");
         use ObjectDiscriminants::*;
         let res = match entity.parse()? {
