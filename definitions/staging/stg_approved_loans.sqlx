@@ -73,6 +73,25 @@ WITH approved AS (
 
 	GROUP BY loan_id
 
+), collateral AS (
+
+	SELECT id AS loan_id
+		, CAST(
+			JSON_VALUE(
+				ANY_VALUE(event HAVING MAX recorded_at),
+				"$.total_collateral"
+			)
+		AS NUMERIC) AS total_collateral
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE event_type = "collateral_updated"
+
+	GROUP BY loan_id
+
 )
 
 SELECT loan_id
@@ -86,10 +105,12 @@ SELECT loan_id
 	, COALESCE(total_interest_paid, 0) AS total_interest_paid
 	, COALESCE(total_principal_paid, 0) AS total_principal_paid
 	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
+	, COALESCE(total_collateral, 0) AS total_collateral
 
 FROM approved
 	JOIN initial USING (loan_id)
 	JOIN payments USING (loan_id)
 	JOIN interest USING (loan_id)
+	JOIN collateral USING (loan_id)
 
 );
