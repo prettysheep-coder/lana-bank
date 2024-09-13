@@ -1,7 +1,7 @@
 config {
 	type: "operations",
 	hasOutput: true,
-	description: "Asserts that the value is a valid nullable name."
+	description: "Asserts that the value is a valid non-nullable uppercase alphanumeric."
 }
 
 CREATE OR REPLACE FUNCTION ${self()} (assert_value STRING)
