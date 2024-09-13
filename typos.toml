@@ -40,4 +40,6 @@ extend-exclude = [
 	"definitions/staging/stg_01_npb4_17_persona_xml_raw.sqlx",
 	"definitions/staging/stg_01_npb4_17_persona_xml.sqlx",
 	"definitions/staging/stg_customers_identities.sqlx",
+	"definitions/udfs/udf_nbp4_17_dim_table_code_from_desc.sqlx",
+	"definitions/udfs/udf_nbp4_17_assert_in_dim_table.sqlx",
 ]
