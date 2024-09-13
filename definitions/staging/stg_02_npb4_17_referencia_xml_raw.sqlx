@@ -18,18 +18,10 @@ WITH loans AS (
 )
 
 SELECT
-    CAST(NULL AS STRING) AS `nit_deudor`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-	WHERE description = "Cartera propia Ley Acceso al Crédito (19)"
-  ) AS `cod_cartera`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-	WHERE description = "Préstamos"
-  ) AS `cod_activo`
-  , loan_id AS `num_referencia`
+    LEFT(REPLACE(customer_id, '-', ''), 14) AS `nit_deudor`         -- use NIU type which uses the 14 leftmost no-hyphen characters from backend customer_id
+  , (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)" ) AS `cod_cartera`
+  , (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Préstamos") AS `cod_activo`
+  , LEFT(REPLACE(UPPERCASE(loan_id), '-', ''), 20) AS `num_referencia`         -- uses the 20 leftmost no-hyphen characters from backend loan_id
   , principal AS `monto_referencia` -- Original loan amount
   , principal + total_interest_incurred - total_interest_paid - total_principal_paid AS `saldo_referencia` -- Remaining balance
   , principal - total_principal_paid AS `saldo_vigente_k`
