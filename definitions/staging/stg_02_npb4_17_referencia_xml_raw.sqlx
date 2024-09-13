@@ -32,7 +32,7 @@ SELECT
   , DATE(start_timestamp) AS `fecha_otorgamiento`
   , end_date AS `fecha_vencimiento`
   , CAST(NULL AS DATE) AS `fecha_castigo`
-  , CAST(NULL AS STRING) AS `estado_credito`
+  , (SELECT code FROM ${ref("stg_dim_07_npb4_17_estados_de_la_referencia")} WHERE description = "Vigente") AS `estado_credito`
   , CAST(NULL AS NUMERIC) AS `saldo_mora_k`
   , CAST(NULL AS NUMERIC) AS `saldo_mora_i`
   , CAST(NULL AS NUMERIC) AS `dias_mora_k`
