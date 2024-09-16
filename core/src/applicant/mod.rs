@@ -1,21 +1,25 @@
 mod config;
 pub mod error;
+mod repo;
 mod sumsub_auth;
 pub mod sumsub_public;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{customer::Customers, primitives::CustomerId};
+use crate::{customer::Customers, data_export::Export, primitives::CustomerId};
 
 pub use config::*;
 use error::ApplicantError;
 use sumsub_auth::*;
+
+use repo::ApplicantRepo;
 
 #[derive(Clone)]
 pub struct Applicants {
     _pool: sqlx::PgPool,
     sumsub_client: SumsubClient,
     users: Customers,
+    repo: ApplicantRepo,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -108,9 +112,15 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(pool: &sqlx::PgPool, config: &SumsubConfig, users: &Customers) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        config: &SumsubConfig,
+        users: &Customers,
+        export: &Export,
+    ) -> Self {
         let sumsub_client = SumsubClient::new(config);
         Self {
+            repo: ApplicantRepo::new(pool, export),
             _pool: pool.clone(),
             sumsub_client,
             users: users.clone(),
@@ -118,8 +128,20 @@ impl Applicants {
     }
 
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
-        println!("handle sumsub callback");
+        let customer_id: CustomerId = payload["externalUserId"]
+            .as_str()
+            .ok_or_else(|| ApplicantError::UnhandledCallbackType(payload.to_string()))?
+            .parse()?;
 
+        let _ = &self
+            .repo
+            .persist_webhook(customer_id.into(), "webhook", payload.clone())
+            .await?;
+
+        self.process_payload(payload).await
+    }
+
+    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload)? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
@@ -166,7 +188,9 @@ impl Applicants {
                 level_name: SumsubKycLevel::AdvancedKycLevel,
                 ..
             } => {
-                todo!("approve advanced kyc");
+                return Err(ApplicantError::UnhandledCallbackType(
+                    "Advanced KYC level is not supported".to_string(),
+                ));
             }
             SumsubCallbackPayload::ApplicantOnHold {
                 external_user_id, ..
@@ -174,7 +198,9 @@ impl Applicants {
             | SumsubCallbackPayload::ApplicantPending {
                 external_user_id, ..
             } => {
-                println!("unprocessed event for : {}", external_user_id);
+                return Err(ApplicantError::UnhandledCallbackType(format!(
+                    "callback event not processed for {external_user_id}"
+                )));
             }
         }
         Ok(())

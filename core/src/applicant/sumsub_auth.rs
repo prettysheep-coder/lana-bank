@@ -165,7 +165,6 @@ mod tests {
 
     use std::env;
     use tokio;
-    // use uuid::uuid;
     use uuid::Uuid;
 
     fn load_config_from_env() -> Option<SumsubConfig> {
