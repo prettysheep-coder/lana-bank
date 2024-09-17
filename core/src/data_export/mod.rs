@@ -1,4 +1,4 @@
-mod cala;
+pub mod cala;
 mod job;
 
 use chrono::{DateTime, Utc};
@@ -16,16 +16,16 @@ use job::{DataExportConfig, DataExportInitializer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportData {
-    id: uuid::Uuid,
-    event_type: String,
-    event: String,
-    sequence: usize,
-    recorded_at: DateTime<Utc>,
+    pub id: uuid::Uuid,
+    pub event_type: String,
+    pub event: String,
+    pub sequence: usize,
+    pub recorded_at: DateTime<Utc>,
 }
 
 #[derive(Clone)]
 pub struct Export {
-    cala_url: String,
+    pub cala_url: String,
     jobs: Jobs,
 }
 

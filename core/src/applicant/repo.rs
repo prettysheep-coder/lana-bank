@@ -48,11 +48,10 @@ impl ApplicantRepo {
     pub async fn persist_webhook(
         &self,
         customer_id: CustomerId,
-        event_type: &str,
         webhook_data: Value,
     ) -> Result<(), ApplicantError> {
         let mut db = self.pool.begin().await?;
-        self.persist_webhook_in_tx(&mut db, customer_id, event_type, webhook_data)
+        self.persist_webhook_in_tx(&mut db, customer_id, webhook_data)
             .await?;
         db.commit().await?;
         Ok(())
@@ -62,12 +61,11 @@ impl ApplicantRepo {
         &self,
         db: &mut Transaction<'_, Postgres>,
         customer_id: CustomerId,
-        event_type: &str,
         webhook_data: Value,
     ) -> Result<(), ApplicantError> {
         let event = ApplicantEvent::WebhookReceived {
             customer_id,
-            event_type: event_type.to_string(),
+            event_type: "webhook".to_string(),
             webhook_data,
             timestamp: Utc::now(),
         };
