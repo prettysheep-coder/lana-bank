@@ -45,6 +45,12 @@ pub struct PermalinkResponse {
     pub url: String,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ApplicantDetails {
+    pub info: serde_json::Value,
+}
+
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
         Self {
@@ -67,19 +73,7 @@ impl SumsubClient {
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let body = json!({}).to_string();
-
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let signature = self.sign(method, &url, Some(&body), timestamp)?;
-
-        let mut headers = HeaderMap::new();
-        headers.insert("Accept", HeaderValue::from_static("application/json"));
-        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-        headers.insert("X-App-Token", HeaderValue::from_str(&self.sumsub_key)?);
-        headers.insert(
-            "X-App-Access-Ts",
-            HeaderValue::from_str(&timestamp.to_string())?,
-        );
-        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+        let headers = self.get_headers(method, &url, Some(&body))?;
 
         let response = client
             .post(&full_url)
@@ -110,19 +104,7 @@ impl SumsubClient {
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let body = json!({}).to_string();
-
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let signature = self.sign(method, &url, Some(&body), timestamp)?;
-
-        let mut headers = HeaderMap::new();
-        headers.insert("Accept", HeaderValue::from_static("application/json"));
-        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-        headers.insert("X-App-Token", HeaderValue::from_str(&self.sumsub_key)?);
-        headers.insert(
-            "X-App-Access-Ts",
-            HeaderValue::from_str(&timestamp.to_string())?,
-        );
-        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+        let headers = self.get_headers(method, &url, Some(&body))?;
 
         let response = client
             .post(&full_url)
@@ -137,6 +119,55 @@ impl SumsubClient {
                 Err(ApplicantError::Sumsub { description, code })
             }
         }
+    }
+
+    pub async fn get_applicant_details(
+        &self,
+        client: &Client,
+        external_user_id: CustomerId,
+    ) -> Result<ApplicantDetails, ApplicantError> {
+        let method = "GET";
+        let url = format!(
+            "/resources/applicants/-;externalUserId={}/one",
+            external_user_id
+        );
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        let headers = self.get_headers(method, &url, None)?;
+        let response = client.get(&full_url).headers(headers).send().await?;
+
+        match response.json().await? {
+            SumsubResponse::Success(details) => Ok(details),
+            SumsubResponse::Error(ApiError { description, code }) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
+        }
+    }
+
+    fn get_headers(
+        &self,
+        method: &str,
+        url: &str,
+        body: Option<&str>,
+    ) -> Result<HeaderMap, ApplicantError> {
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let signature = self.sign(method, url, body, timestamp)?;
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Accept", HeaderValue::from_static("application/json"));
+        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
+        headers.insert(
+            "X-App-Token",
+            HeaderValue::from_str(&self.sumsub_key).expect("Invalid sumsub key"),
+        );
+
+        headers.insert(
+            "X-App-Access-Ts",
+            HeaderValue::from_str(&timestamp.to_string()).expect("Invalid timestamp"),
+        );
+        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+
+        Ok(headers)
     }
 
     fn sign(
