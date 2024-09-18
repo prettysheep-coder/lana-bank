@@ -46,6 +46,33 @@ EOF
 
 }
 
+# resource "google_bigquery_table" "sumsub_applicants" {
+#   project    = local.project_id
+#   dataset_id = local.dataset_id
+#   table_id   = <table name>
+
+#   schema = <<EOF
+# [
+#   {
+#     "name": "customer_id",
+#     "type": "STRING",
+#     "description": "The ID the customer entity"
+#   },
+#   {
+#     "name": "root",
+#     "type": "JSON",
+#     "description": "Root JSON from Sum Sub"
+#   },
+#   {
+#     "name": "uploaded_at",
+#     "type": "TIMESTAMP",
+#     "description": "When the data was synced"
+#   }
+# ]
+# EOF
+
+# }
+
 resource "google_bigquery_table_iam_member" "entities_owner_sa" {
   for_each   = toset(local.bq_tables)
   project    = local.project_id
