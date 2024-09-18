@@ -129,8 +129,7 @@ impl Applicants {
     ) -> Self {
         let sumsub_client = SumsubClient::new(config);
         jobs.add_initializer(SumsubExportInitializer::new(
-            export.cala_url.clone(),
-            "sumsub_export".into(),
+            export.clone(),
             sumsub_client.clone(),
         ));
 
