@@ -1,15 +1,9 @@
 config {
-	type: "table",
-	assertions: {
-		uniqueKey: ["loan_id"],
-		nonNull: ["loan_id"
-			, "principal"
-			, "total_interest_paid"
-			, "total_principal_paid"
-			, "payment_interval"
-		],
-	},
+	type: "operations",
+	hasOutput: true,
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH approved AS (
 
@@ -20,7 +14,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "approved"
+	WHERE recorded_at < asof
+		AND event_type = "approved"
 
 ), initial AS (
 
@@ -42,7 +37,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "initialized"
+	WHERE recorded_at < asof
+		AND event_type = "initialized"
 
 ), payments AS (
 
@@ -57,7 +53,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "payment_recorded"
+	WHERE recorded_at < asof
+		AND event_type = "payment_recorded"
 
 	GROUP BY loan_id
 
@@ -71,7 +68,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "interest_incurred"
+	WHERE recorded_at < asof
+		AND event_type = "interest_incurred"
 
 	GROUP BY loan_id
 
@@ -93,3 +91,5 @@ FROM approved
 	JOIN initial USING (loan_id)
 	JOIN payments USING (loan_id)
 	JOIN interest USING (loan_id)
+
+);
