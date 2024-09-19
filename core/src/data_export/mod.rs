@@ -1,4 +1,4 @@
-pub mod cala;
+mod cala;
 mod job;
 
 use chrono::{DateTime, Utc};
@@ -17,11 +17,11 @@ use job::{DataExportConfig, DataExportInitializer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportEntityEventData {
-    pub id: uuid::Uuid,
-    pub event_type: String,
-    pub event: String,
-    pub sequence: usize,
-    pub recorded_at: DateTime<Utc>,
+    id: uuid::Uuid,
+    event_type: String,
+    event: String,
+    sequence: usize,
+    recorded_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,7 +35,7 @@ const SUMSUB_EXPORT_TABLE_NAME: &str = "sumsub_applicant_data";
 
 #[derive(Clone)]
 pub struct Export {
-    pub cala_url: String,
+    cala_url: String,
     jobs: Jobs,
 }
 
