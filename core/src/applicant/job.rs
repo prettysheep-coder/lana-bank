@@ -1,8 +1,6 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use std::borrow::Cow;
-
 use crate::{
     data_export::{Export, ExportSumsubApplicantData},
     job::*,
@@ -66,13 +64,11 @@ impl JobRunner for SumsubExportJobRunner {
             .get_applicant_details(&client, customer_id)
             .await?;
 
-        let _info = res.info;
-
         self.export
             .export_sum_sub_applicant_data(ExportSumsubApplicantData {
                 customer_id,
                 root: serde_json::to_string(&res).expect("Could not serialize res"),
-                uploaded_at: Utc::now(),
+                uploaded_at: chrono::Utc::now(),
             })
             .await?;
 
