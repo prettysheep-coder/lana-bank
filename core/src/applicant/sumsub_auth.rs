@@ -45,12 +45,6 @@ pub struct PermalinkResponse {
     pub url: String,
 }
 
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct ApplicantDetails {
-    pub info: serde_json::Value,
-}
-
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
         Self {
@@ -125,7 +119,7 @@ impl SumsubClient {
         &self,
         client: &Client,
         external_user_id: CustomerId,
-    ) -> Result<ApplicantDetails, ApplicantError> {
+    ) -> Result<String, ApplicantError> {
         let method = "GET";
         let url = format!(
             "/resources/applicants/-;externalUserId={}/one",
@@ -136,11 +130,14 @@ impl SumsubClient {
         let headers = self.get_headers(method, &url, None)?;
         let response = client.get(&full_url).headers(headers).send().await?;
 
-        match response.json().await? {
-            SumsubResponse::Success(details) => Ok(details),
-            SumsubResponse::Error(ApiError { description, code }) => {
+        let response_text = response.text().await?;
+
+        match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
+            Ok(SumsubResponse::Success(_)) => Ok(response_text),
+            Ok(SumsubResponse::Error(ApiError { description, code })) => {
                 Err(ApplicantError::Sumsub { description, code })
             }
+            Err(e) => Err(ApplicantError::Serde(e)),
         }
     }
 
@@ -201,6 +198,9 @@ mod tests {
     fn load_config_from_env() -> Option<SumsubConfig> {
         let sumsub_key = env::var("SUMSUB_KEY").ok()?;
         let sumsub_secret = env::var("SUMSUB_SECRET").ok()?;
+
+        println!("sumsub_key: {:?}", sumsub_key);
+
         Some(SumsubConfig {
             sumsub_key,
             sumsub_secret,
