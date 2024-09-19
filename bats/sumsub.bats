@@ -11,16 +11,48 @@ teardown_file() {
 }
 
 @test "customer: verify level 2" {
-  skip
-# TODO: mock this call
-  exec_graphql 'alice' 'sumsub-token-create'
-  token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')
-  # [[ "$token" != "null" ]] || exit 1
+  customer_email=$(generate_email)
+  telegramId=$(generate_email)
+
+  variables=$(
+    jq -n \
+    --arg email "$customer_email" \
+    --arg telegramId "$telegramId" \
+    '{
+      input: {
+        email: $email,
+        telegramId: $telegramId
+      }
+    }'
+  )
+  
+  exec_admin_graphql 'customer-create' "$variables"
+  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
 
 # TODO: mock this call
-  exec_graphql 'alice' 'sumsub-permalink-create'
+# this is a end user api call. ignoring for now.
+# exec_graphql 'alice' 'sumsub-token-create'
+# token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')
+# [[ "$token" != "null" ]] || exit 1
+
+# TODO: mock this call
+
+  variables=$(
+    jq -n \
+    --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId
+      }
+    }'
+  )
+
+  exec_admin_graphql 'sumsub-permalink-create' "$variables"
   echo "$output"
 
+  exit 1
+
+  
   exec_graphql 'alice' 'me'
   echo "$output"
   level=$(graphql_output '.data.me.level')

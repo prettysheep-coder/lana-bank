@@ -47,6 +47,9 @@ pub struct PermalinkResponse {
 
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
+        println!("config.sumsub_key: {:?}", config.sumsub_key);
+        println!("config.sumsub_secret: {:?}", config.sumsub_secret);
+
         Self {
             sumsub_key: config.sumsub_key.clone(),
             sumsub_secret: config.sumsub_secret.clone(),
@@ -96,6 +99,9 @@ impl SumsubClient {
         let url =
             format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        println!("full_url: {:?}", full_url);
+        println!("{}, self.sumsub_key: {:?}", line!(), self.sumsub_key);
 
         let body = json!({}).to_string();
         let headers = self.get_headers(method, &url, Some(&body))?;
