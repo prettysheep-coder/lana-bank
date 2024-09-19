@@ -210,6 +210,8 @@ impl Applicants {
                         },
                     )
                     .await?;
+
+                db_tx.commit().await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 review_result:
