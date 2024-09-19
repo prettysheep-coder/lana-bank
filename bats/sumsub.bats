@@ -10,7 +10,7 @@ teardown_file() {
   stop_server
 }
 
-@test "customer: verify level 2" {
+@test "sumsub: integrate with gql" {
   customer_email=$(generate_email)
   telegramId=$(generate_email)
 
@@ -28,6 +28,9 @@ teardown_file() {
   
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
+
+  echo "customer_id: $customer_id"
+  [[ "$customer_id" != "null" ]] || exit 1
 
 # TODO: mock this call
 # this is a end user api call. ignoring for now.
@@ -48,21 +51,8 @@ teardown_file() {
   )
 
   exec_admin_graphql 'sumsub-permalink-create' "$variables"
-  echo "$output"
-
-  exit 1
-
-  
-  exec_graphql 'alice' 'me'
-  echo "$output"
-  level=$(graphql_output '.data.me.level')
-  [[ "$level" == "ZERO" ]] || exit 1
-
-  user_id=$(graphql_output '.data.me.customerId')
-  [[ "$user_id" != "null" ]] || exit 1
-
-  status=$(graphql_output '.data.me.status')
-  [[ "$status" == "INACTIVE" ]] || exit 1
+  url=$(graphql_output .data.sumsubPermalinkCreate.url)
+  [[ "$url" != "null" ]] || exit 1
 
   curl -v -X POST http://localhost:5253/sumsub/callback \
     -H "Content-Type: application/json" \
@@ -71,7 +61,7 @@ teardown_file() {
         "inspectionId": "5c9e177b0a975a6eeccf5961",
         "correlationId": "req-63f92830-4d68-4eee-98d5-875d53a12258",
         "levelName": "basic-kyc-level",
-        "externalUserId": "'"$user_id"'",
+        "externalUserId": "'"$customer_id"'",
         "type": "applicantCreated",
         "sandboxMode": "false",
         "reviewStatus": "init",
@@ -79,19 +69,22 @@ teardown_file() {
         "clientId": "coolClientId"
     }'
 
-  exec_graphql 'alice' 'me'
-  echo "$output"
 
-  applicant_id=$(graphql_output '.data.me.applicantId')
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+  applicant_id=$(graphql_output '.data.customer.applicantId')
   [[ "$applicant_id" != "null" ]] || exit 1
 
-  applicant_id=$(graphql_output '.data.me.applicantId')
-  [[ "$applicant_id" != "null" ]] || exit 1
-
-  level=$(graphql_output '.data.me.level')
+  level=$(graphql_output '.data.customer.level')
   [[ "$level" == "ZERO" ]] || exit 1
 
-    status=$(graphql_output '.data.me.status')
+    status=$(graphql_output '.data.customer.status')
   [[ "$status" == "INACTIVE" ]] || exit 1
 
   # accepted
@@ -101,7 +94,7 @@ teardown_file() {
           "applicantId": "5cb56e8e0a975a35f333cb83",
           "inspectionId": "5cb56e8e0a975a35f333cb84",
           "correlationId": "req-a260b669-4f14-4bb5-a4c5-ac0218acb9a4",
-          "externalUserId": "'"$user_id"'",
+          "externalUserId": "'"$customer_id"'",
           "levelName": "basic-kyc-level",
           "type": "applicantReviewed",
           "reviewResult": {
@@ -111,11 +104,12 @@ teardown_file() {
           "createdAtMs": "2020-02-21 13:23:19.321"
       }'
 
-  exec_graphql 'alice' 'me'
-  level=$(graphql_output '.data.me.level')
+  exec_admin_graphql 'customer' "$variables"
+
+  level=$(graphql_output '.data.customer.level')
   [[ "$level" == "ONE" ]] || exit 1
 
-    status=$(graphql_output '.data.me.status')
+    status=$(graphql_output '.data.customer.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
 
   # declined
@@ -125,7 +119,7 @@ teardown_file() {
         "applicantId": "5cb744200a975a67ed1798a4",
         "inspectionId": "5cb744200a975a67ed1798a5",
         "correlationId": "req-fa94263f-0b23-42d7-9393-ab10b28ef42d",
-        "externalUserId": "'"$user_id"'",
+        "externalUserId": "'"$customer_id"'",
         "levelName": "basic-kyc-level",
         "type": "applicantReviewed",
         "reviewResult": {
@@ -139,11 +133,11 @@ teardown_file() {
         "createdAtMs": "2020-02-21 13:23:19.001"
     }'
 
-  exec_graphql 'alice' 'me'
-  level=$(graphql_output '.data.me.level')
+  exec_admin_graphql 'customer' "$variables"
+
+  level=$(graphql_output '.data.customer.level')
   [[ "$level" == "ONE" ]] || exit 1
 
-  status=$(graphql_output '.data.me.status')
+    status=$(graphql_output '.data.customer.status')
   [[ "$status" == "INACTIVE" ]] || exit 1
-
 }

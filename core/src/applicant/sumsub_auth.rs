@@ -205,8 +205,6 @@ mod tests {
         let sumsub_key = env::var("SUMSUB_KEY").ok()?;
         let sumsub_secret = env::var("SUMSUB_SECRET").ok()?;
 
-        println!("sumsub_key: {:?}", sumsub_key);
-
         Some(SumsubConfig {
             sumsub_key,
             sumsub_secret,

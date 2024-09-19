@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    data_export::{Export, ExportSumsubApplicantData},
+    data_export::{Export, ExportSumsubApplicantData, SumsubContentType},
     job::*,
     primitives::CustomerId,
 };
@@ -67,7 +67,8 @@ impl JobRunner for SumsubExportJobRunner {
         self.export
             .export_sum_sub_applicant_data(ExportSumsubApplicantData {
                 customer_id,
-                root: serde_json::to_string(&res).expect("Could not serialize res"),
+                content: serde_json::to_string(&res).expect("Could not serialize res"),
+                content_type: SumsubContentType::Fetched,
                 uploaded_at: chrono::Utc::now(),
             })
             .await?;

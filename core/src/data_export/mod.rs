@@ -1,4 +1,4 @@
-mod cala;
+pub mod cala;
 mod job;
 
 use chrono::{DateTime, Utc};
@@ -24,10 +24,17 @@ pub struct ExportEntityEventData {
     recorded_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
+pub enum SumsubContentType {
+    Webhook,
+    Fetched,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ExportSumsubApplicantData {
     pub customer_id: CustomerId,
-    pub root: String,
+    pub content_type: SumsubContentType,
+    pub content: String,
     pub uploaded_at: DateTime<Utc>,
 }
 

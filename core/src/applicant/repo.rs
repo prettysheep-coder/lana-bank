@@ -4,8 +4,8 @@ use serde_json::Value;
 use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{
-    data_export::Export,
-    entity::{EntityEvent, EntityEvents},
+    data_export::{Export, ExportSumsubApplicantData, SumsubContentType},
+    entity::EntityEvent,
     primitives::CustomerId,
 };
 
@@ -63,19 +63,28 @@ impl ApplicantRepo {
         customer_id: CustomerId,
         webhook_data: Value,
     ) -> Result<(), ApplicantError> {
-        let event = ApplicantEvent::WebhookReceived {
+        sqlx::query(
+            r#"
+            INSERT INTO sumsub_callbacks (id, content)
+            VALUES ($1, $2)
+            "#,
+        )
+        .bind(customer_id)
+        .bind(&webhook_data.clone())
+        .execute(&mut **db)
+        .await?;
+
+        // Prepare the data for export to BigQuery
+        let export_data = ExportSumsubApplicantData {
             customer_id,
-            event_type: "webhook".to_string(),
-            webhook_data,
-            timestamp: Utc::now(),
+            content: serde_json::to_string(&webhook_data)?,
+            content_type: SumsubContentType::Webhook,
+            uploaded_at: Utc::now(),
         };
 
-        let mut events = EntityEvents::init(customer_id, vec![event]);
-
-        events.persist(db).await?;
-
+        // Export the data to BigQuery
         self.export
-            .export_last(db, ApplicantEvent::event_table_name(), 1, &events)
+            .export_sum_sub_applicant_data(export_data)
             .await?;
 
         Ok(())

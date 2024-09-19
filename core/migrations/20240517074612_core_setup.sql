@@ -147,11 +147,8 @@ CREATE TABLE audit_entries (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE applicant_events (
+CREATE TABLE sumsub_callbacks (
   id UUID NOT NULL REFERENCES customers(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
+  content JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

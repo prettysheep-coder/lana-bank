@@ -58,10 +58,15 @@ EOF
 #     "type": "STRING",
 #     "description": "The ID the customer entity"
 #   },
+# {
+#   "name": "content_type",
+#   "type": "STRING",
+#   "description": "The type of the content"
+# },
 #   {
-#     "name": "root",
+#     "name": "content",
 #     "type": "JSON",
-#     "description": "Root JSON from Sum Sub"
+#     "description": "content JSON from Sum Sub"
 #   },
 #   {
 #     "name": "uploaded_at",
