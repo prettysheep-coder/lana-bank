@@ -223,9 +223,6 @@ impl Applicants {
                     .create_and_spawn_job::<SumsubExportInitializer, _>(
                         db,
                         JobId::new(),
-                        // does job_name need to be unique?
-                        // this won't work if that is a requirement
-                        // ie: if multiple exports are needed for a same customer
                         format!("sumsub-export:{}", external_user_id),
                         SumsubExportConfig::SensitiveInfo {
                             customer_id: external_user_id,
