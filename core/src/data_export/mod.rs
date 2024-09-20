@@ -1,4 +1,5 @@
-pub mod cala;
+mod cala;
+pub mod error;
 mod job;
 
 use chrono::{DateTime, Utc};
@@ -12,7 +13,8 @@ use crate::{
     primitives::{CustomerId, JobId},
 };
 
-use cala::{error::CalaError, *};
+use cala::*;
+use error::ExportError;
 use job::{DataExportConfig, DataExportInitializer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -58,7 +60,7 @@ impl Export {
     pub async fn export_sum_sub_applicant_data(
         &self,
         data: ExportSumsubApplicantData,
-    ) -> Result<(), CalaError> {
+    ) -> Result<(), ExportError> {
         let cala = CalaClient::new(self.cala_url.clone());
         cala.export_applicant_data(SUMSUB_EXPORT_TABLE_NAME, data)
             .await?;
