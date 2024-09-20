@@ -1,6 +1,5 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{
@@ -17,7 +16,7 @@ pub enum ApplicantEvent {
     WebhookReceived {
         customer_id: CustomerId,
         event_type: String,
-        webhook_data: Value,
+        webhook_data: serde_json::Value,
         #[serde(with = "chrono::serde::ts_milliseconds")]
         timestamp: chrono::DateTime<Utc>,
     },
@@ -48,7 +47,7 @@ impl ApplicantRepo {
     pub async fn persist_webhook(
         &self,
         customer_id: CustomerId,
-        webhook_data: Value,
+        webhook_data: serde_json::Value,
     ) -> Result<(), ApplicantError> {
         let mut db = self.pool.begin().await?;
         self.persist_webhook_in_tx(&mut db, customer_id, webhook_data)
@@ -61,7 +60,7 @@ impl ApplicantRepo {
         &self,
         db: &mut Transaction<'_, Postgres>,
         customer_id: CustomerId,
-        webhook_data: Value,
+        webhook_data: serde_json::Value,
     ) -> Result<(), ApplicantError> {
         sqlx::query(
             r#"
@@ -70,7 +69,7 @@ impl ApplicantRepo {
             "#,
         )
         .bind(customer_id)
-        .bind(&webhook_data.clone())
+        .bind(webhook_data.clone())
         .execute(&mut **db)
         .await?;
 
