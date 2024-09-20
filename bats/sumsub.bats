@@ -11,6 +11,10 @@ teardown_file() {
 }
 
 @test "sumsub: integrate with gql" {
+  if [[ -z "${SUMSUB_KEY}" || -z "${SUMSUB_SECRET}" ]]; then
+    skip "Skipping test because SUMSUB_KEY or SUMSUB_SECRET is not defined"
+  fi
+
   customer_email=$(generate_email)
   telegramId=$(generate_email)
 
