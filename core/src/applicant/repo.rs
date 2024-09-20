@@ -7,14 +7,11 @@ use sqlx::{PgPool, Postgres, Transaction};
 use super::error::ApplicantError;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ApplicantEvent {
-    WebhookReceived {
-        customer_id: CustomerId,
-        webhook_data: serde_json::Value,
-        #[serde(with = "chrono::serde::ts_milliseconds")]
-        timestamp: chrono::DateTime<Utc>,
-    },
+pub struct WebhookData {
+    pub(super) customer_id: CustomerId,
+    pub(super) webhook_data: serde_json::Value,
+    #[serde(with = "chrono::serde::ts_milliseconds")]
+    pub(super) timestamp: chrono::DateTime<Utc>,
 }
 
 #[derive(Clone)]
@@ -27,7 +24,7 @@ impl ApplicantRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn persist_webhook(
+    pub async fn persist_webhook_data(
         &self,
         db: &mut Transaction<'_, Postgres>,
         customer_id: CustomerId,
@@ -48,7 +45,7 @@ impl ApplicantRepo {
         Ok(row.id)
     }
 
-    pub async fn find_by_id(&self, id: i64) -> Result<ApplicantEvent, ApplicantError> {
+    pub async fn find_webhook_data_by_id(&self, id: i64) -> Result<WebhookData, ApplicantError> {
         let row = sqlx::query!(
             r#"
             SELECT customer_id AS "customer_id: CustomerId", content, recorded_at
@@ -60,7 +57,7 @@ impl ApplicantRepo {
         .fetch_one(&self.pool)
         .await?;
 
-        Ok(ApplicantEvent::WebhookReceived {
+        Ok(WebhookData {
             customer_id: row.customer_id,
             webhook_data: row.content,
             timestamp: row.recorded_at,

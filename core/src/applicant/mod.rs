@@ -154,7 +154,7 @@ impl Applicants {
 
         let callback_id = &self
             .repo
-            .persist_webhook(&mut db, customer_id, payload.clone())
+            .persist_webhook_data(&mut db, customer_id, payload.clone())
             .await?;
 
         self.jobs

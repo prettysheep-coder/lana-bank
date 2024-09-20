@@ -8,10 +8,7 @@ use crate::{
     primitives::CustomerId,
 };
 
-use super::{
-    repo::{ApplicantEvent, ApplicantRepo},
-    SumsubClient,
-};
+use super::{repo::ApplicantRepo, SumsubClient};
 
 #[derive(Clone, Deserialize, Serialize)]
 pub enum SumsubExportConfig {
@@ -67,22 +64,17 @@ impl JobRunner for SumsubExportJobRunner {
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         match &self.config {
             SumsubExportConfig::Webhook { callback_id } => {
-                let webhook_data = self.applicants.find_by_id(*callback_id).await?;
-
-                let (customer_id, uploaded_at, webhook_data) = match &webhook_data {
-                    ApplicantEvent::WebhookReceived {
-                        customer_id,
-                        timestamp,
-                        webhook_data,
-                    } => (*customer_id, *timestamp, webhook_data.clone()),
-                };
+                let webhook_data = self
+                    .applicants
+                    .find_webhook_data_by_id(*callback_id)
+                    .await?;
 
                 self.export
                     .export_sum_sub_applicant_data(ExportSumsubApplicantData {
-                        customer_id,
+                        customer_id: webhook_data.customer_id,
                         content: serde_json::to_string(&webhook_data)?,
                         content_type: SumsubContentType::Webhook,
-                        uploaded_at,
+                        uploaded_at: webhook_data.timestamp,
                     })
                     .await?;
 
