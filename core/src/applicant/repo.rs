@@ -2,7 +2,7 @@ use crate::primitives::CustomerId;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
-use sqlx::{Postgres, Row, Transaction, PgPool};
+use sqlx::{PgPool, Postgres, Row, Transaction};
 
 use super::error::ApplicantError;
 
@@ -18,7 +18,7 @@ pub enum ApplicantEvent {
 }
 
 #[derive(Clone)]
-pub struct ApplicantRepo{
+pub struct ApplicantRepo {
     pool: PgPool,
 }
 
@@ -49,10 +49,7 @@ impl ApplicantRepo {
         Ok(id)
     }
 
-    pub async fn fetch_one(
-        &self,
-        id: i64,
-    ) -> Result<ApplicantEvent, ApplicantError> {
+    pub async fn fetch_one(&self, id: i64) -> Result<ApplicantEvent, ApplicantError> {
         let row = sqlx::query(
             r#"
             SELECT customer_id, content, recorded_at
@@ -61,7 +58,8 @@ impl ApplicantRepo {
             "#,
         )
         .bind(id)
-        .fetch_one(&self.pool).await?;
+        .fetch_one(&self.pool)
+        .await?;
 
         let customer_id: CustomerId = row.try_get("customer_id")?;
         let webhook_data: serde_json::Value = row.try_get("content")?;
