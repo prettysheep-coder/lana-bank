@@ -67,7 +67,7 @@ impl JobRunner for SumsubExportJobRunner {
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         match &self.config {
             SumsubExportConfig::Webhook { callback_id } => {
-                let webhook_data = self.applicants.fetch_one(*callback_id).await?;
+                let webhook_data = self.applicants.find_by_id(*callback_id).await?;
 
                 let (customer_id, uploaded_at, webhook_data) = match &webhook_data {
                     ApplicantEvent::WebhookReceived {
