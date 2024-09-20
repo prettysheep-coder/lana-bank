@@ -148,6 +148,23 @@ impl Applicants {
             .ok_or_else(|| ApplicantError::UnhandledCallbackType(payload.to_string()))?
             .parse()?;
 
+        // Prepare the data for export to BigQuery
+        // let export_data = ExportSumsubApplicantData {
+        //     customer_id,
+        //     content: serde_json::to_string(&webhook_data)?,
+        //     content_type: SumsubContentType::Webhook,
+        //     uploaded_at: Utc::now(),
+        // };
+
+        // // Export the data to BigQuery
+        // self.export
+        //     .export_sum_sub_applicant_data(export_data)
+        //     .await?;
+        // self.export
+        //     .export_sum_sub_webhook_data(export_data) <- either data_export has another job or
+        //     we spawn a job here that calls that fn
+        //     .await?;
+
         let _ = &self
             .repo
             .persist_webhook(customer_id, payload.clone())

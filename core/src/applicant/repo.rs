@@ -69,22 +69,9 @@ impl ApplicantRepo {
             "#,
         )
         .bind(customer_id)
-        .bind(webhook_data.clone())
+        .bind(webhook_data)
         .execute(&mut **db)
         .await?;
-
-        // Prepare the data for export to BigQuery
-        let export_data = ExportSumsubApplicantData {
-            customer_id,
-            content: serde_json::to_string(&webhook_data)?,
-            content_type: SumsubContentType::Webhook,
-            uploaded_at: Utc::now(),
-        };
-
-        // Export the data to BigQuery
-        self.export
-            .export_sum_sub_applicant_data(export_data)
-            .await?;
 
         Ok(())
     }

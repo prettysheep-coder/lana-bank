@@ -148,7 +148,8 @@ CREATE TABLE audit_entries (
 );
 
 CREATE TABLE sumsub_callbacks (
-  id UUID NOT NULL REFERENCES customers(id),
+  id BIGSERIAL PRIMARY KEY,
+  customer_id UUID NOT NULL REFERENCES customers(id),
   content JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
