@@ -58,10 +58,9 @@ impl JobRunner for SumsubExportJobRunner {
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let customer_id = self.config.customer_id;
 
-        let client = reqwest::Client::new();
         let res = self
             .sumsub_client
-            .get_applicant_details(&client, customer_id)
+            .get_applicant_details(customer_id)
             .await?;
 
         self.export

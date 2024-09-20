@@ -1,7 +1,9 @@
 use anyhow::Result;
 use hmac::{Hmac, Mac};
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client as ReqwestClient,
+};
 use serde::Deserialize;
 use serde_json::json;
 use sha2::Sha256;
@@ -16,6 +18,7 @@ const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
 #[derive(Clone, Debug)]
 pub struct SumsubClient {
+    client: ReqwestClient,
     pub sumsub_key: String,
     pub sumsub_secret: String,
 }
@@ -47,10 +50,11 @@ pub struct PermalinkResponse {
 
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
-        println!("config.sumsub_key: {:?}", config.sumsub_key);
-        println!("config.sumsub_secret: {:?}", config.sumsub_secret);
-
         Self {
+            client: ReqwestClient::builder()
+                .use_rustls_tls()
+                .build()
+                .expect("should always build BfxClient"),
             sumsub_key: config.sumsub_key.clone(),
             sumsub_secret: config.sumsub_secret.clone(),
         }
@@ -58,7 +62,6 @@ impl SumsubClient {
 
     pub async fn create_access_token(
         &self,
-        client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
     ) -> Result<AccessTokenResponse, ApplicantError> {
@@ -72,7 +75,8 @@ impl SumsubClient {
         let body = json!({}).to_string();
         let headers = self.get_headers(method, &url, Some(&body))?;
 
-        let response = client
+        let response = self
+            .client
             .post(&full_url)
             .headers(headers)
             .body(body)
@@ -91,7 +95,6 @@ impl SumsubClient {
 
     pub async fn create_permalink(
         &self,
-        client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
     ) -> Result<PermalinkResponse, ApplicantError> {
@@ -106,7 +109,8 @@ impl SumsubClient {
         let body = json!({}).to_string();
         let headers = self.get_headers(method, &url, Some(&body))?;
 
-        let response = client
+        let response = self
+            .client
             .post(&full_url)
             .headers(headers)
             .body(body)
@@ -123,7 +127,6 @@ impl SumsubClient {
 
     pub async fn get_applicant_details(
         &self,
-        client: &Client,
         external_user_id: CustomerId,
     ) -> Result<String, ApplicantError> {
         let method = "GET";
@@ -134,7 +137,7 @@ impl SumsubClient {
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let headers = self.get_headers(method, &url, None)?;
-        let response = client.get(&full_url).headers(headers).send().await?;
+        let response = self.client.get(&full_url).headers(headers).send().await?;
 
         let response_text = response.text().await?;
 
@@ -253,8 +256,7 @@ mod tests {
 
         let level = "basic-kyc-level";
 
-        let client = Client::new();
-        let res = v.create_access_token(&client, user_id, level).await;
+        let res = v.create_access_token(user_id, level).await;
 
         match res {
             Ok(AccessTokenResponse { token, user_id }) => {
@@ -285,8 +287,7 @@ mod tests {
 
         let level = "basic-kyc-level";
 
-        let client = Client::new();
-        let res = v.create_permalink(&client, user_id, level).await;
+        let res = v.create_permalink(user_id, level).await;
 
         match res {
             Ok(PermalinkResponse { url }) => {

@@ -244,12 +244,10 @@ impl Applicants {
         &self,
         user_id: CustomerId,
     ) -> Result<AccessTokenResponse, ApplicantError> {
-        let client = reqwest::Client::new();
-
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_access_token(&client, user_id, &level_name.to_string())
+            .create_access_token(user_id, &level_name.to_string())
             .await
     }
 
@@ -257,12 +255,10 @@ impl Applicants {
         &self,
         user_id: CustomerId,
     ) -> Result<PermalinkResponse, ApplicantError> {
-        let client = reqwest::Client::new();
-
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_permalink(&client, user_id, &level_name.to_string())
+            .create_permalink(user_id, &level_name.to_string())
             .await
     }
 }
