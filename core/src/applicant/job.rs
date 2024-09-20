@@ -30,7 +30,7 @@ impl SumsubExportInitializer {
         Self {
             export,
             sumsub_client,
-            applicants: ApplicantRepo::new(&pool),
+            applicants: ApplicantRepo::new(pool),
         }
     }
 }
@@ -74,7 +74,7 @@ impl JobRunner for SumsubExportJobRunner {
                         customer_id,
                         timestamp,
                         webhook_data,
-                    } => (customer_id.clone(), *timestamp, webhook_data.clone()),
+                    } => (*customer_id, *timestamp, webhook_data.clone()),
                 };
 
                 self.export
@@ -96,7 +96,7 @@ impl JobRunner for SumsubExportJobRunner {
 
                 self.export
                     .export_sum_sub_applicant_data(ExportSumsubApplicantData {
-                        customer_id: customer_id.clone(),
+                        customer_id: *customer_id,
                         content: serde_json::to_string(&res).expect("Could not serialize res"),
                         content_type: SumsubContentType::SensitiveInfo,
                         uploaded_at: chrono::Utc::now(),
