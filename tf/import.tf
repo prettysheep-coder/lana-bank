@@ -15,7 +15,7 @@ import {
 }
 
 import {
-  for_each = local.setup_bq ? ["sumsub_applicants"] : []
+  for_each = local.setup_bq ? toset(["sumsub_applicants"]) : []
   to       = module.setup.google_bigquery_table.sumsub_applicants[0]
   id       = "projects/${local.project_id}/datasets/${local.dataset_id}/tables/${each.value}"
 }
