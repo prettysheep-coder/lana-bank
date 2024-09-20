@@ -4,7 +4,8 @@ locals {
     "customer_events",
     "loan_events",
     "withdraw_events",
-    "deposit_events"
+    "deposit_events",
+    "sumsub_applicants",
   ] : []
 }
 

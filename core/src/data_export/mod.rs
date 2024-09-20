@@ -38,7 +38,7 @@ pub struct ExportSumsubApplicantData {
     pub uploaded_at: DateTime<Utc>,
 }
 
-const SUMSUB_EXPORT_TABLE_NAME: &str = "sumsub_applicant_data";
+const SUMSUB_EXPORT_TABLE_NAME: &str = "sumsub_applicants";
 
 #[derive(Clone)]
 pub struct Export {
