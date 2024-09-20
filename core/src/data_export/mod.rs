@@ -29,7 +29,7 @@ pub struct ExportEntityEventData {
 #[derive(Clone, Serialize, Deserialize)]
 pub enum SumsubContentType {
     Webhook,
-    Fetched,
+    SensitiveInfo,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

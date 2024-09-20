@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
 
 use crate::{
     data_export::{Export, ExportSumsubApplicantData, SumsubContentType},
@@ -7,23 +8,29 @@ use crate::{
     primitives::CustomerId,
 };
 
-use super::SumsubClient;
+use super::{
+    repo::{ApplicantEvent, ApplicantRepo},
+    SumsubClient,
+};
 
 #[derive(Clone, Deserialize, Serialize)]
-pub struct SumsubExportConfig {
-    pub customer_id: CustomerId,
+pub enum SumsubExportConfig {
+    Webhook { callback_id: i64 },
+    SensitiveInfo { customer_id: CustomerId },
 }
 
 pub struct SumsubExportInitializer {
     pub(super) export: Export,
     pub(super) sumsub_client: SumsubClient,
+    pub(super) applicants: ApplicantRepo,
 }
 
 impl SumsubExportInitializer {
-    pub fn new(export: Export, sumsub_client: SumsubClient) -> Self {
+    pub fn new(export: Export, sumsub_client: SumsubClient, pool: &PgPool) -> Self {
         Self {
             export,
             sumsub_client,
+            applicants: ApplicantRepo::new(&pool),
         }
     }
 }
@@ -42,6 +49,7 @@ impl JobInitializer for SumsubExportInitializer {
             config: job.config()?,
             export: self.export.clone(),
             sumsub_client: self.sumsub_client.clone(),
+            applicants: self.applicants.clone(),
         }))
     }
 }
@@ -50,28 +58,53 @@ pub struct SumsubExportJobRunner {
     config: SumsubExportConfig,
     export: Export,
     sumsub_client: SumsubClient,
+    applicants: ApplicantRepo,
 }
 
 #[async_trait]
 impl JobRunner for SumsubExportJobRunner {
     #[tracing::instrument(name = "lava.sumsub_export.job.run", skip_all, fields(insert_id), err)]
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let customer_id = self.config.customer_id;
+        match &self.config {
+            SumsubExportConfig::Webhook { callback_id } => {
+                let webhook_data = self.applicants.fetch_one(*callback_id).await?;
 
-        let res = self
-            .sumsub_client
-            .get_applicant_details(customer_id)
-            .await?;
+                let (customer_id, uploaded_at, webhook_data) = match &webhook_data {
+                    ApplicantEvent::WebhookReceived {
+                        customer_id,
+                        timestamp,
+                        webhook_data,
+                    } => (customer_id.clone(), *timestamp, webhook_data.clone()),
+                };
 
-        self.export
-            .export_sum_sub_applicant_data(ExportSumsubApplicantData {
-                customer_id,
-                content: serde_json::to_string(&res).expect("Could not serialize res"),
-                content_type: SumsubContentType::Fetched,
-                uploaded_at: chrono::Utc::now(),
-            })
-            .await?;
+                self.export
+                    .export_sum_sub_applicant_data(ExportSumsubApplicantData {
+                        customer_id,
+                        content: serde_json::to_string(&webhook_data)?,
+                        content_type: SumsubContentType::Webhook,
+                        uploaded_at,
+                    })
+                    .await?;
 
-        Ok(JobCompletion::Complete)
+                Ok(JobCompletion::Complete)
+            }
+            SumsubExportConfig::SensitiveInfo { customer_id } => {
+                let res = self
+                    .sumsub_client
+                    .get_applicant_details(*customer_id)
+                    .await?;
+
+                self.export
+                    .export_sum_sub_applicant_data(ExportSumsubApplicantData {
+                        customer_id: customer_id.clone(),
+                        content: serde_json::to_string(&res).expect("Could not serialize res"),
+                        content_type: SumsubContentType::SensitiveInfo,
+                        uploaded_at: chrono::Utc::now(),
+                    })
+                    .await?;
+
+                Ok(JobCompletion::Complete)
+            }
+        }
     }
 }

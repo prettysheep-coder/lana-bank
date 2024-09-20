@@ -7,6 +7,7 @@ pub mod sumsub_public;
 
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
+use sqlx::{Postgres, Transaction};
 
 use crate::{
     customer::Customers,
@@ -131,10 +132,11 @@ impl Applicants {
         jobs.add_initializer(SumsubExportInitializer::new(
             export.clone(),
             sumsub_client.clone(),
+            pool,
         ));
 
         Self {
-            repo: ApplicantRepo::new(pool, export),
+            repo: ApplicantRepo::new(pool),
             pool: pool.clone(),
             sumsub_client,
             users: users.clone(),
@@ -145,42 +147,48 @@ impl Applicants {
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
         let customer_id: CustomerId = payload["externalUserId"]
             .as_str()
-            .ok_or_else(|| ApplicantError::UnhandledCallbackType(payload.to_string()))?
+            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
             .parse()?;
 
-        // Prepare the data for export to BigQuery
-        // let export_data = ExportSumsubApplicantData {
-        //     customer_id,
-        //     content: serde_json::to_string(&webhook_data)?,
-        //     content_type: SumsubContentType::Webhook,
-        //     uploaded_at: Utc::now(),
-        // };
+        let mut db = self.pool.begin().await?;
 
-        // // Export the data to BigQuery
-        // self.export
-        //     .export_sum_sub_applicant_data(export_data)
-        //     .await?;
-        // self.export
-        //     .export_sum_sub_webhook_data(export_data) <- either data_export has another job or
-        //     we spawn a job here that calls that fn
-        //     .await?;
-
-        let _ = &self
+        let callback_id = &self
             .repo
-            .persist_webhook(customer_id, payload.clone())
+            .persist_webhook(&mut db, customer_id, payload.clone())
             .await?;
 
-        self.process_payload(payload).await
+        self.jobs
+            .create_and_spawn_job::<SumsubExportInitializer, _>(
+                &mut db,
+                JobId::new(),
+                format!("sumsub-export:{}", callback_id),
+                SumsubExportConfig::Webhook {
+                    callback_id: *callback_id,
+                },
+            )
+            .await?;
+
+        self.process_payload(&mut db, payload).await?;
+
+        db.commit().await?;
+
+        Ok(())
     }
 
-    async fn process_payload(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
+    async fn process_payload(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        payload: serde_json::Value,
+    ) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload)? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
                 ..
             } => {
-                self.users.start_kyc(external_user_id, applicant_id).await?;
+                self.users
+                    .start_kyc(db, external_user_id, applicant_id)
+                    .await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -193,7 +201,7 @@ impl Applicants {
                 ..
             } => {
                 self.users
-                    .deactivate(external_user_id, applicant_id)
+                    .deactivate(db, external_user_id, applicant_id)
                     .await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -208,27 +216,22 @@ impl Applicants {
                 ..
             } => {
                 self.users
-                    .approve_basic(external_user_id, applicant_id)
+                    .approve_basic(db, external_user_id, applicant_id)
                     .await?;
-
-                // db_tx should also be in approve basic?
-                let mut db_tx = self.pool.begin().await?;
 
                 self.jobs
                     .create_and_spawn_job::<SumsubExportInitializer, _>(
-                        &mut db_tx,
+                        db,
                         JobId::new(),
                         // does job_name need to be unique?
                         // this won't work if that is a requirement
                         // ie: if multiple exports are needed for a same customer
                         format!("sumsub-export:{}", external_user_id),
-                        SumsubExportConfig {
+                        SumsubExportConfig::SensitiveInfo {
                             customer_id: external_user_id,
                         },
                     )
                     .await?;
-
-                db_tx.commit().await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 review_result:
