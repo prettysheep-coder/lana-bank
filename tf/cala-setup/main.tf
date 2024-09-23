@@ -37,7 +37,8 @@ locals {
   ] : []
   deletion_protection = var.deletion_protection
   bq_applicant_table  = local.setup_bq ? "sumsub_applicants" : ""
-
+  bq_price_table = local.setup_bq ? "price" : ""
+  
   service_account_creds = local.setup_bq ? jsondecode(base64decode(var.bq_creds)) : null
   project_id            = local.setup_bq ? local.service_account_creds.project_id : null
   sa_email              = local.setup_bq ? local.service_account_creds.client_email : null
