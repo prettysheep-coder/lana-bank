@@ -45,7 +45,7 @@ impl Price {
                 PRICE_JOB_ID,
                 "export-price-job".to_string(),
                 job::ExportPriceJobConfig {
-                    job_interval: std::time::Duration::from_secs(60),
+                    job_interval: job::ExportPriceInterval::EveryMinute,
                 },
             )
             .await

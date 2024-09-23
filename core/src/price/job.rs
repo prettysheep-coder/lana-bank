@@ -1,7 +1,6 @@
 use async_trait::async_trait;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 use crate::{
     data_export::{Export, ExportPriceData},
@@ -11,7 +10,24 @@ use crate::{
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ExportPriceJobConfig {
-    pub job_interval: Duration,
+    pub job_interval: ExportPriceInterval,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ExportPriceInterval {
+    EveryMinute,
+}
+
+impl ExportPriceInterval {
+    fn timestamp(&self) -> DateTime<Utc> {
+        match self {
+            ExportPriceInterval::EveryMinute => {
+                let now = Utc::now();
+                now + chrono::Duration::minutes(1)
+            }
+        }
+    }
 }
 
 pub struct ExportPriceInitializer {
@@ -28,13 +44,13 @@ impl ExportPriceInitializer {
     }
 }
 
-const FETCH_PRICE_JOB: JobType = JobType::new("fetch-price");
+const PRICE_EXPORT_JOB: JobType = JobType::new("price-export");
 impl JobInitializer for ExportPriceInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        FETCH_PRICE_JOB
+        PRICE_EXPORT_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -64,7 +80,7 @@ impl JobRunner for ExportPriceJobRunner {
             .await?;
 
         Ok(JobCompletion::RescheduleAt(
-            Utc::now() + self.config.job_interval,
+            self.config.job_interval.timestamp(),
         ))
     }
 }
