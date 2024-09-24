@@ -48,6 +48,7 @@ WITH approved AS (
 ), payments AS (
 
 	SELECT id AS loan_id
+		, CAST(JSON_VALUE(ANY_VALUE(event HAVING MAX recorded_at), "$.total_collateral") AS NUMERIC) AS total_collateral
 		, SUM(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC)) AS total_interest_paid
 		, SUM(CAST(JSON_VALUE(event, "$.principal_amount") AS NUMERIC)) AS total_principal_paid
 		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_interest_payment_timestamp

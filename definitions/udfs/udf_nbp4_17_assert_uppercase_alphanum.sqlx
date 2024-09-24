@@ -8,6 +8,6 @@ CREATE OR REPLACE FUNCTION ${self()} (assert_value STRING)
 RETURNS BOOLEAN
 AS (
   (
-    REGEXP_CONTAINS(COALESCE(assert_value, '~'), '[^0-9A-ZÑÁÉÍÓÚÜ]+')
+    REGEXP_CONTAINS(COALESCE(assert_value, '~'), '[^0-9A-Z]+')
   )
 );
