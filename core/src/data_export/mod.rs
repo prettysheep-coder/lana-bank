@@ -47,7 +47,7 @@ pub struct ExportPriceData {
 }
 
 const SUMSUB_EXPORT_TABLE_NAME: &str = "sumsub_applicants";
-const PRICE_EXPORT_TABLE_NAME: &str = "price";
+const PRICE_EXPORT_TABLE_NAME: &str = "price_cents_btc";
 
 #[derive(Clone)]
 pub struct Export {

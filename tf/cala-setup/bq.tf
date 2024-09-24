@@ -99,12 +99,12 @@ resource "google_bigquery_table_iam_member" "applicants_owner_sa" {
 }
 
 
-resource "google_bigquery_table" "price" {
+resource "google_bigquery_table" "price_cents_btc" {
   count = local.setup_bq ? 1 : 0
 
-  project    = local.project_id
-  dataset_id = local.dataset_id
-  table_id   = local.bq_price_table
+  project             = local.project_id
+  dataset_id          = local.dataset_id
+  table_id            = local.bq_price_cents_btc
   deletion_protection = local.deletion_protection
 
   schema = <<EOF
@@ -123,11 +123,11 @@ resource "google_bigquery_table" "price" {
 EOF
 }
 
-resource "google_bigquery_table_iam_member" "price_owner_sa" {
+resource "google_bigquery_table_iam_member" "price_cents_btc_owner_sa" {
   count      = local.setup_bq ? 1 : 0
   project    = local.project_id
   dataset_id = local.dataset_id
-  table_id   = google_bigquery_table.price[0].table_id
+  table_id   = google_bigquery_table.price_cents_btc[0].table_id
   role       = "roles/bigquery.dataOwner"
   member     = local.sa_member
 }
