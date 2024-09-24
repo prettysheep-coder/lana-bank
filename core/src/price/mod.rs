@@ -44,9 +44,7 @@ impl Price {
                 &mut db_tx,
                 PRICE_JOB_ID,
                 "export-price-job".to_string(),
-                job::ExportPriceJobConfig {
-                    job_interval: job::ExportPriceInterval::EveryMinute,
-                },
+                job::ExportPriceJobConfig::default(),
             )
             .await
         {

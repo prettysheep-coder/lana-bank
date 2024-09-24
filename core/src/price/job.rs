@@ -1,6 +1,8 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
+use std::time::Duration;
 
 use crate::{
     data_export::{Export, ExportPriceData},
@@ -8,25 +10,29 @@ use crate::{
     price::Price,
 };
 
+#[serde_as]
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ExportPriceJobConfig {
-    pub job_interval: ExportPriceInterval,
+    #[serde_as(as = "serde_with::DurationSeconds<u64>")]
+    #[serde(default = "default_export_price_interval")]
+    pub job_interval_secs: Duration,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ExportPriceInterval {
-    EveryMinute,
+fn default_export_price_interval() -> Duration {
+    Duration::from_secs(60)
 }
 
-impl ExportPriceInterval {
-    fn timestamp(&self) -> DateTime<Utc> {
-        match self {
-            ExportPriceInterval::EveryMinute => {
-                let now = Utc::now();
-                now + chrono::Duration::minutes(1)
-            }
+impl Default for ExportPriceJobConfig {
+    fn default() -> Self {
+        Self {
+            job_interval_secs: default_export_price_interval(),
         }
+    }
+}
+
+impl ExportPriceJobConfig {
+    fn next_run_at(&self) -> DateTime<Utc> {
+        Utc::now() + self.job_interval_secs
     }
 }
 
@@ -79,8 +85,6 @@ impl JobRunner for ExportPriceJobRunner {
             })
             .await?;
 
-        Ok(JobCompletion::RescheduleAt(
-            self.config.job_interval.timestamp(),
-        ))
+        Ok(JobCompletion::RescheduleAt(self.config.next_run_at()))
     }
 }
