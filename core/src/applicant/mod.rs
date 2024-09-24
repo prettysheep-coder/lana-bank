@@ -2,7 +2,7 @@ mod config;
 pub mod error;
 mod job;
 mod repo;
-mod sumsub_auth;
+pub mod sumsub_auth;
 pub mod sumsub_public;
 
 use job::{SumsubExportConfig, SumsubExportInitializer};
