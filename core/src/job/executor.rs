@@ -160,14 +160,7 @@ impl JobExecutor {
         if !rows.is_empty() {
             for row in rows {
                 let job = jobs.find_by_id(row.id).await?;
-                let _ = Self::start_job(
-                    pool,
-                    registry,
-                    running_jobs,
-                    job,
-                    jobs.clone(),
-                )
-                .await;
+                let _ = Self::start_job(pool, registry, running_jobs, job, jobs.clone()).await;
             }
         }
         Ok(())
