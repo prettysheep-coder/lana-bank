@@ -2,7 +2,7 @@ mod config;
 pub mod error;
 mod job;
 mod repo;
-pub mod sumsub_auth;
+mod sumsub_auth;
 pub mod sumsub_public;
 
 use job::{SumsubExportConfig, SumsubExportInitializer};
@@ -21,6 +21,7 @@ use error::ApplicantError;
 use sumsub_auth::*;
 
 use repo::ApplicantRepo;
+pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
 #[derive(Clone)]
 pub struct Applicants {
@@ -233,23 +234,23 @@ impl Applicants {
 
     pub async fn create_access_token(
         &self,
-        user_id: CustomerId,
+        customer_id: CustomerId,
     ) -> Result<AccessTokenResponse, ApplicantError> {
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_access_token(user_id, &level_name.to_string())
+            .create_access_token(customer_id, &level_name.to_string())
             .await
     }
 
     pub async fn create_permalink(
         &self,
-        user_id: CustomerId,
+        customer_id: CustomerId,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_permalink(user_id, &level_name.to_string())
+            .create_permalink(customer_id, &level_name.to_string())
             .await
     }
 }

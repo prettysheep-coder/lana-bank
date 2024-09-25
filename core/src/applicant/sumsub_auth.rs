@@ -39,8 +39,9 @@ enum SumsubResponse<T> {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessTokenResponse {
+    #[serde(rename = "userId")]
+    pub customer_id: String,
     pub token: String,
-    pub user_id: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -83,10 +84,11 @@ impl SumsubClient {
             .send()
             .await?;
 
-        match response.json().await? {
-            SumsubResponse::Success(AccessTokenResponse { token, user_id }) => {
-                Ok(AccessTokenResponse { token, user_id })
-            }
+        match response
+            .json::<SumsubResponse<AccessTokenResponse>>()
+            .await?
+        {
+            SumsubResponse::Success(res) => Ok(res),
             SumsubResponse::Error(ApiError { description, code }) => {
                 Err(ApplicantError::Sumsub { description, code })
             }
