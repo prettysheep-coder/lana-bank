@@ -31,6 +31,7 @@ WITH approved AS (
 		END AS end_date
 		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
 		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
+		, JSON_VALUE(event, "$.customer_id") AS customer_id
 
 	FROM ${ref({
 		name: "loan_events",
@@ -106,6 +107,7 @@ SELECT loan_id
 	, COALESCE(total_principal_paid, 0) AS total_principal_paid
 	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
 	, COALESCE(total_collateral, 0) AS total_collateral
+	, customer_id
 
 FROM approved
 	JOIN initial USING (loan_id)
