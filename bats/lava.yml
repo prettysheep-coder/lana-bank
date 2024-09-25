@@ -11,3 +11,6 @@ app:
     dataform_release_config: "gha-release"
     reports_root_folder: "gha"
     bucket_name: "gha-volcano-docs"
+  docs:
+    root_folder: "gha"
+    bucket_name: "gha-volcano-docs"
