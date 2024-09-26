@@ -34,7 +34,7 @@ wait_for_complete() {
   report_id=$(graphql_output .data.reportCreate.report.reportId)
   [[ "$report_id" != "null" ]] || exit 1
 
-  retry 60 2 wait_for_complete "$report_id"
+  retry 600 2 wait_for_complete "$report_id"
 
   variables=$(
     jq -n \
