@@ -1,9 +1,11 @@
+use anyhow::Context;
+
 use lava_tracing::TracingConfig;
 use serde::{Deserialize, Serialize};
 
 use std::path::Path;
 
-use super::{db::*, error::CliError};
+use super::db::*;
 use crate::{
     app::AppConfig,
     report::ReportConfig,
@@ -41,13 +43,13 @@ impl Config {
             sa_creds_base64,
         }: EnvSecrets,
         dev_env_name_prefix: Option<String>,
-    ) -> Result<Self, CliError> {
-        use CliError::*;
-
+    ) -> anyhow::Result<Self> {
         let config_file = std::fs::read_to_string(&path)
-            .map_err(|e| ConfigReadError(format!("{}: {}", path.as_ref().display(), e)))?;
+            .context(format!("Couldn't read config file {:?}", path.as_ref()))?;
 
-        let mut config: Config = serde_yaml::from_str(&config_file)?;
+        let mut config: Config =
+            serde_yaml::from_str(&config_file).context("Couldn't parse config file")?;
+
         config.db.pg_con.clone_from(&pg_con);
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;

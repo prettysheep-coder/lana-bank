@@ -1,6 +1,5 @@
 pub mod config;
 mod db;
-mod error;
 
 use anyhow::Context;
 use clap::Parser;
