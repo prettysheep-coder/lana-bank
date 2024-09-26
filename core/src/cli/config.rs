@@ -1,4 +1,3 @@
-use anyhow::Context;
 use lava_tracing::TracingConfig;
 use serde::{Deserialize, Serialize};
 
@@ -64,8 +63,7 @@ impl Config {
                 config.app.report.download_link_duration,
             )?;
         };
-        let service_account_creds = config.app.report.set_sa_creds_base64(sa_creds_base64)?;
-        std::env::set_var("SERVICE_ACCOUNT_JSON", service_account_creds);
+        std::env::set_var("SERVICE_ACCOUNT_JSON", config.app.report.get_json_creds()?);
 
         Ok(config)
     }
