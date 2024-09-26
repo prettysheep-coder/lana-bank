@@ -21,6 +21,7 @@ WITH approved AS (
 
 	SELECT DISTINCT id AS loan_id
 		, CAST(JSON_VALUE(event, "$.principal") AS NUMERIC) AS principal
+		, JSON_VALUE(event, "$.customer_id") AS customer_id
 		, recorded_at AS start_timestamp
 		, CASE
 			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
@@ -95,6 +96,7 @@ WITH approved AS (
 )
 
 SELECT loan_id
+	, customer_id
 	, start_timestamp
 	, end_date
 	, payment_interval
