@@ -14,7 +14,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		, FORMAT('%.2f', ROUND(`valor_deposito`, 2)) AS `valor_deposito`
 		, LEFT(`tipo_deposito`, 2) AS `tipo_deposito`
 		, LEFT(`cod_banco`, 4) AS `cod_banco`
-
+		, asof
 	FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(asof)
 
 )
