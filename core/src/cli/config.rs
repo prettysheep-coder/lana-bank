@@ -65,6 +65,7 @@ impl Config {
                 config.app.report.download_link_duration,
             )?;
         };
+        config.app.report.set_sa_creds_base64(sa_creds_base64)?;
         std::env::set_var("SERVICE_ACCOUNT_JSON", config.app.report.get_json_creds()?);
 
         Ok(config)
