@@ -24,6 +24,7 @@ export type Scalars = {
   SignedUsdCents: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
   UUID: { input: string; output: string; }
+  Upload: { input: any; output: any; }
   UsdCents: { input: any; output: any; }
 };
 
@@ -550,6 +551,7 @@ export type Mutation = {
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  upload: Scalars['Boolean']['output'];
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
@@ -626,6 +628,11 @@ export type MutationShareholderEquityAddArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
+};
+
+
+export type MutationUploadArgs = {
+  file: Scalars['Upload']['input'];
 };
 
 

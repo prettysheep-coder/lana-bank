@@ -1,4 +1,4 @@
-use async_graphql::{types::connection::*, Context, Object};
+use async_graphql::{types::connection::*, Context, Object, Upload};
 use uuid::Uuid;
 
 use super::{
@@ -440,6 +440,38 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    pub async fn upload(&self, _ctx: &Context<'_>, file: Upload) -> async_graphql::Result<bool> {
+        let file = file.value(_ctx)?;
+        let filename = file.filename.clone();
+        let content = file.content;
+
+        // Show content (be careful with this in production!)
+        println!("File uploaded: {} with content {:?}", filename, content);
+
+        // Object::list(
+        //     bucket,
+        //     ListRequest {
+        //         prefix: Some("uploads/".to_string()),
+        //         ..Default::default()
+        //     },
+        // )
+        // .await?
+        // .into_iter()
+        // .for_each(|object| {
+        //     println!("Object: {:?}", object);
+        // });
+
+        // Object::create(
+        //     &location.bucket,
+        //     content,
+        //     &location.path_in_bucket,
+        //     "application/pdf",
+        // )
+        // .await?;
+
+        Ok(true)
+    }
+
     pub async fn shareholder_equity_add(
         &self,
         ctx: &Context<'_>,

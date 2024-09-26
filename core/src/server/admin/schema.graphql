@@ -513,6 +513,7 @@ enum LoanStatus {
 }
 
 type Mutation {
+	upload(file: Upload!): Boolean!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	defaultTermsUpdate(input: DefaultTermsUpdateInput!): DefaultTermsUpdatePayload!
@@ -706,6 +707,8 @@ type TrialBalance {
 
 scalar UUID
 
+scalar Upload
+
 type UsdAccountAmounts {
 	debit: UsdCents!
 	credit: UsdCents!
@@ -838,6 +841,7 @@ enum WithdrawalStatus {
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @specifiedBy(url: String!) on SCALAR
 schema {
 	query: Query
 	mutation: Mutation
