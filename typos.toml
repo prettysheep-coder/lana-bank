@@ -48,10 +48,9 @@ extend-exclude = [
 	"definitions/reports/report_02_npb4_17_referencia_xml.sqlx",
 	"definitions/reports/report_02_npb4_17_referencia_xml_tf.sqlx",
 	"definitions/reports/report_03_npb4_17_referencia_garantia_xml.sqlx",
-	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml.sqlx",
-	"dev/fake-service-account.json",
+	"definitions/reports/report_03_npb4_17_referencia_garantia_xml_tf.sqlx",
 	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml.sqlx",
 	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml_tf.sqlx",
-	"definitions/reports/report_03_npb4_17_referencia_garantia_xml.sqlx",
-	"definitions/reports/report_03_npb4_17_referencia_garantia_xml_tf.sqlx",
+	"/definitions/udfs/udf_nbp4_17_assert_in_dim_table.sqlx",
+	"dev/fake-service-account.json",
 ]
