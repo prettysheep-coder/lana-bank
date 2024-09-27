@@ -10,6 +10,7 @@ use crate::{
     app::AppConfig,
     report::ReportConfig,
     server::{admin::AdminServerConfig, public::PublicServerConfig},
+    storage::config::StorageConfig,
 };
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -55,17 +56,20 @@ impl Config {
         config.app.sumsub.sumsub_secret = sumsub_secret;
         if let Some(dev_env_name_prefix) = dev_env_name_prefix {
             eprintln!(
-                "WARNING - overriding report config from DEV_ENV_NAME_PREFIX={}",
+                "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={}",
                 dev_env_name_prefix
             );
-            config.app.report = ReportConfig::init(
-                sa_creds_base64.clone(),
-                dev_env_name_prefix,
-                config.app.report.gcp_location,
-            )?;
+            config.app.report = ReportConfig::new_dev_mode(dev_env_name_prefix.clone());
+            config.app.storage = StorageConfig::new_dev_mode(dev_env_name_prefix);
         };
-        config.app.report.set_sa_creds_base64(sa_creds_base64)?;
-        std::env::set_var("SERVICE_ACCOUNT_JSON", config.app.report.get_json_creds()?);
+        config
+            .app
+            .service_account
+            .set_sa_creds_base64(sa_creds_base64)?;
+        std::env::set_var(
+            "SERVICE_ACCOUNT_JSON",
+            config.app.service_account.get_json_creds()?,
+        );
 
         Ok(config)
     }

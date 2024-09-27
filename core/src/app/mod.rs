@@ -18,6 +18,7 @@ use crate::{
     price::Price,
     primitives::Subject,
     report::Reports,
+    storage::Storage,
     user::Users,
     withdraw::Withdraws,
 };
@@ -55,7 +56,16 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new(&pool, &jobs, &export);
-        let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs);
+        let storage = Storage::new(&config.storage);
+        let report = Reports::new(
+            &pool,
+            &config.report,
+            &authz,
+            &audit,
+            &jobs,
+            &config.service_account,
+            &storage,
+        );
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities =
             CreditFacilities::new(&pool, &export, &authz, &customers, &users, &ledger);
