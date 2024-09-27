@@ -1,7 +1,7 @@
 config {
 	type: "operations",
 	hasOutput: true,
-  description: "Errors found in Regulatory Report 'persona.xml' of norm 'NPB4-17'"
+  description: "Errors found in Regulatory Report persona.xml of norm NPB4-17"
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
