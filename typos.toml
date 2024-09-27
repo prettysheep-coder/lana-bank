@@ -52,5 +52,7 @@ extend-exclude = [
 	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml.sqlx",
 	"definitions/reports/report_07_npb4_17_garantia_pignorada_xml_tf.sqlx",
 	"/definitions/udfs/udf_nbp4_17_assert_in_dim_table.sqlx",
+	"/definitions/udfs/udf_nbp4_17_assert_in_dim_table.sqlx",
+	"/definitions/udfs/udf_nbp4_17_dim_table_code_from_desc.sqlx",
 	"dev/fake-service-account.json",
 ]
