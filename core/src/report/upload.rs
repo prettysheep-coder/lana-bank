@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::{service_account::ServiceAccountConfig, storage::Storage};
 
-use super::{config::ReportConfig, ReportError, ReportLocationInCloud};
+use super::{config::ReportConfig, ReportError};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -32,12 +32,6 @@ pub async fn execute(
     for report_name in bq::find_report_outputs(config, service_account).await? {
         let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
 
-        // TODO: remove
-        let _location = ReportLocationInCloud {
-            report_name: report_name.clone(),
-            bucket: storage.config.bucket_name.clone(),
-            path_in_bucket: path_to_report(&storage.config.root_folder, &report_name, &day),
-        };
         let rows = match bq::query_report(config, service_account, &report_name, &day).await {
             Ok(rows) => rows,
             Err(e) => {
@@ -50,14 +44,17 @@ pub async fn execute(
         };
         let xml_bytes = convert_to_xml_data(rows);
 
-        let path_in_bucket = path_to_report(&storage.config.root_folder, &report_name, &day);
+        let path_in_bucket = path_to_report(&report_name, &day);
 
-        match storage.upload(xml_bytes.to_vec(), &path_in_bucket).await {
+        match storage
+            .upload(xml_bytes.to_vec(), &path_in_bucket, "application/xml")
+            .await
+        {
             Ok(_) => {
                 res.push(ReportFileUpload::Success {
-                    path_in_bucket: path_to_report(&storage.config.root_folder, &report_name, &day),
+                    path_in_bucket,
                     report_name,
-                    bucket: storage.config.bucket_name.clone(),
+                    bucket: storage.bucket_name(),
                 });
             }
             Err(e) => res.push(ReportFileUpload::Failure {
@@ -70,8 +67,8 @@ pub async fn execute(
     Ok(res)
 }
 
-fn path_to_report(root_folder: &str, report: &str, day: &str) -> String {
-    format!("{}/reports/{}/{}.xml", root_folder, day, report)
+fn path_to_report(report: &str, day: &str) -> String {
+    format!("reports/{}/{}.xml", day, report)
 }
 
 pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
