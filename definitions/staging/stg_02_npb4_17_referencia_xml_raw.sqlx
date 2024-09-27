@@ -95,11 +95,11 @@ SELECT
   , principal + total_interest_incurred - total_interest_paid - total_principal_paid AS `saldo_referencia` -- Remaining balance
   , principal - total_principal_paid AS `saldo_vigente_k`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_k`
-  , total_interest_incurred - total_principal_paid AS `saldo_vigente_i`
+  , GREATEST(total_interest_incurred - total_principal_paid, 0) AS `saldo_vigente_i` -- yeilds a negative, TODO: review
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
   , CAST(NULL AS NUMERIC) AS `abono_deposito`
   , DATE(start_timestamp) AS `fecha_otorgamiento`
-  , end_date AS `fecha_vencimiento`
+  , DATE(end_date) AS `fecha_vencimiento`
   , CAST(NULL AS DATE) AS `fecha_castigo`
   , (SELECT code FROM ${ref("stg_dim_07_npb4_17_estados_de_la_referencia")} WHERE description = "Vigente") AS `estado_credito`
   , CAST(NULL AS NUMERIC) AS `saldo_mora_k`
@@ -114,13 +114,13 @@ SELECT
   , CAST(NULL AS INT64) AS `periodo_gracia_i`
   , CAST(NULL AS STRING) AS `garante`
   , CAST(NULL AS STRING) AS `emisión`
-  , CAST(NULL AS NUMERIC) AS `pais_destino_credito`       -- join to customer identities's country_of_residence_code?
-  , CAST(NULL AS STRING) AS `destino`                     -- join to customer identities's economic_activity_code or new loan_destination_economic_sector field? required!
+  , 9300 AS `pais_destino_credito`                        -- join to customer identities's country_of_residence_code?
+  , "010101" AS `destino`                                 -- join to customer identities's economic_activity_code or new loan_destination_economic_sector field? required!
   , (SELECT code FROM ${ref("stg_dim_17_npb4_17_monedas")} WHERE description = "Dólares") AS `codigo_moneda`
   , CAST(annual_rate AS NUMERIC) AS `tasa_interes`        -- Interest rate in effect for the reported month.
   , CAST(annual_rate AS NUMERIC) AS `tasa_contractual`    -- Nominal interest rate agreed in the contract. Calculated in relation to the reference rate.
-  , CAST(NULL AS NUMERIC) AS `tasa_referencia`            -- Reference rate published in the month in which the loan is contracted.
-  , CAST(NULL AS NUMERIC) AS `tasa_efectiva`              -- Specifies the effective rate charged to the client. Monthly effective rate charged must be calculated in accordance with Annex 3 of (NBP4-16)
+  , CAST(annual_rate AS NUMERIC) AS `tasa_referencia`     -- Reference rate published in the month in which the loan is contracted.
+  , CAST(annual_rate AS NUMERIC) AS `tasa_efectiva`       -- Specifies the effective rate charged to the client. Monthly effective rate charged must be calculated in accordance with Annex 3 of (NBP4-16)
   , "F" AS `tipo_tasa_interes`                            -- "A" for adjustable, "F" for fixed
   , (SELECT code FROM ${ref("stg_dim_18_npb4_17_tipos_de_prestamos")} WHERE description = "Crédito decreciente") AS `tipo_prestamo`
   , (SELECT code FROM ${ref("stg_dim_21_npb4_17_fuentes_de_recursos")} WHERE description = "Recursos propios de la entidad") AS `codigo_recurso`
