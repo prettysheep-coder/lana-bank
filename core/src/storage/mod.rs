@@ -10,10 +10,25 @@ use futures::TryStreamExt;
 const LINK_DURATION_IN_SECS: u32 = 60 * 5;
 
 #[derive(Debug, Clone)]
-pub struct ReportLocationInCloud {
+pub struct ReportLocationInCloudWithMeta {
     pub report_name: String,
     pub bucket: String,
     pub path_in_bucket: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ReportLocationInCloud {
+    pub bucket: String,
+    pub path_in_bucket: String,
+}
+
+impl From<ReportLocationInCloudWithMeta> for ReportLocationInCloud {
+    fn from(meta: ReportLocationInCloudWithMeta) -> Self {
+        ReportLocationInCloud {
+            bucket: meta.bucket,
+            path_in_bucket: meta.path_in_bucket,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -53,10 +68,22 @@ impl Storage {
         Ok(())
     }
 
-    pub async fn generate_download_link(
-        &self,
-        location: &ReportLocationInCloud,
-    ) -> Result<String, StorageError> {
+    pub async fn remove(&self, path_in_bucket: &str) -> Result<(), StorageError> {
+        Object::delete(
+            &self.config.bucket_name,
+            &self.path_with_prefix(path_in_bucket),
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn generate_download_link<T>(&self, location: T) -> Result<String, StorageError>
+    where
+        T: Into<ReportLocationInCloud>,
+    {
+        let location: ReportLocationInCloud = location.into();
+
         Ok(Object::read(
             &location.bucket,
             &self.path_with_prefix(&location.path_in_bucket),

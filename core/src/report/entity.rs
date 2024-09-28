@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*, storage::ReportLocationInCloud};
+use crate::{entity::*, primitives::*, storage::ReportLocationInCloudWithMeta};
 
 use super::{
     dataform_client::{CompilationResult, WorkflowInvocation},
@@ -237,7 +237,7 @@ impl Report {
         });
     }
 
-    pub(super) fn download_links(&self) -> Vec<ReportLocationInCloud> {
+    pub(super) fn download_links(&self) -> Vec<ReportLocationInCloudWithMeta> {
         self.events
             .iter()
             .filter_map(|e| match e {
@@ -246,7 +246,7 @@ impl Report {
                     bucket,
                     path_in_bucket,
                     ..
-                } => Some(ReportLocationInCloud {
+                } => Some(ReportLocationInCloudWithMeta {
                     report_name: report_name.to_string(),
                     bucket: bucket.to_string(),
                     path_in_bucket: path_in_bucket.to_string(),
@@ -259,7 +259,7 @@ impl Report {
     pub(super) fn download_link_generated(
         &mut self,
         audit_info: AuditInfo,
-        location: ReportLocationInCloud,
+        location: ReportLocationInCloudWithMeta,
     ) {
         self.events.push(ReportEvent::DownloadLinkGenerated {
             report_name: location.report_name,

@@ -25,6 +25,7 @@ export type Scalars = {
   SignedUsdCents: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
   UUID: { input: string; output: string; }
+  Upload: { input: any; output: any; }
   UsdCents: { input: any; output: any; }
 };
 
@@ -405,6 +406,23 @@ export type DepositRecordPayload = {
   deposit: Deposit;
 };
 
+export type Document = {
+  __typename?: 'Document';
+  customerId: Scalars['UUID']['output'];
+  filename: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+};
+
+export type DocumentCreateInput = {
+  customerId: Scalars['UUID']['input'];
+  file: Scalars['Upload']['input'];
+};
+
+export type DocumentCreatePayload = {
+  __typename?: 'DocumentCreatePayload';
+  document: Document;
+};
+
 export type Duration = {
   __typename?: 'Duration';
   period: Period;
@@ -613,6 +631,7 @@ export type Mutation = {
   creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   customerCreate: CustomerCreatePayload;
+  customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
@@ -671,6 +690,11 @@ export type MutationCreditFacilityPartialPaymentArgs = {
 
 export type MutationCustomerCreateArgs = {
   input: CustomerCreateInput;
+};
+
+
+export type MutationCustomerDocumentAttachArgs = {
+  input: DocumentCreateInput;
 };
 
 
@@ -801,6 +825,8 @@ export type Query = {
   customers: CustomerConnection;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
+  document: Document;
+  documentsForCustomer: Array<Document>;
   loan?: Maybe<Loan>;
   loans: LoanConnection;
   me: User;
@@ -880,6 +906,16 @@ export type QueryDepositArgs = {
 export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+
+export type QueryDocumentArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDocumentsForCustomerArgs = {
+  customerId: Scalars['UUID']['input'];
 };
 
 
@@ -1003,7 +1039,7 @@ export type SuccessPayload = {
 };
 
 export type SumsubPermalinkCreateInput = {
-  customerId: Scalars['String']['input'];
+  customerId: Scalars['UUID']['input'];
 };
 
 export type SumsubPermalinkCreatePayload = {

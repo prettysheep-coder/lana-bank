@@ -1,0 +1,7 @@
+query DocumentsForCustomer($customerId: UUID!) {
+  documentsForCustomer(customerId: $customerId) {
+    id
+    customerId
+    filename
+  }
+}

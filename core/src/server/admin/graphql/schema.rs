@@ -1,9 +1,18 @@
 use async_graphql::{types::connection::*, Context, Object};
-use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
-    price::*, report::*, shareholder_equity::*, terms_template::TermsTemplate, user::*,
+    account_set::*,
+    audit::AuditEntry,
+    credit_facility::*,
+    customer::*,
+    deposit::*,
+    document::{Document, DocumentCreateInput, DocumentCreatePayload},
+    loan::*,
+    price::*,
+    report::*,
+    shareholder_equity::*,
+    terms_template::TermsTemplate,
+    user::*,
     withdraw::*,
 };
 
@@ -11,7 +20,9 @@ use crate::{
     app::LavaApp,
     audit::AuditCursor,
     credit_facility::CreditFacilityByCreatedAtCursor,
-    primitives::{CreditFacilityId, CustomerId, LoanId, ReportId, TermsTemplateId, UserId},
+    primitives::{
+        CreditFacilityId, CustomerId, DocumentId, LoanId, ReportId, TermsTemplateId, UserId,
+    },
     server::{
         admin::{
             graphql::terms_template::{
@@ -510,18 +521,59 @@ impl Query {
             .await?;
         Ok(terms_template.map(TermsTemplate::from))
     }
+
+    async fn document(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Document> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let document = app
+            .documents()
+            .find_by_id(sub, DocumentId::from(id))
+            .await?;
+        Ok(Document::from(document))
+    }
+
+    async fn documents_for_customer(
+        &self,
+        ctx: &Context<'_>,
+        customer_id: UUID,
+    ) -> async_graphql::Result<Vec<Document>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let documents = app
+            .documents()
+            .list_by_customer_id(sub, CustomerId::from(customer_id))
+            .await?;
+        Ok(documents.into_iter().map(Document::from).collect())
+    }
 }
 
 pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    pub async fn customer_document_attach(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentCreateInput,
+    ) -> async_graphql::Result<DocumentCreatePayload> {
+        let app: &LavaApp = ctx.data_unchecked::<LavaApp>();
+        let file = input.file.value(ctx)?;
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let document = app
+            .documents()
+            .create(sub, file.content.to_vec(), input.customer_id, file.filename)
+            .await?;
+
+        Ok(DocumentCreatePayload::from(document))
+    }
+
     pub async fn shareholder_equity_add(
         &self,
         ctx: &Context<'_>,
         input: ShareholderEquityAddInput,
     ) -> async_graphql::Result<SuccessPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app: &LavaApp = ctx.data_unchecked::<LavaApp>();
         Ok(SuccessPayload::from(
             app.ledger()
                 .add_equity(input.amount, input.reference)
@@ -534,12 +586,8 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let customer_id = Uuid::parse_str(&input.customer_id);
-        let customer_id = customer_id.map_err(|_| "Invalid user id")?;
-        let customer_id = CustomerId::from(customer_id);
-
         let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_permalink(customer_id).await?;
+        let res = app.applicants().create_permalink(input.customer_id).await?;
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })

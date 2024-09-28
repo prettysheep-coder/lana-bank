@@ -11,6 +11,7 @@ crate::entity_id! { UserId }
 crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { DepositId }
+crate::entity_id! { DocumentId }
 crate::entity_id! { JobId }
 crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }
