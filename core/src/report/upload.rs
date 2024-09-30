@@ -90,14 +90,14 @@ pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
 pub(super) mod bq {
     use super::*;
 
-    use gcp_bigquery_client::{model::query_request::QueryRequest, table::ListOptions, Client};
+    use gcp_bigquery_client::{model::query_request::QueryRequest, routine::ListOptions, Client};
 
     pub(super) async fn find_report_outputs(
         config: &ReportConfig,
     ) -> Result<Vec<String>, ReportError> {
         let client = Client::from_service_account_key(config.service_account_key(), false).await?;
         let tables = client
-            .table()
+            .routine()
             .list(
                 &config.gcp_project,
                 &config.dataform_output_dataset,
@@ -105,12 +105,12 @@ pub(super) mod bq {
             )
             .await?;
         let res = tables
-            .tables
+            .routines
             .unwrap_or_default()
             .into_iter()
             .filter_map(|t| {
-                if t.table_reference.table_id.starts_with("report") {
-                    return Some(t.table_reference.table_id);
+                if t.routine_reference.routine_id.starts_with("report") {
+                    return Some(t.routine_reference.routine_id);
                 }
                 None
             })
