@@ -5,7 +5,7 @@ pub use error::StorageError;
 
 use cloud_storage::{ListRequest, Object};
 use config::StorageConfig;
-use futures_util::TryStreamExt;
+use futures::TryStreamExt;
 
 const LINK_DURATION_IN_SECS: u32 = 60 * 5;
 

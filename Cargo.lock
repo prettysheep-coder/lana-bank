@@ -1943,7 +1943,6 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "futures",
- "futures-util",
  "gcp-bigquery-client",
  "gcp_auth",
  "graphql_client",
