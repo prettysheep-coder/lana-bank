@@ -34,6 +34,7 @@ async fn upload_doc() -> anyhow::Result<()> {
 
     let res = storage._list("".to_string()).await?;
 
+    dbg!(&res);
     assert!(res.get(0) == Some(&filename.to_owned()));
     Ok(())
 }
