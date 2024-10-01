@@ -4,7 +4,7 @@ use error::ServiceAccountError;
 use gcp_bigquery_client::yup_oauth2::ServiceAccountKey;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServiceAccountConfig {
     #[serde(skip)]
     pub gcp_project: String,
@@ -13,18 +13,31 @@ pub struct ServiceAccountConfig {
     #[serde(skip)]
     service_account_key: Option<ServiceAccountKey>,
 
-    #[serde(default)]
+    #[serde(default = "default_gcp_location")]
     pub gcp_location: String,
+}
+
+impl Default for ServiceAccountConfig {
+    fn default() -> Self {
+        Self {
+            gcp_project: "".to_string(),
+            sa_creds_base64: "".to_string(),
+            service_account_key: None,
+            gcp_location: default_gcp_location(),
+        }
+    }
 }
 
 impl ServiceAccountConfig {
     pub fn set_sa_creds_base64(
-        &mut self,
+        mut self,
         sa_creds_base64: String,
-    ) -> Result<(), ServiceAccountError> {
+    ) -> Result<Self, ServiceAccountError> {
         self.sa_creds_base64 = sa_creds_base64;
 
         let creds = self.get_json_creds()?;
+
+        std::env::set_var("SERVICE_ACCOUNT_JSON", creds);
 
         let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
 
@@ -34,7 +47,7 @@ impl ServiceAccountConfig {
             .ok_or(ServiceAccountError::GCPProjectIdMissing)?;
         self.service_account_key = Some(service_account_key);
 
-        Ok(())
+        Ok(self)
     }
 
     pub fn service_account_key(&self) -> ServiceAccountKey {
@@ -51,4 +64,8 @@ impl ServiceAccountConfig {
         )?
         .to_string())
     }
+}
+
+fn default_gcp_location() -> String {
+    "europe-west6".to_string()
 }
