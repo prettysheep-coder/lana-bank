@@ -28,13 +28,13 @@ async fn upload_doc() -> anyhow::Result<()> {
     let storage = Storage::new(&config);
 
     let file = "test".as_bytes().to_vec();
-    let filename = "test.txt";
+    let filename = format!("test-{}.txt", uuid::Uuid::new_v4());
 
-    let _ = storage.upload(file, filename, "application/txt").await;
+    let _ = storage.upload(file, &filename, "application/txt").await;
 
     let res = storage._list("".to_string()).await?;
 
-    dbg!(&res);
-    assert!(res.get(0) == Some(&filename.to_owned()));
+    assert!(res.iter().any(|x| x == &filename));
+
     Ok(())
 }

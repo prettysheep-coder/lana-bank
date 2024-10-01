@@ -81,7 +81,6 @@ impl Storage {
 
         while let Some(result) = stream.try_next().await? {
             for item in result.items {
-                dbg!(&item);
                 if let Some(stripped) = item.name.strip_prefix(&self.path_with_prefix("")) {
                     filenames.push(stripped.trim_start_matches('/').to_string());
                 }
