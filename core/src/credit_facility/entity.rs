@@ -11,7 +11,7 @@ use crate::{
         customer::CustomerLedgerAccountIds,
     },
     primitives::*,
-    terms::TermValues,
+    terms::{CVLPct, TermValues},
 };
 
 use super::{disbursement::*, CreditFacilityError};
@@ -50,6 +50,15 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
+    CollateralUpdated {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        total_collateral: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+        audit_info: AuditInfo,
+        recorded_in_ledger_at: DateTime<Utc>,
+    },
 }
 
 impl EntityEvent for CreditFacilityEvent {
@@ -57,6 +66,29 @@ impl EntityEvent for CreditFacilityEvent {
     fn event_table_name() -> &'static str {
         "credit_facility_events"
     }
+}
+
+pub struct FacilityReceivable {
+    pub disbursed: UsdCents,
+    pub interest: UsdCents,
+}
+
+impl FacilityReceivable {
+    pub fn total(&self) -> UsdCents {
+        self.interest + self.disbursed
+    }
+}
+
+pub struct FacilityCVL {
+    total: CVLPct,
+    disbursed: CVLPct,
+}
+
+impl FacilityCVL {
+    pub const ZERO: Self = Self {
+        total: CVLPct::ZERO,
+        disbursed: CVLPct::ZERO,
+    };
 }
 
 #[derive(Builder)]
@@ -86,6 +118,45 @@ impl CreditFacility {
                 _ => continue,
             }
         }
+        UsdCents::ZERO
+    }
+
+    fn total_disbursed(&self) -> UsdCents {
+        let mut amounts = std::collections::HashMap::new();
+        self.events
+            .iter()
+            .fold(UsdCents::from(0), |mut total_sum, event| {
+                match event {
+                    CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
+                        amounts.insert(*idx, *amount);
+                    }
+                    CreditFacilityEvent::DisbursementConcluded { idx, .. } => {
+                        if let Some(amount) = amounts.remove(idx) {
+                            total_sum += amount;
+                        }
+                    }
+                    _ => (),
+                }
+                total_sum
+            })
+    }
+
+    fn facility_remaining(&self) -> UsdCents {
+        self.initial_facility() - self.total_disbursed()
+    }
+
+    fn interest_accrued(&self) -> UsdCents {
+        // TODO: implement
+        UsdCents::ZERO
+    }
+
+    fn disbursed_payments(&self) -> UsdCents {
+        // TODO: implement
+        UsdCents::ZERO
+    }
+
+    fn interest_payments(&self) -> UsdCents {
+        // TODO: implement
         UsdCents::ZERO
     }
 
@@ -261,6 +332,41 @@ impl CreditFacility {
 
         false
     }
+
+    pub fn outstanding(&self) -> FacilityReceivable {
+        FacilityReceivable {
+            disbursed: self.total_disbursed() - self.disbursed_payments(),
+            interest: self.interest_accrued() - self.interest_payments(),
+        }
+    }
+
+    pub fn collateral(&self) -> Satoshis {
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralUpdated {
+                    total_collateral, ..
+                } => Some(*total_collateral),
+                _ => None,
+            })
+            .unwrap_or(Satoshis::ZERO)
+    }
+
+    pub fn cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral());
+        if collateral_value == UsdCents::ZERO {
+            return FacilityCVL::ZERO;
+        }
+
+        FacilityCVL {
+            total: CVLPct::from_loan_amounts(
+                collateral_value,
+                self.outstanding().total() + self.facility_remaining(),
+            ),
+            disbursed: CVLPct::from_loan_amounts(collateral_value, self.outstanding().total()),
+        }
+    }
 }
 
 impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
@@ -298,6 +404,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
+                CreditFacilityEvent::CollateralUpdated { .. } => (),
             }
         }
         builder.events(events).build()
