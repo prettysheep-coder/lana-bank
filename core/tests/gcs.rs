@@ -20,7 +20,8 @@ async fn upload_doc() -> anyhow::Result<()> {
     } else {
         StorageConfig {
             service_account: Some(sa),
-            ..StorageConfig::default()
+            root_folder: "gha".to_string(),
+            bucket_name: "gha-volcano-documents".to_string(),
         }
     };
 
