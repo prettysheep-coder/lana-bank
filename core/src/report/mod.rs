@@ -13,7 +13,6 @@ use crate::{
     entity::EntityError,
     job::Jobs,
     primitives::{ReportId, Subject},
-    service_account::ServiceAccountConfig,
     storage::Storage,
 };
 
@@ -39,16 +38,11 @@ impl Reports {
         authz: &Authorization,
         audit: &Audit,
         jobs: &Jobs,
-        service_account: &ServiceAccountConfig,
         storage: &Storage,
     ) -> Self {
         let repo = ReportRepo::new(pool);
         jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
-            &repo,
-            config,
-            audit,
-            service_account,
-            storage,
+            &repo, config, audit, storage,
         ));
         jobs.add_initializer(report_jobs::create::CreateReportInitializer::new(
             &repo, jobs, audit,

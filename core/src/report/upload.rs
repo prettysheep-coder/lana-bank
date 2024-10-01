@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use crate::{service_account::ServiceAccountConfig, storage::Storage};
+use crate::storage::Storage;
 
 use super::{config::ReportConfig, ReportError};
 
@@ -25,14 +25,13 @@ pub struct QueryRow(HashMap<String, serde_json::Value>);
 
 pub async fn execute(
     config: &ReportConfig,
-    service_account: &ServiceAccountConfig,
     storage: &Storage,
 ) -> Result<Vec<ReportFileUpload>, ReportError> {
     let mut res = Vec::new();
-    for report_name in bq::find_report_outputs(config, service_account).await? {
+    for report_name in bq::find_report_outputs(config).await? {
         let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
 
-        let rows = match bq::query_report(config, service_account, &report_name, &day).await {
+        let rows = match bq::query_report(config, &report_name, &day).await {
             Ok(rows) => rows,
             Err(e) => {
                 res.push(ReportFileUpload::Failure {
@@ -94,22 +93,20 @@ pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
 }
 
 pub(super) mod bq {
-    use crate::service_account::ServiceAccountConfig;
-
     use super::*;
 
     use gcp_bigquery_client::{model::query_request::QueryRequest, table::ListOptions, Client};
 
     pub(super) async fn find_report_outputs(
         config: &ReportConfig,
-        service_account: &ServiceAccountConfig,
     ) -> Result<Vec<String>, ReportError> {
         let client =
-            Client::from_service_account_key(service_account.service_account_key(), false).await?;
+            Client::from_service_account_key(config.service_account().service_account_key(), false)
+                .await?;
         let tables = client
             .table()
             .list(
-                &service_account.gcp_project,
+                &config.service_account().gcp_project,
                 &config.dataform_output_dataset,
                 ListOptions::default(),
             )
@@ -130,13 +127,13 @@ pub(super) mod bq {
 
     pub(super) async fn query_report(
         config: &ReportConfig,
-        service_account: &ServiceAccountConfig,
         report: &str,
         day: &str,
     ) -> Result<Vec<QueryRow>, ReportError> {
         let client =
-            Client::from_service_account_key(service_account.service_account_key(), false).await?;
-        let gcp_project = &service_account.gcp_project;
+            Client::from_service_account_key(config.service_account().service_account_key(), false)
+                .await?;
+        let gcp_project = &config.service_account().gcp_project;
         let query = format!(
             "SELECT * FROM `{}.{}.{}`('{}')",
             gcp_project, config.dataform_output_dataset, report, day

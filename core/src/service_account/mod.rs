@@ -36,10 +36,8 @@ impl ServiceAccountConfig {
         self.sa_creds_base64 = sa_creds_base64;
 
         let creds = self.get_json_creds()?;
-
-        std::env::set_var("SERVICE_ACCOUNT_JSON", creds);
-
         let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
+        std::env::set_var("SERVICE_ACCOUNT_JSON", creds);
 
         self.gcp_project = service_account_key
             .project_id

@@ -59,15 +59,7 @@ impl LavaApp {
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new(&pool, &jobs, &export);
         let storage = Storage::new(&config.storage);
-        let report = Reports::new(
-            &pool,
-            &config.report,
-            &authz,
-            &audit,
-            &jobs,
-            &config.service_account,
-            &storage,
-        );
+        let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs, &storage);
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities =
             CreditFacilities::new(&pool, &export, &authz, &customers, &users, &ledger);

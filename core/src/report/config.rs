@@ -27,4 +27,10 @@ impl ReportConfig {
             service_account: Some(service_account),
         }
     }
+
+    pub(super) fn service_account(&self) -> &ServiceAccountConfig {
+        self.service_account
+            .as_ref()
+            .expect("Service Account not set")
+    }
 }

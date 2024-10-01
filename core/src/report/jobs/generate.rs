@@ -7,7 +7,6 @@ use crate::{
     authorization::{Object, ReportAction},
     job::*,
     primitives::*,
-    service_account::ServiceAccountConfig,
     storage::Storage,
 };
 
@@ -25,7 +24,6 @@ pub struct GenerateReportInitializer {
     repo: ReportRepo,
     report_config: ReportConfig,
     audit: Audit,
-    service_account: ServiceAccountConfig,
     storage: Storage,
 }
 
@@ -34,14 +32,12 @@ impl GenerateReportInitializer {
         repo: &ReportRepo,
         report_config: &ReportConfig,
         audit: &Audit,
-        service_account: &ServiceAccountConfig,
         storage: &Storage,
     ) -> Self {
         Self {
             repo: repo.clone(),
             report_config: report_config.clone(),
             audit: audit.clone(),
-            service_account: service_account.clone(),
             storage: storage.clone(),
         }
     }
@@ -62,7 +58,6 @@ impl JobInitializer for GenerateReportInitializer {
             repo: self.repo.clone(),
             report_config: self.report_config.clone(),
             audit: self.audit.clone(),
-            service_account: self.service_account.clone(),
             storage: self.storage.clone(),
         }))
     }
@@ -73,7 +68,6 @@ pub struct GenerateReportJobRunner {
     repo: ReportRepo,
     report_config: ReportConfig,
     audit: Audit,
-    service_account: ServiceAccountConfig,
     storage: Storage,
 }
 
@@ -90,8 +84,7 @@ impl JobRunner for GenerateReportJobRunner {
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut report = self.repo.find_by_id(self.config.report_id).await?;
-        let mut client =
-            DataformClient::connect(&self.report_config, &self.service_account).await?;
+        let mut client = DataformClient::connect(&self.report_config).await?;
 
         match report.next_step() {
             ReportGenerationProcessStep::Compilation => {
@@ -162,9 +155,7 @@ impl JobRunner for GenerateReportJobRunner {
                     )
                     .await?;
 
-                match upload::execute(&self.report_config, &self.service_account, &self.storage)
-                    .await
-                {
+                match upload::execute(&self.report_config, &self.storage).await {
                     Ok(files) => report.files_uploaded(files, audit_info),
                     Err(e) => {
                         report.upload_failed(e.to_string(), audit_info);
