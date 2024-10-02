@@ -589,14 +589,14 @@ mod test {
 
     #[test]
     fn sats_to_cents_trivial() {
-        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+        let price = PriceOfOneBTC::new(UsdCents::from(5_000_000));
         let sats = Satoshis::from(10_000);
         assert_eq!(UsdCents::from(500), price.sats_to_cents_round_down(sats));
     }
 
     #[test]
     fn sats_to_cents_complex() {
-        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+        let price = PriceOfOneBTC::new(UsdCents::from(5_000_000));
         let sats = Satoshis::from(12_345);
         assert_eq!(UsdCents::from(617), price.sats_to_cents_round_down(sats));
     }
