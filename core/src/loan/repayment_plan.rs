@@ -341,25 +341,23 @@ mod tests {
         let partial_amount = UsdCents::from(40_00);
         let expected_remaining_amount = full_amount - partial_amount;
 
-        events.extend(
-            [
-                LoanEvent::InterestIncurred {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-interest-{}", loan_id, 2),
-                    amount: UsdCents::from(10_000),
-                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-                LoanEvent::PaymentRecorded {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: UsdCents::ZERO,
-                    interest_amount: partial_amount,
-                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-            ],
-        );
+        events.extend([
+            LoanEvent::InterestIncurred {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-interest-{}", loan_id, 2),
+                amount: UsdCents::from(10_000),
+                recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+            LoanEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-payment-{}", loan_id, 2),
+                principal_amount: UsdCents::ZERO,
+                interest_amount: partial_amount,
+                recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 1;
@@ -401,25 +399,23 @@ mod tests {
         let partial_amount = UsdCents::from(100_000);
         let expected_remaining_amount = full_amount - partial_amount;
 
-        events.extend(
-            [
-                LoanEvent::InterestIncurred {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-interest-{}", loan_id, 2),
-                    amount: UsdCents::from(10_000),
-                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-                LoanEvent::PaymentRecorded {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: partial_amount,
-                    interest_amount: UsdCents::from(10_000),
-                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-            ],
-        );
+        events.extend([
+            LoanEvent::InterestIncurred {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-interest-{}", loan_id, 2),
+                amount: UsdCents::from(10_000),
+                recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+            LoanEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-payment-{}", loan_id, 2),
+                principal_amount: partial_amount,
+                interest_amount: UsdCents::from(10_000),
+                recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 2;
@@ -467,25 +463,23 @@ mod tests {
     fn expect_interest_to_be_calculated_on_initial_principal() {
         let mut events = happy_loan_events();
         let loan_id = LoanId::new();
-        events.extend(
-            [
-                LoanEvent::InterestIncurred {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-interest-{}", loan_id, 2),
-                    amount: UsdCents::from(10_000),
-                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-                LoanEvent::PaymentRecorded {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: UsdCents::from(999_999),
-                    interest_amount: UsdCents::from(10_000),
-                    recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-            ],
-        );
+        events.extend([
+            LoanEvent::InterestIncurred {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-interest-{}", loan_id, 2),
+                amount: UsdCents::from(10_000),
+                recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+            LoanEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-payment-{}", loan_id, 2),
+                principal_amount: UsdCents::from(999_999),
+                interest_amount: UsdCents::from(10_000),
+                recorded_at: "2020-04-01T14:10:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 2;
@@ -517,32 +511,30 @@ mod tests {
     fn completed_loan() {
         let mut events = happy_loan_events();
         let loan_id = LoanId::new();
-        events.extend(
-            [
-                LoanEvent::InterestIncurred {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-interest-{}", loan_id, 2),
-                    amount: UsdCents::from(10_000),
-                    recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-                LoanEvent::InterestIncurred {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-interest-{}", loan_id, 3),
-                    amount: UsdCents::from(10_000),
-                    recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-                LoanEvent::PaymentRecorded {
-                    tx_id: LedgerTxId::new(),
-                    tx_ref: format!("{}-payment-{}", loan_id, 2),
-                    principal_amount: UsdCents::from(1_000_000),
-                    interest_amount: UsdCents::from(20_000),
-                    recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
-                    audit_info: dummy_audit_info(),
-                },
-            ],
-        );
+        events.extend([
+            LoanEvent::InterestIncurred {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-interest-{}", loan_id, 2),
+                amount: UsdCents::from(10_000),
+                recorded_at: "2020-04-30T23:59:59Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+            LoanEvent::InterestIncurred {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-interest-{}", loan_id, 3),
+                amount: UsdCents::from(10_000),
+                recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+            LoanEvent::PaymentRecorded {
+                tx_id: LedgerTxId::new(),
+                tx_ref: format!("{}-payment-{}", loan_id, 2),
+                principal_amount: UsdCents::from(1_000_000),
+                interest_amount: UsdCents::from(20_000),
+                recorded_at: "2020-05-14T14:20:00Z".parse::<DateTime<Utc>>().unwrap(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 3;
@@ -573,16 +565,14 @@ mod tests {
     fn early_completed_loan() {
         let mut events = happy_loan_events();
         let loan_id = LoanId::new();
-        events.extend(
-            [LoanEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
-                tx_ref: format!("{}-payment-{}", loan_id, 2),
-                principal_amount: UsdCents::from(1_000_000),
-                interest_amount: UsdCents::ZERO,
-                recorded_at: "2020-04-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap(),
-                audit_info: dummy_audit_info(),
-            }],
-        );
+        events.extend([LoanEvent::PaymentRecorded {
+            tx_id: LedgerTxId::new(),
+            tx_ref: format!("{}-payment-{}", loan_id, 2),
+            principal_amount: UsdCents::from(1_000_000),
+            interest_amount: UsdCents::ZERO,
+            recorded_at: "2020-04-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap(),
+            audit_info: dummy_audit_info(),
+        }]);
         let repayment_plan = super::project(events.iter());
 
         let n_existing_interest_accruals = 1;

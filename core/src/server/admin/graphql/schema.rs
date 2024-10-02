@@ -24,7 +24,7 @@ use crate::{
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
-            document::{DocumentCreateInput, DocumentCreatePayload, Document},
+            document::{Document, DocumentCreateInput, DocumentCreatePayload},
             loan::Loan,
             objects::SuccessPayload,
             primitives::{Timestamp, UUID},

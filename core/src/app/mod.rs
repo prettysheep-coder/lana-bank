@@ -62,14 +62,7 @@ impl LavaApp {
         let price = Price::new(&pool, &jobs, &export);
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
-        let report = Reports::new(
-            &pool,
-            &config.report,
-            &authz,
-            &audit,
-            &jobs,
-            &storage,
-        );
+        let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs, &storage);
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities = CreditFacilities::new(
             &pool,
@@ -184,7 +177,7 @@ impl LavaApp {
     pub fn terms_templates(&self) -> &TermsTemplates {
         &self.terms_templates
     }
-    
+
     pub fn documents(&self) -> &Documents {
         &self.documents
     }
