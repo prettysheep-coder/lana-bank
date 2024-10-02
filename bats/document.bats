@@ -75,9 +75,9 @@ teardown_file() {
 
   exec_admin_graphql 'documents-for-customer' "$variables"
 
-  documents_count=$(graphql_output '.data.documentsForCustomer | length')
+  documents_count=$(graphql_output '.data.customer.documents | length')
   [[ "$documents_count" -ge 1 ]] || exit 1
 
-  first_document_id=$(graphql_output '.data.documentsForCustomer[0].id')
+  first_document_id=$(graphql_output '.data.customer.documents[0].id')
   [[ "$first_document_id" == "$document_id" ]] || exit 1
 }

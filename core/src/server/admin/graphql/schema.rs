@@ -1,18 +1,8 @@
 use async_graphql::{types::connection::*, Context, Object};
 
 use super::{
-    account_set::*,
-    audit::AuditEntry,
-    credit_facility::*,
-    customer::*,
-    deposit::*,
-    document::{Document, DocumentCreateInput, DocumentCreatePayload},
-    loan::*,
-    price::*,
-    report::*,
-    shareholder_equity::*,
-    terms_template::TermsTemplate,
-    user::*,
+    account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
+    price::*, report::*, shareholder_equity::*, terms_template::TermsTemplate, user::*,
     withdraw::*,
 };
 
@@ -34,6 +24,7 @@ use crate::{
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
+            document::{DocumentCreateInput, DocumentCreatePayload, Document},
             loan::Loan,
             objects::SuccessPayload,
             primitives::{Timestamp, UUID},
@@ -530,20 +521,6 @@ impl Query {
             .find_by_id(sub, DocumentId::from(id))
             .await?;
         Ok(Document::from(document))
-    }
-
-    async fn documents_for_customer(
-        &self,
-        ctx: &Context<'_>,
-        customer_id: UUID,
-    ) -> async_graphql::Result<Vec<Document>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        let documents = app
-            .documents()
-            .list_by_customer_id(sub, CustomerId::from(customer_id))
-            .await?;
-        Ok(documents.into_iter().map(Document::from).collect())
     }
 }
 

@@ -1,7 +1,11 @@
-query DocumentsForCustomer($customerId: UUID!) {
-  documentsForCustomer(customerId: $customerId) {
-    id
+query CustomerDocuments($customerId: UUID!) {
+  customer(id: $customerId) {
     customerId
-    filename
+    email
+    documents {
+      id
+      customerId
+      filename
+    }
   }
 }

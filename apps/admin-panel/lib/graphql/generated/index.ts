@@ -310,6 +310,7 @@ export type Customer = {
   creditFacilities: Array<CreditFacility>;
   customerId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
+  documents: Array<Document>;
   email: Scalars['String']['output'];
   level: KycLevel;
   loans: Array<Loan>;
@@ -826,7 +827,6 @@ export type Query = {
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
   document: Document;
-  documentsForCustomer: Array<Document>;
   loan?: Maybe<Loan>;
   loans: LoanConnection;
   me: User;
@@ -911,11 +911,6 @@ export type QueryDepositsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryDocumentsForCustomerArgs = {
-  customerId: Scalars['UUID']['input'];
 };
 
 

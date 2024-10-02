@@ -291,7 +291,11 @@ type Customer {
 	userCanCreateLoan: Boolean!
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
+<<<<<<< HEAD
 	creditFacilities: [CreditFacility!]!
+=======
+	documents: [Document!]!
+>>>>>>> 8ab8e7ed (refactor: move document under customers)
 }
 
 type CustomerBalance {
@@ -700,7 +704,6 @@ type Query {
 	report(id: UUID!): Report
 	termsTemplate(id: UUID!): TermsTemplate
 	document(id: UUID!): Document!
-	documentsForCustomer(customerId: UUID!): [Document!]!
 }
 
 type RealtimePrice {
