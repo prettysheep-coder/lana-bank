@@ -80,7 +80,11 @@ type Customer {
 	userCanCreateLoan: Boolean!
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
+<<<<<<< HEAD
 	creditFacilities: [CreditFacility!]!
+=======
+	documents: [Document!]!
+>>>>>>> 79d82719 (fix: updating also public gql)
 }
 
 type CustomerBalance {
@@ -94,6 +98,12 @@ type Deposit {
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+}
+
+type Document {
+	id: UUID!
+	customerId: UUID!
+	filename: String!
 }
 
 type Duration {
