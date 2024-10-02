@@ -1,5 +1,3 @@
-// FIXME
-#[allow(unreachable_code)]
 use lava_core::{
     service_account::ServiceAccountConfig,
     storage::{config::StorageConfig, ReportLocationInCloud, Storage},
@@ -34,7 +32,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     let _ = storage.upload(content, filename, "application/txt").await;
     let res = storage._list("".to_string()).await?;
 
-    assert!(res.get(0).is_some());
+    assert!(res.first().is_some());
     let count = res.len();
 
     // generate link
