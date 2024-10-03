@@ -424,6 +424,16 @@ export type DocumentCreatePayload = {
   document: Document;
 };
 
+export type DocumentDownloadLinksGenerateInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type DocumentDownloadLinksGeneratePayload = {
+  __typename?: 'DocumentDownloadLinksGeneratePayload';
+  documentId: Scalars['UUID']['output'];
+  link: Scalars['String']['output'];
+};
+
 export type Duration = {
   __typename?: 'Duration';
   period: Period;
@@ -635,6 +645,7 @@ export type Mutation = {
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   depositRecord: DepositRecordPayload;
+  documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
   loanApprove: LoanApprovePayload;
   loanCollateralUpdate: LoanCollateralUpdatePayload;
   loanCreate: LoanCreatePayload;
@@ -706,6 +717,11 @@ export type MutationCustomerUpdateArgs = {
 
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
+};
+
+
+export type MutationDocumentDownloadLinkGenerateArgs = {
+  input: DocumentDownloadLinksGenerateInput;
 };
 
 

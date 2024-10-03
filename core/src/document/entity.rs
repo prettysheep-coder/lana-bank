@@ -6,6 +6,12 @@ use crate::{
     primitives::{AuditInfo, CustomerId, DocumentId},
 };
 
+#[derive(Debug, Clone)]
+pub struct GeneratedDocumentDownloadLink {
+    pub document_id: DocumentId,
+    pub link: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DocumentEvent {
@@ -15,13 +21,9 @@ pub enum DocumentEvent {
         audit_info: AuditInfo,
         filename: String,
     },
-    // DownloadLinkGenerated {
-    //     report_name: String,
-    //     bucket: String,
-    //     path_in_bucket: String,
-    //     audit_info: AuditInfo,
-    //     recorded_at: DateTime<Utc>,
-    // },
+    DownloadLinkGenerated {
+        audit_info: AuditInfo,
+    },
 }
 
 impl EntityEvent for DocumentEvent {
@@ -57,8 +59,14 @@ impl Document {
             .entity_first_persisted_at
             .expect("No events for document")
     }
+
+    pub fn download_link_generated(&mut self, audit_info: AuditInfo) {
+        self.events
+            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
+    }
 }
 
+#[allow(clippy::single_match)]
 impl TryFrom<EntityEvents<DocumentEvent>> for Document {
     type Error = EntityError;
 
@@ -78,6 +86,7 @@ impl TryFrom<EntityEvents<DocumentEvent>> for Document {
                         .filename(filename.clone())
                         .audit_info(*audit_info);
                 }
+                _ => (),
             }
         }
         builder.events(events).build()

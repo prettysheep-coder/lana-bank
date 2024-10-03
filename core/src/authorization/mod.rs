@@ -121,7 +121,7 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Report, ReportAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::Report, ReportAction::GenerateDownloadLink)
+        self.add_permission_to_role(&role, Object::Report, ReportAction::DownloadLinkGenerate)
             .await?;
         self.add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Create)
             .await?;
@@ -246,6 +246,12 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Document, DocumentAction::List)
             .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Document,
+            DocumentAction::DownloadLinkGenerate,
+        )
+        .await?;
 
         Ok(())
     }

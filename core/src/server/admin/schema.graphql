@@ -414,6 +414,15 @@ type DocumentCreatePayload {
 	document: Document!
 }
 
+input DocumentDownloadLinksGenerateInput {
+	documentId: UUID!
+}
+
+type DocumentDownloadLinksGeneratePayload {
+	documentId: UUID!
+	link: String!
+}
+
 type Duration {
 	period: Period!
 	units: Int!
@@ -634,6 +643,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
+	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 }

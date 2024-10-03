@@ -10,7 +10,7 @@ pub use entity::*;
 use crate::{
     authorization::{Authorization, DocumentAction, Object},
     primitives::{CustomerId, DocumentId, Subject},
-    storage::Storage,
+    storage::{ReportLocationInCloud, Storage},
 };
 
 #[derive(Clone)]
@@ -31,8 +31,8 @@ impl Documents {
         }
     }
 
-    fn path_in_bucket(&self, customer_id: CustomerId, document_id: DocumentId) -> String {
-        format!("documents/{}/{}", customer_id, document_id)
+    fn path_in_bucket(&self, document_id: DocumentId) -> String {
+        format!("documents/{}", document_id)
     }
 
     pub async fn create(
@@ -48,14 +48,14 @@ impl Documents {
 
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Document, DocumentAction::Create)
+            .enforce_permission(sub, Object::Document, DocumentAction::Create)
             .await?;
 
         let _ = self
             .storage
             .upload(
                 content,
-                self.path_in_bucket(customer_id, new_document_id).as_str(),
+                self.path_in_bucket(new_document_id).as_str(),
                 "application/pdf",
             )
             .await;
@@ -79,7 +79,7 @@ impl Documents {
         id: DocumentId,
     ) -> Result<Document, DocumentError> {
         self.authz
-            .check_permission(sub, Object::Document, DocumentAction::Read)
+            .enforce_permission(sub, Object::Document, DocumentAction::Read)
             .await?;
 
         self.repo.find_by_id(id).await
@@ -91,9 +91,40 @@ impl Documents {
         customer_id: CustomerId,
     ) -> Result<Vec<Document>, DocumentError> {
         self.authz
-            .check_permission(sub, Object::Document, DocumentAction::List)
+            .enforce_permission(sub, Object::Document, DocumentAction::List)
             .await?;
 
         self.repo.list_for_customer(customer_id).await
+    }
+
+    pub async fn generate_download_link(
+        &self,
+        sub: &Subject,
+        document_id: DocumentId,
+    ) -> Result<GeneratedDocumentDownloadLink, DocumentError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(sub, Object::Document, DocumentAction::DownloadLinkGenerate)
+            .await?;
+
+        let path = self.path_in_bucket(document_id);
+        let report_location_in_cloud = ReportLocationInCloud {
+            bucket: self.storage.bucket_name(),
+            path_in_bucket: path.clone(),
+        };
+
+        let link = self
+            .storage
+            .generate_download_link(report_location_in_cloud)
+            .await?;
+
+        let mut tx = self.pool.begin().await?;
+
+        let mut document = self.repo.find_by_id(document_id).await?;
+        document.download_link_generated(audit_info);
+
+        self.repo.persist_in_tx(&mut tx, &mut document).await?;
+
+        Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
 }

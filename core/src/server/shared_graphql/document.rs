@@ -56,3 +56,23 @@ impl From<Vec<crate::document::Document>> for DocumentListForCustomerPayload {
         }
     }
 }
+
+#[derive(InputObject)]
+pub struct DocumentDownloadLinksGenerateInput {
+    pub document_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct DocumentDownloadLinksGeneratePayload {
+    document_id: UUID,
+    link: String,
+}
+
+impl From<crate::document::GeneratedDocumentDownloadLink> for DocumentDownloadLinksGeneratePayload {
+    fn from(value: crate::document::GeneratedDocumentDownloadLink) -> Self {
+        Self {
+            document_id: UUID::from(value.document_id),
+            link: value.link,
+        }
+    }
+}

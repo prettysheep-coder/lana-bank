@@ -165,6 +165,7 @@ pub enum DocumentAction {
     Create,
     Read,
     List,
+    DownloadLinkGenerate,
 }
 
 impl_trivial_action!(DocumentAction, Document);
@@ -190,7 +191,7 @@ pub enum ReportAction {
     Compile,
     Invoke,
     Upload,
-    GenerateDownloadLink,
+    DownloadLinkGenerate,
 }
 
 impl_trivial_action!(ReportAction, Report);

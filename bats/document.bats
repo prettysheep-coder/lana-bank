@@ -29,7 +29,6 @@ teardown_file() {
   
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
-  echo "$output"
   [[ "$customer_id" != "null" ]] || exit 1
 
   # Generate a temporary file
@@ -80,4 +79,21 @@ teardown_file() {
 
   first_document_id=$(graphql_output '.data.customer.documents[0].id')
   [[ "$first_document_id" == "$document_id" ]] || exit 1
+
+  # Generate download link for the document
+  variables=$(jq -n \
+    --arg documentId "$document_id" \
+    '{
+      input: {
+        documentId: $documentId
+      }
+    }')
+
+  exec_admin_graphql 'document-download-link-generate' "$variables"
+
+  download_link=$(graphql_output .data.documentDownloadLinkGenerate.link)
+  [[ "$download_link" != "null" && "$download_link" != "" ]] || exit 1
+
+  response=$(curl -s -o /dev/null -w "%{http_code}" "$download_link")
+  [[ "$response" == "200" ]] || exit 1
 }

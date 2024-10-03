@@ -10,4 +10,6 @@ pub enum DocumentError {
     EntityError(#[from] crate::entity::EntityError),
     #[error("DocumentError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("DocumentError - StorageError: {0}")]
+    StorageError(#[from] crate::storage::StorageError),
 }

@@ -24,7 +24,10 @@ use crate::{
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
-            document::{Document, DocumentCreateInput, DocumentCreatePayload},
+            document::{
+                Document, DocumentCreateInput, DocumentCreatePayload,
+                DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload,
+            },
             loan::Loan,
             objects::SuccessPayload,
             primitives::{Timestamp, UUID},
@@ -923,6 +926,20 @@ impl Mutation {
             .generate_download_links(sub, input.report_id.into())
             .await?;
         Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    async fn document_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<DocumentDownloadLinksGeneratePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let doc = app
+            .documents()
+            .generate_download_link(sub, input.document_id.into())
+            .await?;
+        Ok(DocumentDownloadLinksGeneratePayload::from(doc))
     }
 
     async fn terms_template_create(

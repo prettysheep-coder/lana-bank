@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Transaction};
 
 use crate::{
     entity::*,
@@ -79,5 +79,14 @@ impl DocumentsRepo {
         let n = rows.len();
         let documents = EntityEvents::load_n(rows, n)?;
         Ok(documents.0)
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut Transaction<'_, sqlx::Postgres>,
+        document: &mut Document,
+    ) -> Result<(), DocumentError> {
+        document.events.persist(db).await?;
+        Ok(())
     }
 }
