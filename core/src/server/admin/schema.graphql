@@ -237,6 +237,9 @@ type Customer {
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
 	audit: [AuditEntry!]!
+	userCanCreateLoan: Boolean!
+	userCanRecordDeposit: Boolean!
+	userCanInitiateWithdrawal: Boolean!
 }
 
 type CustomerBalance {
@@ -409,6 +412,10 @@ type Loan {
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	userCanApprove: Boolean!
+	userCanUpdateCollateral: Boolean!
+	userCanUpdateCollateralizationState: Boolean!
+	userCanRecordPayment: Boolean!
 }
 
 type LoanApproval {
@@ -757,6 +764,8 @@ type User {
 	userId: UUID!
 	email: String!
 	roles: [Role!]!
+	canCreateCustomer: Boolean!
+	canCreateUser: Boolean!
 	visibleNavigationItems: VisibleNavigationItems!
 }
 
@@ -805,6 +814,8 @@ type Withdrawal {
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+	userCanConfirm: Boolean!
+	userCanCancel: Boolean!
 }
 
 input WithdrawalCancelInput {

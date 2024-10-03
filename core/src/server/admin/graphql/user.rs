@@ -2,9 +2,9 @@ use async_graphql::*;
 
 use crate::{
     app::LavaApp,
-    authorization::VisibleNavigationItems,
+    authorization::*,
     primitives::{Role, Subject, UserId},
-    server::shared_graphql::primitives::UUID,
+    server::{admin::AdminAuthContext, shared_graphql::primitives::UUID},
 };
 
 #[derive(InputObject)]
@@ -22,6 +22,30 @@ pub struct User {
 
 #[ComplexObject]
 impl User {
+    async fn can_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::Create,
+            )
+            .await
+            .is_ok())
+    }
+
+    async fn can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(sub, Object::User, UserAction::Create)
+            .await
+            .is_ok())
+    }
+
     async fn visible_navigation_items(
         &self,
         ctx: &Context<'_>,

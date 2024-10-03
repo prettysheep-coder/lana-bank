@@ -3,8 +3,9 @@ use dataloader::DataLoader;
 
 use crate::{
     app::LavaApp,
+    authorization::*,
     ledger,
-    primitives::{self},
+    primitives::{self, CustomerId},
     server::{
         admin::{
             graphql::{audit::AuditEntry, loader::LavaDataLoader},
@@ -99,6 +100,41 @@ impl Customer {
             .await?;
 
         Ok(entries.into_values().collect())
+    }
+
+    async fn user_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let customer_id = CustomerId::from(&self.customer_id);
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                LoanAction::Create,
+            )
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(sub, Object::Deposit, DepositAction::Record)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(sub, Object::Withdraw, WithdrawAction::Initiate)
+            .await
+            .is_ok())
     }
 }
 

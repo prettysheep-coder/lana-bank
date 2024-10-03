@@ -2,6 +2,7 @@ use async_graphql::*;
 
 use crate::{
     app::LavaApp,
+    authorization::*,
     primitives::UsdCents,
     server::{
         admin::AdminAuthContext,
@@ -31,6 +32,26 @@ impl Withdrawal {
             .find_by_id(Some(sub), &self.customer_id)
             .await?;
         Ok(customer.map(Customer::from))
+    }
+
+    async fn user_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(sub, Object::Withdraw, WithdrawAction::Confirm)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .authz()
+            .check_permission_without_audit_trail(sub, Object::Withdraw, WithdrawAction::Cancel)
+            .await
+            .is_ok())
     }
 }
 
