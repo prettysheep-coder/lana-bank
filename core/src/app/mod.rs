@@ -124,7 +124,7 @@ impl LavaApp {
         query: crate::query::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
         self.authz
-            .check_permission(sub, Object::Audit, Action::Audit(AuditAction::List), true)
+            .check_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)

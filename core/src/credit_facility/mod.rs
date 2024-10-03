@@ -63,14 +63,8 @@ impl CreditFacilities {
 
         let audit_info = self
             .authz
-            .check_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::Create,
-                true,
-            )
-            .await?
-            .expect("audit info not found");
+            .check_permission(sub, Object::CreditFacility, CreditFacilityAction::Create)
+            .await?;
 
         let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
             Some(customer) => customer,
@@ -111,14 +105,8 @@ impl CreditFacilities {
 
         let audit_info = self
             .authz
-            .check_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::Approve,
-                true,
-            )
-            .await?
-            .expect("audit info not found");
+            .check_permission(sub, Object::CreditFacility, CreditFacilityAction::Approve)
+            .await?;
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -160,10 +148,8 @@ impl CreditFacilities {
                 sub,
                 Object::CreditFacility,
                 CreditFacilityAction::InitiateDisbursement,
-                true,
             )
-            .await?
-            .expect("audit info not found");
+            .await?;
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -201,10 +187,8 @@ impl CreditFacilities {
                 sub,
                 Object::CreditFacility,
                 CreditFacilityAction::ApproveDisbursement,
-                true,
             )
-            .await?
-            .expect("audit info not found");
+            .await?;
 
         let mut credit_facility = self
             .credit_facility_repo

@@ -84,9 +84,8 @@ impl Users {
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::Create, true)
-            .await?
-            .expect("audit info not found");
+            .check_permission(sub, Object::User, UserAction::Create)
+            .await?;
         let new_user = NewUser::builder()
             .email(email)
             .audit_info(audit_info)
@@ -100,7 +99,7 @@ impl Users {
 
     pub async fn find_by_id(&self, sub: &Subject, id: UserId) -> Result<Option<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, UserAction::Read, true)
+            .check_permission(sub, Object::User, UserAction::Read)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -134,7 +133,7 @@ impl Users {
 
     pub async fn list_users(&self, sub: &Subject) -> Result<Vec<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, UserAction::List, true)
+            .check_permission(sub, Object::User, UserAction::List)
             .await?;
         self.repo.list().await
     }
@@ -152,9 +151,8 @@ impl Users {
         }
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::AssignRole, true)
-            .await?
-            .expect("audit info not found");
+            .check_permission(sub, Object::User, UserAction::AssignRole)
+            .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
         if user.assign_role(role, audit_info) {
@@ -178,9 +176,8 @@ impl Users {
         }
         let audit_role = self
             .authz
-            .check_permission(sub, Object::User, UserAction::RevokeRole, true)
-            .await?
-            .expect("audit info not found");
+            .check_permission(sub, Object::User, UserAction::RevokeRole)
+            .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
         if user.revoke_role(role, audit_role) {

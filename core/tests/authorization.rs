@@ -68,8 +68,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .check_permission(
             &superuser_subject,
             Object::User,
-            Action::User(UserAction::Create),
-            true,
+            Action::User(UserAction::Create)
         )
         .await
         .is_ok());
@@ -79,8 +78,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .check_permission(
             &superuser_subject,
             Object::User,
-            Action::User(UserAction::AssignRole),
-            true,
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
@@ -90,8 +88,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .check_permission(
             &superuser_subject,
             Object::User,
-            Action::User(UserAction::AssignRole),
-            true
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
@@ -114,8 +111,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .check_permission(
             &admin_subject,
             Object::User,
-            Action::User(UserAction::Create),
-            true
+            Action::User(UserAction::Create)
         )
         .await
         .is_ok());
@@ -125,8 +121,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .check_permission(
             &admin_subject,
             Object::User,
-            Action::User(UserAction::AssignRole),
-            true
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
@@ -136,8 +131,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .check_permission(
             &admin_subject,
             Object::User,
-            Action::User(UserAction::AssignRole),
-            true
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
@@ -162,8 +156,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .check_permission(
                 &bank_manager_subject,
                 Object::User,
-                Action::User(UserAction::Create),
-                true
+                Action::User(UserAction::Create)
             )
             .await,
         Err(AuthorizationError::NotAuthorized)
@@ -175,8 +168,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .check_permission(
                 &bank_manager_subject,
                 Object::User,
-                Action::User(UserAction::AssignRole),
-                true
+                Action::User(UserAction::AssignRole)
             )
             .await,
         Err(AuthorizationError::NotAuthorized)
