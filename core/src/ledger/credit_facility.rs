@@ -68,3 +68,30 @@ pub struct CreditFacilityApprovalData {
     pub credit_facility_account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CreditFacilityPaymentAmounts {
+    pub interest: UsdCents,
+    pub disbursement: UsdCents,
+}
+
+#[derive(Debug, Clone)]
+pub enum CreditFacilityRepayment {
+    Partial {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
+        amounts: CreditFacilityPaymentAmounts,
+    },
+    Final {
+        payment_tx_id: LedgerTxId,
+        payment_tx_ref: String,
+        collateral_tx_id: LedgerTxId,
+        collateral_tx_ref: String,
+        collateral: Satoshis,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
+        amounts: CreditFacilityPaymentAmounts,
+    },
+}

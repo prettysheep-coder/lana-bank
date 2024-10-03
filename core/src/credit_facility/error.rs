@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::primitives::{CustomerId, Satoshis};
+use crate::primitives::{CustomerId, Satoshis, UsdCents};
 
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
@@ -36,6 +36,10 @@ pub enum CreditFacilityError {
     NoDisbursementInProgress,
     #[error("CreditFacilityError - DisbursementInProgress")]
     DisbursementInProgress,
-    #[error("LoanError - CollateralNotUpdated: before({0}), after({1})")]
+    #[error("CreditFacilityError - CollateralNotUpdated: before({0}), after({1})")]
     CollateralNotUpdated(Satoshis, Satoshis),
+    #[error("CreditFacilityError - InsufficientBalance: {0} < {1}")]
+    InsufficientBalance(UsdCents, UsdCents),
+    #[error("CreditFacilityError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
+    PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
 }
