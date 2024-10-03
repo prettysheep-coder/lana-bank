@@ -38,8 +38,14 @@ impl TermsTemplates {
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Create)
-            .await?;
+            .check_permission(
+                sub,
+                Object::TermsTemplate,
+                TermsTemplateAction::Create,
+                true,
+            )
+            .await?
+            .expect("audit info not found");
         let new_terms_template = NewTermsTemplate::builder()
             .id(TermsTemplateId::new())
             .name(name)
@@ -60,7 +66,7 @@ impl TermsTemplates {
         id: TermsTemplateId,
     ) -> Result<Option<TermsTemplate>, TermsTemplateError> {
         self.authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read, true)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(template) => Ok(Some(template)),
@@ -74,7 +80,7 @@ impl TermsTemplates {
         sub: &Subject,
     ) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
         self.authz
-            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::List, true)
             .await?;
         self.repo.list().await
     }

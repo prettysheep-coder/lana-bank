@@ -71,8 +71,10 @@ impl Customers {
                 sub,
                 Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::Create,
+                true,
             )
-            .await?;
+            .await?
+            .expect("audit info not found");
         let customer_id = self.kratos.create_identity(&email).await?.into();
 
         let ledger_account_ids = self
@@ -141,6 +143,7 @@ impl Customers {
                     sub,
                     Object::Customer(CustomerAllOrOne::ById(id)),
                     CustomerAction::Read,
+                    true,
                 )
                 .await?;
         }
@@ -161,6 +164,7 @@ impl Customers {
                 sub,
                 Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::Read,
+                true,
             )
             .await?;
 
@@ -193,6 +197,7 @@ impl Customers {
                 sub,
                 Object::Customer(CustomerAllOrOne::All),
                 CustomerAction::List,
+                true,
             )
             .await?;
         self.repo.list(query).await
@@ -294,8 +299,10 @@ impl Customers {
                 sub,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 CustomerAction::Update,
+                true,
             )
-            .await?;
+            .await?
+            .expect("audit info not found");
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
         customer.update_telegram_id(new_telegram_id, audit_info);

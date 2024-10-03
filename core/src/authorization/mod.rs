@@ -267,18 +267,26 @@ impl Authorization {
         sub: &Subject,
         object: Object,
         action: impl Into<Action> + std::fmt::Debug,
-    ) -> Result<AuditInfo, AuthorizationError> {
+        leave_audit_trail: bool,
+    ) -> Result<Option<AuditInfo>, AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
 
         let action = action.into();
-        match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
-            Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
-            Ok(false) => {
+        let result = enforcer.enforce((sub.to_string(), object.to_string(), action.to_string()));
+
+        match (result, leave_audit_trail) {
+            (Ok(true), true) => {
+                let audit_info = self.audit.record_entry(sub, object, action, true).await?;
+                Ok(Some(audit_info))
+            }
+            (Ok(true), false) => Ok(None),
+            (Ok(false), true) => {
                 self.audit.record_entry(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
             }
-            Err(e) => Err(AuthorizationError::Casbin(e)),
+            (Ok(false), false) => Err(AuthorizationError::NotAuthorized),
+            (Err(e), _) => Err(AuthorizationError::Casbin(e)),
         }
     }
 
@@ -369,7 +377,7 @@ impl Authorization {
         actions: &[Action],
     ) -> Result<bool, AuthorizationError> {
         for action in actions {
-            match self.check_permission(sub, object, *action).await {
+            match self.check_permission(sub, object, *action, true).await {
                 Ok(_) => continue,
                 Err(AuthorizationError::NotAuthorized) => return Ok(false),
                 Err(e) => return Err(e),
