@@ -67,6 +67,21 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
+    InterestAccrued {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
+    },
+    PaymentRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        disbursement_amount: UsdCents,
+        interest_amount: UsdCents,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
+    },
 }
 
 impl EntityEvent for CreditFacilityEvent {
@@ -155,18 +170,38 @@ impl CreditFacility {
     }
 
     fn interest_accrued(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::InterestAccrued { amount, .. } => Some(*amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |sum, amount| sum + amount)
     }
 
     fn disbursed_payments(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::PaymentRecorded {
+                    disbursement_amount,
+                    ..
+                } => Some(*disbursement_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |sum, amount| sum + amount)
     }
 
     fn interest_payments(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::PaymentRecorded {
+                    interest_amount, ..
+                } => Some(*interest_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |sum, amount| sum + amount)
     }
 
     pub(super) fn is_approved(&self) -> bool {
@@ -567,6 +602,8 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
+                CreditFacilityEvent::InterestAccrued { .. } => (),
+                CreditFacilityEvent::PaymentRecorded { .. } => (),
             }
         }
         builder.events(events).build()
