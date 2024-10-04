@@ -134,7 +134,7 @@ type LoanApproval {
 
 type LoanBalance {
 	collateral: Collateral!
-	outstanding: LoanOutstanding!
+	outstanding: Outstanding!
 	interestIncurred: InterestIncome!
 }
 
@@ -151,10 +151,6 @@ type LoanOrigination {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	txId: UUID!
-}
-
-type LoanOutstanding {
-	usdBalance: UsdCents!
 }
 
 type LoanRepaymentInPlan {
@@ -186,6 +182,10 @@ enum LoanStatus {
 
 type Mutation {
 	sumsubTokenCreate: SumsubTokenCreatePayload!
+}
+
+type Outstanding {
+	usdBalance: UsdCents!
 }
 
 enum Period {
