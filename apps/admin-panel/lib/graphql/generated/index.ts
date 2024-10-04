@@ -767,6 +767,7 @@ export type Query = {
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlowStatement?: Maybe<CashFlowStatement>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
+  creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
@@ -813,6 +814,11 @@ export type QueryBalanceSheetArgs = {
 export type QueryCashFlowStatementArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
+};
+
+
+export type QueryCreditFacilityArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
