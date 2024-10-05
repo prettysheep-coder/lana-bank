@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
 
 use crate::{
-    customer::Customers,
+    customer::{error::CustomerError, Customers},
     data_export::Export,
     job::Jobs,
     primitives::{CustomerId, JobId},
@@ -68,6 +68,7 @@ pub enum SumsubCallbackPayload {
         review_status: String,
         created_at_ms: String,
         client_id: Option<String>,
+        sandbox_mode: Option<bool>,
     },
     #[serde(rename = "applicantReviewed")]
     #[serde(rename_all = "camelCase")]
@@ -80,6 +81,7 @@ pub enum SumsubCallbackPayload {
         review_result: ReviewResult,
         review_status: String,
         created_at_ms: String,
+        sandbox_mode: Option<bool>,
     },
     #[serde(other)]
     Unknown,
@@ -125,12 +127,12 @@ impl Applicants {
             .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
             .parse()?;
 
-        let mut db = self.pool.begin().await?;
-
         let callback_id = &self
             .repo
-            .persist_webhook_data(&mut db, customer_id, payload.clone())
+            .persist_webhook_data(customer_id, payload.clone())
             .await?;
+
+        let mut db = self.pool.begin().await?;
 
         self.jobs
             .create_and_spawn_job::<SumsubExportInitializer, _>(
@@ -163,11 +165,23 @@ impl Applicants {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
+                sandbox_mode,
                 ..
             } => {
-                self.users
+                let res = self
+                    .users
                     .start_kyc(db, external_user_id, applicant_id)
-                    .await?;
+                    .await;
+
+                if let Err(CustomerError::CouldNotFindById(_)) = res {
+                    if sandbox_mode.unwrap_or(false) {
+                        // In sandbox mode, if the customer is not found, we return Ok
+                        // to avoid returning a 500 error
+                        return Ok(());
+                    }
+                }
+
+                res?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -177,11 +191,21 @@ impl Applicants {
                         ..
                     },
                 applicant_id,
+                sandbox_mode,
                 ..
             } => {
-                self.users
+                let res = self
+                    .users
                     .deactivate(db, external_user_id, applicant_id)
-                    .await?;
+                    .await;
+
+                if let Err(CustomerError::CouldNotFindById(_)) = res {
+                    if sandbox_mode.unwrap_or(false) {
+                        return Ok(());
+                    }
+                }
+
+                res?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -192,11 +216,21 @@ impl Applicants {
                     },
                 applicant_id,
                 level_name: SumsubKycLevel::BasicKycLevel,
+                sandbox_mode,
                 ..
             } => {
-                self.users
+                let res = self
+                    .users
                     .approve_basic(db, external_user_id, applicant_id)
-                    .await?;
+                    .await;
+
+                if let Err(CustomerError::CouldNotFindById(_)) = res {
+                    if sandbox_mode.unwrap_or(false) {
+                        return Ok(());
+                    }
+                }
+
+                res?;
 
                 self.jobs
                     .create_and_spawn_job::<SumsubExportInitializer, _>(
