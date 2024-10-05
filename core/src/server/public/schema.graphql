@@ -38,6 +38,13 @@ type CollateralUpdated {
 	txId: UUID!
 }
 
+enum CollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_MARGIN_CALL_THRESHOLD
+	UNDER_LIQUIDATION_THRESHOLD
+	NO_COLLATERAL
+}
+
 type CollateralizationUpdated {
 	state: LoanCollaterizationState!
 	collateral: Satoshis!
@@ -45,6 +52,17 @@ type CollateralizationUpdated {
 	outstandingPrincipal: UsdCents!
 	price: UsdCents!
 	recordedAt: Timestamp!
+}
+
+type CreditFacility {
+	id: ID!
+	creditFacilityId: UUID!
+	collateralizationState: CollateralizationState!
+	balance: CreditFacilityBalance!
+}
+
+type CreditFacilityBalance {
+	outstanding: Outstanding!
 }
 
 type Customer {
@@ -59,6 +77,7 @@ type Customer {
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
 	audit: [AuditEntry!]!
+	creditFacilities: [CreditFacility!]!
 }
 
 type CustomerBalance {
