@@ -271,6 +271,7 @@ export type Customer = {
   status: AccountStatus;
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
+  userCanCreateLoan: Scalars['Boolean']['output'];
   withdrawals: Array<Withdrawal>;
 };
 
@@ -433,6 +434,10 @@ export type Loan = {
   repaymentPlan: Array<LoanRepaymentInPlan>;
   status: LoanStatus;
   transactions: Array<LoanHistoryEntry>;
+  userCanApprove: Scalars['Boolean']['output'];
+  userCanRecordPaymentOrCompleteLoan: Scalars['Boolean']['output'];
+  userCanUpdateCollateral: Scalars['Boolean']['output'];
+  userCanUpdateCollateralizationState: Scalars['Boolean']['output'];
 };
 
 export type LoanApproval = {

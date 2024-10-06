@@ -237,6 +237,7 @@ type Customer {
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
 	audit: [AuditEntry!]!
+	userCanCreateLoan: Boolean!
 }
 
 type CustomerBalance {
@@ -409,6 +410,10 @@ type Loan {
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	userCanApprove: Boolean!
+	userCanUpdateCollateral: Boolean!
+	userCanUpdateCollateralizationState: Boolean!
+	userCanRecordPaymentOrCompleteLoan: Boolean!
 }
 
 type LoanApproval {
