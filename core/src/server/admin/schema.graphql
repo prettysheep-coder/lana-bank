@@ -784,6 +784,9 @@ type User {
 	email: String!
 	roles: [Role!]!
 	visibleNavigationItems: VisibleNavigationItems!
+	canCreateUser: Boolean!
+	canAssignRoleToUser: Boolean!
+	canRevokeRoleFromUser: Boolean!
 }
 
 input UserAssignRoleInput {

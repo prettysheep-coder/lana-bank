@@ -303,7 +303,7 @@ impl Authorization {
         }
     }
 
-    pub async fn evaluate_permission<T>(
+    pub async fn evaluate_permission(
         &self,
         sub: &Subject,
         object: Object,
