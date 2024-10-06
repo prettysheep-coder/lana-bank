@@ -5,7 +5,7 @@ mod repo;
 use crate::{
     authorization::{Authorization, Object, TermsTemplateAction},
     data_export::Export,
-    primitives::{Subject, TermsTemplateId},
+    primitives::{AuditInfo, Subject, TermsTemplateId},
     terms::TermValues,
 };
 
@@ -30,6 +30,22 @@ impl TermsTemplates {
         }
     }
 
+    pub async fn user_can_create_terms_template(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, TermsTemplateError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::TermsTemplate,
+                TermsTemplateAction::Create,
+                enforce,
+            )
+            .await?)
+    }
+
     pub async fn create_terms_template(
         &self,
         sub: &Subject,
@@ -37,9 +53,9 @@ impl TermsTemplates {
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Create)
-            .await?;
+            .user_can_create_terms_template(sub, true)
+            .await?
+            .expect("audit info missing");
         let new_terms_template = NewTermsTemplate::builder()
             .id(TermsTemplateId::new())
             .name(name)
