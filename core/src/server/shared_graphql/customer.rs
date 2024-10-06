@@ -111,6 +111,18 @@ impl Customer {
             .await
             .is_ok())
     }
+
+    async fn user_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app.deposits().user_can_record(sub, false).await.is_ok())
+    }
+
+    async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app.withdraws().user_can_initiate(sub, false).await.is_ok())
+    }
 }
 
 impl From<primitives::KycLevel> for KycLevel {

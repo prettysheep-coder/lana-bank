@@ -238,6 +238,8 @@ type Customer {
 	withdrawals: [Withdrawal!]!
 	audit: [AuditEntry!]!
 	userCanCreateLoan: Boolean!
+	userCanRecordDeposit: Boolean!
+	userCanInitiateWithdrawal: Boolean!
 }
 
 type CustomerBalance {
@@ -840,6 +842,8 @@ type Withdrawal {
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+	userCanConfirm: Boolean!
+	userCanCancel: Boolean!
 }
 
 input WithdrawalCancelInput {

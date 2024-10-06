@@ -136,7 +136,7 @@ impl Loans {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .user_can_create_loan_for_customer(sub, customer_id, false)
+            .user_can_create_loan_for_customer(sub, customer_id, true)
             .await?
             .expect("audit info missing");
 

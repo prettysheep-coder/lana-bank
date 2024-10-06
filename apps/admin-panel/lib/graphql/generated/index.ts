@@ -272,6 +272,8 @@ export type Customer = {
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateLoan: Scalars['Boolean']['output'];
+  userCanInitiateWithdrawal: Scalars['Boolean']['output'];
+  userCanRecordDeposit: Scalars['Boolean']['output'];
   withdrawals: Array<Withdrawal>;
 };
 
@@ -1094,6 +1096,8 @@ export type Withdrawal = {
   customerId: Scalars['UUID']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
+  userCanCancel: Scalars['Boolean']['output'];
+  userCanConfirm: Scalars['Boolean']['output'];
   withdrawalId: Scalars['UUID']['output'];
 };
 
