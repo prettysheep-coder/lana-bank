@@ -173,15 +173,15 @@ impl Applicants {
                     .start_kyc(db, external_user_id, applicant_id)
                     .await;
 
-                if let Err(CustomerError::CouldNotFindById(_)) = res {
-                    if sandbox_mode.unwrap_or(false) {
-                        // In sandbox mode, if the customer is not found, we return Ok
-                        // to avoid returning a 500 error
-                        return Ok(());
+                match res {
+                    Ok(_) => (),
+                    Err(CustomerError::CouldNotFindById(_)) => {
+                        if sandbox_mode.unwrap_or(false) {
+                            return Ok(());
+                        }
                     }
+                    Err(e) => return Err(e.into()),
                 }
-
-                res?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -199,13 +199,15 @@ impl Applicants {
                     .deactivate(db, external_user_id, applicant_id)
                     .await;
 
-                if let Err(CustomerError::CouldNotFindById(_)) = res {
-                    if sandbox_mode.unwrap_or(false) {
-                        return Ok(());
+                match res {
+                    Ok(_) => (),
+                    Err(CustomerError::CouldNotFindById(_)) => {
+                        if sandbox_mode.unwrap_or(false) {
+                            return Ok(());
+                        }
                     }
+                    Err(e) => return Err(e.into()),
                 }
-
-                res?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -224,13 +226,15 @@ impl Applicants {
                     .approve_basic(db, external_user_id, applicant_id)
                     .await;
 
-                if let Err(CustomerError::CouldNotFindById(_)) = res {
-                    if sandbox_mode.unwrap_or(false) {
-                        return Ok(());
+                match res {
+                    Ok(_) => (),
+                    Err(CustomerError::CouldNotFindById(_)) => {
+                        if sandbox_mode.unwrap_or(false) {
+                            return Ok(());
+                        }
                     }
+                    Err(e) => return Err(e.into()),
                 }
-
-                res?;
 
                 self.jobs
                     .create_and_spawn_job::<SumsubExportInitializer, _>(
