@@ -1328,6 +1328,56 @@ export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: stri
 
 export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
+export type GetCreditFacilityDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } | null };
+
+export type CreditFacilityApproveMutationVariables = Exact<{
+  input: CreditFacilityApproveInput;
+}>;
+
+
+export type CreditFacilityApproveMutation = { __typename?: 'Mutation', creditFacilityApprove: { __typename?: 'CreditFacilityApprovePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
+  input: CreditFacilityCollateralUpdateInput;
+}>;
+
+
+export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type CreditFacilityCreateMutationVariables = Exact<{
+  input: CreditFacilityCreateInput;
+}>;
+
+
+export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type CreditFacilityDisbursementInitiateMutationVariables = Exact<{
+  input: CreditFacilityDisbursementInitiateInput;
+}>;
+
+
+export type CreditFacilityDisbursementInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursementInitiate: { __typename?: 'CreditFacilityDisbursementInitiatePayload', disbursement: { __typename?: 'CreditFacilityDisbursement', id: string, index: any } } };
+
+export type CreditFacilityDisbursementApproveMutationVariables = Exact<{
+  input: CreditFacilityDisbursementApproveInput;
+}>;
+
+
+export type CreditFacilityDisbursementApproveMutation = { __typename?: 'Mutation', creditFacilityDisbursementApprove: { __typename?: 'CreditFacilityDisbursementApprovePayload', disbursement: { __typename?: 'CreditFacilityDisbursement', id: string, index: any } } };
+
+export type CreditFacilitiesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -1347,7 +1397,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -2014,6 +2064,280 @@ export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apol
 export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
 export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
 export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
+export const GetCreditFacilityDetailsDocument = gql`
+    query GetCreditFacilityDetails($id: UUID!) {
+  creditFacility(id: $id) {
+    id
+    creditFacilityId
+    collateralizationState
+    balance {
+      outstanding {
+        usdBalance
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCreditFacilityDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>(GetCreditFacilityDetailsDocument, options);
+      }
+export function useGetCreditFacilityDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>(GetCreditFacilityDetailsDocument, options);
+        }
+export type GetCreditFacilityDetailsQueryHookResult = ReturnType<typeof useGetCreditFacilityDetailsQuery>;
+export type GetCreditFacilityDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityDetailsLazyQuery>;
+export type GetCreditFacilityDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>;
+export const CreditFacilityApproveDocument = gql`
+    mutation CreditFacilityApprove($input: CreditFacilityApproveInput!) {
+  creditFacilityApprove(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityApproveMutationFn = Apollo.MutationFunction<CreditFacilityApproveMutation, CreditFacilityApproveMutationVariables>;
+
+/**
+ * __useCreditFacilityApproveMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityApproveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityApproveMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityApproveMutation, { data, loading, error }] = useCreditFacilityApproveMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityApproveMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityApproveMutation, CreditFacilityApproveMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityApproveMutation, CreditFacilityApproveMutationVariables>(CreditFacilityApproveDocument, options);
+      }
+export type CreditFacilityApproveMutationHookResult = ReturnType<typeof useCreditFacilityApproveMutation>;
+export type CreditFacilityApproveMutationResult = Apollo.MutationResult<CreditFacilityApproveMutation>;
+export type CreditFacilityApproveMutationOptions = Apollo.BaseMutationOptions<CreditFacilityApproveMutation, CreditFacilityApproveMutationVariables>;
+export const CreditFacilityCollateralUpdateDocument = gql`
+    mutation CreditFacilityCollateralUpdate($input: CreditFacilityCollateralUpdateInput!) {
+  creditFacilityCollateralUpdate(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityCollateralUpdateMutationFn = Apollo.MutationFunction<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>;
+
+/**
+ * __useCreditFacilityCollateralUpdateMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCollateralUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCollateralUpdateMutation, { data, loading, error }] = useCreditFacilityCollateralUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>(CreditFacilityCollateralUpdateDocument, options);
+      }
+export type CreditFacilityCollateralUpdateMutationHookResult = ReturnType<typeof useCreditFacilityCollateralUpdateMutation>;
+export type CreditFacilityCollateralUpdateMutationResult = Apollo.MutationResult<CreditFacilityCollateralUpdateMutation>;
+export type CreditFacilityCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>;
+export const CreditFacilityCreateDocument = gql`
+    mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
+  creditFacilityCreate(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityCreateMutationFn = Apollo.MutationFunction<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>;
+
+/**
+ * __useCreditFacilityCreateMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCreateMutation, { data, loading, error }] = useCreditFacilityCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCreateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>(CreditFacilityCreateDocument, options);
+      }
+export type CreditFacilityCreateMutationHookResult = ReturnType<typeof useCreditFacilityCreateMutation>;
+export type CreditFacilityCreateMutationResult = Apollo.MutationResult<CreditFacilityCreateMutation>;
+export type CreditFacilityCreateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>;
+export const CreditFacilityDisbursementInitiateDocument = gql`
+    mutation CreditFacilityDisbursementInitiate($input: CreditFacilityDisbursementInitiateInput!) {
+  creditFacilityDisbursementInitiate(input: $input) {
+    disbursement {
+      id
+      index
+    }
+  }
+}
+    `;
+export type CreditFacilityDisbursementInitiateMutationFn = Apollo.MutationFunction<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>;
+
+/**
+ * __useCreditFacilityDisbursementInitiateMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityDisbursementInitiateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityDisbursementInitiateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityDisbursementInitiateMutation, { data, loading, error }] = useCreditFacilityDisbursementInitiateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityDisbursementInitiateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>(CreditFacilityDisbursementInitiateDocument, options);
+      }
+export type CreditFacilityDisbursementInitiateMutationHookResult = ReturnType<typeof useCreditFacilityDisbursementInitiateMutation>;
+export type CreditFacilityDisbursementInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursementInitiateMutation>;
+export type CreditFacilityDisbursementInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>;
+export const CreditFacilityDisbursementApproveDocument = gql`
+    mutation CreditFacilityDisbursementApprove($input: CreditFacilityDisbursementApproveInput!) {
+  creditFacilityDisbursementApprove(input: $input) {
+    disbursement {
+      id
+      index
+    }
+  }
+}
+    `;
+export type CreditFacilityDisbursementApproveMutationFn = Apollo.MutationFunction<CreditFacilityDisbursementApproveMutation, CreditFacilityDisbursementApproveMutationVariables>;
+
+/**
+ * __useCreditFacilityDisbursementApproveMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityDisbursementApproveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityDisbursementApproveMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityDisbursementApproveMutation, { data, loading, error }] = useCreditFacilityDisbursementApproveMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityDisbursementApproveMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursementApproveMutation, CreditFacilityDisbursementApproveMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityDisbursementApproveMutation, CreditFacilityDisbursementApproveMutationVariables>(CreditFacilityDisbursementApproveDocument, options);
+      }
+export type CreditFacilityDisbursementApproveMutationHookResult = ReturnType<typeof useCreditFacilityDisbursementApproveMutation>;
+export type CreditFacilityDisbursementApproveMutationResult = Apollo.MutationResult<CreditFacilityDisbursementApproveMutation>;
+export type CreditFacilityDisbursementApproveMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursementApproveMutation, CreditFacilityDisbursementApproveMutationVariables>;
+export const CreditFacilitiesDocument = gql`
+    query CreditFacilities($first: Int!, $after: String) {
+  creditFacilities(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        creditFacilityId
+        collateralizationState
+        balance {
+          outstanding {
+            usdBalance
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCreditFacilitiesQuery__
+ *
+ * To run a query within a React component, call `useCreditFacilitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditFacilitiesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCreditFacilitiesQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>(CreditFacilitiesDocument, options);
+      }
+export function useCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>(CreditFacilitiesDocument, options);
+        }
+export type CreditFacilitiesQueryHookResult = ReturnType<typeof useCreditFacilitiesQuery>;
+export type CreditFacilitiesLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesLazyQuery>;
+export type CreditFacilitiesQueryResult = Apollo.QueryResult<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>;
 export const GetKycStatusForCustomerDocument = gql`
     query GetKycStatusForCustomer($id: UUID!) {
   customer(id: $id) {
@@ -2152,6 +2476,16 @@ export const GetCustomerDocument = gql`
       }
       currentCvl @client
       collateralToMatchInitialCvl @client
+    }
+    creditFacilities {
+      id
+      creditFacilityId
+      collateralizationState
+      balance {
+        outstanding {
+          usdBalance
+        }
+      }
     }
     deposits {
       createdAt

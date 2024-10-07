@@ -2,11 +2,15 @@
 
 import { gql } from "@apollo/client"
 
+import React from "react"
+
 import { CustomerDetailsCard } from "./details"
 import { CustomerAccountBalances } from "./balances"
 import { CustomerLoansTable } from "./loans"
 import { CustomerTransactionsTable } from "./transactions"
 import { KycStatus } from "./kyc-status"
+
+import { CustomerCreditFacilitiesTable } from "./credit-facilities"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 import { PageHeading } from "@/components/page-heading"
@@ -80,6 +84,16 @@ gql`
         currentCvl @client
         collateralToMatchInitialCvl @client
       }
+      creditFacilities {
+        id
+        creditFacilityId
+        collateralizationState
+        balance {
+          outstanding {
+            usdBalance
+          }
+        }
+      }
       deposits {
         createdAt
         customerId
@@ -150,6 +164,7 @@ const Customer = ({
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="balances">Balances</TabsTrigger>
               <TabsTrigger value="loans">Loans</TabsTrigger>
+              <TabsTrigger value="credit-facilities">Credit Facilities</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="kyc">KYC Status</TabsTrigger>
             </TabsList>
@@ -164,6 +179,11 @@ const Customer = ({
             </TabsContent>
             <TabsContent value="loans">
               <CustomerLoansTable loans={data.customer.loans} refetch={refetch} />
+            </TabsContent>
+            <TabsContent value="credit-facilities">
+              <CustomerCreditFacilitiesTable
+                creditFacilities={data.customer.creditFacilities}
+              />
             </TabsContent>
             <TabsContent value="transactions">
               <CustomerTransactionsTable transactions={data.customer.transactions} />
