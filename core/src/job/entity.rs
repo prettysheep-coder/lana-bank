@@ -40,14 +40,12 @@ impl EntityEvent for JobEvent {
     }
 }
 
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Job {
     pub id: JobId,
     pub name: String,
     pub job_type: JobType,
-    config: serde_json::Value,
-    pub(super) events: EntityEvents<JobEvent>,
+    pub config: serde_json::Value,
+    pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl Job {

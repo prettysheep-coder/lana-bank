@@ -5,7 +5,7 @@ use tracing::instrument;
 
 use std::{collections::HashMap, sync::Arc};
 
-use super::{config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*};
+use super::{config::*, entity::*, error::JobError, registry::*, repo::*, traits::*, CurrentJob};
 use crate::primitives::JobId;
 
 #[derive(Clone)]
@@ -71,6 +71,8 @@ impl JobExecutor {
     pub async fn start_poll(&mut self) -> Result<(), JobError> {
         let pool = self.pool.clone();
         let poll_interval = self.config.poll_interval;
+
+        // what is pg_interval doing, as opposed to poll_interval?
         let pg_interval = PgInterval::try_from(poll_interval * 4)
             .map_err(|e| JobError::InvalidPollInterval(e.to_string()))?;
         let running_jobs = Arc::clone(&self.running_jobs);
@@ -204,8 +206,10 @@ impl JobExecutor {
         runner: Box<dyn JobRunner>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
-        let current_job_pool = pool.clone();
-        let current_job = CurrentJob::new(id, current_job_pool);
+        let current_job = CurrentJob {
+            id,
+            pool: pool.clone(),
+        };
         match runner
             .run(current_job)
             .await

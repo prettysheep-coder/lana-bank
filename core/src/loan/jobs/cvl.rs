@@ -82,7 +82,7 @@ impl JobRunner for LoanProcessingJobRunner {
                 })
                 .await?;
             (after, has_next_page) = (loans.end_cursor, loans.has_next_page);
-            let mut db = current_job.pool().begin().await?;
+            let mut db = current_job.pool.begin().await?;
             let audit_info = self
                 .audit
                 .record_entry_in_tx(

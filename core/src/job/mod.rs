@@ -1,5 +1,4 @@
 mod config;
-mod current;
 mod entity;
 mod executor;
 mod registry;
@@ -18,7 +17,6 @@ use std::sync::Arc;
 use crate::primitives::JobId;
 
 pub use config::*;
-pub use current::*;
 pub use entity::*;
 pub use registry::*;
 pub use traits::*;
@@ -26,6 +24,11 @@ pub use traits::*;
 use error::*;
 use executor::*;
 use repo::*;
+
+pub struct CurrentJob {
+    pub id: JobId,
+    pub pool: PgPool,
+}
 
 #[derive(Clone)]
 pub struct Jobs {

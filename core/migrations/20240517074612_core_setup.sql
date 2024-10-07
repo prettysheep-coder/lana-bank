@@ -142,18 +142,13 @@ CREATE TABLE report_events (
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  job_type VARCHAR NOT NULL,
+  config JSONB NOT NULL
 );
-CREATE INDEX idx_job_name ON jobs(name);
 
-CREATE TABLE job_events (
-  id UUID REFERENCES jobs(id) NOT NULL,
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
+-- is this index needed?
+-- CREATE INDEX idx_job_name ON jobs(name);
 
 CREATE TYPE JobExecutionState AS ENUM ('pending', 'running');
 

@@ -43,20 +43,14 @@ impl JobRepo {
     }
 
     pub async fn find_by_id(&self, id: JobId) -> Result<Job, JobError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"SELECT a.id, e.sequence, e.event,
-                      a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
-            FROM jobs a
-            JOIN job_events e ON a.id = e.id
-            WHERE a.id = $1
-            ORDER BY e.sequence"#,
+        Ok(sqlx::query_as!(
+            Job,
+            r#"SELECT id, name, created_at, job_type, config
+            FROM jobs
+            WHERE id = $1"#,
             id as JobId
         )
-        .fetch_all(&self.pool)
-        .await?;
-
-        let res = EntityEvents::load_first::<Job>(rows)?;
-        Ok(res)
+        .fetch_one(&self.pool)
+        .await?)
     }
 }

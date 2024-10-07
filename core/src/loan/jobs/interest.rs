@@ -64,7 +64,7 @@ impl JobRunner for LoanProcessingJobRunner {
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
-        let mut db_tx = current_job.pool().begin().await?;
+        let mut db_tx = current_job.pool.begin().await?;
         let audit_info = self
             .audit
             .record_entry_in_tx(

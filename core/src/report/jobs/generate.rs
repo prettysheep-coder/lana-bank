@@ -88,7 +88,7 @@ impl JobRunner for GenerateReportJobRunner {
 
         match report.next_step() {
             ReportGenerationProcessStep::Compilation => {
-                let mut db_tx = current_job.pool().begin().await?;
+                let mut db_tx = current_job.pool.begin().await?;
 
                 let audit_info = self
                     .audit
@@ -115,7 +115,7 @@ impl JobRunner for GenerateReportJobRunner {
             }
 
             ReportGenerationProcessStep::Invocation => {
-                let mut db_tx = current_job.pool().begin().await?;
+                let mut db_tx = current_job.pool.begin().await?;
 
                 let audit_info = self
                     .audit
@@ -142,7 +142,7 @@ impl JobRunner for GenerateReportJobRunner {
             }
 
             ReportGenerationProcessStep::Upload => {
-                let mut db_tx = current_job.pool().begin().await?;
+                let mut db_tx = current_job.pool.begin().await?;
 
                 let audit_info = self
                     .audit

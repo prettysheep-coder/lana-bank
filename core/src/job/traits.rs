@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 
 use super::{
-    current::CurrentJob,
     entity::{Job, JobType},
+    CurrentJob,
 };
 
 pub trait JobInitializer: Send + Sync + 'static {
