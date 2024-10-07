@@ -32,6 +32,16 @@ impl User {
         Ok(permissions)
     }
 
+    async fn can_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let sub = Subject::User(UserId::from(&self.user_id));
+        Ok(app
+            .customers()
+            .user_can_create_customer(&sub, false)
+            .await
+            .is_ok())
+    }
+
     async fn can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let sub = Subject::User(UserId::from(&self.user_id));

@@ -1038,6 +1038,7 @@ export type UsdAccountAmountsInPeriod = {
 export type User = {
   __typename?: 'User';
   canAssignRoleToUser: Scalars['Boolean']['output'];
+  canCreateCustomer: Scalars['Boolean']['output'];
   canCreateTermsTemplate: Scalars['Boolean']['output'];
   canCreateUser: Scalars['Boolean']['output'];
   canRevokeRoleFromUser: Scalars['Boolean']['output'];
