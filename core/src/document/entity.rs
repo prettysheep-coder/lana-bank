@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     entity::*,
     primitives::{AuditInfo, CustomerId, DocumentId},
+    storage::LocationInCloud,
 };
 
 #[derive(Debug, Clone)]
@@ -20,6 +21,7 @@ pub enum DocumentEvent {
         customer_id: CustomerId,
         audit_info: AuditInfo,
         filename: String,
+        bucket: String,
     },
     DownloadLinkGenerated {
         audit_info: AuditInfo,
@@ -40,6 +42,7 @@ pub struct Document {
     pub customer_id: CustomerId,
     pub filename: String,
     pub audit_info: AuditInfo,
+    pub bucket: String,
     pub(super) events: EntityEvents<DocumentEvent>,
 }
 
@@ -62,15 +65,20 @@ impl Document {
         path_in_bucket_util(self.id)
     }
 
+    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
+        self.events
+            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
+
+        LocationInCloud {
+            bucket: self.bucket.clone(),
+            path_in_bucket: self.path_in_bucket(),
+        }
+    }
+
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
             .entity_first_persisted_at
             .expect("No events for document")
-    }
-
-    pub fn download_link_generated(&mut self, audit_info: AuditInfo) {
-        self.events
-            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
     }
 }
 
@@ -87,12 +95,14 @@ impl TryFrom<EntityEvents<DocumentEvent>> for Document {
                     customer_id,
                     audit_info,
                     filename,
+                    bucket,
                 } => {
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
                         .filename(filename.clone())
-                        .audit_info(*audit_info);
+                        .audit_info(*audit_info)
+                        .bucket(bucket.clone());
                 }
                 _ => (),
             }
@@ -110,6 +120,8 @@ pub struct NewDocument {
     pub(super) customer_id: CustomerId,
     #[builder(setter(custom))]
     pub(super) filename: String,
+    #[builder(setter(into))]
+    pub(super) bucket: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -143,6 +155,7 @@ impl NewDocument {
                 customer_id: self.customer_id,
                 audit_info: self.audit_info,
                 filename: self.filename,
+                bucket: self.bucket,
             }],
         )
     }

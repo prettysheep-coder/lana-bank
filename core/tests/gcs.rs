@@ -1,6 +1,6 @@
 use lava_core::{
     service_account::ServiceAccountConfig,
-    storage::{config::StorageConfig, ReportLocationInCloud, Storage},
+    storage::{config::StorageConfig, LocationInCloud, Storage},
 };
 
 #[tokio::test]
@@ -36,7 +36,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     let count = res.len();
 
     // generate link
-    let location = ReportLocationInCloud {
+    let location = LocationInCloud {
         bucket: storage.bucket_name(),
         path_in_bucket: filename.to_owned(),
     };

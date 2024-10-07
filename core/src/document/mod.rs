@@ -10,7 +10,7 @@ pub use entity::*;
 use crate::{
     authorization::{Authorization, DocumentAction, Object},
     primitives::{CustomerId, DocumentId, Subject},
-    storage::{ReportLocationInCloud, Storage},
+    storage::Storage,
 };
 
 #[derive(Clone)]
@@ -54,8 +54,7 @@ impl Documents {
             .audit_info(audit_info)
             .build()?;
 
-        self
-            .storage
+        self.storage
             .upload(
                 content,
                 new_document.path_in_bucket().as_str(),
@@ -105,19 +104,14 @@ impl Documents {
 
         let mut document = self.repo.find_by_id(document_id).await?;
 
-        let report_location_in_cloud = ReportLocationInCloud {
-            bucket: self.storage.bucket_name(),
-            path_in_bucket: document.path_in_bucket(),
-        };
+        let document_location = document.download_link_generated(audit_info);
 
         let link = self
             .storage
-            .generate_download_link(report_location_in_cloud)
+            .generate_download_link(document_location)
             .await?;
 
         let mut tx = self.pool.begin().await?;
-
-        document.download_link_generated(audit_info);
 
         self.repo.persist_in_tx(&mut tx, &mut document).await?;
 

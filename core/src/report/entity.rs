@@ -2,12 +2,28 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*, storage::ReportLocationInCloudWithMeta};
+use crate::{entity::*, primitives::*, storage::LocationInCloud};
 
 use super::{
     dataform_client::{CompilationResult, WorkflowInvocation},
     upload::ReportFileUpload,
 };
+
+#[derive(Debug, Clone)]
+pub struct ReportLocationInCloud {
+    pub report_name: String,
+    pub bucket: String,
+    pub path_in_bucket: String,
+}
+
+impl From<ReportLocationInCloud> for LocationInCloud {
+    fn from(meta: ReportLocationInCloud) -> Self {
+        LocationInCloud {
+            bucket: meta.bucket,
+            path_in_bucket: meta.path_in_bucket,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ReportDownloadLink {
@@ -237,7 +253,7 @@ impl Report {
         });
     }
 
-    pub(super) fn download_links(&self) -> Vec<ReportLocationInCloudWithMeta> {
+    pub(super) fn download_links(&self) -> Vec<ReportLocationInCloud> {
         self.events
             .iter()
             .filter_map(|e| match e {
@@ -246,7 +262,7 @@ impl Report {
                     bucket,
                     path_in_bucket,
                     ..
-                } => Some(ReportLocationInCloudWithMeta {
+                } => Some(ReportLocationInCloud {
                     report_name: report_name.to_string(),
                     bucket: bucket.to_string(),
                     path_in_bucket: path_in_bucket.to_string(),
@@ -259,7 +275,7 @@ impl Report {
     pub(super) fn download_link_generated(
         &mut self,
         audit_info: AuditInfo,
-        location: ReportLocationInCloudWithMeta,
+        location: ReportLocationInCloud,
     ) {
         self.events.push(ReportEvent::DownloadLinkGenerated {
             report_name: location.report_name,
