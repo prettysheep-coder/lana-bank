@@ -244,6 +244,7 @@ type User {
 	email: String!
 	roles: [Role!]!
 	visibleNavigationItems: VisibleNavigationItems!
+	canCreateCustomer: Boolean!
 	canCreateUser: Boolean!
 	canAssignRoleToUser: Boolean!
 	canRevokeRoleFromUser: Boolean!
