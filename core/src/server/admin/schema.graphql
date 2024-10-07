@@ -795,6 +795,7 @@ type User {
 	canAssignRoleToUser: Boolean!
 	canRevokeRoleFromUser: Boolean!
 	canCreateTermsTemplate: Boolean!
+	canUpdateTermsTemplate: Boolean!
 }
 
 input UserAssignRoleInput {

@@ -70,6 +70,46 @@ impl TermsTemplates {
         Ok(terms_template)
     }
 
+    pub async fn user_can_update_terms_template(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, TermsTemplateError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::TermsTemplate,
+                TermsTemplateAction::Update,
+                enforce,
+            )
+            .await?)
+    }
+
+    pub async fn update_term_values(
+        &self,
+        sub: &Subject,
+        id: TermsTemplateId,
+        values: TermValues,
+    ) -> Result<TermsTemplate, TermsTemplateError> {
+        let audit_info = self
+            .user_can_update_terms_template(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let mut terms_template = self.repo.find_by_id(id).await?;
+        terms_template.update_values(values, audit_info);
+
+        let mut db = self.pool.begin().await?;
+        self.repo
+            .persist_in_tx(&mut db, &mut terms_template)
+            .await?;
+
+        db.commit().await?;
+
+        Ok(terms_template)
+    }
+
     pub async fn find_by_id(
         &self,
         sub: &Subject,
@@ -93,29 +133,5 @@ impl TermsTemplates {
             .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
             .await?;
         self.repo.list().await
-    }
-
-    pub async fn update_term_values(
-        &self,
-        sub: &Subject,
-        id: TermsTemplateId,
-        values: TermValues,
-    ) -> Result<TermsTemplate, TermsTemplateError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Update)
-            .await?;
-
-        let mut terms_template = self.repo.find_by_id(id).await?;
-        terms_template.update_values(values, audit_info);
-
-        let mut db = self.pool.begin().await?;
-        self.repo
-            .persist_in_tx(&mut db, &mut terms_template)
-            .await?;
-
-        db.commit().await?;
-
-        Ok(terms_template)
     }
 }

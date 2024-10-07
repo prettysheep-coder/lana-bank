@@ -1041,6 +1041,7 @@ export type User = {
   canCreateTermsTemplate: Scalars['Boolean']['output'];
   canCreateUser: Scalars['Boolean']['output'];
   canRevokeRoleFromUser: Scalars['Boolean']['output'];
+  canUpdateTermsTemplate: Scalars['Boolean']['output'];
   email: Scalars['String']['output'];
   roles: Array<Role>;
   userId: Scalars['UUID']['output'];

@@ -67,6 +67,16 @@ impl User {
             .await
             .is_ok())
     }
+
+    async fn can_update_terms_template(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let sub = Subject::User(UserId::from(&self.user_id));
+        Ok(app
+            .terms_templates()
+            .user_can_update_terms_template(&sub, false)
+            .await
+            .is_ok())
+    }
 }
 
 #[derive(SimpleObject)]
