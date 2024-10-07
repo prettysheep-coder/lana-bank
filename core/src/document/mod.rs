@@ -31,10 +31,6 @@ impl Documents {
         }
     }
 
-    fn path_in_bucket(&self, document_id: DocumentId) -> String {
-        format!("documents/{}", document_id)
-    }
-
     pub async fn create(
         &self,
         sub: &Subject,
@@ -51,21 +47,21 @@ impl Documents {
             .enforce_permission(sub, Object::Document, DocumentAction::Create)
             .await?;
 
-        let _ = self
+        let new_document = NewDocument::builder()
+            .id(new_document_id)
+            .customer_id(customer_id)
+            .filename(filename)
+            .audit_info(audit_info)
+            .build()?;
+
+        self
             .storage
             .upload(
                 content,
-                self.path_in_bucket(new_document_id).as_str(),
+                new_document.path_in_bucket().as_str(),
                 "application/pdf",
             )
-            .await;
-
-        // sanitize filename // only use characters azAZ09-
-        let filename = filename
-            .trim()
-            .replace(|c: char| !c.is_alphanumeric() && c != '-', "-");
-
-        let new_document = NewDocument::new(new_document_id, customer_id, filename, audit_info);
+            .await?;
 
         let mut tx = self.pool.begin().await?;
         let document = self.repo.create_in_tx(&mut tx, new_document).await?;
@@ -104,13 +100,14 @@ impl Documents {
     ) -> Result<GeneratedDocumentDownloadLink, DocumentError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Document, DocumentAction::DownloadLinkGenerate)
+            .enforce_permission(sub, Object::Document, DocumentAction::GenerateDownloadLink)
             .await?;
 
-        let path = self.path_in_bucket(document_id);
+        let mut document = self.repo.find_by_id(document_id).await?;
+
         let report_location_in_cloud = ReportLocationInCloud {
             bucket: self.storage.bucket_name(),
-            path_in_bucket: path.clone(),
+            path_in_bucket: document.path_in_bucket(),
         };
 
         let link = self
@@ -120,7 +117,6 @@ impl Documents {
 
         let mut tx = self.pool.begin().await?;
 
-        let mut document = self.repo.find_by_id(document_id).await?;
         document.download_link_generated(audit_info);
 
         self.repo.persist_in_tx(&mut tx, &mut document).await?;

@@ -206,5 +206,4 @@ CREATE TABLE sumsub_callbacks (
   content JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX idx_sumsub_callbacks_customer_id ON sumsub_callbacks(customer_id);

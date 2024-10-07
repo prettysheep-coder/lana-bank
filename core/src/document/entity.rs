@@ -53,7 +53,15 @@ impl Entity for Document {
     type Event = DocumentEvent;
 }
 
+fn path_in_bucket_util(id: DocumentId) -> String {
+    format!("documents/customer/{}", id)
+}
+
 impl Document {
+    pub fn path_in_bucket(&self) -> String {
+        path_in_bucket_util(self.id)
+    }
+
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
             .entity_first_persisted_at
@@ -93,27 +101,38 @@ impl TryFrom<EntityEvents<DocumentEvent>> for Document {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct NewDocument {
+    #[builder(setter(into))]
     pub(super) id: DocumentId,
+    #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
+    #[builder(setter(custom))]
     pub(super) filename: String,
+    #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
 
+impl NewDocumentBuilder {
+    // Custom setter for filename to apply sanitization
+    pub fn filename<T: Into<String>>(mut self, filename: T) -> Self {
+        let sanitized = filename
+            .into()
+            .trim()
+            .replace(|c: char| !c.is_alphanumeric() && c != '-', "-");
+        self.filename = Some(sanitized);
+        self
+    }
+}
+
 impl NewDocument {
-    pub fn new(
-        id: impl Into<DocumentId>,
-        customer_id: impl Into<CustomerId>,
-        filename: impl Into<String>,
-        audit_info: impl Into<AuditInfo>,
-    ) -> Self {
-        Self {
-            id: id.into(),
-            customer_id: customer_id.into(),
-            filename: filename.into(),
-            audit_info: audit_info.into(),
-        }
+    pub fn builder() -> NewDocumentBuilder {
+        NewDocumentBuilder::default()
+    }
+
+    pub fn path_in_bucket(&self) -> String {
+        path_in_bucket_util(self.id)
     }
 
     pub(super) fn initial_events(self) -> EntityEvents<DocumentEvent> {

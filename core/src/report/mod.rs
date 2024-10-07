@@ -137,7 +137,7 @@ impl Reports {
     ) -> Result<GeneratedReportDownloadLinks, ReportError> {
         let audit_info = self
             .authz
-            .enforce_permission(sub, Object::Report, ReportAction::DownloadLinkGenerate)
+            .enforce_permission(sub, Object::Report, ReportAction::GenerateDownloadLink)
             .await?;
 
         let mut report = self.repo.find_by_id(report_id).await?;

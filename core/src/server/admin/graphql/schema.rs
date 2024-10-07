@@ -536,7 +536,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: DocumentCreateInput,
     ) -> async_graphql::Result<DocumentCreatePayload> {
-        let app: &LavaApp = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LavaApp>();
         let file = input.file.value(ctx)?;
         let AdminAuthContext { sub } = ctx.data()?;
 
@@ -553,7 +553,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: ShareholderEquityAddInput,
     ) -> async_graphql::Result<SuccessPayload> {
-        let app: &LavaApp = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LavaApp>();
         Ok(SuccessPayload::from(
             app.ledger()
                 .add_equity(input.amount, input.reference)
