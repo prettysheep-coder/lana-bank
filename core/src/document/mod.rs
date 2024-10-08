@@ -38,32 +38,26 @@ impl Documents {
         customer_id: impl Into<CustomerId>,
         filename: String,
     ) -> Result<Document, DocumentError> {
-        let customer_id = customer_id.into();
-
-        let new_document_id = DocumentId::new();
-
         let audit_info = self
             .authz
             .enforce_permission(sub, Object::Document, DocumentAction::Create)
             .await?;
 
         let new_document = NewDocument::builder()
-            .id(new_document_id)
-            .customer_id(customer_id)
+            .id(DocumentId::new())
+            .customer_id(customer_id.into())
+            .bucket(self.storage.bucket_name())
             .filename(filename)
             .audit_info(audit_info)
             .build()?;
 
-        self.storage
-            .upload(
-                content,
-                new_document.path_in_bucket().as_str(),
-                "application/pdf",
-            )
-            .await?;
-
         let mut tx = self.pool.begin().await?;
         let document = self.repo.create_in_tx(&mut tx, new_document).await?;
+
+        self.storage
+            .upload(content, &document.path_in_bucket, "application/pdf")
+            .await?;
+
         tx.commit().await?;
         Ok(document)
     }

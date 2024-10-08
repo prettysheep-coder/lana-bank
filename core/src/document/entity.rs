@@ -20,7 +20,9 @@ pub enum DocumentEvent {
         id: DocumentId,
         customer_id: CustomerId,
         audit_info: AuditInfo,
-        filename: String,
+        sanitized_filename: String,
+        original_filename: String,
+        path_in_bucket: String,
         bucket: String,
     },
     DownloadLinkGenerated {
@@ -42,7 +44,8 @@ pub struct Document {
     pub customer_id: CustomerId,
     pub filename: String,
     pub audit_info: AuditInfo,
-    pub bucket: String,
+    pub(super) path_in_bucket: String,
+    pub(super) bucket: String,
     pub(super) events: EntityEvents<DocumentEvent>,
 }
 
@@ -61,17 +64,13 @@ fn path_in_bucket_util(id: DocumentId) -> String {
 }
 
 impl Document {
-    pub fn path_in_bucket(&self) -> String {
-        path_in_bucket_util(self.id)
-    }
-
     pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
         self.events
             .push(DocumentEvent::DownloadLinkGenerated { audit_info });
 
         LocationInCloud {
             bucket: self.bucket.clone(),
-            path_in_bucket: self.path_in_bucket(),
+            path_in_bucket: self.path_in_bucket.clone(),
         }
     }
 
@@ -94,14 +93,17 @@ impl TryFrom<EntityEvents<DocumentEvent>> for Document {
                     id,
                     customer_id,
                     audit_info,
-                    filename,
+                    sanitized_filename,
+                    path_in_bucket,
                     bucket,
+                    ..
                 } => {
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
-                        .filename(filename.clone())
+                        .filename(sanitized_filename.clone())
                         .audit_info(*audit_info)
+                        .path_in_bucket(path_in_bucket.clone())
                         .bucket(bucket.clone());
                 }
                 _ => (),
@@ -119,21 +121,24 @@ pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     #[builder(setter(custom))]
-    pub(super) filename: String,
+    filename: String,
+    #[builder(private)]
+    sanitized_filename: String,
     #[builder(setter(into))]
-    pub(super) bucket: String,
+    bucket: String,
     #[builder(setter(into))]
-    pub audit_info: AuditInfo,
+    audit_info: AuditInfo,
 }
 
 impl NewDocumentBuilder {
     // Custom setter for filename to apply sanitization
     pub fn filename<T: Into<String>>(mut self, filename: T) -> Self {
+        let filename = filename.into();
         let sanitized = filename
-            .into()
             .trim()
             .replace(|c: char| !c.is_alphanumeric() && c != '-', "-");
-        self.filename = Some(sanitized);
+        self.filename = Some(filename);
+        self.sanitized_filename = Some(sanitized);
         self
     }
 }
@@ -143,10 +148,6 @@ impl NewDocument {
         NewDocumentBuilder::default()
     }
 
-    pub fn path_in_bucket(&self) -> String {
-        path_in_bucket_util(self.id)
-    }
-
     pub(super) fn initial_events(self) -> EntityEvents<DocumentEvent> {
         EntityEvents::init(
             self.id,
@@ -154,7 +155,9 @@ impl NewDocument {
                 id: self.id,
                 customer_id: self.customer_id,
                 audit_info: self.audit_info,
-                filename: self.filename,
+                original_filename: self.filename,
+                sanitized_filename: self.sanitized_filename,
+                path_in_bucket: path_in_bucket_util(self.id),
                 bucket: self.bucket,
             }],
         )
