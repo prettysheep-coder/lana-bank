@@ -57,6 +57,7 @@ const CreditFacilitiesTable = () => {
     variables: {
       first: 10,
     },
+    fetchPolicy: "cache-and-network",
   })
 
   if (loading) return <div className="mt-5">Loading...</div>
@@ -125,10 +126,7 @@ const CreditFacilitiesTable = () => {
                 onClick={() =>
                   fetchMore({
                     variables: {
-                      after:
-                        data.creditFacilities.edges[
-                          data.creditFacilities.edges.length - 1
-                        ].cursor,
+                      after: data.creditFacilities.pageInfo.endCursor,
                     },
                   })
                 }
