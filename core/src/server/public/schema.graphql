@@ -80,11 +80,8 @@ type Customer {
 	userCanCreateLoan: Boolean!
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
-<<<<<<< HEAD
 	creditFacilities: [CreditFacility!]!
-=======
 	documents: [Document!]!
->>>>>>> 79d82719 (fix: updating also public gql)
 }
 
 type CustomerBalance {
