@@ -3,7 +3,6 @@ use connection::CursorType;
 
 use crate::{
     app::LavaApp,
-    credit_facility::CreditFacilityByCreatedAtCursor,
     ledger,
     primitives::{Satoshis, UsdCents},
     server::shared_graphql::{
@@ -204,6 +203,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityCollateralUp
     }
 }
 
+pub use crate::credit_facility::CreditFacilityByCreatedAtCursor;
 impl CursorType for CreditFacilityByCreatedAtCursor {
     type Error = String;
 
