@@ -27,6 +27,7 @@ import {
 } from "@/components/primitive/dropdown-menu"
 import Balance from "@/components/balance/balance"
 import { useCreditFacilitiesQuery } from "@/lib/graphql/generated"
+import { formatCollateralizationState } from "@/lib/utils"
 
 gql`
   query CreditFacilities($first: Int!, $after: String) {
@@ -100,7 +101,9 @@ const CreditFacilitiesTable = () => {
                       currency="usd"
                     />
                   </TableCell>
-                  <TableCell>{facility.collateralizationState}</TableCell>
+                  <TableCell>
+                    {formatCollateralizationState(facility.collateralizationState)}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
