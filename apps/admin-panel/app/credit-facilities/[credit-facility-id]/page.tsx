@@ -11,6 +11,8 @@ import { CreditFacilityTerms } from "./terms"
 
 import { CreditFacilityApprovers } from "./approvers"
 
+import { CreditFacilityDisbursements } from "./disbursements"
+
 import { PageHeading } from "@/components/page-heading"
 import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
@@ -25,6 +27,7 @@ gql`
       faciiltyAmount
       collateral
       createdAt
+      expiresAt
       balance {
         outstanding {
           usdBalance
@@ -53,8 +56,18 @@ gql`
         }
       }
       approvals {
-        userId
+        user {
+          roles
+          email
+          userId
+        }
         approvedAt
+      }
+      disbursements {
+        id
+        index
+        amount
+        status
       }
       userCanApprove
       userCanUpdateCollateral
@@ -96,11 +109,17 @@ function CreditFacilityPage({
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
           <TabsTrigger value="terms">Terms</TabsTrigger>
+          {data.creditFacility.disbursements.length > 0 && (
+            <TabsTrigger value="disbursements">Disbursements</TabsTrigger>
+          )}
           {hasApprovers && <TabsTrigger value="approvers">Approvers</TabsTrigger>}
         </TabsList>
         <TabsContent value="overview">
           <CreditFacilitySnapshot creditFacility={data.creditFacility} />
           <CreditFacilityTerms creditFacility={data.creditFacility} />
+          {data.creditFacility.disbursements.length > 0 && (
+            <CreditFacilityDisbursements creditFacility={data.creditFacility} />
+          )}
         </TabsContent>
         <TabsContent value="snapshot">
           <CreditFacilitySnapshot creditFacility={data.creditFacility} />
@@ -108,6 +127,11 @@ function CreditFacilityPage({
         <TabsContent value="terms">
           <CreditFacilityTerms creditFacility={data.creditFacility} />
         </TabsContent>
+        {data.creditFacility.disbursements.length > 0 && (
+          <TabsContent value="disbursements">
+            <CreditFacilityDisbursements creditFacility={data.creditFacility} />
+          </TabsContent>
+        )}
         {hasApprovers && (
           <TabsContent value="approvers">
             <CreditFacilityApprovers creditFacility={data.creditFacility} />

@@ -4,7 +4,7 @@ import { FaCheckCircle } from "react-icons/fa"
 import { Card } from "@/components/primitive/card"
 
 import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
+import { formatDate, formatRole } from "@/lib/utils"
 
 type CreditFacilityApproverProps = {
   approval: NonNullable<
@@ -14,9 +14,12 @@ type CreditFacilityApproverProps = {
 
 const CreditFacilityApprover: React.FC<CreditFacilityApproverProps> = ({ approval }) => (
   <Card className="flex items-center space-x-3 p-4 mt-4">
-    <FaCheckCircle className="h-6 w-6 text-green-500" />
+    <FaCheckCircle className="h-8 w-8 text-green-500" />
     <div>
-      <p className="text-sm font-medium">{approval.userId}</p>
+      <p className="text-sm font-medium">{approval.user.email}</p>
+      <p className="text-sm text-textColor-secondary">
+        {approval.user.roles.map(formatRole).join(", ")}
+      </p>
       <p className="mt-1 text-xs text-textColor-secondary">
         Approved on {formatDate(approval.approvedAt)}
       </p>
