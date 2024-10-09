@@ -211,6 +211,7 @@ export type CreditFacility = {
   balance: CreditFacilityBalance;
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
+  createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
@@ -1362,7 +1363,7 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, createdAt: any, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', userId: string, approvedAt: any }> } | null };
 
 export type CreditFacilityApproveMutationVariables = Exact<{
   input: CreditFacilityApproveInput;
@@ -2128,9 +2129,16 @@ export const GetCreditFacilityDetailsDocument = gql`
     id
     creditFacilityId
     collateralizationState
+    status
+    faciiltyAmount
+    collateral
+    createdAt
     balance {
       outstanding {
         usdBalance
+      }
+      collateral {
+        btcBalance
       }
     }
     customer {
@@ -2140,6 +2148,21 @@ export const GetCreditFacilityDetailsDocument = gql`
       status
       level
       applicantId
+    }
+    creditFacilityTerms {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+    approvals {
+      userId
+      approvedAt
     }
     userCanApprove
     userCanUpdateCollateral

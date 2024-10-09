@@ -59,6 +59,7 @@ type CreditFacility {
 	creditFacilityId: UUID!
 	approvedAt: Timestamp
 	expiresAt: Timestamp
+	createdAt: Timestamp!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
 	approvals: [CreditFacilityApproval!]!

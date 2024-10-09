@@ -16,6 +16,7 @@ import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
 
 import { Button } from "@/components/primitive/button"
+import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -38,11 +39,16 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     <div className="flex gap-4">
       <Card className="w-11/12">
         <>
-          <CardHeader>
+          <CardHeader className="flex-row justify-between items-center">
             <CardTitle>Credit Facility Overview</CardTitle>
+            <LoanAndCreditFacilityStatusBadge status={creditFacilityDetails.status} />
           </CardHeader>
           <CardContent>
             <DetailsGroup>
+              <DetailItem
+                label="Credit Facility ID"
+                value={creditFacilityDetails.creditFacilityId}
+              />
               <Link href={`/customers/${creditFacilityDetails.customer.customerId}`}>
                 <DetailItem
                   hover={true}
@@ -51,16 +57,9 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 />
               </Link>
               <DetailItem
-                label="Credit Facility ID"
-                value={creditFacilityDetails.creditFacilityId}
-              />
-              <DetailItem
-                label="Outstanding Balance"
+                label="Faciilty Amount"
                 valueComponent={
-                  <Balance
-                    amount={creditFacilityDetails.balance.outstanding.usdBalance}
-                    currency="usd"
-                  />
+                  <Balance amount={creditFacilityDetails.faciiltyAmount} currency="usd" />
                 }
               />
               <DetailItem
