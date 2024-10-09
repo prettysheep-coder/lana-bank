@@ -1731,7 +1731,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
@@ -4612,6 +4612,7 @@ export const MeDocument = gql`
       withdraw
       audit
       financials
+      creditFacilities
     }
   }
 }

@@ -12,10 +12,7 @@ import { CreditFacilityTerms } from "./terms"
 import { CreditFacilityApprovers } from "./approvers"
 
 import { PageHeading } from "@/components/page-heading"
-import {
-  CreditFacilityStatus,
-  useGetCreditFacilityDetailsQuery,
-} from "@/lib/graphql/generated"
+import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 
 gql`
@@ -85,7 +82,7 @@ function CreditFacilityPage({
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.creditFacility) return <div>Not found</div>
 
-  const hasApprovers = data?.creditFacility?.status === CreditFacilityStatus.Active
+  const hasApprovers = !!data?.creditFacility?.approvals?.length
 
   return (
     <main className="max-w-7xl m-auto">
