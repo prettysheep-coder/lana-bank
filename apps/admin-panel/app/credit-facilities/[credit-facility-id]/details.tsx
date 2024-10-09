@@ -1,14 +1,13 @@
 "use client"
 
 import React from "react"
-
 import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
-
 import { CreditFacilityApproveDialog } from "../approve"
-
 import { CreditFacilityDisbursementInitiateDialog } from "../disbursement-Initiate"
+import { CreditFacilityCompleteDialog } from "../complete"
+import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
 import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
@@ -32,6 +31,8 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openDisbursementInitiateDialog, setOpenDisbursementInitiateDialog] =
     React.useState(false)
   const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
+  const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
+  const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
   return (
     <div className="flex gap-4">
@@ -100,22 +101,50 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             Disbursement Initiate
           </Button>
         )}
+        {creditFacilityDetails.userCanComplete && (
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={() => setOpenCompleteDialog(true)}
+          >
+            Complete Credit Facility
+          </Button>
+        )}
+        {creditFacilityDetails.userCanRecordPayment && (
+          <Button
+            variant="primary"
+            className="w-full"
+            onClick={() => setOpenPartialPaymentDialog(true)}
+          >
+            Make Partial Payment
+          </Button>
+        )}
       </div>
 
       <CreditFacilityCollateralUpdateDialog
         creditFacilityId={creditFacilityId}
         openDialog={openCollateralUpdateDialog}
-        setOpenDialog={() => setOpenCollateralUpdateDialog(false)}
+        setOpenDialog={setOpenCollateralUpdateDialog}
       />
       <CreditFacilityDisbursementInitiateDialog
         creditFacilityId={creditFacilityId}
         openDialog={openDisbursementInitiateDialog}
-        setOpenDialog={() => setOpenDisbursementInitiateDialog(false)}
+        setOpenDialog={setOpenDisbursementInitiateDialog}
       />
       <CreditFacilityApproveDialog
         creditFacilityId={creditFacilityId}
         openDialog={openApproveDialog}
-        setOpenDialog={() => setOpenApproveDialog(false)}
+        setOpenDialog={setOpenApproveDialog}
+      />
+      <CreditFacilityCompleteDialog
+        creditFacilityId={creditFacilityId}
+        openDialog={openCompleteDialog}
+        setOpenDialog={setOpenCompleteDialog}
+      />
+      <CreditFacilityPartialPaymentDialog
+        creditFacilityId={creditFacilityId}
+        openDialog={openPartialPaymentDialog}
+        setOpenDialog={setOpenPartialPaymentDialog}
       />
     </div>
   )

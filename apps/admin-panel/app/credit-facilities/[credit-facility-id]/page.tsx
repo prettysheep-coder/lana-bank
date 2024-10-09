@@ -32,6 +32,7 @@ gql`
       userCanInitiateDisbursement
       userCanApproveDisbursement
       userCanRecordPayment
+      userCanComplete
     }
   }
 `

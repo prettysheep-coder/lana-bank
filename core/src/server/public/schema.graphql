@@ -73,6 +73,7 @@ type CreditFacility {
 	userCanInitiateDisbursement: Boolean!
 	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
+	userCanComplete: Boolean!
 }
 
 type CreditFacilityApproval {
