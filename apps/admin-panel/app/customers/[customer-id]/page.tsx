@@ -28,6 +28,7 @@ gql`
       userCanCreateLoan
       userCanRecordDeposit
       userCanInitiateWithdrawal
+      userCanCreateCreditFacility
       balance {
         checking {
           settled

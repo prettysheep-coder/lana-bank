@@ -75,12 +75,14 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
             Initiate Withdrawal
           </Button>
         )}
-        <Button
-          className="w-full"
-          onClick={() => setOpenCreateCreditFacilityDialog(true)}
-        >
-          Create Credit Facility
-        </Button>
+        {customer.userCanCreateCreditFacility && (
+          <Button
+            className="w-full"
+            onClick={() => setOpenCreateCreditFacilityDialog(true)}
+          >
+            Create Credit Facility
+          </Button>
+        )}
       </div>
       {openWithdrawalInitiateDialog && (
         <WithdrawalInitiateDialog
