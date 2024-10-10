@@ -7,7 +7,7 @@ SELECT customer_id,
 	TIMESTAMP(JSON_VALUE(content, "$.createdAt")) AS created_at,
 	JSON_VALUE(content, "$.info.firstName") AS first_name,
 	DATE(JSON_VALUE(content, "$.info.dob")) AS date_of_birth,
-	JSON_VALUE(content, "$.info.country") AS country,
+	JSON_VALUE(content, "$.info.country") AS iso_alpha_3_code,
 	JSON_VALUE(content, "$.info.gender") AS gender,
 
 FROM ${ref({
