@@ -209,6 +209,7 @@ export type CreditFacility = {
   approvals: Array<CreditFacilityApproval>;
   approvedAt?: Maybe<Scalars['Timestamp']['output']>;
   balance: CreditFacilityBalance;
+  canBeCompleted: Scalars['Boolean']['output'];
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
