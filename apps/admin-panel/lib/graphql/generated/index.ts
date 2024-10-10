@@ -221,6 +221,7 @@ export type CreditFacility = {
   faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
+  transactions: Array<CreditFacilityHistoryEntry>;
   userCanApprove: Scalars['Boolean']['output'];
   userCanApproveDisbursement: Scalars['Boolean']['output'];
   userCanComplete: Scalars['Boolean']['output'];
@@ -259,6 +260,24 @@ export type CreditFacilityCollateralUpdateInput = {
 export type CreditFacilityCollateralUpdatePayload = {
   __typename?: 'CreditFacilityCollateralUpdatePayload';
   creditFacility: CreditFacility;
+};
+
+export type CreditFacilityCollateralUpdated = {
+  __typename?: 'CreditFacilityCollateralUpdated';
+  action: CollateralAction;
+  recordedAt: Scalars['Timestamp']['output'];
+  satoshis: Scalars['Satoshis']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityCollateralizationUpdated = {
+  __typename?: 'CreditFacilityCollateralizationUpdated';
+  collateral: Scalars['Satoshis']['output'];
+  outstandingDisbursement: Scalars['UsdCents']['output'];
+  outstandingInterest: Scalars['UsdCents']['output'];
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: CollateralizationState;
 };
 
 export type CreditFacilityCompleteInput = {
@@ -326,6 +345,22 @@ export type CreditFacilityEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: CreditFacility;
+};
+
+export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityIncrementalPayment | CreditFacilityOrigination;
+
+export type CreditFacilityIncrementalPayment = {
+  __typename?: 'CreditFacilityIncrementalPayment';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityOrigination = {
+  __typename?: 'CreditFacilityOrigination';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPartialPaymentInput = {
