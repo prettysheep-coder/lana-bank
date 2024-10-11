@@ -28,8 +28,7 @@ import {
   formatInterval,
   formatPeriod,
   currencyConverter,
-  SATS_PER_BTC,
-  CENTS_PER_USD,
+  calculateInitialCollateralRequired,
 } from "@/lib/utils"
 import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
@@ -231,23 +230,11 @@ export const CreateLoanDialog: React.FC<
     }
   }
 
-  const calculateCollateralRequired = (desiredPrincipal: number, initialCvl: number) => {
-    if (!priceInfo) return 0
-
-    const basisAmountInUsd = desiredPrincipal
-    const initialCvlDecimal = initialCvl / 100
-
-    const requiredCollateralInSats =
-      (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
-      (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
-
-    return Math.floor(requiredCollateralInSats)
-  }
-
-  const collateralRequiredForDesiredPrincipal = calculateCollateralRequired(
-    Number(formValues.desiredPrincipal),
-    Number(formValues.initialCvl),
-  )
+  const collateralRequiredForDesiredPrincipal = calculateInitialCollateralRequired({
+    amount: Number(formValues.desiredPrincipal) || 0,
+    initialCvl: Number(formValues.initialCvl) || 0,
+    priceInfo: priceInfo,
+  })
 
   return (
     <Dialog
