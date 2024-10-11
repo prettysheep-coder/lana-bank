@@ -24,7 +24,13 @@ import {
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { Select } from "@/components/primitive/select"
-import { formatInterval, formatPeriod, currencyConverter } from "@/lib/utils"
+import {
+  formatInterval,
+  formatPeriod,
+  currencyConverter,
+  SATS_PER_BTC,
+  CENTS_PER_USD,
+} from "@/lib/utils"
 import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
@@ -225,9 +231,22 @@ export const CreateLoanDialog: React.FC<
     }
   }
 
-  const collateralRequiredForDesiredPrincipal = currencyConverter.btcToSatoshi(
-    currencyConverter.usdToCents(Number(formValues.desiredPrincipal || 0)) /
-      priceInfo?.realtimePrice.usdCentsPerBtc,
+  const calculateCollateralRequired = (desiredPrincipal: number, initialCvl: number) => {
+    if (!priceInfo) return 0
+
+    const basisAmountInUsd = desiredPrincipal
+    const initialCvlDecimal = initialCvl / 100
+
+    const requiredCollateralInSats =
+      (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
+      (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
+
+    return Math.floor(requiredCollateralInSats)
+  }
+
+  const collateralRequiredForDesiredPrincipal = calculateCollateralRequired(
+    Number(formValues.desiredPrincipal),
+    Number(formValues.initialCvl),
   )
 
   return (
@@ -268,12 +287,10 @@ export const CreateLoanDialog: React.FC<
                 <Balance amount={collateralRequiredForDesiredPrincipal} currency="btc" />
                 <div>collateral required (</div>
                 <div>BTC/USD: </div>
-                {
-                  <Balance
-                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
-                    currency="usd"
-                  />
-                }
+                <Balance
+                  amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                  currency="usd"
+                />
                 <div>)</div>
               </div>
             )}
