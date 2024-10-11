@@ -170,7 +170,7 @@ CREATE TYPE JobExecutionState AS ENUM ('pending', 'running');
 
 CREATE TABLE job_executions (
   id UUID REFERENCES jobs(id) NOT NULL UNIQUE,
-  next_attempt INT NOT NULL DEFAULT 1,
+  attempt_index INT NOT NULL DEFAULT 1,
   name VARCHAR NOT NULL,
   state JobExecutionState NOT NULL DEFAULT 'pending',
   reschedule_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),

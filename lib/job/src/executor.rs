@@ -163,7 +163,7 @@ impl JobExecutor {
               SET state = 'running', reschedule_after = NOW() + $2::interval
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
-              RETURNING je.id AS "id!: JobId", selected_jobs.state_json, je.next_attempt
+              RETURNING je.id AS "id!: JobId", selected_jobs.state_json, je.attempt_index
               "#,
             poll_limit as i32,
             pg_interval
@@ -179,7 +179,7 @@ impl JobExecutor {
                     registry,
                     running_jobs,
                     job,
-                    row.next_attempt as u32,
+                    row.attempt_index as u32,
                     row.state_json,
                     jobs.clone(),
                 )
@@ -199,7 +199,7 @@ impl JobExecutor {
         registry: &Arc<RwLock<JobRegistry>>,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         job: Job,
-        next_attempt: u32,
+        attempt_index: u32,
         job_payload: Option<serde_json::Value>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
@@ -215,7 +215,7 @@ impl JobExecutor {
         let handle = tokio::spawn(async move {
             let res = Self::execute_job(
                 id,
-                next_attempt,
+                attempt_index,
                 pool.clone(),
                 job_payload,
                 runner,
@@ -228,7 +228,7 @@ impl JobExecutor {
                 let _ = Self::fail_job(
                     db,
                     id,
-                    next_attempt,
+                    attempt_index,
                     e,
                     repo,
                     registry
@@ -248,14 +248,14 @@ impl JobExecutor {
 
     async fn execute_job(
         id: JobId,
-        next_attempt: u32,
+        attempt_index: u32,
         pool: PgPool,
         payload: Option<serde_json::Value>,
         runner: Box<dyn JobRunner>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
         let current_job_pool = pool.clone();
-        let current_job = CurrentJob::new(id, next_attempt, current_job_pool, payload);
+        let current_job = CurrentJob::new(id, attempt_index, current_job_pool, payload);
         match runner
             .run(current_job)
             .await
@@ -308,7 +308,7 @@ impl JobExecutor {
         sqlx::query!(
             r#"
           UPDATE job_executions
-          SET state = 'pending', reschedule_after = $2, next_attempt = 1
+          SET state = 'pending', reschedule_after = $2, attempt_index = 1
           WHERE id = $1
         "#,
             id as JobId,
@@ -337,7 +337,7 @@ impl JobExecutor {
             sqlx::query!(
                 r#"
                 UPDATE job_executions
-                SET state = 'pending', reschedule_after = $2, next_attempt = $3
+                SET state = 'pending', reschedule_after = $2, attempt_index = $3
                 WHERE id = $1
               "#,
                 id as JobId,
