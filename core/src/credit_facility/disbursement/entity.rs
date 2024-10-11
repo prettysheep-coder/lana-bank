@@ -13,6 +13,11 @@ use crate::{
 
 use super::DisbursementError;
 
+pub struct DisbursementApproval {
+    pub user_id: UserId,
+    pub approved_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum DisbursementEvent {
@@ -28,6 +33,7 @@ pub enum DisbursementEvent {
     ApprovalAdded {
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     Approved {
@@ -167,6 +173,7 @@ impl Disbursement {
         self.events.push(DisbursementEvent::ApprovalAdded {
             approving_user_id,
             approving_user_roles,
+            recorded_at: Utc::now(),
             audit_info,
         });
 
@@ -193,6 +200,24 @@ impl Disbursement {
             audit_info,
             recorded_at: executed_at,
         });
+    }
+
+    pub fn approvals(&self) -> Vec<DisbursementApproval> {
+        let mut approvals = Vec::new();
+        for event in self.events.iter() {
+            if let DisbursementEvent::ApprovalAdded {
+                approving_user_id,
+                recorded_at,
+                ..
+            } = event
+            {
+                approvals.push(DisbursementApproval {
+                    user_id: *approving_user_id,
+                    approved_at: *recorded_at,
+                });
+            }
+        }
+        approvals
     }
 }
 
