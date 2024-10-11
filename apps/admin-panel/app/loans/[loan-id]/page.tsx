@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { gql } from "@apollo/client"
 
-import { LoanOverview } from "./snapshot"
+import { LoanOverview } from "./overview"
 import { LoanDetailsCard } from "./details"
 import { LoanTerms } from "./terms"
 import { LoanTransactionHistory } from "./transactions"

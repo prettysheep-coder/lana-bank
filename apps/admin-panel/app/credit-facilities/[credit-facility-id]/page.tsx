@@ -5,7 +5,7 @@ import { gql } from "@apollo/client"
 
 import CreditFacilityDetailsCard from "./details"
 
-import { CreditFacilityOverview } from "./snapshot"
+import { CreditFacilityOverview } from "./overview"
 
 import { CreditFacilityTerms } from "./terms"
 
