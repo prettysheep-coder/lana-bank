@@ -285,6 +285,7 @@ type CreditFacilityDisbursement {
 	amount: UsdCents!
 	status: DisbursementStatus!
 	approvals: [DisbursementApproval!]!
+	createdAt: Timestamp!
 }
 
 input CreditFacilityDisbursementApproveInput {

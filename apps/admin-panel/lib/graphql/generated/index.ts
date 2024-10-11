@@ -314,6 +314,7 @@ export type CreditFacilityDisbursement = {
   __typename?: 'CreditFacilityDisbursement';
   amount: Scalars['UsdCents']['output'];
   approvals: Array<DisbursementApproval>;
+  createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   index: Scalars['DisbursementIdx']['output'];
   status: DisbursementStatus;

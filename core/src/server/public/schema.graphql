@@ -112,6 +112,7 @@ type CreditFacilityDisbursement {
 	amount: UsdCents!
 	status: DisbursementStatus!
 	approvals: [DisbursementApproval!]!
+	createdAt: Timestamp!
 }
 
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated

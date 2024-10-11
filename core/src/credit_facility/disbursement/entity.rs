@@ -99,6 +99,12 @@ impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
 }
 
 impl Disbursement {
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("entity_first_persisted_at not found")
+    }
+
     fn has_user_previously_approved(&self, user_id: UserId) -> bool {
         for event in self.events.iter() {
             match event {

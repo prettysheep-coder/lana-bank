@@ -354,6 +354,7 @@ pub struct CreditFacilityDisbursement {
     amount: UsdCents,
     status: DisbursementStatus,
     approvals: Vec<DisbursementApproval>,
+    created_at: Timestamp,
 }
 
 #[derive(SimpleObject)]
@@ -389,6 +390,7 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
             amount: disbursement.amount,
             approvals,
             status: disbursement.status(),
+            created_at: disbursement.created_at().into(),
         }
     }
 }
