@@ -510,6 +510,14 @@ type DocumentCreatePayload {
 	document: Document!
 }
 
+input DocumentDeleteInput {
+	documentId: UUID!
+}
+
+type DocumentDeletePayload {
+	deletedDocumentId: UUID!
+}
+
 input DocumentDownloadLinksGenerateInput {
 	documentId: UUID!
 }
@@ -751,6 +759,7 @@ type Mutation {
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
+	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 }

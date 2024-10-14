@@ -64,14 +64,22 @@ fn path_in_bucket_util(id: DocumentId) -> String {
 }
 
 impl Document {
-    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
-        self.events
-            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
-
+    fn location_in_cloud(&self) -> LocationInCloud {
         LocationInCloud {
             bucket: self.bucket.clone(),
             path_in_bucket: self.path_in_bucket.clone(),
         }
+    }
+
+    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
+        self.events
+            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
+
+        self.location_in_cloud()
+    }
+
+    pub fn path_for_removal(&self) -> LocationInCloud {
+        self.location_in_cloud()
     }
 
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {

@@ -101,4 +101,18 @@ teardown_file() {
 
   response=$(curl -s -o /dev/null -w "%{http_code}" "$download_link")
   [[ "$response" == "200" ]] || exit 1
+
+  variables=$(jq -n \
+    --arg documentId "$document_id" \
+    '{
+      input: {
+        documentId: $documentId
+      }
+    }')
+
+  exec_admin_graphql 'document-delete' "$variables"
+
+  deleted_document_id=$(graphql_output .data.documentDelete.deletedDocumentId)
+  echo "$output"
+  [[ "$deleted_document_id" == "$document_id" ]] || exit 1
 }

@@ -111,4 +111,31 @@ impl Documents {
 
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
+
+    pub async fn delete(
+        &self,
+        sub: &Subject,
+        document_id: DocumentId,
+    ) -> Result<(), DocumentError> {
+        // note: we are not storing the audit info for delete operation in the entity as the entity is deleted
+        let _ = self
+            .authz
+            .enforce_permission(sub, Object::Document, DocumentAction::Delete)
+            .await?;
+
+        let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
+
+        let mut document = self.repo.find_by_id(document_id).await?;
+
+        let document_location = document.path_for_removal();
+
+        self.storage.remove(document_location).await?;
+
+        self.repo.delete_in_tx(&mut db, document_id).await?;
+        self.repo.persist_in_tx(&mut db, &mut document).await?;
+
+        db.commit().await?;
+
+        Ok(())
+    }
 }

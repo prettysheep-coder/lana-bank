@@ -149,7 +149,7 @@ CREATE TABLE documents (
 );
 
 CREATE TABLE document_events (
-  id UUID NOT NULL REFERENCES documents(id),
+  id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

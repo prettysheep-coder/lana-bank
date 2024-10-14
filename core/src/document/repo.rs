@@ -89,4 +89,15 @@ impl DocumentsRepo {
         document.events.persist(db).await?;
         Ok(())
     }
+
+    pub async fn delete_in_tx(
+        &self,
+        db: &mut Transaction<'_, sqlx::Postgres>,
+        id: DocumentId,
+    ) -> Result<(), DocumentError> {
+        sqlx::query!(r#"DELETE FROM documents WHERE id = $1"#, id as DocumentId)
+            .execute(&mut **db)
+            .await?;
+        Ok(())
+    }
 }

@@ -76,3 +76,13 @@ impl From<crate::document::GeneratedDocumentDownloadLink> for DocumentDownloadLi
         }
     }
 }
+
+#[derive(InputObject)]
+pub struct DocumentDeleteInput {
+    pub document_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct DocumentDeletePayload {
+    pub deleted_document_id: UUID,
+}
