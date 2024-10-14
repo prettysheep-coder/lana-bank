@@ -18,13 +18,13 @@ impl JobRepo {
         job: Job,
     ) -> Result<Job, JobError> {
         sqlx::query!(
-            r#"INSERT INTO jobs (id, type, name, state_json)
+            r#"INSERT INTO jobs (id, type, name, data_json)
             VALUES ($1, $2, $3, $4)"#,
             job.id as JobId,
             &job.job_type as &JobType,
             &job.name,
-            job.state::<serde_json::Value>()
-                .expect("Could not serialize state")
+            job.data::<serde_json::Value>()
+                .expect("Could not serialize data")
         )
         .execute(&mut **db)
         .await?;
@@ -53,14 +53,14 @@ impl JobRepo {
 
     pub async fn find_by_id(&self, id: JobId) -> Result<Job, JobError> {
         let row = sqlx::query!(
-            r#"SELECT id as "id: JobId", type AS job_type, name, state_json, completed_at, last_error
+            r#"SELECT id as "id: JobId", type AS job_type, name, data_json, completed_at, last_error
             FROM jobs
             WHERE id = $1"#,
             id as JobId
         )
         .fetch_one(&self.pool)
         .await?;
-        let mut job = Job::new(row.name, JobType::from_string(row.job_type), row.state_json);
+        let mut job = Job::new(row.name, JobType::from_string(row.job_type), row.data_json);
         job.id = row.id;
         job.completed_at = row.completed_at;
         job.last_error = row.last_error;

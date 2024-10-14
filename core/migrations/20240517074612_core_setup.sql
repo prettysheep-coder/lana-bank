@@ -158,7 +158,7 @@ CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL,
   type VARCHAR NOT NULL,
-  state_json JSONB,
+  data_json JSONB,
   last_error VARCHAR,
   completed_at TIMESTAMPTZ,
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

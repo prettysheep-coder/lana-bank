@@ -7,7 +7,7 @@ pub struct CurrentJob {
     id: JobId,
     attempt: u32,
     pool: PgPool,
-    state_json: Option<serde_json::Value>,
+    data_json: Option<serde_json::Value>,
 }
 
 impl CurrentJob {
@@ -15,13 +15,13 @@ impl CurrentJob {
         id: JobId,
         attempt: u32,
         pool: PgPool,
-        state: Option<serde_json::Value>,
+        data: Option<serde_json::Value>,
     ) -> Self {
         Self {
             id,
             attempt,
             pool,
-            state_json: state,
+            data_json: data,
         }
     }
 
@@ -29,32 +29,32 @@ impl CurrentJob {
         self.attempt
     }
 
-    pub fn state<T: DeserializeOwned>(&self) -> Result<Option<T>, serde_json::Error> {
-        if let Some(state) = self.state_json.as_ref() {
-            serde_json::from_value(state.clone()).map(Some)
+    pub fn data<T: DeserializeOwned>(&self) -> Result<Option<T>, serde_json::Error> {
+        if let Some(data) = self.data_json.as_ref() {
+            serde_json::from_value(data.clone()).map(Some)
         } else {
             Ok(None)
         }
     }
 
-    pub async fn update_state<T: Serialize>(
+    pub async fn update_data<T: Serialize>(
         &mut self,
         db: &mut Transaction<'_, Postgres>,
-        state: T,
+        data: T,
     ) -> Result<(), JobError> {
-        let state_json = serde_json::to_value(state).map_err(JobError::CouldNotSerializeState)?;
+        let data_json = serde_json::to_value(data).map_err(JobError::CouldNotSerializeData)?;
         sqlx::query!(
             r#"
           UPDATE jobs
-          SET state_json = $1
+          SET data_json = $1
           WHERE id = $2
         "#,
-            state_json,
+            data_json,
             self.id as JobId
         )
         .execute(&mut **db)
         .await?;
-        self.state_json = Some(state_json);
+        self.data_json = Some(data_json);
         Ok(())
     }
 

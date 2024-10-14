@@ -31,7 +31,7 @@ pub struct Job {
     pub name: String,
     pub job_type: JobType,
     pub last_error: Option<String>,
-    state: serde_json::Value,
+    data: serde_json::Value,
     pub completed_at: Option<DateTime<Utc>>,
 }
 
@@ -39,20 +39,20 @@ impl Job {
     pub(super) fn new<T: serde::Serialize>(
         name: String,
         job_type: JobType,
-        initial_state: T,
+        initial_data: T,
     ) -> Self {
         Self {
             id: JobId::new(),
             name,
             job_type,
-            state: serde_json::to_value(initial_state).expect("could not serialize job state"),
+            data: serde_json::to_value(initial_data).expect("could not serialize job data"),
             last_error: None,
             completed_at: None,
         }
     }
 
-    pub fn state<T: serde::de::DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
-        serde_json::from_value(self.state.clone())
+    pub fn data<T: serde::de::DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
+        serde_json::from_value(self.data.clone())
     }
 
     pub(super) fn success(&mut self) {

@@ -63,7 +63,7 @@ impl JobInitializer for CreateReportInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreateReportJobRunner {
-            config: job.state()?,
+            config: job.data()?,
             repo: self.repo.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),

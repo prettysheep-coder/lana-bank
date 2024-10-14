@@ -82,29 +82,29 @@ impl Jobs {
         registry.add_initializer(initializer);
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, initial_state))]
-    pub async fn create_and_spawn_in_tx<I: JobInitializer, S: serde::Serialize>(
+    #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, initial_data))]
+    pub async fn create_and_spawn_in_tx<I: JobInitializer, D: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
         name: String,
-        initial_state: S,
+        initial_data: D,
     ) -> Result<Job, JobError> {
-        let new_job = Job::new(name, <I as JobInitializer>::job_type(), initial_state);
+        let new_job = Job::new(name, <I as JobInitializer>::job_type(), initial_data);
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor.spawn_job::<I>(db, &job, None).await?;
         Ok(job)
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, initial_state))]
-    pub async fn create_and_spawn_at_in_tx<I: JobInitializer, S: serde::Serialize>(
+    #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, initial_data))]
+    pub async fn create_and_spawn_at_in_tx<I: JobInitializer, D: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         name: String,
-        initial_state: S,
+        initial_data: D,
         schedule_at: DateTime<Utc>,
     ) -> Result<Job, JobError> {
-        let new_job = Job::new(name, <I as JobInitializer>::job_type(), initial_state);
+        let new_job = Job::new(name, <I as JobInitializer>::job_type(), initial_data);
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor
             .spawn_job::<I>(db, &job, Some(schedule_at))
