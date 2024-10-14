@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { gql } from "@apollo/client"
+import { gql, ApolloError } from "@apollo/client"
 import { CgSpinner } from "react-icons/cg"
+
+import { toast } from "sonner"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
@@ -44,6 +46,7 @@ gql`
 type CustomerDocumentsProps = {
   documents: NonNullable<GetCustomerQuery["customer"]>["documents"]
 }
+
 const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
   const [linkLoading, setLinkLoading] = useState<{ [key: string]: boolean }>({})
 
@@ -58,7 +61,8 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
       }).finally(() => setLinkLoading((prev) => ({ ...prev, [id]: false })))
 
       if (!data?.documentDownloadLinkGenerate?.link) {
-        return alert("Failed to generate download link")
+        toast.error("Failed to generate download link")
+        return
       }
 
       window.open(data.documentDownloadLinkGenerate.link, "_blank")
@@ -124,13 +128,32 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
 
   const handleFileUpload = useCallback(
     async (file: File) => {
-      await customerDocumentAttach({
-        variables: {
-          customerId: customer.customerId,
-          file,
-        },
-        onCompleted: () => refetch(),
-      })
+      try {
+        await customerDocumentAttach({
+          variables: {
+            customerId: customer.customerId,
+            file,
+          },
+        })
+        refetch()
+        toast.success("Document uploaded successfully")
+      } catch (err) {
+        if (err instanceof ApolloError) {
+          if (err.networkError && "statusCode" in err.networkError) {
+            switch (err.networkError.statusCode) {
+              case 413:
+                toast.error("File is too large. Please upload a smaller file.")
+                break
+              default:
+                toast.error(`Upload failed: ${err.message}`)
+            }
+          } else {
+            toast.error(`Upload failed: ${err.message}`)
+          }
+        } else {
+          toast.error("An unexpected error occurred during file upload.")
+        }
+      }
     },
     [customerDocumentAttach, customer.customerId, refetch],
   )
@@ -142,7 +165,7 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
         if (file.type === "application/pdf") {
           await handleFileUpload(file)
         } else {
-          alert("Please upload only PDF files.")
+          toast.error("Please upload only PDF files.")
         }
       }
     },
@@ -166,7 +189,11 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
           const file = items[0].getAsFile()
           if (file) {
             handleFileUpload(file)
+          } else {
+            toast.error("Failed to retrieve the pasted file.")
           }
+        } else {
+          toast.error("Please paste only PDF files.")
         }
       }
     },
@@ -174,8 +201,8 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   )
 
   useEffect(() => {
-    document.addEventListener("paste", handlePaste)
-    return () => document.removeEventListener("paste", handlePaste)
+    document.addEventListener("paste", handlePaste as EventListener)
+    return () => document.removeEventListener("paste", handlePaste as EventListener)
   }, [handlePaste])
 
   return (
@@ -195,3 +222,5 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
     </div>
   )
 }
+
+export default Documents
