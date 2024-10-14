@@ -55,6 +55,11 @@ impl From<uuid::Uuid> for JobId {
         Self(uuid)
     }
 }
+impl std::fmt::Display for JobId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Clone)]
 pub struct Jobs {

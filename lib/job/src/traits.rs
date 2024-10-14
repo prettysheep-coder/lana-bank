@@ -38,6 +38,7 @@ pub trait JobRunner: Send + Sync + 'static {
 
 pub struct RetrySettings {
     pub n_attempts: u32,
+    pub n_warn_attempts: u32,
     pub min_backoff: std::time::Duration,
     pub max_backoff: std::time::Duration,
     pub backoff_jitter_pct: u32,
@@ -60,6 +61,7 @@ impl Default for RetrySettings {
     fn default() -> Self {
         Self {
             n_attempts: 5,
+            n_warn_attempts: 3,
             min_backoff: std::time::Duration::from_secs(1),
             max_backoff: std::time::Duration::from_secs(60),
             backoff_jitter_pct: 20,

@@ -199,7 +199,7 @@ impl JobExecutor {
         registry: &Arc<RwLock<JobRegistry>>,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         job: Job,
-        attempt_index: u32,
+        attempt: u32,
         job_payload: Option<serde_json::Value>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
@@ -214,29 +214,37 @@ impl JobExecutor {
         let registry = Arc::clone(registry);
         let handle = tokio::spawn(async move {
             let res = Self::execute_job(
-                id,
-                attempt_index,
+                job,
+                attempt,
                 pool.clone(),
                 job_payload,
                 runner,
                 repo.clone(),
+                &registry,
             )
             .await;
             all_jobs.write().await.remove(&id);
             if let Err(e) = res {
-                let db = pool.begin().await.expect("could not start transaction");
-                let _ = Self::fail_job(
-                    db,
-                    id,
-                    attempt_index,
-                    e,
-                    repo,
-                    registry
-                        .try_read()
-                        .expect("Cannot read registry")
-                        .retry_settings(&job_type),
-                )
-                .await;
+                match pool.begin().await {
+                    Ok(db) => {
+                        let _ = Self::fail_job(
+                            db,
+                            id,
+                            attempt,
+                            e,
+                            repo,
+                            registry
+                                .try_read()
+                                .expect("Cannot read registry")
+                                .retry_settings(&job_type),
+                        )
+                        .await;
+                    }
+                    Err(_) => {
+                        eprintln!("Could not start transaction when failing job");
+                        tracing::error!("Could not start transaction when failing job");
+                    }
+                }
             }
         });
         running_jobs
@@ -246,21 +254,46 @@ impl JobExecutor {
         Ok(())
     }
 
+    #[instrument(name = "job.execute", skip_all,
+        fields(job_id, job_name, attempt, error, error.level, error.message),
+    err)]
     async fn execute_job(
-        id: JobId,
-        attempt_index: u32,
+        job: Job,
+        attempt: u32,
         pool: PgPool,
         payload: Option<serde_json::Value>,
         runner: Box<dyn JobRunner>,
         repo: JobRepo,
+        registry: &Arc<RwLock<JobRegistry>>,
     ) -> Result<(), JobError> {
+        let id = job.id;
+        let span = Span::current();
+        span.record("job_id", tracing::field::display(id));
+        span.record("job_name", job.name);
+        span.record("attempt", attempt);
         let current_job_pool = pool.clone();
-        let current_job = CurrentJob::new(id, attempt_index, current_job_pool, payload);
-        match runner
-            .run(current_job)
-            .await
-            .map_err(|e| JobError::JobExecutionError(e.to_string()))?
-        {
+        let current_job = CurrentJob::new(id, attempt, current_job_pool, payload);
+
+        match runner.run(current_job).await.map_err(|e| {
+            let error = e.to_string();
+            Span::current().record("error", tracing::field::display("true"));
+            Span::current().record("error.message", tracing::field::display(&error));
+            let n_warn_attempts = registry
+                .try_read()
+                .expect("Cannot read registry")
+                .retry_settings(&job.job_type)
+                .n_warn_attempts;
+            if attempt <= n_warn_attempts {
+                Span::current()
+                    .record("error.level", tracing::field::display(tracing::Level::WARN));
+            } else {
+                Span::current().record(
+                    "error.level",
+                    tracing::field::display(tracing::Level::ERROR),
+                );
+            }
+            JobError::JobExecutionError(error)
+        })? {
             JobCompletion::Complete => {
                 let tx = pool.begin().await?;
                 Self::complete_job(tx, id, repo).await?;
