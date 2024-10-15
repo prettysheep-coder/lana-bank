@@ -29,7 +29,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           isFinite(parseFloat(numericValue))
         ) {
           setDisplayValue(formatNumber(numericValue))
-          onChange?.({ ...e, target: { ...e.target, value: numericValue } })
+          onChange?.({
+            ...e,
+            target: { ...e.target, value: numericValue, name: props.name || "" },
+          })
         } else if (numericValue === "") {
           setDisplayValue(numericValue)
         }
