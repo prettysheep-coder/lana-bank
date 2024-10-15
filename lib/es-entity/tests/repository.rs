@@ -16,7 +16,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 }
 
 #[tokio::test]
-async fn test() -> anyhow::Result<()> {
+async fn test_create() -> anyhow::Result<()> {
     let pool = init_pool().await?;
     let id = UserId::from(uuid::Uuid::new_v4());
     let repo = Users {};

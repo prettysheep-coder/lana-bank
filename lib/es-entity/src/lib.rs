@@ -6,6 +6,7 @@ mod events;
 mod traits;
 
 pub use error::*;
+pub use es_entity_derive::EsEntity;
 pub use es_entity_derive::EsEvent;
 pub use es_entity_derive::EsRepo;
 pub use events::*;

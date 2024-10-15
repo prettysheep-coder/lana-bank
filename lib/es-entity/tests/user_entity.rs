@@ -39,13 +39,13 @@ impl IntoEvents<UserEvent> for NewUser {
     }
 }
 
-#[derive(Builder)]
+#[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct User {
     pub id: UserId,
     pub email: String,
 
-    _events: EntityEvents<UserEvent>,
+    events: EntityEvents<UserEvent>,
 }
 
 impl TryFromEvents<UserEvent> for User {
@@ -58,6 +58,6 @@ impl TryFromEvents<UserEvent> for User {
                 }
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }

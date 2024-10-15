@@ -15,3 +15,7 @@ pub trait TryFromEvents<E: EsEvent> {
     where
         Self: Sized;
 }
+
+pub trait EsEntity<E: EsEvent>: TryFromEvents<E> {
+    fn events(&mut self) -> &mut EntityEvents<E>;
+}

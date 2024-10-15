@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod entity;
 mod event;
 mod repo;
 
@@ -11,6 +12,12 @@ use syn::parse_macro_input;
 pub fn es_event_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
     event::derive(ast).into()
+}
+
+#[proc_macro_derive(EsEntity, attributes(events))]
+pub fn es_entity_derive(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as syn::DeriveInput);
+    entity::derive(ast).into()
 }
 
 #[proc_macro_derive(EsRepo, attributes(es_repo))]

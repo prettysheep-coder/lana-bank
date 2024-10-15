@@ -1,6 +1,7 @@
 mod create_fn;
 mod options;
 mod persist_events_fn;
+mod persist_fn;
 
 use darling::{FromDeriveInput, ToTokens};
 use proc_macro2::TokenStream;
@@ -22,6 +23,7 @@ pub fn derive(ast: syn::DeriveInput) -> proc_macro2::TokenStream {
 pub struct EsRepo<'a> {
     repo: &'a syn::Ident,
     persist_events_fn: persist_events_fn::PersistEventsFn<'a>,
+    persist_fn: persist_fn::PersistFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
 }
 
@@ -30,6 +32,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
         Self {
             repo: &opts.ident,
             persist_events_fn: persist_events_fn::PersistEventsFn::from(opts),
+            persist_fn: persist_fn::PersistFn::from(opts),
             create_fn: create_fn::CreateFn::from(opts),
         }
     }
@@ -39,11 +42,13 @@ impl<'a> ToTokens for EsRepo<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let repo = &self.repo;
         let persist_events_fn = &self.persist_events_fn;
+        let persist_fn = &self.persist_fn;
         let create_fn = &self.create_fn;
 
         tokens.append_all(quote! {
             impl #repo {
                 #persist_events_fn
+                #persist_fn
                 #create_fn
             }
         });

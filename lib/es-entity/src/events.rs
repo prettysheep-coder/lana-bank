@@ -2,14 +2,22 @@ use chrono::{DateTime, Utc};
 
 use super::traits::*;
 
-#[derive(Clone)]
 pub struct PersistedEvent<E> {
     pub recorded_at: DateTime<Utc>,
     pub sequence: usize,
     pub event: E,
 }
 
-#[derive(Clone)]
+impl<E: Clone> Clone for PersistedEvent<E> {
+    fn clone(&self) -> Self {
+        PersistedEvent {
+            recorded_at: self.recorded_at,
+            sequence: self.sequence,
+            event: self.event.clone(),
+        }
+    }
+}
+
 pub struct EntityEvents<T: EsEvent> {
     pub entity_id: <T as EsEvent>::EntityId,
     persisted_events: Vec<PersistedEvent<T>>,
