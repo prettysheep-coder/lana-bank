@@ -1094,7 +1094,14 @@ dependencies = [
 name = "es-entity"
 version = "0.1.132-dev"
 dependencies = [
+ "anyhow",
+ "chrono",
  "es-entity-derive",
+ "serde",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

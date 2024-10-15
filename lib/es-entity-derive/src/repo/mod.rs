@@ -15,15 +15,15 @@ pub fn derive(ast: syn::DeriveInput) -> proc_macro2::TokenStream {
         }
     };
 
-    let repo = EsEntityRepository::from(&opts);
+    let repo = EsRepo::from(&opts);
     quote!(#repo)
 }
-pub struct EsEntityRepository<'a> {
+pub struct EsRepo<'a> {
     repo: &'a syn::Ident,
     create_fn: create_fn::CreateFn<'a>,
 }
 
-impl<'a> From<&'a RepositoryOptions> for EsEntityRepository<'a> {
+impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
             repo: &opts.ident,
@@ -32,7 +32,7 @@ impl<'a> From<&'a RepositoryOptions> for EsEntityRepository<'a> {
     }
 }
 
-impl<'a> ToTokens for EsEntityRepository<'a> {
+impl<'a> ToTokens for EsRepo<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let repo = &self.repo;
         let create_fn = &self.create_fn;

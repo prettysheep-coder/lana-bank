@@ -4,8 +4,8 @@ use es_entity::*;
 
 use user_entity::*;
 
-#[derive(EsEntityRepository)]
-#[es_repo(entity = "User", indexes(id))]
+#[derive(EsRepo)]
+#[es_repo(entity = "User", indexes(id = "UserId", email))]
 pub struct Users {}
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -21,16 +21,16 @@ async fn test() -> anyhow::Result<()> {
     let id = UserId::from(uuid::Uuid::new_v4());
     let repo = Users {};
     let mut db = pool.begin().await?;
-    let entity = repo.create_in_tx(&mut db, NewUser { id }).await?;
+    let entity = repo
+        .create_in_tx(
+            &mut db,
+            NewUser {
+                id,
+                email: "email@test.com".to_string(),
+            },
+        )
+        .await?;
     assert!(entity.id == id);
 
     Ok(())
 }
-
-// NewEntity
-// EntityEvent
-// EntityId
-// Entity
-// Repo
-//
-// Load

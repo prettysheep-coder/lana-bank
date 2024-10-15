@@ -9,3 +9,13 @@ fail-on-warnings = []
 
 [dependencies]
 es-entity-derive = { path = "../es-entity-derive" }
+
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+chrono =  { workspace = true }
+serde =  { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
+uuid = { workspace = true }
