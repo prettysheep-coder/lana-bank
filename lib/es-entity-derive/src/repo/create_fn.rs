@@ -6,16 +6,18 @@ use super::options::*;
 
 pub struct CreateFn<'a> {
     new_entity: &'a syn::Ident,
-    entity: &'a syn::Ident,
     id: &'a syn::Ident,
-    error: &'a syn::Ident,
+    entity: &'a syn::Ident,
+    table_name: &'a str,
     indexes: &'a Indexes,
+    error: &'a syn::Ident,
 }
 
 impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
             new_entity: opts.new_entity(),
+            table_name: opts.table_name(),
             id: opts.id(),
             entity: opts.entity(),
             error: opts.err(),
@@ -38,7 +40,8 @@ impl<'a> ToTokens for CreateFn<'a> {
             }
         });
 
-        let table_name = "users";
+        let table_name = self.table_name;
+
         let columns_names: Vec<_> = self
             .indexes
             .columns
@@ -49,22 +52,7 @@ impl<'a> ToTokens for CreateFn<'a> {
             .map(|i| format!("${}", i))
             .collect::<Vec<_>>()
             .join(", ");
-        let args: Vec<_> = self
-            .indexes
-            .columns
-            .iter()
-            .map(|column| {
-                let ident = &column.name;
-                match &column.ty {
-                    Some(ty) => quote! {
-                        #ident as &#ty
-                    },
-                    None => quote! {
-                        #ident
-                    },
-                }
-            })
-            .collect();
+        let args = self.indexes.query_args();
 
         let query = format!(
             "INSERT INTO {} (id, {}) VALUES ({})",
@@ -140,6 +128,7 @@ mod tests {
 
         let create_fn = CreateFn {
             new_entity: &new_entity,
+            table_name: "entities",
             id: &id,
             entity: &entity,
             error: &error,
@@ -177,7 +166,7 @@ mod tests {
                 let id = &new_entity.id;
                 let name = &new_entity.name;
 
-                sqlx::query!("INSERT INTO users (id, name) VALUES ($1, $2)",
+                sqlx::query!("INSERT INTO entities (id, name) VALUES ($1, $2)",
                     id as &EntityId,
                     name
                 )

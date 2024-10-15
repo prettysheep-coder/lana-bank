@@ -1,4 +1,5 @@
 use darling::{FromDeriveInput, FromMeta};
+use quote::quote;
 use syn::{parse::Parse, Expr, Ident, Token};
 
 #[derive(Debug, Clone, FromDeriveInput)]
@@ -17,6 +18,10 @@ pub struct RepositoryOptions {
     id_ident: Option<syn::Ident>,
     #[darling(default, rename = "err")]
     err_ident: Option<syn::Ident>,
+    #[darling(default, rename = "tbl")]
+    table_name: Option<String>,
+    #[darling(default, rename = "events_tbl")]
+    events_table_name: Option<String>,
 }
 
 impl RepositoryOptions {
@@ -46,6 +51,12 @@ impl RepositoryOptions {
                 proc_macro2::Span::call_site(),
             ));
         }
+        if self.table_name.is_none() {
+            self.table_name = Some(pluralizer::pluralize(&entity_name.to_lowercase(), 2, false));
+        }
+        if self.events_table_name.is_none() {
+            self.events_table_name = Some(format!("{}_events", entity_name.to_lowercase()));
+        }
         self
     }
 
@@ -53,20 +64,36 @@ impl RepositoryOptions {
         &self.entity_ident
     }
 
+    pub fn table_name(&self) -> &str {
+        self.table_name.as_ref().expect("Table name is not set")
+    }
+
     pub fn id(&self) -> &syn::Ident {
-        self.id_ident.as_ref().unwrap()
+        self.id_ident.as_ref().expect("ID identifier is not set")
     }
 
     pub fn event(&self) -> &syn::Ident {
-        self.event_ident.as_ref().unwrap()
+        self.event_ident
+            .as_ref()
+            .expect("Event identifier is not set")
+    }
+
+    pub fn events_table_name(&self) -> &str {
+        self.events_table_name
+            .as_ref()
+            .expect("Events table name is not set")
     }
 
     pub fn new_entity(&self) -> &syn::Ident {
-        self.new_entity_ident.as_ref().unwrap()
+        self.new_entity_ident
+            .as_ref()
+            .expect("New entity identifier is not set")
     }
 
     pub fn err(&self) -> &syn::Ident {
-        self.err_ident.as_ref().unwrap()
+        self.err_ident
+            .as_ref()
+            .expect("Error identifier is not set")
     }
 }
 
@@ -89,6 +116,25 @@ impl Default for Indexes {
                 ty: None,
             }],
         }
+    }
+}
+
+impl Indexes {
+    pub fn query_args(&self) -> Vec<proc_macro2::TokenStream> {
+        self.columns
+            .iter()
+            .map(|column| {
+                let ident = &column.name;
+                match &column.ty {
+                    Some(ty) => quote! {
+                        #ident as &#ty
+                    },
+                    None => quote! {
+                        #ident
+                    },
+                }
+            })
+            .collect()
     }
 }
 

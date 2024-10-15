@@ -7,6 +7,7 @@ use super::options::*;
 pub struct PersistEventsFn<'a> {
     id: &'a syn::Ident,
     event: &'a syn::Ident,
+    events_table_name: &'a str,
 }
 
 impl<'a> From<&'a RepositoryOptions> for PersistEventsFn<'a> {
@@ -14,17 +15,16 @@ impl<'a> From<&'a RepositoryOptions> for PersistEventsFn<'a> {
         Self {
             id: opts.id(),
             event: opts.event(),
+            events_table_name: opts.events_table_name(),
         }
     }
 }
 
 impl<'a> ToTokens for PersistEventsFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let table_name = "user_events";
-
         let query = format!(
             "INSERT INTO {} (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
-            table_name,
+            self.events_table_name,
         );
         let id_type = &self.id;
         let event_type = &self.event;
@@ -74,6 +74,7 @@ mod tests {
         let persist_fn = PersistEventsFn {
             id: &id,
             event: &event,
+            events_table_name: "entity_events",
         };
 
         let mut tokens = TokenStream::new();
@@ -95,7 +96,7 @@ mod tests {
                 let events_types = serialized_events.iter().map(|e| e.get("type").and_then(serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
 
                 let rows = sqlx::query!(
-                    "INSERT INTO user_events (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
+                    "INSERT INTO entity_events (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
                     id as &EntityId,
                     offset as i32,
                     &events_types,

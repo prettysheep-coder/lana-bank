@@ -1111,9 +1111,9 @@ name = "es-entity-derive"
 version = "0.1.132-dev"
 dependencies = [
  "darling",
+ "pluralizer",
  "proc-macro2",
  "quote",
- "sqlx",
  "syn 2.0.79",
 ]
 
@@ -2607,6 +2607,16 @@ name = "pkg-config"
 version = "0.3.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231b230927b5e4ad203db57bbcbee2802f6bce620b1e4a9024a07d94e2907ec"
+
+[[package]]
+name = "pluralizer"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35e4616e94b67b8b61846ea69d4bf041a62147d569d16f437689229e2677d38c"
+dependencies = [
+ "lazy_static",
+ "regex",
+]
 
 [[package]]
 name = "powerfmt"
