@@ -1098,6 +1098,7 @@ dependencies = [
  "chrono",
  "es-entity-derive",
  "serde",
+ "serde_json",
  "sqlx",
  "thiserror",
  "tokio",

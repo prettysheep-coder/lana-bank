@@ -72,10 +72,10 @@ impl<'a> ToTokens for CreateFn<'a> {
 
         tokens.append_all(quote! {
             #[inline(always)]
-            fn convert_new<T, E>(item: T) -> EntityEvents<E>
+            fn convert_new<T, E>(item: T) -> es_entity::EntityEvents<E>
             where
-                T: IntoEvents<E>,
-                E: EsEvent,
+                T: es_entity::IntoEvents<E>,
+                E: es_entity::EsEvent,
             {
                 item.into_events()
             }
@@ -85,8 +85,6 @@ impl<'a> ToTokens for CreateFn<'a> {
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: #new_entity
             ) -> Result<#entity, #error> {
-                use es_entity::IntoEvents;
-
                 #(#index_tokens)*
                  sqlx::query!(
                      #query,
@@ -139,10 +137,10 @@ mod tests {
 
         let expected = quote! {
             #[inline(always)]
-            fn convert_new<T, E>(item: T) -> EntityEvents<E>
+            fn convert_new<T, E>(item: T) -> es_entity::EntityEvents<E>
             where
-                T: IntoEvents<E>,
-                E: EsEvent,
+                T: es_entity::IntoEvents<E>,
+                E: es_entity::EsEvent,
             {
                 item.into_events()
             }
@@ -152,8 +150,6 @@ mod tests {
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: NewEntity
             ) -> Result<Entity, EsEntityError> {
-                use es_entity::IntoEvents;
-
                 let id = &new_entity.id;
                 let name = &new_entity.name;
 
