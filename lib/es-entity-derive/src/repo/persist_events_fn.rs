@@ -4,21 +4,21 @@ use quote::{quote, TokenStreamExt};
 
 use super::options::*;
 
-pub struct PersistEventsFn {
-    id_type: syn::Ident,
-    event_type: syn::Ident,
+pub struct PersistEventsFn<'a> {
+    id: &'a syn::Ident,
+    event: &'a syn::Ident,
 }
 
-impl<'a> From<&'a RepositoryOptions> for PersistEventsFn {
+impl<'a> From<&'a RepositoryOptions> for PersistEventsFn<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
-            id_type: syn::Ident::new("UserId", proc_macro2::Span::call_site()),
-            event_type: syn::Ident::new("UserEvent", proc_macro2::Span::call_site()),
+            id: opts.id(),
+            event: opts.event(),
         }
     }
 }
 
-impl ToTokens for PersistEventsFn {
+impl<'a> ToTokens for PersistEventsFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let table_name = "user_events";
 
@@ -26,8 +26,8 @@ impl ToTokens for PersistEventsFn {
             "INSERT INTO {} (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
             table_name,
         );
-        let id_type = &self.id_type;
-        let event_type = &self.event_type;
+        let id_type = &self.id;
+        let event_type = &self.event;
         let id_tokens = quote! {
             id as &#id_type
         };
@@ -64,16 +64,14 @@ impl ToTokens for PersistEventsFn {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proc_macro2::Span;
-    use syn::Ident;
 
     #[test]
     fn test_create_fn() {
-        let id_type = syn::Ident::new("UserId", proc_macro2::Span::call_site());
-        let event_type = syn::Ident::new("UserEvent", proc_macro2::Span::call_site());
+        let id = syn::Ident::new("EntityId", proc_macro2::Span::call_site());
+        let event = syn::Ident::new("EntityEvent", proc_macro2::Span::call_site());
         let persist_fn = PersistEventsFn {
-            id_type,
-            event_type,
+            id: &id,
+            event: &event,
         };
 
         let mut tokens = TokenStream::new();
@@ -83,7 +81,7 @@ mod tests {
             async fn persist_events(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                events: &mut EntityEvents<UserEvent>
+                events: &mut EntityEvents<EntityEvent>
             ) -> Result<usize, sqlx::Error> {
                 if !events.any_new() {
                     return Ok(0);
@@ -96,7 +94,7 @@ mod tests {
 
                 let rows = sqlx::query!(
                     "INSERT INTO user_events (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
-                    id as &UserId,
+                    id as &EntityId,
                     offset as i32,
                     &events_types,
                     &serialized_events

@@ -7,6 +7,7 @@ use super::options::*;
 pub struct CreateFn<'a> {
     new_entity: &'a syn::Ident,
     entity: &'a syn::Ident,
+    id: &'a syn::Ident,
     error: &'a syn::Ident,
     indexes: &'a Indexes,
 }
@@ -15,6 +16,7 @@ impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
             new_entity: opts.new_entity(),
+            id: opts.id(),
             entity: opts.entity(),
             error: opts.err(),
             indexes: &opts.indexes,
@@ -25,6 +27,7 @@ impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
 impl<'a> ToTokens for CreateFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let new_entity = self.new_entity;
+        let id = self.id;
         let entity = self.entity;
         let error = self.error;
 
@@ -42,7 +45,7 @@ impl<'a> ToTokens for CreateFn<'a> {
             .iter()
             .map(|c| c.name.to_string())
             .collect();
-        let placeholders = (1..=self.indexes.columns.len())
+        let placeholders = (1..=self.indexes.columns.len() + 1)
             .map(|i| format!("${}", i))
             .collect::<Vec<_>>()
             .join(", ");
@@ -64,7 +67,7 @@ impl<'a> ToTokens for CreateFn<'a> {
             .collect();
 
         let query = format!(
-            "INSERT INTO {} ({}) VALUES ({})",
+            "INSERT INTO {} (id, {}) VALUES ({})",
             table_name,
             columns_names.join(", "),
             placeholders,
@@ -85,9 +88,12 @@ impl<'a> ToTokens for CreateFn<'a> {
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: #new_entity
             ) -> Result<#entity, #error> {
+                let id = &new_entity.id;
                 #(#index_tokens)*
+
                  sqlx::query!(
                      #query,
+                     id as &#id,
                      #(#args),*
                 )
                 .execute(&mut **db)
@@ -111,22 +117,18 @@ mod tests {
         let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsEntityError", Span::call_site());
+        let id = Ident::new("EntityId", Span::call_site());
 
         let indexes = Indexes {
-            columns: vec![
-                IndexColumn {
-                    name: Ident::new("id", Span::call_site()),
-                    ty: Some(Ident::new("UserId", Span::call_site())),
-                },
-                IndexColumn {
-                    name: Ident::new("name", Span::call_site()),
-                    ty: None,
-                },
-            ],
+            columns: vec![IndexColumn {
+                name: Ident::new("name", Span::call_site()),
+                ty: None,
+            }],
         };
 
         let create_fn = CreateFn {
             new_entity: &new_entity,
+            id: &id,
             entity: &entity,
             error: &error,
             indexes: &indexes,
@@ -154,7 +156,7 @@ mod tests {
                 let name = &new_entity.name;
 
                 sqlx::query!("INSERT INTO users (id, name) VALUES ($1, $2)",
-                    id as &UserId,
+                    id as &EntityId,
                     name
                 )
                 .execute(&mut **db)

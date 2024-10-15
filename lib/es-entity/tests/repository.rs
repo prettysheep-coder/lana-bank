@@ -5,7 +5,7 @@ use es_entity::*;
 use user_entity::*;
 
 #[derive(EsRepo)]
-#[es_repo(entity = "User", indexes(id = "UserId", email))]
+#[es_repo(entity = "User", indexes(email))]
 pub struct Users {}
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {

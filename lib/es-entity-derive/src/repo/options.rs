@@ -9,8 +9,12 @@ pub struct RepositoryOptions {
     pub indexes: Indexes,
     #[darling(rename = "entity")]
     entity_ident: syn::Ident,
-    #[darling(default, rename = "new_entity")]
+    #[darling(default, rename = "new")]
     new_entity_ident: Option<syn::Ident>,
+    #[darling(default, rename = "event")]
+    event_ident: Option<syn::Ident>,
+    #[darling(default, rename = "id")]
+    id_ident: Option<syn::Ident>,
     #[darling(default, rename = "err")]
     err_ident: Option<syn::Ident>,
 }
@@ -21,6 +25,18 @@ impl RepositoryOptions {
         if self.new_entity_ident.is_none() {
             self.new_entity_ident = Some(syn::Ident::new(
                 &format!("New{}", entity_name),
+                proc_macro2::Span::call_site(),
+            ));
+        }
+        if self.event_ident.is_none() {
+            self.event_ident = Some(syn::Ident::new(
+                &format!("{}Event", entity_name),
+                proc_macro2::Span::call_site(),
+            ));
+        }
+        if self.id_ident.is_none() {
+            self.id_ident = Some(syn::Ident::new(
+                &format!("{}Id", entity_name),
                 proc_macro2::Span::call_site(),
             ));
         }
@@ -35,6 +51,14 @@ impl RepositoryOptions {
 
     pub fn entity(&self) -> &syn::Ident {
         &self.entity_ident
+    }
+
+    pub fn id(&self) -> &syn::Ident {
+        self.id_ident.as_ref().unwrap()
+    }
+
+    pub fn event(&self) -> &syn::Ident {
+        self.event_ident.as_ref().unwrap()
     }
 
     pub fn new_entity(&self) -> &syn::Ident {

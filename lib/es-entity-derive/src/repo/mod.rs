@@ -21,7 +21,7 @@ pub fn derive(ast: syn::DeriveInput) -> proc_macro2::TokenStream {
 }
 pub struct EsRepo<'a> {
     repo: &'a syn::Ident,
-    persist_events_fn: persist_events_fn::PersistEventsFn,
+    persist_events_fn: persist_events_fn::PersistEventsFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
 }
 
