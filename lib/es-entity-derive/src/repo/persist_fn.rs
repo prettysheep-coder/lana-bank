@@ -95,7 +95,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn test_create_fn() {
+    fn test_persist_fn() {
         let id = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
@@ -142,6 +142,48 @@ mod tests {
                 )
                     .execute(&mut **db)
                     .await?;
+                self.persist_events(db, Self::extract_events(entity)).await?;
+                Ok(())
+            }
+        };
+
+        assert_eq!(tokens.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn test_persist_fn_no_indexes() {
+        let id = Ident::new("EntityId", Span::call_site());
+        let entity = Ident::new("Entity", Span::call_site());
+        let error = Ident::new("EsRepoError", Span::call_site());
+
+        let indexes = Indexes { columns: vec![] };
+
+        let persist_fn = PersistFn {
+            entity: &entity,
+            table_name: "entities",
+            id: &id,
+            error: &error,
+            indexes: &indexes,
+        };
+
+        let mut tokens = TokenStream::new();
+        persist_fn.to_tokens(&mut tokens);
+
+        let expected = quote! {
+            #[inline(always)]
+            fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
+            where
+                T: es_entity::EsEntity<E>,
+                E: es_entity::EsEvent,
+            {
+                entity.events()
+            }
+
+            pub async fn persist_in_tx(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                entity: &mut Entity
+            ) -> Result<(), EsRepoError> {
                 self.persist_events(db, Self::extract_events(entity)).await?;
                 Ok(())
             }
