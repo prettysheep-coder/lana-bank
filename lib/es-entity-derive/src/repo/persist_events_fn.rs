@@ -55,7 +55,9 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
                     &serialized_events
                 ).fetch_all(&mut **db).await?;
 
-                Ok(0)
+                let n_events = events.events_persisted_at(rows[0].recorded_at);
+
+                Ok(n_events)
             }
         });
     }
@@ -100,7 +102,9 @@ mod tests {
                     &serialized_events
                 ).fetch_all(&mut **db).await?;
 
-                Ok(0)
+                let n_events = events.events_persisted_at(rows[0].recorded_at);
+
+                Ok(n_events)
             }
         };
 

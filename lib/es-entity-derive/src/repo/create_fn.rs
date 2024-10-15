@@ -83,6 +83,16 @@ impl<'a> ToTokens for CreateFn<'a> {
                 item.into_events()
             }
 
+            #[inline(always)]
+            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, #error>
+            where
+                T: es_entity::TryFromEvents<E>,
+                #error: From<es_entity::EsEntityError>,
+                E: es_entity::EsEvent,
+            {
+                Ok(T::try_from_events(events)?)
+            }
+
             pub async fn create_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -99,8 +109,10 @@ impl<'a> ToTokens for CreateFn<'a> {
                 .execute(&mut **db)
                 .await?;
 
-                let events = Self::convert_new(new_entity);
-                unimplemented!()
+                let mut events = Self::convert_new(new_entity);
+                let n_events = self.persist_events(db, &mut events).await?;
+
+                Self::hydrate_entity(events)
             }
         });
     }
@@ -116,7 +128,7 @@ mod tests {
     fn test_create_fn() {
         let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsEntityError", Span::call_site());
+        let error = Ident::new("EsRepoError", Span::call_site());
         let id = Ident::new("EntityId", Span::call_site());
 
         let indexes = Indexes {
@@ -147,11 +159,21 @@ mod tests {
                 item.into_events()
             }
 
+            #[inline(always)]
+            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, EsRepoError>
+            where
+                T: es_entity::TryFromEvents<E>,
+                EsRepoError: From<es_entity::EsEntityError>,
+                E: es_entity::EsEvent,
+            {
+                Ok(T::try_from_events(events)?)
+            }
+
             pub async fn create_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: NewEntity
-            ) -> Result<Entity, EsEntityError> {
+            ) -> Result<Entity, EsRepoError> {
                 let id = &new_entity.id;
                 let name = &new_entity.name;
 
@@ -162,8 +184,10 @@ mod tests {
                 .execute(&mut **db)
                 .await?;
 
-                let events = Self::convert_new(new_entity);
-                unimplemented!()
+                let mut events = Self::convert_new(new_entity);
+                let n_events = self.persist_events(db, &mut events).await?;
+
+                Self::hydrate_entity(events)
             }
         };
 

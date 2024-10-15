@@ -1,6 +1,6 @@
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::events::EntityEvents;
+use super::{error::EsEntityError, events::EntityEvents};
 
 pub trait EsEvent: DeserializeOwned + Serialize {
     type EntityId: Clone;
@@ -10,15 +10,8 @@ pub trait IntoEvents<E: EsEvent> {
     fn into_events(self) -> EntityEvents<E>;
 }
 
-// pub trait EsEntity {
-//     type EntityId;
-//     type Event;
-// }
-// pub trait FromEvents {
-//     type Event;
-//     type Error = EntityError;
-
-//     fn from_events(events: Vec<Event>) -> Result<Self, Self::Error>
-//     where
-//         Self: Sized;
-// }
+pub trait TryFromEvents<E: EsEvent> {
+    fn try_from_events(events: EntityEvents<E>) -> Result<Self, EsEntityError>
+    where
+        Self: Sized;
+}

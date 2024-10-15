@@ -1096,6 +1096,7 @@ version = "0.1.132-dev"
 dependencies = [
  "anyhow",
  "chrono",
+ "derive_builder",
  "es-entity-derive",
  "serde",
  "serde_json",

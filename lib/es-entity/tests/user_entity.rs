@@ -1,6 +1,7 @@
+use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use es_entity::{EntityEvents, EsEvent, IntoEvents};
+use es_entity::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, sqlx::Type, Deserialize, Serialize)]
 #[sqlx(transparent)]
@@ -14,6 +15,7 @@ impl From<uuid::Uuid> for UserId {
 }
 
 #[derive(EsEvent, Deserialize, Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
 pub enum UserEvent {
     Initialized { id: UserId, email: String },
@@ -37,7 +39,25 @@ impl IntoEvents<UserEvent> for NewUser {
     }
 }
 
+#[derive(Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct User {
     pub id: UserId,
     pub email: String,
+
+    _events: EntityEvents<UserEvent>,
+}
+
+impl TryFromEvents<UserEvent> for User {
+    fn try_from_events(events: EntityEvents<UserEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = UserBuilder::default();
+        for event in events.persisted().map(|e| &e.event) {
+            match event {
+                UserEvent::Initialized { id, email } => {
+                    builder = builder.id(*id).email(email.clone())
+                }
+            }
+        }
+        builder._events(events).build()
+    }
 }

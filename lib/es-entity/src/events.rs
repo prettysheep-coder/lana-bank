@@ -4,9 +4,9 @@ use super::traits::*;
 
 #[derive(Clone)]
 pub struct PersistedEvent<E> {
-    recorded_at: DateTime<Utc>,
-    sequence: u64,
-    event: E,
+    pub recorded_at: DateTime<Utc>,
+    pub sequence: usize,
+    pub event: E,
 }
 
 #[derive(Clone)]
@@ -32,6 +32,23 @@ where
         &self.entity_id
     }
 
+    pub fn events_persisted_at(&mut self, recorded_at: chrono::DateTime<chrono::Utc>) -> usize {
+        let n = self.new_events.len();
+        let offset = self.persisted_events.len() + 1;
+        self.persisted_events
+            .extend(
+                self.new_events
+                    .drain(..)
+                    .enumerate()
+                    .map(|(i, event)| PersistedEvent {
+                        recorded_at,
+                        sequence: i + offset,
+                        event,
+                    }),
+            );
+        n
+    }
+
     pub fn serialize_new_events(&self) -> Vec<serde_json::Value> {
         self.new_events
             .iter()
@@ -45,5 +62,9 @@ where
 
     pub fn n_persisted(&self) -> usize {
         self.persisted_events.len()
+    }
+
+    pub fn persisted(&self) -> impl DoubleEndedIterator<Item = &PersistedEvent<T>> {
+        self.persisted_events.iter()
     }
 }

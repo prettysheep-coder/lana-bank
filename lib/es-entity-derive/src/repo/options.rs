@@ -42,7 +42,7 @@ impl RepositoryOptions {
         }
         if self.err_ident.is_none() {
             self.err_ident = Some(syn::Ident::new(
-                "EsEntityError",
+                "EsRepoError",
                 proc_macro2::Span::call_site(),
             ));
         }
