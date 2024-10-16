@@ -405,6 +405,54 @@ mod test {
     }
 
     #[test]
+    fn invalid_term_values() {
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(105)))
+            .margin_call_cvl(CVLPct(dec!(150)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build();
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "margin_call_cvl must be less than initial_cvl"
+        );
+
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(130)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build();
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "margin_call_cvl must be greater than liquidation_cvl"
+        );
+
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(125)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build();
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "margin_call_cvl must be greater than liquidation_cvl"
+        );
+    }
+
+    #[test]
     fn required_collateral() {
         let price =
             PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
