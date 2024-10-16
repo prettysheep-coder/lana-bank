@@ -8,6 +8,9 @@ pub struct RepositoryOptions {
     pub ident: syn::Ident,
     #[darling(default)]
     pub indexes: Indexes,
+    #[darling(default)]
+    pub post_persist_hook: Option<syn::Ident>,
+
     #[darling(rename = "entity")]
     entity_ident: syn::Ident,
     #[darling(default, rename = "new")]

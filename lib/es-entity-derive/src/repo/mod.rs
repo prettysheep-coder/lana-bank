@@ -4,6 +4,7 @@ mod find_by_fn;
 mod options;
 mod persist_events_fn;
 mod persist_fn;
+mod post_persist_hook;
 
 use darling::{FromDeriveInput, ToTokens};
 use proc_macro2::{Span, TokenStream};
@@ -29,6 +30,7 @@ pub struct EsRepo<'a> {
     create_fn: create_fn::CreateFn<'a>,
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
+    post_persist_hook: post_persist_hook::PostPersistHook<'a>,
 }
 
 impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
@@ -49,6 +51,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             create_fn: create_fn::CreateFn::from(opts),
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
+            post_persist_hook: post_persist_hook::PostPersistHook::from(opts),
         }
     }
 }
@@ -61,6 +64,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let create_fn = &self.create_fn;
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
+        let post_persist_hook = &self.post_persist_hook;
 
         tokens.append_all(quote! {
             impl #repo {
@@ -74,6 +78,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #create_fn
                 #(#find_by_fns)*
                 #find_all_fn
+                #post_persist_hook
             }
         });
     }

@@ -150,6 +150,11 @@ where
         }
         Ok((ret, false))
     }
+
+    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &PersistedEvent<T>> {
+        let start = self.persisted_events.len() - n;
+        self.persisted_events[start..].iter()
+    }
 }
 
 #[cfg(test)]

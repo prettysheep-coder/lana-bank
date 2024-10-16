@@ -5,9 +5,19 @@ use es_entity::*;
 use user_entity::*;
 
 #[derive(EsRepo)]
-#[es_repo(entity = "User", indexes(email = String))]
+#[es_repo(entity = "User", indexes(email = String), post_persist_hook = export)]
 pub struct Users {
     pool: sqlx::PgPool,
+}
+
+impl Users {
+    async fn export(
+        &self,
+        _db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _events: impl Iterator<Item = &es_entity::PersistedEvent<UserEvent>>,
+    ) -> Result<(), EsRepoError> {
+        Ok(())
+    }
 }
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {

@@ -95,7 +95,11 @@ impl<'a> ToTokens for PersistFn<'a> {
                 }
 
                 #update_tokens
-                self.persist_events(db, Self::extract_events(entity)).await?;
+                let events = Self::extract_events(entity);
+                let n_events = self.persist_events(db, events).await?;
+
+                self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+
                 Ok(())
             }
         });
@@ -170,7 +174,12 @@ mod tests {
                 )
                     .execute(&mut **db)
                     .await?;
-                self.persist_events(db, Self::extract_events(entity)).await?;
+
+                let events = Self::extract_events(entity);
+                let n_events = self.persist_events(db, events).await?;
+
+                self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+
                 Ok(())
             }
         };
@@ -226,7 +235,11 @@ mod tests {
                     return Ok(());
                 }
 
-                self.persist_events(db, Self::extract_events(entity)).await?;
+                let events = Self::extract_events(entity);
+                let n_events = self.persist_events(db, events).await?;
+
+                self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+
                 Ok(())
             }
         };
