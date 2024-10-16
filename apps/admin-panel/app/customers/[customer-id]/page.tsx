@@ -163,7 +163,7 @@ const Customer = ({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PageHeading>Customer Details</PageHeading>
+      <PageHeading backLink="/customers">Customer Details</PageHeading>
       {loading && <p>Loading...</p>}
       {error && <div className="text-destructive">{error.message}</div>}
       {data && data.customer && (

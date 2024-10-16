@@ -140,7 +140,7 @@ const Loan = ({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PageHeading>Loan Details</PageHeading>
+      <PageHeading backLink="/loans">Loan Details</PageHeading>
       {loading && <p>Loading...</p>}
       {error && <div className="text-destructive">{error.message}</div>}
       {data && data.loan && (

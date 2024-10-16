@@ -13,7 +13,7 @@ function userDetails({
 
   return (
     <main>
-      <PageHeading>User Details</PageHeading>
+      <PageHeading backLink="/users">User Details</PageHeading>
       <UserDetailsCard userId={userId} />
     </main>
   )

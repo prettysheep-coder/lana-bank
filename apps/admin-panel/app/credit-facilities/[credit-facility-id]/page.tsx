@@ -144,7 +144,7 @@ function CreditFacilityPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PageHeading>Credit Facility Details</PageHeading>
+      <PageHeading backLink="/credit-facilities">Credit Facility Details</PageHeading>
       <CreditFacilityDetailsCard
         creditFacilityId={creditFacilityId}
         creditFacilityDetails={data.creditFacility}

@@ -13,7 +13,7 @@ function withdrawalDetails({
 
   return (
     <main>
-      <PageHeading>Withdrawal Details</PageHeading>
+      <PageHeading backLink="/withdrawals">Withdrawal Details</PageHeading>
       <WithdrawalDetailsCard withdrawalId={withdrawalId} />
     </main>
   )

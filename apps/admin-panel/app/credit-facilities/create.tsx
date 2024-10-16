@@ -280,7 +280,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             </div>
           )}
           {useTemplateTerms && termsTemplatesData?.termsTemplates.length === 0 ? (
-            <div className="text-sm mt-1">
+            <div className="text-sm mt-1 ml-2">
               No terms templates available,{" "}
               <Link
                 className="text-primary hover:underline"
