@@ -83,6 +83,16 @@ impl<'a> ToTokens for CreateFn<'a> {
 
             pub async fn create(
                 &self,
+                new_entity: #new_entity
+            ) -> Result<#entity, #error> {
+                let mut db = self.pool().begin().await?;
+                let res = self.create_in_tx(&mut db, new_entity).await?;
+                db.commit().await?;
+                Ok(res)
+            }
+
+            pub async fn create_in_tx(
+                &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: #new_entity
             ) -> Result<#entity, #error> {
@@ -159,6 +169,16 @@ mod tests {
             }
 
             pub async fn create(
+                &self,
+                new_entity: NewEntity
+            ) -> Result<Entity, EsRepoError> {
+                let mut db = self.pool().begin().await?;
+                let res = self.create_in_tx(&mut db, new_entity).await?;
+                db.commit().await?;
+                Ok(res)
+            }
+
+            pub async fn create_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: NewEntity

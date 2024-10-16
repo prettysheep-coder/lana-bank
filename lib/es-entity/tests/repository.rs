@@ -25,7 +25,7 @@ async fn test_create() -> anyhow::Result<()> {
     let mut db = pool.begin().await?;
     let id = UserId::from(uuid::Uuid::new_v4());
     let entity = repo
-        .create(
+        .create_in_tx(
             &mut db,
             NewUser {
                 id,

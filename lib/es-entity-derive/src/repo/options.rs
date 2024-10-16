@@ -97,7 +97,7 @@ impl RepositoryOptions {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Indexes {
     pub columns: Vec<IndexColumn>,
 }
@@ -106,12 +106,6 @@ pub struct Indexes {
 pub struct IndexColumn {
     pub name: Ident,
     pub ty: Ident,
-}
-
-impl Default for Indexes {
-    fn default() -> Self {
-        Self { columns: vec![] }
-    }
 }
 
 impl Indexes {
