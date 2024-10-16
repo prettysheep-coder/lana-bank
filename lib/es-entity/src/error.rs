@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum EsEntityError {
     #[error("EsEntityError - UninitializedFieldError: {0}")]
     UninitializedFieldError(#[from] derive_builder::UninitializedFieldError),
+    #[error("EntityError - NotFound")]
+    NotFound,
 }
 
 #[derive(Error, Debug)]

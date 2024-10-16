@@ -5,7 +5,7 @@ use es_entity::*;
 use user_entity::*;
 
 #[derive(EsRepo)]
-#[es_repo(entity = "User", indexes(email))]
+#[es_repo(entity = "User", indexes(email = String))]
 pub struct Users {}
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -18,11 +18,13 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 #[tokio::test]
 async fn test_create() -> anyhow::Result<()> {
     let pool = init_pool().await?;
+
     let id = UserId::from(uuid::Uuid::new_v4());
     let repo = Users {};
+
     let mut db = pool.begin().await?;
     let entity = repo
-        .create_in_tx(
+        .create(
             &mut db,
             NewUser {
                 id,
@@ -31,6 +33,25 @@ async fn test_create() -> anyhow::Result<()> {
         )
         .await?;
     assert!(entity.id == id);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_find() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let repo = Users {};
+
+    let mut db = pool.begin().await?;
+    let res = repo
+        .find_by_email(&mut db, "email@test.com".to_string())
+        .await;
+
+    assert!(matches!(
+        res,
+        Err(EsRepoError::EntityError(EsEntityError::NotFound))
+    ));
 
     Ok(())
 }

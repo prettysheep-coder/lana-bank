@@ -38,10 +38,6 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 events: &mut EntityEvents<#event_type>
             ) -> Result<usize, sqlx::Error> {
-                if !events.any_new() {
-                    return Ok(0);
-                }
-
                 let id = events.id();
                 let offset = events.n_persisted();
                 let serialized_events = events.serialize_new_events();
@@ -86,10 +82,6 @@ mod tests {
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 events: &mut EntityEvents<EntityEvent>
             ) -> Result<usize, sqlx::Error> {
-                if !events.any_new() {
-                    return Ok(0);
-                }
-
                 let id = events.id();
                 let offset = events.n_persisted();
                 let serialized_events = events.serialize_new_events();

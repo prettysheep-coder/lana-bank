@@ -3,7 +3,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use super::{error::EsEntityError, events::EntityEvents};
 
 pub trait EsEvent: DeserializeOwned + Serialize {
-    type EntityId: Clone;
+    type EntityId: Clone + PartialEq + sqlx::Type<sqlx::Postgres>;
 }
 
 pub trait IntoEvents<E: EsEvent> {

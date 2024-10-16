@@ -1,6 +1,14 @@
 use chrono::{DateTime, Utc};
 
-use super::traits::*;
+use super::{error::EsEntityError, traits::*};
+
+pub struct GenericEvent<Id> {
+    pub id: Id,
+    pub sequence: i32,
+    pub event: serde_json::Value,
+    pub entity_created_at: DateTime<Utc>,
+    pub event_recorded_at: DateTime<Utc>,
+}
 
 pub struct PersistedEvent<E> {
     pub recorded_at: DateTime<Utc>,
@@ -74,5 +82,90 @@ where
 
     pub fn persisted(&self) -> impl DoubleEndedIterator<Item = &PersistedEvent<T>> {
         self.persisted_events.iter()
+    }
+
+    pub fn load_first<E: EsEntity<T>>(
+        events: impl IntoIterator<Item = GenericEvent<<T as EsEvent>::EntityId>>,
+    ) -> Result<E, EsEntityError> {
+        let mut current_id = None;
+        let mut current = None;
+        for e in events {
+            if current_id.is_none() {
+                current_id = Some(e.id.clone());
+                current = Some(Self {
+                    entity_id: e.id.clone(),
+                    persisted_events: Vec::new(),
+                    new_events: Vec::new(),
+                });
+            }
+            if current_id != Some(e.id) {
+                break;
+            }
+            let cur = current.as_mut().expect("Could not get current");
+            cur.persisted_events.push(PersistedEvent {
+                recorded_at: e.event_recorded_at,
+                sequence: e.sequence as usize,
+                event: serde_json::from_value(e.event).expect("Could not deserialize event"),
+            });
+        }
+        if let Some(current) = current {
+            E::try_from_events(current)
+        } else {
+            Err(EsEntityError::NotFound)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use es_entity_derive::{EsEntity, EsEvent};
+    use uuid::Uuid;
+
+    #[derive(Debug, serde::Serialize, serde::Deserialize, EsEvent)]
+    #[es_event(id = Uuid)]
+    enum DummyEntityEvent {
+        Created(String),
+    }
+
+    #[derive(EsEntity)]
+    struct DummyEntity {
+        name: String,
+
+        events: EntityEvents<DummyEntityEvent>,
+    }
+
+    impl TryFromEvents<DummyEntityEvent> for DummyEntity {
+        fn try_from_events(events: EntityEvents<DummyEntityEvent>) -> Result<Self, EsEntityError> {
+            let name = events
+                .persisted()
+                .map(|e| match &e.event {
+                    DummyEntityEvent::Created(name) => name.clone(),
+                })
+                .next()
+                .expect("Could not find name");
+            Ok(Self { name, events })
+        }
+    }
+
+    #[test]
+    fn load_zero_events() {
+        let generic_events = vec![];
+        let res = EntityEvents::load_first::<DummyEntity>(generic_events);
+        assert!(matches!(res, Err(EsEntityError::NotFound)));
+    }
+
+    #[test]
+    fn load_first() {
+        let generic_events = vec![GenericEvent {
+            id: uuid::Uuid::new_v4(),
+            sequence: 1,
+            event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
+                .expect("Could not serialize"),
+            entity_created_at: chrono::Utc::now(),
+            event_recorded_at: chrono::Utc::now(),
+        }];
+        let entity: DummyEntity = EntityEvents::load_first(generic_events).expect("Could not load");
+        assert!(entity.name == "dummy-name");
     }
 }

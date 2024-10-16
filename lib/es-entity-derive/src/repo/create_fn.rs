@@ -81,7 +81,7 @@ impl<'a> ToTokens for CreateFn<'a> {
                 Ok(T::try_from_events(events)?)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: #new_entity
@@ -158,7 +158,7 @@ mod tests {
                 Ok(T::try_from_events(events)?)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: NewEntity

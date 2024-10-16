@@ -75,11 +75,15 @@ impl<'a> ToTokens for PersistFn<'a> {
                 entity.events()
             }
 
-            pub async fn persist_in_tx(
+            pub async fn persist(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut #entity
             ) -> Result<(), #error> {
+                if !Self::extract_events(entity).any_new() {
+                    return Ok(());
+                }
+
                 #update_tokens
                 self.persist_events(db, Self::extract_events(entity)).await?;
                 Ok(())
@@ -128,11 +132,15 @@ mod tests {
                 entity.events()
             }
 
-            pub async fn persist_in_tx(
+            pub async fn persist(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
             ) -> Result<(), EsRepoError> {
+                if !Self::extract_events(entity).any_new() {
+                    return Ok(());
+                }
+
                 let id = &entity.id;
                 let name = &entity.name;
                 sqlx::query!(
@@ -179,11 +187,15 @@ mod tests {
                 entity.events()
             }
 
-            pub async fn persist_in_tx(
+            pub async fn persist(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
             ) -> Result<(), EsRepoError> {
+                if !Self::extract_events(entity).any_new() {
+                    return Ok(());
+                }
+
                 self.persist_events(db, Self::extract_events(entity)).await?;
                 Ok(())
             }
