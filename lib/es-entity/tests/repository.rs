@@ -39,15 +39,12 @@ async fn test_create() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn test_find() -> anyhow::Result<()> {
+async fn test_find_by() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
     let repo = Users { pool: pool.clone() };
 
-    let mut db = pool.begin().await?;
-    let res = repo
-        .find_by_email(&mut db, "email@test.com".to_string())
-        .await;
+    let res = repo.find_by_email("email@test.com".to_string()).await;
 
     assert!(matches!(
         res,

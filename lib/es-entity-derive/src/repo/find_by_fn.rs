@@ -49,14 +49,13 @@ impl<'a> ToTokens for FindByFn<'a> {
         tokens.append_all(quote! {
             pub async fn #fn_name(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 #column_name: #column_type
             ) -> Result<#entity, #error> {
                 let rows = sqlx::query!(
                     #query,
                     #column_name as #column_type,
                 )
-                    .fetch_all(&mut **db)
+                    .fetch_all(self.pool())
                     .await?;
                 Ok(EntityEvents::load_first(rows.into_iter().map(|r|
                     GenericEvent {
@@ -99,14 +98,13 @@ mod tests {
         let expected = quote! {
             pub async fn find_by_id(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 id: EntityId
             ) -> Result<Entity, EsRepoError> {
                 let rows = sqlx::query!(
                     "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
                     id as EntityId,
                 )
-                    .fetch_all(&mut **db)
+                    .fetch_all(self.pool())
                     .await?;
                 Ok(EntityEvents::load_first(rows.into_iter().map(|r|
                     GenericEvent {
