@@ -278,6 +278,7 @@ impl InterestInterval {
 }
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) annual_rate: AnnualRatePct,
@@ -306,6 +307,19 @@ impl TermValues {
     ) -> Satoshis {
         let collateral_value = self.initial_cvl.scale(desired_principal);
         price.cents_to_sats_round_up(collateral_value)
+    }
+}
+
+impl TermValuesBuilder {
+    fn validate(&self) -> Result<(), String> {
+        if self.initial_cvl <= self.margin_call_cvl {
+            return Err("margin_call_cvl must be less than initial_cvl".to_string());
+        }
+
+        if self.margin_call_cvl <= self.liquidation_cvl {
+            return Err("margin_call_cvl must be greater than liquidation_cvl".to_string());
+        }
+        Ok(())
     }
 }
 
