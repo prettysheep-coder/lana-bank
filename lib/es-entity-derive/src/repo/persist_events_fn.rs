@@ -35,7 +35,7 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
         tokens.append_all(quote! {
             async fn persist_events(
                 &self,
-                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 events: &mut EntityEvents<#event_type>
             ) -> Result<usize, sqlx::Error> {
                 let id = events.id();
@@ -49,7 +49,7 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
                     offset as i32,
                     &events_types,
                     &serialized_events
-                ).fetch_all(executor).await?;
+                ).fetch_all(&mut **db).await?;
 
                 let n_events = events.events_persisted_at(rows[0].recorded_at);
 
@@ -79,7 +79,7 @@ mod tests {
         let expected = quote! {
             async fn persist_events(
                 &self,
-                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 events: &mut EntityEvents<EntityEvent>
             ) -> Result<usize, sqlx::Error> {
                 let id = events.id();
@@ -93,7 +93,7 @@ mod tests {
                     offset as i32,
                     &events_types,
                     &serialized_events
-                ).fetch_all(executor).await?;
+                ).fetch_all(&mut **db).await?;
 
                 let n_events = events.events_persisted_at(rows[0].recorded_at);
 

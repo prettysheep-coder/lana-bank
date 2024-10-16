@@ -108,7 +108,7 @@ impl<'a> ToTokens for CreateFn<'a> {
                 .await?;
 
                 let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(&mut **db, &mut events).await?;
+                let n_events = self.persist_events(db, &mut events).await?;
 
                 Self::hydrate_entity(events)
             }
@@ -194,7 +194,7 @@ mod tests {
                 .await?;
 
                 let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(&mut **db, &mut events).await?;
+                let n_events = self.persist_events(db, &mut events).await?;
 
                 Self::hydrate_entity(events)
             }
