@@ -77,6 +77,16 @@ impl<'a> ToTokens for PersistFn<'a> {
 
             pub async fn persist(
                 &self,
+                entity: &mut #entity
+            ) -> Result<(), #error> {
+                let mut db = self.pool().begin().await?;
+                let res = self.persist_in_tx(&mut db, entity).await?;
+                db.commit().await?;
+                Ok(res)
+            }
+
+            pub async fn persist_in_tx(
+                &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut #entity
             ) -> Result<(), #error> {
@@ -134,6 +144,16 @@ mod tests {
 
             pub async fn persist(
                 &self,
+                entity: &mut Entity
+            ) -> Result<(), EsRepoError> {
+                let mut db = self.pool().begin().await?;
+                let res = self.persist_in_tx(&mut db, entity).await?;
+                db.commit().await?;
+                Ok(res)
+            }
+
+            pub async fn persist_in_tx(
+                &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
             ) -> Result<(), EsRepoError> {
@@ -188,6 +208,16 @@ mod tests {
             }
 
             pub async fn persist(
+                &self,
+                entity: &mut Entity
+            ) -> Result<(), EsRepoError> {
+                let mut db = self.pool().begin().await?;
+                let res = self.persist_in_tx(&mut db, entity).await?;
+                db.commit().await?;
+                Ok(res)
+            }
+
+            pub async fn persist_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
