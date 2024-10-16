@@ -114,14 +114,14 @@ mod tests {
 
     #[test]
     fn test_persist_fn() {
-        let id = Ident::new("EntityId", Span::call_site());
+        let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
 
         let indexes = Indexes {
             columns: vec![IndexColumn {
                 name: Ident::new("name", Span::call_site()),
-                ty: Ident::new("String", Span::call_site()),
+                ty: syn::parse_str("String").unwrap(),
             }],
         };
 
@@ -189,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_persist_fn_no_indexes() {
-        let id = Ident::new("EntityId", Span::call_site());
+        let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
 

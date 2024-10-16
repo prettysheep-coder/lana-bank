@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_persist_events_fn() {
-        let id = syn::Ident::new("EntityId", proc_macro2::Span::call_site());
+        let id = syn::parse_str("EntityId").unwrap();
         let event = syn::Ident::new("EntityEvent", proc_macro2::Span::call_site());
         let persist_fn = PersistEventsFn {
             id: &id,

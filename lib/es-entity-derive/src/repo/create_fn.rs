@@ -125,7 +125,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn test_create_fn() {
+    fn create_fn() {
         let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
@@ -134,7 +134,7 @@ mod tests {
         let indexes = Indexes {
             columns: vec![IndexColumn {
                 name: Ident::new("name", Span::call_site()),
-                ty: Ident::new("String", Span::call_site()),
+                ty: syn::parse_str("String").unwrap(),
             }],
         };
 

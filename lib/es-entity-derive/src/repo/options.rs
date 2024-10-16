@@ -1,6 +1,6 @@
 use darling::{FromDeriveInput, FromMeta};
 use quote::quote;
-use syn::{parse::Parse, Expr, Ident, Token};
+use syn::{parse::Parse, Expr, Ident, Token, Type};
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(es_repo), map = "Self::update_defaults")]
@@ -18,7 +18,7 @@ pub struct RepositoryOptions {
     #[darling(default, rename = "event")]
     event_ident: Option<syn::Ident>,
     #[darling(default, rename = "id")]
-    id_ident: Option<syn::Ident>,
+    id_ty: Option<syn::Ident>,
     #[darling(default, rename = "err")]
     err_ident: Option<syn::Ident>,
     #[darling(default, rename = "tbl")]
@@ -42,8 +42,8 @@ impl RepositoryOptions {
                 proc_macro2::Span::call_site(),
             ));
         }
-        if self.id_ident.is_none() {
-            self.id_ident = Some(syn::Ident::new(
+        if self.id_ty.is_none() {
+            self.id_ty = Some(syn::Ident::new(
                 &format!("{}Id", entity_name),
                 proc_macro2::Span::call_site(),
             ));
@@ -72,7 +72,7 @@ impl RepositoryOptions {
     }
 
     pub fn id(&self) -> &syn::Ident {
-        self.id_ident.as_ref().expect("ID identifier is not set")
+        self.id_ty.as_ref().expect("ID identifier is not set")
     }
 
     pub fn event(&self) -> &syn::Ident {
@@ -108,7 +108,7 @@ pub struct Indexes {
 #[derive(Debug, Clone)]
 pub struct IndexColumn {
     pub name: Ident,
-    pub ty: Ident,
+    pub ty: Type,
 }
 
 impl Indexes {
@@ -148,23 +148,23 @@ impl FromMeta for Indexes {
                     let name = name_value.path.get_ident().cloned().ok_or_else(|| {
                         darling::Error::custom("Expected identifier").with_span(&name_value.path)
                     })?;
-                    let ty = match &name_value.value {
-                        Expr::Path(expr_path) => {
-                            expr_path.path.get_ident().cloned().ok_or_else(|| {
-                                darling::Error::custom("Expected identifier for type")
-                                    .with_span(&expr_path.path)
-                            })
-                        }
+                    let ty: Type = match &name_value.value {
+                        Expr::Path(syn::ExprPath { path, .. }) => Ok(Type::Path(syn::TypePath {
+                            qself: None,
+                            path: path.clone(),
+                        })),
                         Expr::Lit(expr_lit) => {
                             if let syn::Lit::Str(lit_str) = &expr_lit.lit {
-                                Ok(Ident::new(&lit_str.value(), lit_str.span()))
+                                syn::parse_str(&lit_str.value()).map_err(|_| {
+                                    darling::Error::custom("Invalid type").with_span(&expr_lit.lit)
+                                })
                             } else {
                                 Err(darling::Error::custom("Expected string literal for type")
                                     .with_span(&expr_lit.lit))
                             }
                         }
                         _ => Err(darling::Error::custom(
-                            "Expected identifier or string literal for type",
+                            "Expected path or string literal for type",
                         )
                         .with_span(&name_value.value)),
                     }?;

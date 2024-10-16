@@ -8,7 +8,7 @@ pub struct FindByFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
     column_name: syn::Ident,
-    column_type: &'a syn::Ident,
+    column_type: syn::Type,
     table_name: &'a str,
     events_table_name: &'a str,
     error: &'a syn::Ident,
@@ -17,7 +17,7 @@ pub struct FindByFn<'a> {
 impl<'a> FindByFn<'a> {
     pub fn new(
         column_name: syn::Ident,
-        column_type: &'a syn::Ident,
+        column_type: syn::Type,
         opts: &'a RepositoryOptions,
     ) -> Self {
         Self {
@@ -36,7 +36,7 @@ impl<'a> ToTokens for FindByFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let entity = self.entity;
         let column_name = &self.column_name;
-        let column_type = self.column_type;
+        let column_type = &self.column_type;
         let error = self.error;
 
         let fn_name = syn::Ident::new(&format!("find_by_{}", column_name), Span::call_site());
@@ -96,15 +96,16 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn test_persist_fn() {
+    fn find_by_fn() {
         let id_type = Ident::new("EntityId", Span::call_site());
+        let column_type = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
 
         let persist_fn = FindByFn {
-            column_name: Ident::new("id", Span::call_site()),
-            column_type: &id_type,
             id: &id_type,
+            column_name: Ident::new("id", Span::call_site()),
+            column_type,
             entity: &entity,
             table_name: "entities",
             events_table_name: "entity_events",

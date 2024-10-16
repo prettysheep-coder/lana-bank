@@ -1,6 +1,7 @@
 mod create_fn;
 mod find_all_fn;
 mod find_by_fn;
+mod list_by_fn;
 mod options;
 mod persist_events_fn;
 mod persist_fn;
@@ -37,11 +38,15 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         let mut find_by_fns = vec![find_by_fn::FindByFn::new(
             syn::Ident::new("id", Span::call_site()),
-            opts.id(),
+            syn::parse_str(&opts.id().to_string()).expect("failed to parse id type"),
             opts,
         )];
         for i in opts.indexes.columns.iter() {
-            find_by_fns.push(find_by_fn::FindByFn::new(i.name.clone(), &i.ty, opts));
+            find_by_fns.push(find_by_fn::FindByFn::new(
+                i.name.clone(),
+                i.ty.clone(),
+                opts,
+            ));
         }
 
         Self {

@@ -3,6 +3,7 @@
 
 mod error;
 mod events;
+mod query;
 mod traits;
 
 pub use error::*;
