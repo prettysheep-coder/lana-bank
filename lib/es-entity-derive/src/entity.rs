@@ -39,7 +39,7 @@ impl ToTokens for EsEntity {
 
         tokens.append_all(quote! {
             impl EsEntity<#events> for #ident {
-                fn events(&mut self) -> &mut EntityEvents<#events> {
+                fn events_mut(&mut self) -> &mut EntityEvents<#events> {
                     &mut self.#events_field
                 }
             }

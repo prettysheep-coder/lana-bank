@@ -72,7 +72,7 @@ impl<'a> ToTokens for PersistFn<'a> {
                 T: es_entity::EsEntity<E>,
                 E: es_entity::EsEvent,
             {
-                entity.events()
+                entity.events_mut()
             }
 
             pub async fn persist(
@@ -85,7 +85,7 @@ impl<'a> ToTokens for PersistFn<'a> {
                 }
 
                 #update_tokens
-                self.persist_events(db, Self::extract_events(entity)).await?;
+                self.persist_events(&mut **db, Self::extract_events(entity)).await?;
                 Ok(())
             }
         });
@@ -129,7 +129,7 @@ mod tests {
                 T: es_entity::EsEntity<E>,
                 E: es_entity::EsEvent,
             {
-                entity.events()
+                entity.events_mut()
             }
 
             pub async fn persist(
@@ -150,7 +150,7 @@ mod tests {
                 )
                     .execute(&mut **db)
                     .await?;
-                self.persist_events(db, Self::extract_events(entity)).await?;
+                self.persist_events(&mut **db, Self::extract_events(entity)).await?;
                 Ok(())
             }
         };
@@ -184,7 +184,7 @@ mod tests {
                 T: es_entity::EsEntity<E>,
                 E: es_entity::EsEvent,
             {
-                entity.events()
+                entity.events_mut()
             }
 
             pub async fn persist(
@@ -196,7 +196,7 @@ mod tests {
                     return Ok(());
                 }
 
-                self.persist_events(db, Self::extract_events(entity)).await?;
+                self.persist_events(&mut **db, Self::extract_events(entity)).await?;
                 Ok(())
             }
         };
