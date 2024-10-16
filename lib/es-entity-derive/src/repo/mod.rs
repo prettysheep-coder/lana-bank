@@ -1,4 +1,5 @@
 mod create_fn;
+mod find_all_fn;
 mod find_by_fn;
 mod options;
 mod persist_events_fn;
@@ -27,6 +28,7 @@ pub struct EsRepo<'a> {
     persist_fn: persist_fn::PersistFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
+    find_all_fn: find_all_fn::FindAllFn<'a>,
 }
 
 impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
@@ -46,6 +48,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             persist_fn: persist_fn::PersistFn::from(opts),
             create_fn: create_fn::CreateFn::from(opts),
             find_by_fns,
+            find_all_fn: find_all_fn::FindAllFn::from(opts),
         }
     }
 }
@@ -57,13 +60,20 @@ impl<'a> ToTokens for EsRepo<'a> {
         let persist_fn = &self.persist_fn;
         let create_fn = &self.create_fn;
         let find_by_fns = &self.find_by_fns;
+        let find_all_fn = &self.find_all_fn;
 
         tokens.append_all(quote! {
             impl #repo {
+                #[inline(always)]
+                fn pool(&self) -> &sqlx::PgPool {
+                    &self.pool
+                }
+
                 #persist_events_fn
                 #persist_fn
                 #create_fn
                 #(#find_by_fns)*
+                #find_all_fn
             }
         });
     }

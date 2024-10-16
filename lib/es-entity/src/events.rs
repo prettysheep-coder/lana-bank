@@ -114,6 +114,42 @@ where
             Err(EsEntityError::NotFound)
         }
     }
+
+    pub fn load_n<E: EsEntity<T>>(
+        events: impl IntoIterator<Item = GenericEvent<<T as EsEvent>::EntityId>>,
+        n: usize,
+    ) -> Result<(Vec<E>, bool), EsEntityError> {
+        let mut ret: Vec<E> = Vec::new();
+        let mut current_id = None;
+        let mut current = None;
+        for e in events {
+            if current_id.as_ref() != Some(&e.id) {
+                if let Some(current) = current.take() {
+                    ret.push(E::try_from_events(current)?);
+                    if ret.len() == n {
+                        return Ok((ret, true));
+                    }
+                }
+
+                current_id = Some(e.id.clone());
+                current = Some(Self {
+                    entity_id: e.id,
+                    persisted_events: Vec::new(),
+                    new_events: Vec::new(),
+                });
+            }
+            let cur = current.as_mut().expect("Could not get current");
+            cur.persisted_events.push(PersistedEvent {
+                recorded_at: e.event_recorded_at,
+                sequence: e.sequence as usize,
+                event: serde_json::from_value(e.event).expect("Could not deserialize event"),
+            });
+        }
+        if let Some(current) = current.take() {
+            ret.push(E::try_from_events(current)?);
+        }
+        Ok((ret, false))
+    }
 }
 
 #[cfg(test)]
@@ -167,5 +203,31 @@ mod tests {
         }];
         let entity: DummyEntity = EntityEvents::load_first(generic_events).expect("Could not load");
         assert!(entity.name == "dummy-name");
+    }
+
+    #[test]
+    fn load_n() {
+        let generic_events = vec![
+            GenericEvent {
+                id: uuid::Uuid::new_v4(),
+                sequence: 1,
+                event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
+                    .expect("Could not serialize"),
+                entity_created_at: chrono::Utc::now(),
+                event_recorded_at: chrono::Utc::now(),
+            },
+            GenericEvent {
+                id: uuid::Uuid::new_v4(),
+                sequence: 1,
+                event: serde_json::to_value(DummyEntityEvent::Created("other-name".to_owned()))
+                    .expect("Could not serialize"),
+                entity_created_at: chrono::Utc::now(),
+                event_recorded_at: chrono::Utc::now(),
+            },
+        ];
+        let (entity, more): (Vec<DummyEntity>, _) =
+            EntityEvents::load_n(generic_events, 2).expect("Could not load");
+        assert!(!more);
+        assert_eq!(entity.len(), 2);
     }
 }

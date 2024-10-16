@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, sqlx::Type, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, sqlx::Type, Deserialize, Serialize, Hash, Eq)]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct UserId(uuid::Uuid);
