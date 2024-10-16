@@ -41,7 +41,7 @@ impl<'a> ToTokens for PersistFn<'a> {
                 .columns
                 .iter()
                 .enumerate()
-                .map(|(idx, column)| format!("{} = ${}", column.name.to_string(), idx + 2))
+                .map(|(idx, column)| format!("{} = ${}", column.name, idx + 2))
                 .collect::<Vec<_>>()
                 .join(", ");
             let query = format!(
