@@ -40,6 +40,9 @@ impl<'a> ToTokens for FindByFn<'a> {
         let error = self.error;
 
         let fn_name = syn::Ident::new(&format!("find_by_{}", column_name), Span::call_site());
+        let fn_via = syn::Ident::new(&format!("find_by_{}_via", column_name), Span::call_site());
+        let fn_in_tx =
+            syn::Ident::new(&format!("find_by_{}_in_tx", column_name), Span::call_site());
 
         let query = format!(
             r#"SELECT i.id AS "id: {}", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.{} = $1 ORDER BY e.sequence"#,
@@ -51,11 +54,27 @@ impl<'a> ToTokens for FindByFn<'a> {
                 &self,
                 #column_name: #column_type
             ) -> Result<#entity, #error> {
+                self.#fn_via(self.pool(), #column_name).await
+            }
+
+            pub async fn #fn_in_tx(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                #column_name: #column_type
+            ) -> Result<#entity, #error> {
+                self.#fn_via(&mut **db, #column_name).await
+            }
+
+            async fn #fn_via(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                #column_name: #column_type
+            ) -> Result<#entity, #error> {
                 let rows = sqlx::query!(
                     #query,
                     #column_name as #column_type,
                 )
-                    .fetch_all(self.pool())
+                    .fetch_all(executor)
                     .await?;
                 Ok(EntityEvents::load_first(rows.into_iter().map(|r|
                     GenericEvent {
@@ -100,11 +119,27 @@ mod tests {
                 &self,
                 id: EntityId
             ) -> Result<Entity, EsRepoError> {
+                self.find_by_id_via(self.pool(), id).await
+            }
+
+            pub async fn find_by_id_in_tx(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                id: EntityId
+            ) -> Result<Entity, EsRepoError> {
+                self.find_by_id_via(&mut **db, id).await
+            }
+
+            async fn find_by_id_via(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                id: EntityId
+            ) -> Result<Entity, EsRepoError> {
                 let rows = sqlx::query!(
                     "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
                     id as EntityId,
                 )
-                    .fetch_all(self.pool())
+                    .fetch_all(executor)
                     .await?;
                 Ok(EntityEvents::load_first(rows.into_iter().map(|r|
                     GenericEvent {
