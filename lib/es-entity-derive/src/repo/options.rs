@@ -105,17 +105,12 @@ pub struct Indexes {
 #[derive(Debug, Clone)]
 pub struct IndexColumn {
     pub name: Ident,
-    pub ty: Option<Ident>,
+    pub ty: Ident,
 }
 
 impl Default for Indexes {
     fn default() -> Self {
-        Self {
-            columns: vec![IndexColumn {
-                name: syn::Ident::new("id", proc_macro2::Span::call_site()),
-                ty: None,
-            }],
-        }
+        Self { columns: vec![] }
     }
 }
 
@@ -125,13 +120,9 @@ impl Indexes {
             .iter()
             .map(|column| {
                 let ident = &column.name;
-                match &column.ty {
-                    Some(ty) => quote! {
-                        #ident as &#ty
-                    },
-                    None => quote! {
-                        #ident
-                    },
+                let ty = &column.ty;
+                quote! {
+                    #ident as &#ty
                 }
             })
             .collect()
@@ -141,13 +132,13 @@ impl Indexes {
 impl Parse for IndexColumn {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let name: Ident = input.parse()?;
-        let ty = if input.peek(Token![=]) {
+        if input.peek(Token![=]) {
             input.parse::<Token![=]>()?;
-            Some(input.parse()?)
+            let ty = input.parse()?;
+            Ok(IndexColumn { name, ty })
         } else {
-            None
-        };
-        Ok(IndexColumn { name, ty })
+            Err(syn::Error::new(input.span(), "Expected `=`"))
+        }
     }
 }
 
@@ -156,12 +147,6 @@ impl FromMeta for Indexes {
         let columns = items
             .iter()
             .map(|item| match item {
-                darling::ast::NestedMeta::Meta(syn::Meta::Path(path)) => Ok(IndexColumn {
-                    name: path.get_ident().cloned().ok_or_else(|| {
-                        darling::Error::custom("Expected identifier").with_span(path)
-                    })?,
-                    ty: None,
-                }),
                 darling::ast::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
                     let name = name_value.path.get_ident().cloned().ok_or_else(|| {
                         darling::Error::custom("Expected identifier").with_span(&name_value.path)
@@ -186,12 +171,9 @@ impl FromMeta for Indexes {
                         )
                         .with_span(&name_value.value)),
                     }?;
-                    Ok(IndexColumn { name, ty: Some(ty) })
+                    Ok(IndexColumn { name, ty })
                 }
-                _ => Err(
-                    darling::Error::custom("Expected identifier or name-value pair")
-                        .with_span(item),
-                ),
+                _ => Err(darling::Error::custom("Expected name-value pair").with_span(item)),
             })
             .collect::<Result<Vec<_>, _>>()?;
         Ok(Indexes { columns })

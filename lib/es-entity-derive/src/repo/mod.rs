@@ -37,11 +37,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             opts,
         )];
         for i in opts.indexes.columns.iter() {
-            find_by_fns.push(find_by_fn::FindByFn::new(
-                i.name.clone(),
-                &i.ty.as_ref().unwrap(),
-                opts,
-            ));
+            find_by_fns.push(find_by_fn::FindByFn::new(i.name.clone(), &i.ty, opts));
         }
 
         Self {

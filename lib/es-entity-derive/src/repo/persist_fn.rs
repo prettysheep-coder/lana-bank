@@ -107,7 +107,7 @@ mod tests {
         let indexes = Indexes {
             columns: vec![IndexColumn {
                 name: Ident::new("name", Span::call_site()),
-                ty: None,
+                ty: Ident::new("String", Span::call_site()),
             }],
         };
 
@@ -146,7 +146,7 @@ mod tests {
                 sqlx::query!(
                     "UPDATE entities SET name = $2 WHERE id = $1",
                     id as &EntityId,
-                    name
+                    name as &String
                 )
                     .execute(&mut **db)
                     .await?;
