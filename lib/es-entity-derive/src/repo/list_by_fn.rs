@@ -163,7 +163,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                     .fetch_all(self.pool())
                     .await?;
 
-                let (entities, has_next_page) = EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
+                let (entities, has_next_page) = es_entity::EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
                         es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
@@ -287,7 +287,7 @@ mod tests {
                     .fetch_all(self.pool())
                     .await?;
 
-                let (entities, has_next_page) = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
+                let (entities, has_next_page) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
                         es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
@@ -351,7 +351,7 @@ mod tests {
                     .fetch_all(self.pool())
                     .await?;
 
-                let (entities, has_next_page) = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
+                let (entities, has_next_page) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
                         es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,

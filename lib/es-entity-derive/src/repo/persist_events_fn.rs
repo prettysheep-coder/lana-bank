@@ -36,7 +36,7 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
             async fn persist_events(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                events: &mut EntityEvents<#event_type>
+                events: &mut es_entity::EntityEvents<#event_type>
             ) -> Result<usize, sqlx::Error> {
                 let id = events.id();
                 let offset = events.len_persisted();
@@ -80,7 +80,7 @@ mod tests {
             async fn persist_events(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                events: &mut EntityEvents<EntityEvent>
+                events: &mut es_entity::EntityEvents<EntityEvent>
             ) -> Result<usize, sqlx::Error> {
                 let id = events.id();
                 let offset = events.len_persisted();

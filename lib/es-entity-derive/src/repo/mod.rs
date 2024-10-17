@@ -98,13 +98,13 @@ impl<'a> ToTokens for EsRepo<'a> {
                     &self.pool
                 }
 
+                #post_persist_hook
                 #persist_events_fn
-                #persist_fn
                 #create_fn
+                #persist_fn
                 #(#find_by_fns)*
                 #find_all_fn
                 #(#list_by_fns)*
-                #post_persist_hook
             }
         });
     }
