@@ -55,7 +55,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn test_post_persist_hook() {
+    fn post_persist_hook() {
         let event = syn::Ident::new("EntityEvent", proc_macro2::Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
         let hook = None;

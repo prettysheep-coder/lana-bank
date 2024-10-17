@@ -113,7 +113,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn test_persist_fn() {
+    fn persist_fn() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
@@ -188,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_persist_fn_no_indexes() {
+    fn persist_fn_no_indexes() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());

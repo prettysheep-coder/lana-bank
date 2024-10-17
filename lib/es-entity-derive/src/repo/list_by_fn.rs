@@ -8,8 +8,18 @@ use super::options::*;
 pub struct CursorStruct<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
-    column_name: syn::Ident,
-    column_type: syn::Type,
+    column_name: &'a syn::Ident,
+    column_type: &'a syn::Type,
+}
+
+impl<'a> CursorStruct<'a> {
+    fn name(&self) -> String {
+        format!(
+            "{}By{}Cursor",
+            self.entity,
+            self.column_name.to_string().to_case(Case::UpperCamel)
+        )
+    }
 }
 
 impl<'a> ToTokens for CursorStruct<'a> {
@@ -48,7 +58,7 @@ pub struct ListByFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
     column_name: syn::Ident,
-    column_type: &'a syn::Type,
+    column_type: syn::Type,
     table_name: &'a str,
     events_table_name: &'a str,
     error: &'a syn::Ident,
@@ -57,7 +67,7 @@ pub struct ListByFn<'a> {
 impl<'a> ListByFn<'a> {
     pub fn new(
         column_name: syn::Ident,
-        column_type: &'a syn::Type,
+        column_type: syn::Type,
         opts: &'a RepositoryOptions,
     ) -> Self {
         Self {
@@ -70,60 +80,122 @@ impl<'a> ListByFn<'a> {
             error: opts.err(),
         }
     }
+
+    pub fn cursor(&'a self) -> CursorStruct<'a> {
+        CursorStruct {
+            column_name: &self.column_name,
+            column_type: &self.column_type,
+            id: self.id,
+            entity: self.entity,
+        }
+    }
 }
 
 impl<'a> ToTokens for ListByFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let id = self.id;
         let entity = self.entity;
         let column_name = &self.column_name;
-        let column_type = self.column_type;
+        let column_type = &self.column_type;
+        let cursor = syn::Ident::new(&self.cursor().name(), Span::call_site());
         let error = self.error;
 
-        let fn_name = syn::Ident::new(&format!("find_by_{}", column_name), Span::call_site());
-        let fn_via = syn::Ident::new(&format!("find_by_{}_via", column_name), Span::call_site());
-        let fn_in_tx =
-            syn::Ident::new(&format!("find_by_{}_in_tx", column_name), Span::call_site());
+        let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
+        let name = column_name.to_string();
+        let mut column = format!("{}, ", name);
+        let mut where_pt1 = format!("({}, id) > ($2, $1)", name);
+        let mut where_pt2 = "$1 IS NULL AND $2 IS NULL";
+        let mut order_by = format!("{}, ", name);
+        let mut limit = "$3";
+        let mut arg_tokens = quote! {
+            #column_name as Option<#column_type>,
+        };
+        let mut cursor_arg = quote! {
+            #column_name: last.#column_name.clone(),
+        };
+        let mut after_args = quote! {
+            (id, #column_name)
+        };
+        let mut after_destruction = quote! {
+            (Some(after.id), Some(after.#column_name))
+        };
+        let mut after_default = quote! {
+            (None, None)
+        };
+
+        if &name == "id" {
+            column = String::new();
+            where_pt1 = "id > $1".to_string();
+            where_pt2 = "$1 IS NULL";
+            order_by = String::new();
+            limit = "$2";
+            arg_tokens = quote! {};
+            cursor_arg = quote! {};
+            after_args = quote! {
+                id
+            };
+            after_destruction = quote! {
+                Some(after.id)
+            };
+            after_default = quote! {
+                None
+            };
+        };
 
         let query = format!(
-            r#"SELECT i.id AS "id: {}", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.{} = $1 ORDER BY e.sequence"#,
-            self.id, self.table_name, self.events_table_name, column_name
+            r#"WITH entities AS (SELECT id, {}created_at AS entity_created_at FROM {} WHERE ({}) OR ({}) ORDER BY {}id LIMIT {}) SELECT i.id AS "id: {}", e.sequence, e.event, i.entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN {} e ON i.id = e.id ORDER BY {}i.id, e.sequence"#,
+            column,
+            self.table_name,
+            where_pt1,
+            where_pt2,
+            order_by,
+            limit,
+            self.id,
+            self.events_table_name,
+            column
         );
 
         tokens.append_all(quote! {
             pub async fn #fn_name(
                 &self,
-                #column_name: #column_type
-            ) -> Result<#entity, #error> {
-                self.#fn_via(self.pool(), #column_name).await
-            }
+                es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::#cursor>,
+            ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor>, #error> {
+                let #after_args = if let Some(after) = after {
+                    #after_destruction
+                } else {
+                    #after_default
+                };
 
-            pub async fn #fn_in_tx(
-                &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                #column_name: #column_type
-            ) -> Result<#entity, #error> {
-                self.#fn_via(&mut **db, #column_name).await
-            }
-
-            async fn #fn_via(
-                &self,
-                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                #column_name: #column_type
-            ) -> Result<#entity, #error> {
                 let rows = sqlx::query!(
                     #query,
-                    #column_name as #column_type,
+                    id as Option<#id>,
+                    #arg_tokens
+                    first as i64 + 1
                 )
-                    .fetch_all(executor)
+                    .fetch_all(self.pool())
                     .await?;
-                Ok(EntityEvents::load_first(rows.into_iter().map(|r|
-                    GenericEvent {
-                        id: r.id,
-                        sequence: r.sequence,
-                        event: r.event,
-                        entity_created_at: r.entity_created_at,
-                        event_recorded_at: r.event_recorded_at,
-                }))?)
+
+                let (entities, has_next_page) = EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
+                        GenericEvent {
+                            id: r.id,
+                            sequence: r.sequence,
+                            event: r.event,
+                            entity_created_at: r.entity_created_at,
+                            event_recorded_at: r.event_recorded_at,
+                        }), first)?;
+                let mut end_cursor = None;
+                if let Some(last) = entities.last() {
+                    end_cursor = Some(cursor::#cursor {
+                        id: last.id,
+                        #cursor_arg
+                    });
+                }
+
+                Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page,
+                    end_cursor,
+                })
             }
         });
     }
@@ -139,10 +211,12 @@ mod tests {
     fn cursor_struct_by_id() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
+        let column_name = Ident::new("id", Span::call_site());
+        let column_type = syn::parse_str(&id_type.to_string()).unwrap();
 
         let cursor = CursorStruct {
-            column_name: Ident::new("id", Span::call_site()),
-            column_type: syn::parse_str(&id_type.to_string()).unwrap(),
+            column_name: &column_name,
+            column_type: &column_type,
             id: &id_type,
             entity: &entity,
         };
@@ -164,11 +238,12 @@ mod tests {
     fn cursor_struct_by_created_at() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
+        let column_name = Ident::new("created_at", Span::call_site());
         let column_type = syn::parse_str("DateTime<Utc>").unwrap();
 
         let cursor = CursorStruct {
-            column_name: Ident::new("created_at", Span::call_site()),
-            column_type,
+            column_name: &column_name,
+            column_type: &column_type,
             id: &id_type,
             entity: &entity,
         };
@@ -187,15 +262,16 @@ mod tests {
         assert_eq!(tokens.to_string(), expected.to_string());
     }
 
-    fn test_list_by_fn() {
+    #[test]
+    fn list_by_fn() {
         let id_type = Ident::new("EntityId", Span::call_site());
-        let column_type = syn::parse_str("EntityId").unwrap();
+        let column_type = syn::parse_str(&id_type.to_string()).unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());
 
         let persist_fn = ListByFn {
             column_name: Ident::new("id", Span::call_site()),
-            column_type: &column_type,
+            column_type,
             id: &id_type,
             entity: &entity,
             table_name: "entities",
@@ -207,27 +283,110 @@ mod tests {
         persist_fn.to_tokens(&mut tokens);
 
         let expected = quote! {
-            // async fn list_by_id(
-            //     &self,
-            //     query: es_entity::query::PaginatedQueryArgs<EntityByIdCursor>,
-            // ) -> Result<es_entity::query::PaginatedQueryRet<Entity, EntityByIdCursor>, EsRepoError> {
-            //     let rows = sqlx::query!(
-            //         "WITH entities AS (SELECT i.id AS \"id: EntityId\" FROM entities i WHERE id > $1 ORDER BY id LIMIT $2) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
-            //       query.after.as_ref().map(|c| c.id) as Option<CustomerId>,
-            //       query.after.map(|c| c.name),
-            //       query.first as i64 + 1
-            //     )
-            //         .fetch_all(executor)
-            //         .await?;
-            //     Ok(EntityEvents::load_n(rows.into_iter().map(|r|
-            //         GenericEvent {
-            //             id: r.id,
-            //             sequence: r.sequence,
-            //             event: r.event,
-            //             entity_created_at: r.entity_created_at,
-            //             event_recorded_at: r.event_recorded_at,
-            //     }))?)
-            // }
+            pub async fn list_by_id(
+                &self,
+                es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, EsRepoError> {
+                let id = if let Some(after) = after {
+                    Some(after.id)
+                } else {
+                    None
+                };
+                let rows = sqlx::query!(
+                    "WITH entities AS (SELECT id, created_at AS entity_created_at FROM entities WHERE (id > $1) OR ($1 IS NULL) ORDER BY id LIMIT $2) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+                    id as Option<EntityId>,
+                    first as i64 + 1
+                )
+                    .fetch_all(self.pool())
+                    .await?;
+
+                let (entities, has_next_page) = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
+                        GenericEvent {
+                            id: r.id,
+                            sequence: r.sequence,
+                            event: r.event,
+                            entity_created_at: r.entity_created_at,
+                            event_recorded_at: r.event_recorded_at,
+                        }), first)?;
+                let mut end_cursor = None;
+                if let Some(last) = entities.last() {
+                    end_cursor = Some(cursor::EntityByIdCursor {
+                        id: last.id,
+                    });
+                }
+
+                Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page,
+                    end_cursor,
+                })
+            }
+        };
+
+        assert_eq!(tokens.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn list_by_fn_name() {
+        let id_type = Ident::new("EntityId", Span::call_site());
+        let column_type = syn::parse_str("String").unwrap();
+        let entity = Ident::new("Entity", Span::call_site());
+        let error = Ident::new("EsRepoError", Span::call_site());
+
+        let persist_fn = ListByFn {
+            column_name: Ident::new("name", Span::call_site()),
+            column_type,
+            id: &id_type,
+            entity: &entity,
+            table_name: "entities",
+            events_table_name: "entity_events",
+            error: &error,
+        };
+
+        let mut tokens = TokenStream::new();
+        persist_fn.to_tokens(&mut tokens);
+
+        let expected = quote! {
+            pub async fn list_by_name(
+                &self,
+                es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::EntityByNameCursor>,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByNameCursor>, EsRepoError> {
+                let (id, name) = if let Some(after) = after {
+                    (Some(after.id), Some(after.name))
+                } else {
+                    (None, None)
+                };
+                let rows = sqlx::query!(
+                    "WITH entities AS (SELECT id, name, created_at AS entity_created_at FROM entities WHERE ((name, id) > ($2, $1)) OR ($1 IS NULL AND $2 IS NULL) ORDER BY name, id LIMIT $3) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY name, i.id, e.sequence",
+                    id as Option<EntityId>,
+                    name as Option<String>,
+                    first as i64 + 1
+                )
+                    .fetch_all(self.pool())
+                    .await?;
+
+                let (entities, has_next_page) = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
+                        GenericEvent {
+                            id: r.id,
+                            sequence: r.sequence,
+                            event: r.event,
+                            entity_created_at: r.entity_created_at,
+                            event_recorded_at: r.event_recorded_at,
+                        }), first)?;
+                let mut end_cursor = None;
+                if let Some(last) = entities.last() {
+                    end_cursor = Some(cursor::EntityByNameCursor {
+                        id: last.id,
+                        name: last.name.clone(),
+                    });
+                }
+
+                Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page,
+                    end_cursor,
+                })
+            }
         };
 
         assert_eq!(tokens.to_string(), expected.to_string());

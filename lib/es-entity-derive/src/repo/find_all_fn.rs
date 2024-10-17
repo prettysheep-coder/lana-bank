@@ -69,7 +69,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn test_persist_fn() {
+    fn find_all_fn() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = Ident::new("EsRepoError", Span::call_site());

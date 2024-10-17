@@ -32,6 +32,7 @@ pub struct EsRepo<'a> {
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
     post_persist_hook: post_persist_hook::PostPersistHook<'a>,
+    list_by_fns: Vec<list_by_fn::ListByFn<'a>>,
 }
 
 impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
@@ -41,8 +42,18 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             syn::parse_str(&opts.id().to_string()).expect("failed to parse id type"),
             opts,
         )];
+        let mut list_by_fns = vec![list_by_fn::ListByFn::new(
+            syn::Ident::new("id", Span::call_site()),
+            syn::parse_str(&opts.id().to_string()).expect("failed to parse id type"),
+            opts,
+        )];
         for i in opts.indexes.columns.iter() {
             find_by_fns.push(find_by_fn::FindByFn::new(
+                i.name.clone(),
+                i.ty.clone(),
+                opts,
+            ));
+            list_by_fns.push(list_by_fn::ListByFn::new(
                 i.name.clone(),
                 i.ty.clone(),
                 opts,
@@ -57,6 +68,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
             post_persist_hook: post_persist_hook::PostPersistHook::from(opts),
+            list_by_fns,
         }
     }
 }
@@ -70,8 +82,16 @@ impl<'a> ToTokens for EsRepo<'a> {
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
         let post_persist_hook = &self.post_persist_hook;
+        let cursors = self.list_by_fns.iter().map(|l| l.cursor());
+        let list_by_fns = &self.list_by_fns;
 
         tokens.append_all(quote! {
+            pub mod cursor {
+                use super::*;
+
+                #(#cursors)*
+            }
+
             impl #repo {
                 #[inline(always)]
                 fn pool(&self) -> &sqlx::PgPool {
@@ -83,6 +103,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #create_fn
                 #(#find_by_fns)*
                 #find_all_fn
+                #(#list_by_fns)*
                 #post_persist_hook
             }
         });
