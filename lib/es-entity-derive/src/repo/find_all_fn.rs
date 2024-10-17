@@ -55,7 +55,7 @@ impl<'a> ToTokens for FindAllFn<'a> {
                             recorded_at: r.recorded_at,
                         }), n)?;
 
-                Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
+                Ok(res.0.into_iter().map(|u| (u.id.clone(), T::from(u))).collect())
             }
         });
     }
@@ -104,7 +104,7 @@ mod tests {
                             recorded_at: r.recorded_at,
                         }), n)?;
 
-                Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
+                Ok(res.0.into_iter().map(|u| (u.id.clone(), T::from(u))).collect())
             }
         };
 

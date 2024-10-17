@@ -174,7 +174,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
                     end_cursor = Some(cursor::#cursor {
-                        id: last.id,
+                        id: last.id.clone(),
                         #cursor_arg
                     });
                 }
@@ -299,7 +299,7 @@ mod tests {
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
                     end_cursor = Some(cursor::EntityByIdCursor {
-                        id: last.id,
+                        id: last.id.clone(),
                     });
                 }
 
@@ -364,7 +364,7 @@ mod tests {
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
                     end_cursor = Some(cursor::EntityByNameCursor {
-                        id: last.id,
+                        id: last.id.clone(),
                         name: last.name.clone(),
                     });
                 }
