@@ -139,7 +139,7 @@ impl<'a> ToTokens for ListByFn<'a> {
         };
 
         let query = format!(
-            r#"WITH entities AS (SELECT {}id FROM {} WHERE ({}) OR $2 IS NULL ORDER BY {}id LIMIT $1) SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN {} e ON i.id = e.id ORDER BY {}i.id, e.sequence"#,
+            r#"WITH entities AS (SELECT {}id FROM {} WHERE ({}) OR $2 IS NULL ORDER BY {}id LIMIT $1) SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at FROM entities i JOIN {} e ON i.id = e.id ORDER BY {}i.id, e.sequence"#,
             column, self.table_name, where_pt1, order_by, self.id, self.events_table_name, column
         );
 
@@ -168,7 +168,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            event_recorded_at: r.event_recorded_at,
+                            recorded_at: r.recorded_at,
                         }), first)?;
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
@@ -280,7 +280,7 @@ mod tests {
                     None
                 };
                 let rows = sqlx::query!(
-                    "WITH entities AS (SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+                    "WITH entities AS (SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
@@ -292,7 +292,7 @@ mod tests {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            event_recorded_at: r.event_recorded_at,
+                            recorded_at: r.recorded_at,
                         }), first)?;
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
@@ -343,7 +343,7 @@ mod tests {
                     (None, None)
                 };
                 let rows = sqlx::query!(
-                    "WITH entities AS (SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY name, i.id, e.sequence",
+                    "WITH entities AS (SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY name, i.id, e.sequence",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                     name as Option<String>,
@@ -356,7 +356,7 @@ mod tests {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            event_recorded_at: r.event_recorded_at,
+                            recorded_at: r.recorded_at,
                         }), first)?;
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {

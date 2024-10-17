@@ -6,7 +6,7 @@ pub struct GenericEvent<Id> {
     pub id: Id,
     pub sequence: i32,
     pub event: serde_json::Value,
-    pub event_recorded_at: DateTime<Utc>,
+    pub recorded_at: DateTime<Utc>,
 }
 
 pub struct PersistedEvent<E> {
@@ -102,7 +102,7 @@ where
             }
             let cur = current.as_mut().expect("Could not get current");
             cur.persisted_events.push(PersistedEvent {
-                recorded_at: e.event_recorded_at,
+                recorded_at: e.recorded_at,
                 sequence: e.sequence as usize,
                 event: serde_json::from_value(e.event).expect("Could not deserialize event"),
             });
@@ -139,7 +139,7 @@ where
             }
             let cur = current.as_mut().expect("Could not get current");
             cur.persisted_events.push(PersistedEvent {
-                recorded_at: e.event_recorded_at,
+                recorded_at: e.recorded_at,
                 sequence: e.sequence as usize,
                 event: serde_json::from_value(e.event).expect("Could not deserialize event"),
             });
@@ -202,7 +202,7 @@ mod tests {
             sequence: 1,
             event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
                 .expect("Could not serialize"),
-            event_recorded_at: chrono::Utc::now(),
+            recorded_at: chrono::Utc::now(),
         }];
         let entity: DummyEntity = EntityEvents::load_first(generic_events).expect("Could not load");
         assert!(entity.name == "dummy-name");
@@ -216,14 +216,14 @@ mod tests {
                 sequence: 1,
                 event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
                     .expect("Could not serialize"),
-                event_recorded_at: chrono::Utc::now(),
+                recorded_at: chrono::Utc::now(),
             },
             GenericEvent {
                 id: uuid::Uuid::new_v4(),
                 sequence: 1,
                 event: serde_json::to_value(DummyEntityEvent::Created("other-name".to_owned()))
                     .expect("Could not serialize"),
-                event_recorded_at: chrono::Utc::now(),
+                recorded_at: chrono::Utc::now(),
             },
         ];
         let (entity, more): (Vec<DummyEntity>, _) =
