@@ -47,7 +47,14 @@ where
         &self.entity_id
     }
 
-    pub fn events_persisted_at(&mut self, recorded_at: chrono::DateTime<chrono::Utc>) -> usize {
+    pub fn push(&mut self, event: T) {
+        self.new_events.push(event);
+    }
+
+    pub fn mark_new_events_persisted_at(
+        &mut self,
+        recorded_at: chrono::DateTime<chrono::Utc>,
+    ) -> usize {
         let n = self.new_events.len();
         let offset = self.persisted_events.len() + 1;
         self.persisted_events
@@ -75,12 +82,24 @@ where
         !self.new_events.is_empty()
     }
 
-    pub fn n_persisted(&self) -> usize {
+    pub fn len_persisted(&self) -> usize {
         self.persisted_events.len()
     }
 
-    pub fn persisted(&self) -> impl DoubleEndedIterator<Item = &PersistedEvent<T>> {
+    pub fn iter_persisted(&self) -> impl DoubleEndedIterator<Item = &PersistedEvent<T>> {
         self.persisted_events.iter()
+    }
+
+    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &PersistedEvent<T>> {
+        let start = self.persisted_events.len() - n;
+        self.persisted_events[start..].iter()
+    }
+
+    pub fn iter_all(&self) -> impl DoubleEndedIterator<Item = &T> {
+        self.persisted_events
+            .iter()
+            .map(|e| &e.event)
+            .chain(self.new_events.iter())
     }
 
     pub fn load_first<E: EsEntity<T>>(
@@ -149,23 +168,21 @@ where
         }
         Ok((ret, false))
     }
-
-    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &PersistedEvent<T>> {
-        let start = self.persisted_events.len() - n;
-        self.persisted_events[start..].iter()
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use es_entity_derive::{EsEntity, EsEvent};
+    use es_entity_derive::EsEntity;
     use uuid::Uuid;
 
-    #[derive(Debug, serde::Serialize, serde::Deserialize, EsEvent)]
-    #[es_event(id = Uuid)]
+    #[derive(Debug, serde::Serialize, serde::Deserialize)]
     enum DummyEntityEvent {
         Created(String),
+    }
+
+    impl EsEvent for DummyEntityEvent {
+        type EntityId = Uuid;
     }
 
     #[derive(EsEntity)]
@@ -178,7 +195,7 @@ mod tests {
     impl TryFromEvents<DummyEntityEvent> for DummyEntity {
         fn try_from_events(events: EntityEvents<DummyEntityEvent>) -> Result<Self, EsEntityError> {
             let name = events
-                .persisted()
+                .iter_persisted()
                 .map(|e| match &e.event {
                     DummyEntityEvent::Created(name) => name.clone(),
                 })

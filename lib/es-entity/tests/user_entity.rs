@@ -51,7 +51,7 @@ pub struct User {
 impl TryFromEvents<UserEvent> for User {
     fn try_from_events(events: EntityEvents<UserEvent>) -> Result<Self, EsEntityError> {
         let mut builder = UserBuilder::default();
-        for event in events.persisted().map(|e| &e.event) {
+        for event in events.iter_persisted().map(|e| &e.event) {
             match event {
                 UserEvent::Initialized { id, email } => {
                     builder = builder.id(*id).email(email.clone())

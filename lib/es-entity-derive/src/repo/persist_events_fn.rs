@@ -39,7 +39,7 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
                 events: &mut EntityEvents<#event_type>
             ) -> Result<usize, sqlx::Error> {
                 let id = events.id();
-                let offset = events.n_persisted();
+                let offset = events.len_persisted();
                 let serialized_events = events.serialize_new_events();
                 let events_types = serialized_events.iter().map(|e| e.get("type").and_then(serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
 
@@ -51,7 +51,7 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
                     &serialized_events
                 ).fetch_all(&mut **db).await?;
 
-                let n_events = events.events_persisted_at(rows[0].recorded_at);
+                let n_events = events.mark_new_events_persisted_at(rows[0].recorded_at);
 
                 Ok(n_events)
             }
@@ -83,7 +83,7 @@ mod tests {
                 events: &mut EntityEvents<EntityEvent>
             ) -> Result<usize, sqlx::Error> {
                 let id = events.id();
-                let offset = events.n_persisted();
+                let offset = events.len_persisted();
                 let serialized_events = events.serialize_new_events();
                 let events_types = serialized_events.iter().map(|e| e.get("type").and_then(serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
 
@@ -95,7 +95,7 @@ mod tests {
                     &serialized_events
                 ).fetch_all(&mut **db).await?;
 
-                let n_events = events.events_persisted_at(rows[0].recorded_at);
+                let n_events = events.mark_new_events_persisted_at(rows[0].recorded_at);
 
                 Ok(n_events)
             }

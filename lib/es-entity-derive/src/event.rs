@@ -25,7 +25,7 @@ impl ToTokens for EsEvent {
         let ident = &self.ident;
         let id = &self.id;
         tokens.append_all(quote! {
-            impl EsEvent for #ident {
+            impl es_entity::EsEvent for #ident {
                 type EntityId = #id;
             }
         });
