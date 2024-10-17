@@ -84,6 +84,7 @@ gql`
       loanTerms {
         annualRate
         accrualInterval
+        incurrenceInterval
         liquidationCvl
         marginCallCvl
         initialCvl

@@ -94,6 +94,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         ...prevValues,
         annualRate: latestTemplate.values.annualRate.toString(),
         accrualInterval: latestTemplate.values.accrualInterval,
+        incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -126,6 +127,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         ...prevValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
         accrualInterval: selectedTemplate.values.accrualInterval,
+        incurrenceInterval: selectedTemplate.values.incurrenceInterval,
         liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
         marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
         initialCvl: selectedTemplate.values.initialCvl.toString(),
@@ -343,9 +345,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   value={formValues.marginCallCvl}
                 />
                 <DetailItem
-                  label="Payment Schedule"
-                  className="space-x-7"
+                  label="Accrual Interval"
                   value={formatInterval(formValues.accrualInterval as InterestInterval)}
+                />
+                <DetailItem
+                  label="Incurrence Interval"
+                  value={formatInterval(
+                    formValues.incurrenceInterval as InterestInterval,
+                  )}
                 />
                 <DetailItem
                   label="Liquidation CVL (%)"
@@ -420,15 +427,33 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   />
                 </div>
                 <div>
-                  <Label>Payment Schedule</Label>
+                  <Label>Accrual Interval</Label>
                   <Select
-                    name="interval"
+                    name="accrualInterval"
                     value={formValues.accrualInterval}
                     onChange={handleChange}
                     required
                   >
                     <option value="" disabled>
-                      Select interval
+                      Select accrual interval
+                    </option>
+                    {Object.values(InterestInterval).map((interval) => (
+                      <option key={interval} value={interval}>
+                        {formatInterval(interval)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Incurrence Interval</Label>
+                  <Select
+                    name="incurrenceInterval"
+                    value={formValues.incurrenceInterval}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select incurrence interval
                     </option>
                     {Object.values(InterestInterval).map((interval) => (
                       <option key={interval} value={interval}>

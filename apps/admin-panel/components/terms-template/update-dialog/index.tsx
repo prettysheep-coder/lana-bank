@@ -32,6 +32,7 @@ gql`
         values {
           annualRate
           accrualInterval
+          incurrenceInterval
           liquidationCvl
           marginCallCvl
           initialCvl
@@ -90,7 +91,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     if (openUpdateTermsTemplateDialog) {
       setName(termsTemplate.name)
       setAnnualRate(termsTemplate.values.annualRate.toString())
-      setInterval(termsTemplate.values.accrualInterval)
+      setAccrualInterval(termsTemplate.values.accrualInterval)
       setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
       setDuration({
         period: termsTemplate.values.duration.period,
@@ -147,7 +148,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const resetStates = () => {
     setName(termsTemplate.name)
     setAnnualRate(termsTemplate.values.annualRate.toString())
-    setInterval(termsTemplate.values.accrualInterval)
+    setAccrualInterval(termsTemplate.values.accrualInterval)
     setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
     setDuration({
       period: termsTemplate.values.duration.period,
@@ -190,9 +191,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             />
           </div>
           <div>
-            <Label htmlFor="interval">Interval</Label>
+            <Label htmlFor="accrualInterval">Accrual Interval</Label>
             <Select
-              id="interval"
+              id="accrualInterval"
               value={accrualInterval}
               onChange={(e) => setAccrualInterval(e.target.value as InterestInterval)}
               required
@@ -209,7 +210,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             <Select
               id="incurrenceInterval"
               value={incurrenceInterval}
-              onChange={(e) => setInterval(e.target.value as InterestInterval)}
+              onChange={(e) => setIncurrenceInterval(e.target.value as InterestInterval)}
               required
             >
               {Object.values(InterestInterval).map((int) => (

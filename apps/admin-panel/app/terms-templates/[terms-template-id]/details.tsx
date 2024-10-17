@@ -91,8 +91,12 @@ function TermsTemplateDetails({ id }: { id: string }) {
                   value={`${data.termsTemplate.values.duration.units} ${formatPeriod(data.termsTemplate.values.duration.period)}`}
                 />
                 <DetailItem
-                  label="Interval"
+                  label="Accrual Interval"
                   value={formatInterval(data.termsTemplate.values.accrualInterval)}
+                />
+                <DetailItem
+                  label="Incurrence Interval"
+                  value={formatInterval(data.termsTemplate.values.incurrenceInterval)}
                 />
                 <DetailItem
                   label="Annual Rate"
