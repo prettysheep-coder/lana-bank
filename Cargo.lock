@@ -1970,6 +1970,7 @@ dependencies = [
  "clap",
  "cloud-storage",
  "derive_builder",
+ "es-entity",
  "futures",
  "gcp-bigquery-client",
  "gcp_auth",

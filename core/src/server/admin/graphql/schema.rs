@@ -160,7 +160,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>>
+    ) -> async_graphql::Result<Connection<CustomerByEmailCursor, Customer, EmptyFields, EmptyFields>>
     {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
@@ -175,9 +175,9 @@ impl Query {
                     .customers()
                     .list(
                         sub,
-                        crate::query::PaginatedQueryArgs {
+                        es_entity::PaginatedQueryArgs {
                             first,
-                            after: after.map(crate::customer::CustomerByNameCursor::from),
+                            after: after.map(crate::customer::CustomerByEmailCursor::from),
                         },
                     )
                     .await?;
@@ -185,7 +185,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|user| {
-                        let cursor = CustomerByNameCursor::from((user.id, user.email.as_ref()));
+                        let cursor = CustomerByEmailCursor::from((user.id, user.email.as_ref()));
                         Edge::new(cursor, Customer::from(user))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

@@ -8,6 +8,8 @@ pub enum CustomerError {
     Sqlx(#[from] sqlx::Error),
     #[error("CustomerError - EntityError: {0}")]
     EntityError(#[from] crate::entity::EntityError),
+    #[error("CustomerError - EsEntityError: {0}")]
+    EsEntityError(#[from] es_entity::EsEntityError),
     #[error("CustomerError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("CustomerError - CouldNotFindById: {0}")]

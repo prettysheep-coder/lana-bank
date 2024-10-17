@@ -109,8 +109,8 @@ impl CustomerRepo {
 
     pub async fn list(
         &self,
-        query: crate::query::PaginatedQueryArgs<CustomerByNameCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Customer, CustomerByNameCursor>, CustomerError>
+        query: crate::query::PaginatedQueryArgs<CustomerByEmailCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Customer, CustomerByEmailCursor>, CustomerError>
     {
         let rows = sqlx::query_as!(
             GenericEvent,
@@ -128,7 +128,7 @@ impl CustomerRepo {
             JOIN customer_events e ON a.id = e.id
             ORDER BY a.email, a.id, e.sequence"#,
             query.after.as_ref().map(|c| c.id) as Option<CustomerId>,
-            query.after.map(|c| c.name),
+            query.after.map(|c| c.email),
             query.first as i64 + 1
         )
         .fetch_all(&self.pool)
@@ -136,9 +136,9 @@ impl CustomerRepo {
         let (entities, has_next_page) = EntityEvents::load_n::<Customer>(rows, query.first)?;
         let mut end_cursor = None;
         if let Some(last) = entities.last() {
-            end_cursor = Some(CustomerByNameCursor {
+            end_cursor = Some(CustomerByEmailCursor {
                 id: last.id,
-                name: last.email.clone(),
+                email: last.email.clone(),
             });
         }
         Ok(crate::query::PaginatedQueryRet {
