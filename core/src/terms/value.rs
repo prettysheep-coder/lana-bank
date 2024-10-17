@@ -405,7 +405,7 @@ mod test {
     }
 
     #[test]
-    fn invalid_term_values() {
+    fn invalid_term_values_margin_call_greater_than_initial() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
@@ -420,7 +420,10 @@ mod test {
             result.unwrap_err().to_string(),
             "margin_call_cvl must be less than initial_cvl"
         );
+    }
 
+    #[test]
+    fn invalid_term_values_liquidation_greater_than_margin_call() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
@@ -435,7 +438,10 @@ mod test {
             result.unwrap_err().to_string(),
             "margin_call_cvl must be greater than liquidation_cvl"
         );
+    }
 
+    #[test]
+    fn invalid_term_values_margin_call_equal_to_liquidation() {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
