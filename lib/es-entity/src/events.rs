@@ -3,21 +3,23 @@ use chrono::{DateTime, Utc};
 use super::{error::EsEntityError, traits::*};
 
 pub struct GenericEvent<Id> {
-    pub id: Id,
+    pub entity_id: Id,
     pub sequence: i32,
     pub event: serde_json::Value,
     pub recorded_at: DateTime<Utc>,
 }
 
-pub struct PersistedEvent<E> {
+pub struct PersistedEvent<E: EsEvent> {
+    pub entity_id: <E as EsEvent>::EntityId,
     pub recorded_at: DateTime<Utc>,
     pub sequence: usize,
     pub event: E,
 }
 
-impl<E: Clone> Clone for PersistedEvent<E> {
+impl<E: Clone + EsEvent> Clone for PersistedEvent<E> {
     fn clone(&self) -> Self {
         PersistedEvent {
+            entity_id: self.entity_id.clone(),
             recorded_at: self.recorded_at,
             sequence: self.sequence,
             event: self.event.clone(),
@@ -63,6 +65,7 @@ where
                     .drain(..)
                     .enumerate()
                     .map(|(i, event)| PersistedEvent {
+                        entity_id: self.entity_id.clone(),
                         recorded_at,
                         sequence: i + offset,
                         event,
@@ -109,18 +112,19 @@ where
         let mut current = None;
         for e in events {
             if current_id.is_none() {
-                current_id = Some(e.id.clone());
+                current_id = Some(e.entity_id.clone());
                 current = Some(Self {
-                    entity_id: e.id.clone(),
+                    entity_id: e.entity_id.clone(),
                     persisted_events: Vec::new(),
                     new_events: Vec::new(),
                 });
             }
-            if current_id != Some(e.id) {
+            if current_id.as_ref() != Some(&e.entity_id) {
                 break;
             }
             let cur = current.as_mut().expect("Could not get current");
             cur.persisted_events.push(PersistedEvent {
+                entity_id: e.entity_id,
                 recorded_at: e.recorded_at,
                 sequence: e.sequence as usize,
                 event: serde_json::from_value(e.event).expect("Could not deserialize event"),
@@ -141,7 +145,7 @@ where
         let mut current_id = None;
         let mut current = None;
         for e in events {
-            if current_id.as_ref() != Some(&e.id) {
+            if current_id.as_ref() != Some(&e.entity_id) {
                 if let Some(current) = current.take() {
                     ret.push(E::try_from_events(current)?);
                     if ret.len() == n {
@@ -149,15 +153,16 @@ where
                     }
                 }
 
-                current_id = Some(e.id.clone());
+                current_id = Some(e.entity_id.clone());
                 current = Some(Self {
-                    entity_id: e.id,
+                    entity_id: e.entity_id.clone(),
                     persisted_events: Vec::new(),
                     new_events: Vec::new(),
                 });
             }
             let cur = current.as_mut().expect("Could not get current");
             cur.persisted_events.push(PersistedEvent {
+                entity_id: e.entity_id,
                 recorded_at: e.recorded_at,
                 sequence: e.sequence as usize,
                 event: serde_json::from_value(e.event).expect("Could not deserialize event"),
@@ -219,7 +224,7 @@ mod tests {
     #[test]
     fn load_first() {
         let generic_events = vec![GenericEvent {
-            id: uuid::Uuid::new_v4(),
+            entity_id: uuid::Uuid::new_v4(),
             sequence: 1,
             event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
                 .expect("Could not serialize"),
@@ -233,14 +238,14 @@ mod tests {
     fn load_n() {
         let generic_events = vec![
             GenericEvent {
-                id: uuid::Uuid::new_v4(),
+                entity_id: uuid::Uuid::new_v4(),
                 sequence: 1,
                 event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
                     .expect("Could not serialize"),
                 recorded_at: chrono::Utc::now(),
             },
             GenericEvent {
-                id: uuid::Uuid::new_v4(),
+                entity_id: uuid::Uuid::new_v4(),
                 sequence: 1,
                 event: serde_json::to_value(DummyEntityEvent::Created("other-name".to_owned()))
                     .expect("Could not serialize"),

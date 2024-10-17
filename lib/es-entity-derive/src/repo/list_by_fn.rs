@@ -166,7 +166,7 @@ impl<'a> ToTokens for ListByFn<'a> {
 
                 let (entities, has_next_page) = es_entity::EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
                         es_entity::GenericEvent {
-                            id: r.id,
+                            entity_id: r.id,
                             sequence: r.sequence,
                             event: r.event,
                             recorded_at: r.recorded_at,
@@ -291,7 +291,7 @@ mod tests {
 
                 let (entities, has_next_page) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
                         es_entity::GenericEvent {
-                            id: r.id,
+                            entity_id: r.id,
                             sequence: r.sequence,
                             event: r.event,
                             recorded_at: r.recorded_at,
@@ -356,7 +356,7 @@ mod tests {
 
                 let (entities, has_next_page) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
                         es_entity::GenericEvent {
-                            id: r.id,
+                            entity_id: r.id,
                             sequence: r.sequence,
                             event: r.event,
                             recorded_at: r.recorded_at,
