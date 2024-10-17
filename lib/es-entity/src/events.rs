@@ -173,7 +173,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use es_entity_derive::EsEntity;
     use uuid::Uuid;
 
     #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -185,11 +184,16 @@ mod tests {
         type EntityId = Uuid;
     }
 
-    #[derive(EsEntity)]
     struct DummyEntity {
         name: String,
 
         events: EntityEvents<DummyEntityEvent>,
+    }
+
+    impl EsEntity<DummyEntityEvent> for DummyEntity {
+        fn events_mut(&mut self) -> &mut EntityEvents<DummyEntityEvent> {
+            &mut self.events
+        }
     }
 
     impl TryFromEvents<DummyEntityEvent> for DummyEntity {

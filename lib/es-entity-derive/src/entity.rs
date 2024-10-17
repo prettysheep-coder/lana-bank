@@ -38,8 +38,8 @@ impl ToTokens for EsEntity {
         });
 
         tokens.append_all(quote! {
-            impl EsEntity<#events> for #ident {
-                fn events_mut(&mut self) -> &mut EntityEvents<#events> {
+            impl es_entity::EsEntity<#events> for #ident {
+                fn events_mut(&mut self) -> &mut es_entity::EntityEvents<#events> {
                     &mut self.#events_field
                 }
             }
