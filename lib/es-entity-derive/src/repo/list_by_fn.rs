@@ -103,10 +103,8 @@ impl<'a> ToTokens for ListByFn<'a> {
         let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
         let name = column_name.to_string();
         let mut column = format!("{}, ", name);
-        let mut where_pt1 = format!("({}, id) > ($2, $1)", name);
-        let mut where_pt2 = "$1 IS NULL AND $2 IS NULL";
+        let mut where_pt1 = format!("({}, id) > ($3, $2)", name);
         let mut order_by = format!("{}, ", name);
-        let mut limit = "$3";
         let mut arg_tokens = quote! {
             #column_name as Option<#column_type>,
         };
@@ -125,10 +123,8 @@ impl<'a> ToTokens for ListByFn<'a> {
 
         if &name == "id" {
             column = String::new();
-            where_pt1 = "id > $1".to_string();
-            where_pt2 = "$1 IS NULL";
+            where_pt1 = "id > $2".to_string();
             order_by = String::new();
-            limit = "$2";
             arg_tokens = quote! {};
             cursor_arg = quote! {};
             after_args = quote! {
@@ -143,16 +139,8 @@ impl<'a> ToTokens for ListByFn<'a> {
         };
 
         let query = format!(
-            r#"WITH entities AS (SELECT id, {}created_at AS entity_created_at FROM {} WHERE ({}) OR ({}) ORDER BY {}id LIMIT {}) SELECT i.id AS "id: {}", e.sequence, e.event, i.entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN {} e ON i.id = e.id ORDER BY {}i.id, e.sequence"#,
-            column,
-            self.table_name,
-            where_pt1,
-            where_pt2,
-            order_by,
-            limit,
-            self.id,
-            self.events_table_name,
-            column
+            r#"WITH entities AS (SELECT {}id FROM {} WHERE ({}) OR $2 IS NULL ORDER BY {}id LIMIT $1) SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN {} e ON i.id = e.id ORDER BY {}i.id, e.sequence"#,
+            column, self.table_name, where_pt1, order_by, self.id, self.events_table_name, column
         );
 
         tokens.append_all(quote! {
@@ -168,9 +156,9 @@ impl<'a> ToTokens for ListByFn<'a> {
 
                 let rows = sqlx::query!(
                     #query,
+                    (first + 1) as i64,
                     id as Option<#id>,
                     #arg_tokens
-                    first as i64 + 1
                 )
                     .fetch_all(self.pool())
                     .await?;
@@ -180,7 +168,6 @@ impl<'a> ToTokens for ListByFn<'a> {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            entity_created_at: r.entity_created_at,
                             event_recorded_at: r.event_recorded_at,
                         }), first)?;
                 let mut end_cursor = None;
@@ -293,9 +280,9 @@ mod tests {
                     None
                 };
                 let rows = sqlx::query!(
-                    "WITH entities AS (SELECT id, created_at AS entity_created_at FROM entities WHERE (id > $1) OR ($1 IS NULL) ORDER BY id LIMIT $2) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+                    "WITH entities AS (SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+                    (first + 1) as i64,
                     id as Option<EntityId>,
-                    first as i64 + 1
                 )
                     .fetch_all(self.pool())
                     .await?;
@@ -305,7 +292,6 @@ mod tests {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            entity_created_at: r.entity_created_at,
                             event_recorded_at: r.event_recorded_at,
                         }), first)?;
                 let mut end_cursor = None;
@@ -357,10 +343,10 @@ mod tests {
                     (None, None)
                 };
                 let rows = sqlx::query!(
-                    "WITH entities AS (SELECT id, name, created_at AS entity_created_at FROM entities WHERE ((name, id) > ($2, $1)) OR ($1 IS NULL AND $2 IS NULL) ORDER BY name, id LIMIT $3) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY name, i.id, e.sequence",
+                    "WITH entities AS (SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY name, i.id, e.sequence",
+                    (first + 1) as i64,
                     id as Option<EntityId>,
                     name as Option<String>,
-                    first as i64 + 1
                 )
                     .fetch_all(self.pool())
                     .await?;
@@ -370,7 +356,6 @@ mod tests {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            entity_created_at: r.entity_created_at,
                             event_recorded_at: r.event_recorded_at,
                         }), first)?;
                 let mut end_cursor = None;

@@ -31,7 +31,7 @@ impl<'a> ToTokens for FindAllFn<'a> {
         let error = self.error;
 
         let query = format!(
-            r#"SELECT i.id AS "id: {}", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence"#,
+            r#"SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence"#,
             self.id, self.table_name, self.events_table_name
         );
 
@@ -52,7 +52,6 @@ impl<'a> ToTokens for FindAllFn<'a> {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            entity_created_at: r.entity_created_at,
                             event_recorded_at: r.event_recorded_at,
                         }), n)?;
 
@@ -91,7 +90,7 @@ mod tests {
                 ids: &[EntityId]
             ) -> Result<std::collections::HashMap<EntityId, T>, EsRepoError> {
                 let rows = sqlx::query!(
-                    "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence",
+                    "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence",
                     ids as &[EntityId],
                 )
                     .fetch_all(self.pool())
@@ -102,7 +101,6 @@ mod tests {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
-                            entity_created_at: r.entity_created_at,
                             event_recorded_at: r.event_recorded_at,
                         }), n)?;
 

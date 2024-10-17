@@ -6,7 +6,6 @@ pub struct GenericEvent<Id> {
     pub id: Id,
     pub sequence: i32,
     pub event: serde_json::Value,
-    pub entity_created_at: DateTime<Utc>,
     pub event_recorded_at: DateTime<Utc>,
 }
 
@@ -203,7 +202,6 @@ mod tests {
             sequence: 1,
             event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
                 .expect("Could not serialize"),
-            entity_created_at: chrono::Utc::now(),
             event_recorded_at: chrono::Utc::now(),
         }];
         let entity: DummyEntity = EntityEvents::load_first(generic_events).expect("Could not load");
@@ -218,7 +216,6 @@ mod tests {
                 sequence: 1,
                 event: serde_json::to_value(DummyEntityEvent::Created("dummy-name".to_owned()))
                     .expect("Could not serialize"),
-                entity_created_at: chrono::Utc::now(),
                 event_recorded_at: chrono::Utc::now(),
             },
             GenericEvent {
@@ -226,7 +223,6 @@ mod tests {
                 sequence: 1,
                 event: serde_json::to_value(DummyEntityEvent::Created("other-name".to_owned()))
                     .expect("Could not serialize"),
-                entity_created_at: chrono::Utc::now(),
                 event_recorded_at: chrono::Utc::now(),
             },
         ];

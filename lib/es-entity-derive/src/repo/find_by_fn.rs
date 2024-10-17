@@ -45,7 +45,7 @@ impl<'a> ToTokens for FindByFn<'a> {
             syn::Ident::new(&format!("find_by_{}_in_tx", column_name), Span::call_site());
 
         let query = format!(
-            r#"SELECT i.id AS "id: {}", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.{} = $1 ORDER BY e.sequence"#,
+            r#"SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.{} = $1 ORDER BY e.sequence"#,
             self.id, self.table_name, self.events_table_name, column_name
         );
 
@@ -81,7 +81,6 @@ impl<'a> ToTokens for FindByFn<'a> {
                         id: r.id,
                         sequence: r.sequence,
                         event: r.event,
-                        entity_created_at: r.entity_created_at,
                         event_recorded_at: r.event_recorded_at,
                 }))?)
             }
@@ -137,7 +136,7 @@ mod tests {
                 id: EntityId
             ) -> Result<Entity, EsRepoError> {
                 let rows = sqlx::query!(
-                    "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, i.created_at AS entity_created_at, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
+                    "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at AS event_recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
                     id as EntityId,
                 )
                     .fetch_all(executor)
@@ -147,7 +146,6 @@ mod tests {
                         id: r.id,
                         sequence: r.sequence,
                         event: r.event,
-                        entity_created_at: r.entity_created_at,
                         event_recorded_at: r.event_recorded_at,
                 }))?)
             }
