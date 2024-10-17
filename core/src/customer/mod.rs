@@ -1,10 +1,7 @@
 mod config;
-mod cursor;
 mod entity;
 pub mod error;
 mod kratos;
-mod new_entity;
-mod new_repo;
 mod repo;
 
 use std::collections::HashMap;
@@ -19,10 +16,10 @@ use crate::{
 };
 
 pub use config::*;
+pub use entity::*;
 use error::CustomerError;
 use kratos::*;
-pub use new_entity::*;
-pub use new_repo::{cursor::*, CustomerRepo};
+pub use repo::{cursor::*, CustomerRepo};
 
 #[derive(Clone)]
 pub struct Customers {
@@ -159,7 +156,7 @@ impl Customers {
         }
         match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
-            Err(CustomerError::CouldNotFindById(_)) => Ok(None),
+            Err(CustomerError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -179,7 +176,7 @@ impl Customers {
 
         match self.repo.find_by_email(email).await {
             Ok(customer) => Ok(Some(customer)),
-            Err(CustomerError::CouldNotFindByEmail(_)) => Ok(None),
+            Err(CustomerError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -190,7 +187,7 @@ impl Customers {
     ) -> Result<Option<Customer>, CustomerError> {
         match self.repo.find_by_id(id.into()).await {
             Ok(customer) => Ok(Some(customer)),
-            Err(CustomerError::CouldNotFindById(_)) => Ok(None),
+            Err(CustomerError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
