@@ -11,17 +11,32 @@ use syn::parse_macro_input;
 #[proc_macro_derive(EsEvent, attributes(es_event))]
 pub fn es_event_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
-    event::derive(ast).into()
+    match event::derive(ast) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.write_errors().into(),
+    }
 }
 
 #[proc_macro_derive(EsEntity, attributes(events))]
 pub fn es_entity_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
-    entity::derive(ast).into()
+    match entity::derive(ast) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.write_errors().into(),
+    }
 }
 
 #[proc_macro_derive(EsRepo, attributes(es_repo))]
 pub fn es_repo_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
-    repo::derive(ast).into()
+    match repo::derive(ast) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.write_errors().into(),
+    }
+}
+
+#[proc_macro_derive(EsPLay, attributes(fn_or_field))]
+pub fn es_play_derive(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as syn::DeriveInput);
+    play::derive(ast).into()
 }

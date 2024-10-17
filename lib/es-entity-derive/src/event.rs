@@ -10,14 +10,9 @@ pub struct EsEvent {
     id: Path,
 }
 
-pub fn derive(ast: syn::DeriveInput) -> proc_macro2::TokenStream {
-    let event = match EsEvent::from_derive_input(&ast) {
-        Ok(val) => val,
-        Err(err) => {
-            return err.write_errors();
-        }
-    };
-    quote!(#event)
+pub fn derive(ast: syn::DeriveInput) -> darling::Result<proc_macro2::TokenStream> {
+    let event = EsEvent::from_derive_input(&ast)?;
+    Ok(quote!(#event))
 }
 
 impl ToTokens for EsEvent {

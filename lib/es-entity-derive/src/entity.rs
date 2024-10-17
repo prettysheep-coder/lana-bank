@@ -12,15 +12,9 @@ pub struct EsEntity {
     events_field: Option<syn::Ident>,
 }
 
-pub fn derive(ast: syn::DeriveInput) -> proc_macro2::TokenStream {
-    let entity = match EsEntity::from_derive_input(&ast) {
-        Ok(val) => val,
-        Err(err) => {
-            return err.write_errors();
-        }
-    };
-
-    quote!(#entity)
+pub fn derive(ast: syn::DeriveInput) -> darling::Result<proc_macro2::TokenStream> {
+    let entity = EsEntity::from_derive_input(&ast)?;
+    Ok(quote!(#entity))
 }
 
 impl ToTokens for EsEntity {

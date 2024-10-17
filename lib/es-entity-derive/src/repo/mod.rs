@@ -13,16 +13,10 @@ use quote::{quote, TokenStreamExt};
 
 use options::RepositoryOptions;
 
-pub fn derive(ast: syn::DeriveInput) -> proc_macro2::TokenStream {
-    let opts = match RepositoryOptions::from_derive_input(&ast) {
-        Ok(val) => val,
-        Err(err) => {
-            return err.write_errors();
-        }
-    };
-
+pub fn derive(ast: syn::DeriveInput) -> darling::Result<proc_macro2::TokenStream> {
+    let opts = RepositoryOptions::from_derive_input(&ast)?;
     let repo = EsRepo::from(&opts);
-    quote!(#repo)
+    Ok(quote!(#repo))
 }
 pub struct EsRepo<'a> {
     repo: &'a syn::Ident,
