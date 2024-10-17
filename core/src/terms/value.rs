@@ -35,12 +35,6 @@ impl AnnualRatePct {
     }
 }
 
-impl From<UninitializedFieldError> for TermsError {
-    fn from(error: UninitializedFieldError) -> Self {
-        TermsError::UninitializedField(error.field_name().to_string())
-    }
-}
-
 impl From<Decimal> for AnnualRatePct {
     fn from(value: Decimal) -> Self {
         AnnualRatePct(value)
@@ -328,13 +322,14 @@ impl TermValuesBuilder {
     fn validate(&self) -> Result<(), TermsError> {
         let initial_cvl = self
             .initial_cvl
-            .ok_or(TermsError::UninitializedField("initial_cvl".to_string()))?;
-        let margin_call_cvl = self.margin_call_cvl.ok_or(TermsError::UninitializedField(
-            "margin_call_cvl".to_string(),
-        ))?;
-        let liquidation_cvl = self.liquidation_cvl.ok_or(TermsError::UninitializedField(
-            "liquidation_cvl".to_string(),
-        ))?;
+            .ok_or(UninitializedFieldError::new("initial_cvl"))?;
+        let margin_call_cvl = self
+            .margin_call_cvl
+            .ok_or(UninitializedFieldError::new("margin_call_cvl"))?;
+        let liquidation_cvl = self
+            .liquidation_cvl
+            .ok_or(UninitializedFieldError::new("liquidation_cvl"))?;
+
         if initial_cvl <= margin_call_cvl {
             return Err(TermsError::MarginCallAboveInitialLimit(
                 margin_call_cvl,

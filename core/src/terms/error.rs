@@ -20,5 +20,5 @@ pub enum TermsError {
     )]
     MarginCallBelowLiquidationLimit(CVLPct, CVLPct),
     #[error("TermsError - UninitializedField: {0}")]
-    UninitializedField(String),
+    UninitializedField(#[from] derive_builder::UninitializedFieldError),
 }
