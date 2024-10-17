@@ -146,8 +146,9 @@ impl<'a> ToTokens for ListByFn<'a> {
         tokens.append_all(quote! {
             pub async fn #fn_name(
                 &self,
-                es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::#cursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor::#cursor>,
             ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor>, #error> {
+                let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let #after_args = if let Some(after) = after {
                     #after_destruction
                 } else {
@@ -272,8 +273,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_id(
                 &self,
-                es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
+                let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
                 } else {
@@ -335,8 +337,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_name(
                 &self,
-                es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::EntityByNameCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByNameCursor>,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByNameCursor>, es_entity::EsRepoError> {
+                let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, name) = if let Some(after) = after {
                     (Some(after.id), Some(after.name))
                 } else {
