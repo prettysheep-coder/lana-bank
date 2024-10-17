@@ -19,7 +19,7 @@ pub struct TermValues {
 #[derive(InputObject)]
 pub struct TermsInput {
     pub annual_rate: AnnualRatePct,
-    pub interval: InterestInterval,
+    pub accrual_interval: InterestInterval,
     pub incurrence_interval: InterestInterval,
     pub liquidation_cvl: CVLPct,
     pub duration: DurationInput,

@@ -19,7 +19,7 @@ impl ToGlobalId for crate::primitives::TermsTemplateId {
 pub(super) struct TermsTemplateCreateInput {
     pub name: String,
     pub annual_rate: AnnualRatePct,
-    pub interval: InterestInterval,
+    pub accrual_interval: InterestInterval,
     pub incurrence_interval: InterestInterval,
     pub duration: DurationInput,
     pub liquidation_cvl: CVLPct,

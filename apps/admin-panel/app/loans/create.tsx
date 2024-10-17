@@ -176,7 +176,7 @@ export const CreateLoanDialog: React.FC<
             desiredPrincipal: currencyConverter.usdToCents(Number(desiredPrincipal)),
             loanTerms: {
               annualRate: parseFloat(annualRate),
-              interval: interval as InterestInterval,
+              accrualInterval: interval as InterestInterval,
               incurrenceInterval: interval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),

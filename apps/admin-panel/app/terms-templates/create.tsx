@@ -62,7 +62,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
 
   const [name, setName] = useState<string>("")
   const [annualRate, setAnnualRate] = useState<string>("")
-  const [interval, setInterval] = useState<InterestInterval | "">("")
+  const [accrualInterval, setAccrualInterval] = useState<InterestInterval | "">("")
   const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval | "">("")
   const [duration, setDuration] = useState<{ period: Period | ""; units: string }>({
     period: "",
@@ -83,7 +83,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
           input: {
             name,
             annualRate,
-            interval: interval as InterestInterval,
+            accrualInterval: accrualInterval as InterestInterval,
             incurrenceInterval: incurrenceInterval as InterestInterval,
             duration: {
               period: duration.period as Period,
@@ -224,8 +224,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             <Label htmlFor="interval">Interval</Label>
             <Select
               id="interval"
-              value={interval}
-              onChange={(e) => setInterval(e.target.value as InterestInterval)}
+              value={accrualInterval}
+              onChange={(e) => setAccrualInterval(e.target.value as InterestInterval)}
               required
             >
               <option value="" disabled>

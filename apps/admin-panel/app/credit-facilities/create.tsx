@@ -172,7 +172,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             facility: currencyConverter.usdToCents(Number(facility)),
             terms: {
               annualRate: parseFloat(annualRate),
-              interval: interval as InterestInterval,
+              accrualInterval: interval as InterestInterval,
               incurrenceInterval: incurrenceInterval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),

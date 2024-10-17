@@ -1203,11 +1203,11 @@ export type TermValues = {
 };
 
 export type TermsInput = {
+  accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   incurrenceInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['input'];
-  interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
 };
@@ -1222,11 +1222,11 @@ export type TermsTemplate = {
 };
 
 export type TermsTemplateCreateInput = {
+  accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   incurrenceInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['input'];
-  interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   name: Scalars['String']['input'];
