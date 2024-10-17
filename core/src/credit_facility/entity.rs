@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
@@ -765,6 +766,15 @@ impl CreditFacility {
             credit_facility_account_ids: self.account_ids,
             customer_account_ids: self.customer_account_ids,
         })
+    }
+
+    pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
+        let outstanding = Decimal::from(self.outstanding().total().into_inner());
+        if outstanding > Decimal::ZERO {
+            Some(rust_decimal::Decimal::from(self.collateral().into_inner()) / outstanding)
+        } else {
+            None
+        }
     }
 
     pub(super) fn confirm_completion(
