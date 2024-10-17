@@ -138,14 +138,17 @@ impl Query {
     async fn terms_templates(
         &self,
         ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
     ) -> async_graphql::Result<Vec<TermsTemplate>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let terms_templates = app.terms_templates().list_terms_templates(sub).await?;
-        Ok(terms_templates
-            .into_iter()
-            .map(TermsTemplate::from)
-            .collect())
+        unimplemented!()
+        // let terms_templates = app.terms_templates().list_terms_templates(sub).await?;
+        // Ok(terms_templates
+        //     .into_iter()
+        //     .map(TermsTemplate::from)
+        //     .collect())
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {

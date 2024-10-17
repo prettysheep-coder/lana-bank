@@ -50,7 +50,7 @@ pub struct TermsTemplate {
 
 impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
     fn from(terms: crate::terms_template::TermsTemplate) -> Self {
-        let created_at = terms.created_at().into();
+        let created_at = terms.created_at.into();
 
         Self {
             id: terms.id.to_global_id(),
