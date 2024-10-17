@@ -499,6 +499,15 @@ type Document {
 	id: UUID!
 	customerId: UUID!
 	filename: String!
+	status: DocumentStatus!
+}
+
+input DocumentArchiveInput {
+	documentId: UUID!
+}
+
+type DocumentArchivePayload {
+	document: Document!
 }
 
 input DocumentCreateInput {
@@ -525,6 +534,11 @@ input DocumentDownloadLinksGenerateInput {
 type DocumentDownloadLinksGeneratePayload {
 	documentId: UUID!
 	link: String!
+}
+
+enum DocumentStatus {
+	ACTIVE
+	ARCHIVED
 }
 
 type Duration {
@@ -760,6 +774,7 @@ type Mutation {
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
 	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
+	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 }

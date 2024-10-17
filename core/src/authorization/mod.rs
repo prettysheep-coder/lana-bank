@@ -220,6 +220,8 @@ impl Authorization {
         .await?;
         self.add_permission_to_role(&role, Object::Document, DocumentAction::Delete)
             .await?;
+        self.add_permission_to_role(&role, Object::Document, DocumentAction::Archive)
+            .await?;
         self.add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Create)
             .await?;
         self.add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Read)

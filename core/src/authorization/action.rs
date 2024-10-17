@@ -168,6 +168,7 @@ pub enum DocumentAction {
     List,
     GenerateDownloadLink,
     Delete,
+    Archive,
 }
 
 impl_trivial_action!(DocumentAction, Document);

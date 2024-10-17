@@ -522,6 +522,16 @@ export type Document = {
   customerId: Scalars['UUID']['output'];
   filename: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
+  status: DocumentStatus;
+};
+
+export type DocumentArchiveInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type DocumentArchivePayload = {
+  __typename?: 'DocumentArchivePayload';
+  document: Document;
 };
 
 export type DocumentCreateInput = {
@@ -552,6 +562,11 @@ export type DocumentDownloadLinksGeneratePayload = {
   documentId: Scalars['UUID']['output'];
   link: Scalars['String']['output'];
 };
+
+export enum DocumentStatus {
+  Active = 'ACTIVE',
+  Archived = 'ARCHIVED'
+}
 
 export type Duration = {
   __typename?: 'Duration';
@@ -777,6 +792,7 @@ export type Mutation = {
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   depositRecord: DepositRecordPayload;
+  documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
   loanApprove: LoanApprovePayload;
@@ -855,6 +871,11 @@ export type MutationCustomerUpdateArgs = {
 
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
+};
+
+
+export type MutationDocumentArchiveArgs = {
+  input: DocumentArchiveInput;
 };
 
 

@@ -144,12 +144,14 @@ CREATE TABLE deposit_events (
 
 CREATE TABLE documents (
   id UUID PRIMARY KEY,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE,
   customer_id UUID NOT NULL REFERENCES customers(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX idx_documents_customer_id_deleted_id ON documents (customer_id, deleted, id);
 
 CREATE TABLE document_events (
-  id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+  id UUID NOT NULL REFERENCES documents(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

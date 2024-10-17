@@ -25,9 +25,9 @@ use crate::{
             customer::Customer,
             deposit::Deposit,
             document::{
-                Document, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput,
-                DocumentDeletePayload, DocumentDownloadLinksGenerateInput,
-                DocumentDownloadLinksGeneratePayload,
+                Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput,
+                DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload,
+                DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload,
             },
             loan::Loan,
             objects::SuccessPayload,
@@ -976,6 +976,21 @@ impl Mutation {
         Ok(DocumentDeletePayload {
             deleted_document_id: document_id,
         })
+    }
+
+    async fn document_archive(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentArchiveInput,
+    ) -> async_graphql::Result<DocumentArchivePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let document_id = input.document_id;
+        let document = app
+            .documents()
+            .archive(sub, document_id.clone().into())
+            .await?;
+        Ok(document.into())
     }
 
     async fn terms_template_create(

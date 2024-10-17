@@ -66,11 +66,11 @@ impl DocumentsRepo {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT w.id, e.sequence, e.event,
-               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
-               FROM documents w
-               JOIN document_events e ON w.id = e.id
-               WHERE w.customer_id = $1
-               ORDER BY w.id, e.sequence"#,
+                w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+                FROM documents w
+                JOIN document_events e ON w.id = e.id
+                WHERE w.customer_id = $1 AND w.deleted = FALSE
+                ORDER BY w.id, e.sequence"#,
             customer_id as CustomerId,
         )
         .fetch_all(&self.pool)
@@ -87,17 +87,6 @@ impl DocumentsRepo {
         document: &mut Document,
     ) -> Result<(), DocumentError> {
         document.events.persist(db).await?;
-        Ok(())
-    }
-
-    pub async fn delete_in_tx(
-        &self,
-        db: &mut Transaction<'_, sqlx::Postgres>,
-        id: DocumentId,
-    ) -> Result<(), DocumentError> {
-        sqlx::query!(r#"DELETE FROM documents WHERE id = $1"#, id as DocumentId)
-            .execute(&mut **db)
-            .await?;
         Ok(())
     }
 }
