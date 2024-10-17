@@ -995,7 +995,7 @@ impl Mutation {
 
         let term_values = crate::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
-            .accrual_interval(input.interval)
+            .accrual_interval(input.accrual_interval)
             .incurrence_interval(input.incurrence_interval)
             .duration(input.duration)
             .liquidation_cvl(input.liquidation_cvl)

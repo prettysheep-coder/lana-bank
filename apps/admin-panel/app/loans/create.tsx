@@ -101,7 +101,7 @@ export const CreateLoanDialog: React.FC<
   const [formValues, setFormValues] = useState({
     desiredPrincipal: "0",
     annualRate: "",
-    interval: "",
+    accrualInterval: "",
     liquidationCvl: "",
     marginCallCvl: "",
     initialCvl: "",
@@ -131,7 +131,7 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         ...formValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
-        interval: selectedTemplate.values.accrualInterval,
+        accrualInterval: selectedTemplate.values.accrualInterval,
         liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
         marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
         initialCvl: selectedTemplate.values.initialCvl.toString(),
@@ -146,7 +146,7 @@ export const CreateLoanDialog: React.FC<
     const {
       desiredPrincipal,
       annualRate,
-      interval,
+      accrualInterval,
       liquidationCvl,
       marginCallCvl,
       initialCvl,
@@ -157,7 +157,7 @@ export const CreateLoanDialog: React.FC<
     if (
       !desiredPrincipal ||
       !annualRate ||
-      !interval ||
+      !accrualInterval ||
       !liquidationCvl ||
       !marginCallCvl ||
       !initialCvl ||
@@ -176,8 +176,8 @@ export const CreateLoanDialog: React.FC<
             desiredPrincipal: currencyConverter.usdToCents(Number(desiredPrincipal)),
             loanTerms: {
               annualRate: parseFloat(annualRate),
-              accrualInterval: interval as InterestInterval,
-              incurrenceInterval: interval as InterestInterval,
+              accrualInterval: accrualInterval as InterestInterval,
+              incurrenceInterval: accrualInterval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
@@ -211,7 +211,7 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         desiredPrincipal: "0",
         annualRate: latestTemplate.values.annualRate.toString(),
-        interval: latestTemplate.values.accrualInterval,
+        accrualInterval: latestTemplate.values.accrualInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -222,7 +222,7 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         desiredPrincipal: "0",
         annualRate: "",
-        interval: "",
+        accrualInterval: "",
         liquidationCvl: "",
         marginCallCvl: "",
         initialCvl: "",
@@ -338,7 +338,7 @@ export const CreateLoanDialog: React.FC<
                 />
                 <DetailItem
                   label="Payment Schedule"
-                  value={formatInterval(formValues.interval as InterestInterval)}
+                  value={formatInterval(formValues.accrualInterval as InterestInterval)}
                 />
                 <DetailItem
                   label="Liquidation CVL (%)"
@@ -416,7 +416,7 @@ export const CreateLoanDialog: React.FC<
                   <Label>Payment Schedule</Label>
                   <Select
                     name="interval"
-                    value={formValues.interval}
+                    value={formValues.accrualInterval}
                     onChange={handleChange}
                     required
                   >

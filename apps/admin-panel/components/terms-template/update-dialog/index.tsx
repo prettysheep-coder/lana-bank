@@ -65,7 +65,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const [annualRate, setAnnualRate] = useState<string>(
     termsTemplate.values.annualRate.toString(),
   )
-  const [interval, setInterval] = useState<InterestInterval>(
+  const [accrualInterval, setAccrualInterval] = useState<InterestInterval>(
     termsTemplate.values.accrualInterval,
   )
   const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval>(
@@ -112,7 +112,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
           input: {
             id: termsTemplate.termsId,
             annualRate,
-            interval,
+            accrualInterval,
             incurrenceInterval,
             duration: {
               period: duration.period,
@@ -193,8 +193,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             <Label htmlFor="interval">Interval</Label>
             <Select
               id="interval"
-              value={interval}
-              onChange={(e) => setInterval(e.target.value as InterestInterval)}
+              value={accrualInterval}
+              onChange={(e) => setAccrualInterval(e.target.value as InterestInterval)}
               required
             >
               {Object.values(InterestInterval).map((int) => (

@@ -67,7 +67,7 @@ impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
 pub(super) struct TermsTemplateUpdateInput {
     pub id: UUID,
     pub annual_rate: AnnualRatePct,
-    pub interval: InterestInterval,
+    pub accrual_interval: InterestInterval,
     pub incurrence_interval: InterestInterval,
     pub liquidation_cvl: CVLPct,
     pub duration: DurationInput,

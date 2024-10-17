@@ -221,7 +221,7 @@ const LoanTermsCollapsible = ({ loanTerms }: { loanTerms: Loan["loanTerms"] }) =
             }
           />
           <DetailItem
-            label="Interval"
+            label="Accrual Interval"
             value={formatInterval(loanTerms.accrualInterval)}
           />
           <DetailItem label="Annual Rate" value={`${loanTerms.annualRate}%`} />

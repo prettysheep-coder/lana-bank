@@ -946,7 +946,7 @@ type TermsTemplateCreatePayload {
 input TermsTemplateUpdateInput {
 	id: UUID!
 	annualRate: AnnualRatePct!
-	interval: InterestInterval!
+	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!

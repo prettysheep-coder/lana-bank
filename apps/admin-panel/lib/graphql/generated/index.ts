@@ -1238,12 +1238,12 @@ export type TermsTemplateCreatePayload = {
 };
 
 export type TermsTemplateUpdateInput = {
+  accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   id: Scalars['UUID']['input'];
   incurrenceInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['input'];
-  interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
 };
