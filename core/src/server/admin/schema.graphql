@@ -902,7 +902,7 @@ type System {
 
 type TermValues {
 	annualRate: AnnualRatePct!
-	interval: InterestInterval!
+	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	duration: Duration!
 	liquidationCvl: CVLPct!

@@ -54,7 +54,7 @@ gql`
         }
         loanTerms {
           annualRate
-          interval
+          accrualInterval
           liquidationCvl
           marginCallCvl
           initialCvl
@@ -131,7 +131,7 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         ...formValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
-        interval: selectedTemplate.values.interval,
+        interval: selectedTemplate.values.accrualInterval,
         liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
         marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
         initialCvl: selectedTemplate.values.initialCvl.toString(),
@@ -211,7 +211,7 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         desiredPrincipal: "0",
         annualRate: latestTemplate.values.annualRate.toString(),
-        interval: latestTemplate.values.interval,
+        interval: latestTemplate.values.accrualInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),

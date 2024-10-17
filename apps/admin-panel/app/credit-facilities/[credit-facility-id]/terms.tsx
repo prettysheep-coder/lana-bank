@@ -33,7 +33,7 @@ export const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({
               />
               <DetailItem
                 label="Payment due"
-                value={formatInterval(creditFacility.creditFacilityTerms.interval)}
+                value={formatInterval(creditFacility.creditFacilityTerms.accrualInterval)}
               />
             </DetailsGroup>
           </div>

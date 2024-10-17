@@ -8,7 +8,7 @@ scalar!(CVLPct);
 #[derive(SimpleObject)]
 pub struct TermValues {
     annual_rate: AnnualRatePct,
-    interval: InterestInterval,
+    accrual_interval: InterestInterval,
     incurrence_interval: InterestInterval,
     duration: Duration,
     liquidation_cvl: CVLPct,
@@ -48,7 +48,7 @@ impl From<crate::terms::TermValues> for TermValues {
     fn from(values: crate::terms::TermValues) -> Self {
         Self {
             annual_rate: values.annual_rate,
-            interval: values.accrual_interval,
+            accrual_interval: values.accrual_interval,
             incurrence_interval: values.incurrence_interval,
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl,

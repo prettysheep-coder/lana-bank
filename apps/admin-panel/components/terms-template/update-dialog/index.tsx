@@ -31,7 +31,7 @@ gql`
         name
         values {
           annualRate
-          interval
+          accrualInterval
           liquidationCvl
           marginCallCvl
           initialCvl
@@ -66,7 +66,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     termsTemplate.values.annualRate.toString(),
   )
   const [interval, setInterval] = useState<InterestInterval>(
-    termsTemplate.values.interval,
+    termsTemplate.values.accrualInterval,
   )
   const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval>(
     termsTemplate.values.incurrenceInterval,
@@ -90,7 +90,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     if (openUpdateTermsTemplateDialog) {
       setName(termsTemplate.name)
       setAnnualRate(termsTemplate.values.annualRate.toString())
-      setInterval(termsTemplate.values.interval)
+      setInterval(termsTemplate.values.accrualInterval)
       setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
       setDuration({
         period: termsTemplate.values.duration.period,
@@ -147,7 +147,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const resetStates = () => {
     setName(termsTemplate.name)
     setAnnualRate(termsTemplate.values.annualRate.toString())
-    setInterval(termsTemplate.values.interval)
+    setInterval(termsTemplate.values.accrualInterval)
     setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
     setDuration({
       period: termsTemplate.values.duration.period,

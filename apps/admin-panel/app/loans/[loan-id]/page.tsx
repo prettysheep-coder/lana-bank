@@ -83,7 +83,7 @@ gql`
       }
       loanTerms {
         annualRate
-        interval
+        accrualInterval
         liquidationCvl
         marginCallCvl
         initialCvl

@@ -29,7 +29,7 @@ gql`
           units
           period
         }
-        interval
+        accrualInterval
         incurrenceInterval
         annualRate
         initialCvl
@@ -92,7 +92,7 @@ function TermsTemplateDetails({ id }: { id: string }) {
                 />
                 <DetailItem
                   label="Interval"
-                  value={formatInterval(data.termsTemplate.values.interval)}
+                  value={formatInterval(data.termsTemplate.values.accrualInterval)}
                 />
                 <DetailItem
                   label="Annual Rate"

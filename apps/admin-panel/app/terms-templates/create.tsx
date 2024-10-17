@@ -30,7 +30,7 @@ gql`
         termsId
         values {
           annualRate
-          interval
+          accrualInterval
           liquidationCvl
           marginCallCvl
           initialCvl
