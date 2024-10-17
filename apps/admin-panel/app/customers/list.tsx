@@ -152,7 +152,7 @@ function CustomerTable({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
+                    <TableHead>Customer Email</TableHead>
                     <TableHead>Telegram</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Withdrawals)</TableHead>
