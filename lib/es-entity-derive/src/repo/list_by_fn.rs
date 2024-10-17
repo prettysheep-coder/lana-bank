@@ -164,7 +164,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                     .await?;
 
                 let (entities, has_next_page) = EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
-                        GenericEvent {
+                        es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
@@ -288,7 +288,7 @@ mod tests {
                     .await?;
 
                 let (entities, has_next_page) = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
-                        GenericEvent {
+                        es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
@@ -352,7 +352,7 @@ mod tests {
                     .await?;
 
                 let (entities, has_next_page) = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
-                        GenericEvent {
+                        es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,

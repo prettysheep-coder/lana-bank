@@ -48,7 +48,7 @@ impl<'a> ToTokens for FindAllFn<'a> {
                     .await?;
                 let n = rows.len();
                 let res = EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
-                        GenericEvent {
+                        es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,
@@ -97,7 +97,7 @@ mod tests {
                     .await?;
                 let n = rows.len();
                 let res = EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
-                        GenericEvent {
+                        es_entity::GenericEvent {
                             id: r.id,
                             sequence: r.sequence,
                             event: r.event,

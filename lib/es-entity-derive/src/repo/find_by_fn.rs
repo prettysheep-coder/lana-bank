@@ -77,7 +77,7 @@ impl<'a> ToTokens for FindByFn<'a> {
                     .fetch_all(executor)
                     .await?;
                 Ok(EntityEvents::load_first(rows.into_iter().map(|r|
-                    GenericEvent {
+                    es_entity::GenericEvent {
                         id: r.id,
                         sequence: r.sequence,
                         event: r.event,
@@ -142,7 +142,7 @@ mod tests {
                     .fetch_all(executor)
                     .await?;
                 Ok(EntityEvents::load_first(rows.into_iter().map(|r|
-                    GenericEvent {
+                    es_entity::GenericEvent {
                         id: r.id,
                         sequence: r.sequence,
                         event: r.event,
