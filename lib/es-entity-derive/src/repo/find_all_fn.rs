@@ -9,7 +9,7 @@ pub struct FindAllFn<'a> {
     entity: &'a syn::Ident,
     table_name: &'a str,
     events_table_name: &'a str,
-    error: &'a syn::Ident,
+    error: &'a syn::Type,
 }
 
 impl<'a> From<&'a RepositoryOptions> for FindAllFn<'a> {
@@ -71,7 +71,7 @@ mod tests {
     fn find_all_fn() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindAllFn {
             id: &id_type,
@@ -88,7 +88,7 @@ mod tests {
             pub async fn find_all<T: From<Entity>>(
                 &self,
                 ids: &[EntityId]
-            ) -> Result<std::collections::HashMap<EntityId, T>, EsRepoError> {
+            ) -> Result<std::collections::HashMap<EntityId, T>, es_entity::EsRepoError> {
                 let rows = sqlx::query!(
                     "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence",
                     ids as &[EntityId],

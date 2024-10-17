@@ -9,7 +9,7 @@ pub struct PersistFn<'a> {
     entity: &'a syn::Ident,
     table_name: &'a str,
     indexes: &'a Indexes,
-    error: &'a syn::Ident,
+    error: &'a syn::Type,
 }
 
 impl<'a> From<&'a RepositoryOptions> for PersistFn<'a> {
@@ -116,7 +116,7 @@ mod tests {
     fn persist_fn() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let indexes = Indexes {
             columns: vec![IndexColumn {
@@ -149,7 +149,7 @@ mod tests {
             pub async fn persist(
                 &self,
                 entity: &mut Entity
-            ) -> Result<(), EsRepoError> {
+            ) -> Result<(), es_entity::EsRepoError> {
                 let mut db = self.pool().begin().await?;
                 let res = self.persist_in_tx(&mut db, entity).await?;
                 db.commit().await?;
@@ -160,7 +160,7 @@ mod tests {
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
-            ) -> Result<(), EsRepoError> {
+            ) -> Result<(), es_entity::EsRepoError> {
                 if !Self::extract_events(entity).any_new() {
                     return Ok(());
                 }
@@ -191,7 +191,7 @@ mod tests {
     fn persist_fn_no_indexes() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let indexes = Indexes { columns: vec![] };
 
@@ -219,7 +219,7 @@ mod tests {
             pub async fn persist(
                 &self,
                 entity: &mut Entity
-            ) -> Result<(), EsRepoError> {
+            ) -> Result<(), es_entity::EsRepoError> {
                 let mut db = self.pool().begin().await?;
                 let res = self.persist_in_tx(&mut db, entity).await?;
                 db.commit().await?;
@@ -230,7 +230,7 @@ mod tests {
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
-            ) -> Result<(), EsRepoError> {
+            ) -> Result<(), es_entity::EsRepoError> {
                 if !Self::extract_events(entity).any_new() {
                     return Ok(());
                 }

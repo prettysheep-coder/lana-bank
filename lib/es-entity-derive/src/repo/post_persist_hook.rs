@@ -6,7 +6,7 @@ use super::RepositoryOptions;
 
 pub struct PostPersistHook<'a> {
     event: &'a syn::Ident,
-    error: &'a syn::Ident,
+    error: &'a syn::Type,
     hook: &'a Option<syn::Ident>,
 }
 
@@ -51,13 +51,11 @@ impl<'a> ToTokens for PostPersistHook<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proc_macro2::Span;
-    use syn::Ident;
 
     #[test]
     fn post_persist_hook() {
         let event = syn::Ident::new("EntityEvent", proc_macro2::Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let hook = None;
 
         let hook = PostPersistHook {
@@ -74,7 +72,7 @@ mod tests {
             async fn execute_post_persist_hook(&self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 events: impl Iterator<Item = &es_entity::PersistedEvent<EntityEvent>>
-            ) -> Result<(), EsRepoError> {
+            ) -> Result<(), es_entity::EsRepoError> {
                 Ok(())
             }
         };

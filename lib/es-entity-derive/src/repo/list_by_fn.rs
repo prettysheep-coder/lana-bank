@@ -61,7 +61,7 @@ pub struct ListByFn<'a> {
     column_type: syn::Type,
     table_name: &'a str,
     events_table_name: &'a str,
-    error: &'a syn::Ident,
+    error: &'a syn::Type,
 }
 
 impl<'a> ListByFn<'a> {
@@ -254,7 +254,7 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let column_type = syn::parse_str(&id_type.to_string()).unwrap();
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = ListByFn {
             column_name: Ident::new("id", Span::call_site()),
@@ -273,7 +273,7 @@ mod tests {
             pub async fn list_by_id(
                 &self,
                 es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
                 let id = if let Some(after) = after {
                     Some(after.id)
                 } else {
@@ -317,7 +317,7 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let column_type = syn::parse_str("String").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = ListByFn {
             column_name: Ident::new("name", Span::call_site()),
@@ -336,7 +336,7 @@ mod tests {
             pub async fn list_by_name(
                 &self,
                 es_entity::PaginatedQueryArgs { first, after }: es_entity::PaginatedQueryArgs<cursor::EntityByNameCursor>,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByNameCursor>, EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByNameCursor>, es_entity::EsRepoError> {
                 let (id, name) = if let Some(after) = after {
                     (Some(after.id), Some(after.name))
                 } else {

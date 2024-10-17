@@ -10,7 +10,7 @@ pub struct CreateFn<'a> {
     entity: &'a syn::Ident,
     table_name: &'a str,
     indexes: &'a Indexes,
-    error: &'a syn::Ident,
+    error: &'a syn::Type,
 }
 
 impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
@@ -128,7 +128,7 @@ mod tests {
     fn create_fn() {
         let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
 
         let indexes = Indexes {
@@ -161,10 +161,10 @@ mod tests {
             }
 
             #[inline(always)]
-            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, EsRepoError>
+            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, es_entity::EsRepoError>
             where
                 T: es_entity::TryFromEvents<E>,
-                EsRepoError: From<es_entity::EsEntityError>,
+                es_entity::EsRepoError: From<es_entity::EsEntityError>,
                 E: es_entity::EsEvent,
             {
                 Ok(T::try_from_events(events)?)
@@ -173,7 +173,7 @@ mod tests {
             pub async fn create(
                 &self,
                 new_entity: NewEntity
-            ) -> Result<Entity, EsRepoError> {
+            ) -> Result<Entity, es_entity::EsRepoError> {
                 let mut db = self.pool().begin().await?;
                 let res = self.create_in_tx(&mut db, new_entity).await?;
                 db.commit().await?;
@@ -184,7 +184,7 @@ mod tests {
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 new_entity: NewEntity
-            ) -> Result<Entity, EsRepoError> {
+            ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = &new_entity.id;
                 let name = &new_entity.name;
 

@@ -11,7 +11,7 @@ pub struct FindByFn<'a> {
     column_type: syn::Type,
     table_name: &'a str,
     events_table_name: &'a str,
-    error: &'a syn::Ident,
+    error: &'a syn::Type,
 }
 
 impl<'a> FindByFn<'a> {
@@ -99,7 +99,7 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let column_type = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
-        let error = Ident::new("EsRepoError", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
             id: &id_type,
@@ -118,7 +118,7 @@ mod tests {
             pub async fn find_by_id(
                 &self,
                 id: EntityId
-            ) -> Result<Entity, EsRepoError> {
+            ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(self.pool(), id).await
             }
 
@@ -126,7 +126,7 @@ mod tests {
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 id: EntityId
-            ) -> Result<Entity, EsRepoError> {
+            ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(&mut **db, id).await
             }
 
@@ -134,7 +134,7 @@ mod tests {
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
                 id: EntityId
-            ) -> Result<Entity, EsRepoError> {
+            ) -> Result<Entity, es_entity::EsRepoError> {
                 let rows = sqlx::query!(
                     "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
                     id as EntityId,

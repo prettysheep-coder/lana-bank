@@ -20,7 +20,7 @@ pub struct RepositoryOptions {
     #[darling(default, rename = "id")]
     id_ty: Option<syn::Ident>,
     #[darling(default, rename = "err")]
-    err_ident: Option<syn::Ident>,
+    err_ty: Option<syn::Type>,
     #[darling(default, rename = "tbl")]
     table_name: Option<String>,
     #[darling(default, rename = "events_tbl")]
@@ -48,11 +48,9 @@ impl RepositoryOptions {
                 proc_macro2::Span::call_site(),
             ));
         }
-        if self.err_ident.is_none() {
-            self.err_ident = Some(syn::Ident::new(
-                "EsRepoError",
-                proc_macro2::Span::call_site(),
-            ));
+        if self.err_ty.is_none() {
+            self.err_ty =
+                Some(syn::parse_str("es_entity::EsRepoError").expect("Failed to parse error type"));
         }
         if self.table_name.is_none() {
             self.table_name = Some(pluralizer::pluralize(&entity_name.to_lowercase(), 2, false));
@@ -93,10 +91,8 @@ impl RepositoryOptions {
             .expect("New entity identifier is not set")
     }
 
-    pub fn err(&self) -> &syn::Ident {
-        self.err_ident
-            .as_ref()
-            .expect("Error identifier is not set")
+    pub fn err(&self) -> &syn::Type {
+        self.err_ty.as_ref().expect("Error identifier is not set")
     }
 }
 
