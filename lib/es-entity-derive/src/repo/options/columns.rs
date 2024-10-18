@@ -17,15 +17,11 @@ impl Columns {
     }
 
     pub fn all_find_by(&self) -> impl Iterator<Item = &Column> {
-        self.all
-            .iter()
-            .filter_map(|c| if c.opts.find_by() { Some(c) } else { None })
+        self.all.iter().filter(|c| c.opts.find_by())
     }
 
     pub fn all_list_by(&self) -> impl Iterator<Item = &Column> {
-        self.all
-            .iter()
-            .filter_map(|c| if c.opts.list_by() { Some(c) } else { None })
+        self.all.iter().filter(|c| c.opts.list_by())
     }
 
     pub fn updates_needed(&self) -> bool {

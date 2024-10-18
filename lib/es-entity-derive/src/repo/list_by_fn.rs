@@ -83,8 +83,8 @@ impl<'a> ListByFn<'a> {
 
     pub fn cursor(&'a self) -> CursorStruct<'a> {
         CursorStruct {
-            column_name: &self.column_name,
-            column_type: &self.column_type,
+            column_name: self.column_name,
+            column_type: self.column_type,
             id: self.id,
             entity: self.entity,
         }
