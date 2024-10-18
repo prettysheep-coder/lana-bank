@@ -12,8 +12,12 @@ impl Columns {
             syn::Ident::new("id", proc_macro2::Span::call_site()),
             syn::parse_str(&ty.to_string()).unwrap(),
         )];
-        all.extend(self.all.drain(..));
+        all.append(&mut self.all);
         self.all = all;
+    }
+
+    pub fn updates_needed(&self) -> bool {
+        self.all.len() > 1
     }
 
     pub fn variable_assignments(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
@@ -33,6 +37,16 @@ impl Columns {
     pub fn placeholders(&self) -> String {
         (1..=self.all.len())
             .map(|i| format!("${}", i))
+            .collect::<Vec<_>>()
+            .join(", ")
+    }
+
+    pub fn sql_updates(&self) -> String {
+        self.all
+            .iter()
+            .skip(1)
+            .enumerate()
+            .map(|(idx, column)| format!("{} = ${}", column.name, idx + 2))
             .collect::<Vec<_>>()
             .join(", ")
     }
@@ -67,7 +81,7 @@ impl FromMeta for Columns {
                         }) => Column::new(name, syn::parse_str(&lit_str.value())?),
                         _ => Column {
                             name,
-                            opts: ColumnOpts::from_meta(&meta)?,
+                            opts: ColumnOpts::from_meta(meta)?,
                         },
                     };
                     Ok(column)

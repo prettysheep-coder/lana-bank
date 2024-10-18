@@ -5,7 +5,6 @@ use quote::{quote, TokenStreamExt};
 use super::options::*;
 
 pub struct PersistFn<'a> {
-    id: &'a syn::Ident,
     entity: &'a syn::Ident,
     table_name: &'a str,
     columns: &'a Columns,
@@ -15,7 +14,6 @@ pub struct PersistFn<'a> {
 impl<'a> From<&'a RepositoryOptions> for PersistFn<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
-            id: opts.id(),
             entity: opts.entity(),
             error: opts.err(),
             columns: &opts.columns,
@@ -28,34 +26,20 @@ impl<'a> ToTokens for PersistFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let entity = self.entity;
         let error = self.error;
-
-        let update_tokens = if !self.columns.all.is_empty() {
-            let index_tokens = self.columns.all.iter().map(|column| {
-                let ident = &column.name;
-                quote! {
-                    let #ident = &entity.#ident;
-                }
-            });
-            let column_updates = self
+        let update_tokens = if self.columns.updates_needed() {
+            let assignments = self
                 .columns
-                .all
-                .iter()
-                .enumerate()
-                .map(|(idx, column)| format!("{} = ${}", column.name, idx + 2))
-                .collect::<Vec<_>>()
-                .join(", ");
+                .variable_assignments(syn::parse_quote! { entity });
+            let column_updates = self.columns.sql_updates();
             let query = format!(
                 "UPDATE {} SET {} WHERE id = $1",
                 self.table_name, column_updates,
             );
             let args = self.columns.query_args();
-            let id = &self.id;
             Some(quote! {
-            let id = &entity.id;
-            #(#index_tokens)*
+            #assignments
             sqlx::query!(
                 #query,
-                id as &#id,
                 #(#args),*
             )
                 .execute(&mut **db)
@@ -118,17 +102,17 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let columns = Columns {
+        let mut columns = Columns {
             all: vec![Column::new(
                 Ident::new("name", Span::call_site()),
                 syn::parse_str("String").unwrap(),
             )],
         };
+        columns.set_id_column(&id);
 
         let persist_fn = PersistFn {
             entity: &entity,
             table_name: "entities",
-            id: &id,
             error: &error,
             columns: &columns,
         };
@@ -193,12 +177,12 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let columns = Columns::default();
+        let mut columns = Columns::default();
+        columns.set_id_column(&id);
 
         let persist_fn = PersistFn {
             entity: &entity,
             table_name: "entities",
-            id: &id,
             error: &error,
             columns: &columns,
         };
