@@ -3,10 +3,20 @@ use quote::quote;
 
 #[derive(Default)]
 pub struct Columns {
-    pub all: Vec<Column>,
+    all: Vec<Column>,
 }
 
 impl Columns {
+    #[cfg(test)]
+    pub fn new(id: &syn::Ident, colums: impl IntoIterator<Item = Column>) -> Self {
+        let mut all = vec![Column::new(
+            syn::Ident::new("id", proc_macro2::Span::call_site()),
+            syn::parse_str(&id.to_string()).unwrap(),
+        )];
+        all.extend(colums.into_iter());
+        Columns { all }
+    }
+
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
         let mut all = vec![Column::new(
             syn::Ident::new("id", proc_macro2::Span::call_site()),
@@ -102,8 +112,8 @@ impl FromMeta for Columns {
 }
 
 pub struct Column {
-    pub name: syn::Ident,
-    pub opts: ColumnOpts,
+    name: syn::Ident,
+    opts: ColumnOpts,
 }
 
 impl Column {
@@ -133,7 +143,7 @@ impl Column {
 }
 
 #[derive(FromMeta)]
-pub struct ColumnOpts {
+struct ColumnOpts {
     ty: syn::Type,
     #[darling(default)]
     find_by: Option<bool>,

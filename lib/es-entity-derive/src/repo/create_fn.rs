@@ -190,13 +190,13 @@ mod tests {
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
 
-        let mut columns = Columns {
-            all: vec![Column::new(
+        let columns = Columns::new(
+            &id,
+            [Column::new(
                 Ident::new("name", Span::call_site()),
                 syn::parse_str("String").unwrap(),
             )],
-        };
-        columns.set_id_column(&id);
+        );
 
         let create_fn = CreateFn {
             new_entity: &new_entity,

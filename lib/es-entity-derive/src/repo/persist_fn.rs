@@ -102,13 +102,13 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let mut columns = Columns {
-            all: vec![Column::new(
+        let columns = Columns::new(
+            &id,
+            [Column::new(
                 Ident::new("name", Span::call_site()),
                 syn::parse_str("String").unwrap(),
             )],
-        };
-        columns.set_id_column(&id);
+        );
 
         let persist_fn = PersistFn {
             entity: &entity,
