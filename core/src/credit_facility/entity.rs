@@ -769,9 +769,19 @@ impl CreditFacility {
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
-        let outstanding = Decimal::from(self.outstanding().total().into_inner());
-        if outstanding > Decimal::ZERO {
-            Some(rust_decimal::Decimal::from(self.collateral().into_inner()) / outstanding)
+        let amount = if self.status() == CreditFacilityStatus::New
+            || self.total_disbursed() == UsdCents::ZERO
+        {
+            self.initial_facility()
+        } else {
+            self.outstanding().total()
+        };
+
+        if amount > UsdCents::ZERO {
+            Some(
+                rust_decimal::Decimal::from(self.collateral().into_inner())
+                    / Decimal::from(amount.into_inner()),
+            )
         } else {
             None
         }
