@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use darling::{FromDeriveInput, FromMeta};
 use quote::quote;
 use syn::{parse::Parse, Expr, Ident, Token, Type};
@@ -53,10 +54,11 @@ impl RepositoryOptions {
                 Some(syn::parse_str("es_entity::EsRepoError").expect("Failed to parse error type"));
         }
         if self.table_name.is_none() {
-            self.table_name = Some(pluralizer::pluralize(&entity_name.to_lowercase(), 2, false));
+            self.table_name =
+                Some(pluralizer::pluralize(&entity_name, 2, false).to_case(Case::Snake));
         }
         if self.events_table_name.is_none() {
-            self.events_table_name = Some(format!("{}_events", entity_name.to_lowercase()));
+            self.events_table_name = Some(format!("{}Events", entity_name).to_case(Case::Snake));
         }
         self
     }
