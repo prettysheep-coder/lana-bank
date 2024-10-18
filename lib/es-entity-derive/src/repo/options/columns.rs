@@ -167,10 +167,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn column_from_list() {
-        let input: syn::Meta = parse_quote!(thing(ty = "crate::module::Thing"));
+    fn column_opts_from_list() {
+        let input: syn::Meta = parse_quote!(thing(ty = "crate::module::Thing", list_by = false));
         let values = ColumnOpts::from_meta(&input).expect("Failed to parse Field");
         assert_eq!(values.ty, parse_quote!(crate::module::Thing));
+        assert!(!values.list_by());
+        assert!(values.find_by());
     }
 
     #[test]

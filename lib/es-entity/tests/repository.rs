@@ -32,7 +32,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 }
 
 #[tokio::test]
-async fn test_create() -> anyhow::Result<()> {
+async fn create() -> anyhow::Result<()> {
     let pool = init_pool().await?;
     let repo = Users { pool: pool.clone() };
 
@@ -53,7 +53,7 @@ async fn test_create() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn test_find_by() -> anyhow::Result<()> {
+async fn find_by() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
     let repo = Users { pool: pool.clone() };
@@ -69,7 +69,7 @@ async fn test_find_by() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn test_find_all() -> anyhow::Result<()> {
+async fn find_all() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
     let repo = Users { pool: pool.clone() };
