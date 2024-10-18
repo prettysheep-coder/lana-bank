@@ -145,8 +145,8 @@ impl ColumnOpts {
     fn new(ty: syn::Type) -> Self {
         ColumnOpts {
             ty,
-            find_by: Some(true),
-            list_by: Some(true),
+            find_by: None,
+            list_by: None,
         }
     }
 
