@@ -62,6 +62,10 @@ impl RepositoryOptions {
         if self.events_table_name.is_none() {
             self.events_table_name = Some(format!("{}Events", entity_name).to_case(Case::Snake));
         }
+
+        self.columns
+            .set_id_column(self.id_ty.as_ref().expect("Id not set"));
+
         self
     }
 

@@ -7,6 +7,36 @@ pub struct Columns {
 }
 
 impl Columns {
+    pub fn set_id_column(&mut self, ty: &syn::Ident) {
+        let mut all = vec![Column::new(
+            syn::Ident::new("id", proc_macro2::Span::call_site()),
+            syn::parse_str(&ty.to_string()).unwrap(),
+        )];
+        all.extend(self.all.drain(..));
+        self.all = all;
+    }
+
+    pub fn variable_assignments(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
+        let assignments = self
+            .all
+            .iter()
+            .map(|column| column.variable_assignment(&ident));
+        quote! {
+            #(#assignments)*
+        }
+    }
+
+    pub fn names(&self) -> Vec<String> {
+        self.all.iter().map(|c| c.name.to_string()).collect()
+    }
+
+    pub fn placeholders(&self) -> String {
+        (1..=self.all.len())
+            .map(|i| format!("${}", i))
+            .collect::<Vec<_>>()
+            .join(", ")
+    }
+
     pub fn query_args(&self) -> Vec<proc_macro2::TokenStream> {
         self.all
             .iter()
@@ -59,6 +89,15 @@ impl Column {
         Column {
             name,
             opts: ColumnOpts::new(ty),
+        }
+    }
+}
+
+impl Column {
+    fn variable_assignment(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
+        let name = &self.name;
+        quote! {
+            let #name = &#ident.#name;
         }
     }
 }

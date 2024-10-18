@@ -8,7 +8,7 @@ mod persist_fn;
 mod post_persist_hook;
 
 use darling::{FromDeriveInput, ToTokens};
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, TokenStreamExt};
 
 use options::RepositoryOptions;
@@ -31,28 +31,18 @@ pub struct EsRepo<'a> {
 
 impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
-        let mut find_by_fns = vec![find_by_fn::FindByFn::new(
-            syn::Ident::new("id", Span::call_site()),
-            syn::parse_str(&opts.id().to_string()).expect("failed to parse id type"),
-            opts,
-        )];
-        let mut list_by_fns = vec![list_by_fn::ListByFn::new(
-            syn::Ident::new("id", Span::call_site()),
-            syn::parse_str(&opts.id().to_string()).expect("failed to parse id type"),
-            opts,
-        )];
-        for i in opts.columns.all.iter() {
-            find_by_fns.push(find_by_fn::FindByFn::new(
-                i.name.clone(),
-                i.opts.ty.clone(),
-                opts,
-            ));
-            list_by_fns.push(list_by_fn::ListByFn::new(
-                i.name.clone(),
-                i.opts.ty.clone(),
-                opts,
-            ));
-        }
+        let find_by_fns = opts
+            .columns
+            .all
+            .iter()
+            .map(|c| find_by_fn::FindByFn::new(c.name.clone(), c.opts.ty.clone(), opts))
+            .collect();
+        let list_by_fns = opts
+            .columns
+            .all
+            .iter()
+            .map(|c| list_by_fn::ListByFn::new(c.name.clone(), c.opts.ty.clone(), opts))
+            .collect();
 
         Self {
             repo: &opts.ident,
