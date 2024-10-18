@@ -11,7 +11,7 @@ use crate::{
 
 pub use entity::*;
 use error::TermsTemplateError;
-use repo::{cursor::*, TermsTemplateRepo};
+use repo::TermsTemplateRepo;
 
 #[derive(Clone)]
 pub struct TermsTemplates {
@@ -125,17 +125,10 @@ impl TermsTemplates {
         }
     }
 
-    pub async fn list_terms_templates(
-        &self,
-        sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<TermsTemplateByIdCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<TermsTemplate, TermsTemplateByIdCursor>,
-        TermsTemplateError,
-    > {
+    pub async fn list(&self, sub: &Subject) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
         self.authz
             .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
             .await?;
-        self.repo.list_by_id(query).await
+        Ok(self.repo.list_by_name(Default::default()).await?.entities)
     }
 }

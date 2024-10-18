@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO terms_templates (id, name)\n            VALUES ($1, $2)\n            ",
+  "query": "INSERT INTO terms_templates (id, name) VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "8ee686bee0f37efc83ffc73af1a8d2dff0df156ebd390316581545c12538ef57"
+  "hash": "86650f5c8cbb054564c13d81b0d4f11adde2eb42ddc39562b0a8147fcfef6a7b"
 }
