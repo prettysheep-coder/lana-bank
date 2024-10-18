@@ -8,12 +8,12 @@ pub struct Columns {
 
 impl Columns {
     #[cfg(test)]
-    pub fn new(id: &syn::Ident, colums: impl IntoIterator<Item = Column>) -> Self {
+    pub fn new(id: &syn::Ident, columns: impl IntoIterator<Item = Column>) -> Self {
         let mut all = vec![Column::new(
             syn::Ident::new("id", proc_macro2::Span::call_site()),
             syn::parse_str(&id.to_string()).unwrap(),
         )];
-        all.extend(colums.into_iter());
+        all.extend(columns.into_iter());
         Columns { all }
     }
 
