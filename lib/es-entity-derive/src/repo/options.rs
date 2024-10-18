@@ -1,9 +1,9 @@
 use convert_case::{Case, Casing};
 use darling::{FromDeriveInput, FromMeta};
 use quote::quote;
-use syn::{parse::Parse, Expr, Ident, Token, Type};
+use syn::{Expr, Ident, Type};
 
-#[derive(Debug, Clone, FromDeriveInput)]
+#[derive(Debug, FromDeriveInput)]
 #[darling(attributes(es_repo), map = "Self::update_defaults")]
 pub struct RepositoryOptions {
     pub ident: syn::Ident,
@@ -98,12 +98,12 @@ impl RepositoryOptions {
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 pub struct Indexes {
     pub columns: Vec<IndexColumn>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct IndexColumn {
     pub name: Ident,
     pub ty: Type,
@@ -121,19 +121,6 @@ impl Indexes {
                 }
             })
             .collect()
-    }
-}
-
-impl Parse for IndexColumn {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let name: Ident = input.parse()?;
-        if input.peek(Token![=]) {
-            input.parse::<Token![=]>()?;
-            let ty = input.parse()?;
-            Ok(IndexColumn { name, ty })
-        } else {
-            Err(syn::Error::new(input.span(), "Expected `=`"))
-        }
     }
 }
 
