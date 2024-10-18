@@ -296,8 +296,10 @@ impl CreditFacilities {
             .await?;
         balances.check_disbursement_amount(amount)?;
 
+        let price = self.price.usd_cents_per_btc().await?;
+
         let mut db_tx = self.pool.begin().await?;
-        let new_disbursement = credit_facility.initiate_disbursement(audit_info, amount)?;
+        let new_disbursement = credit_facility.initiate_disbursement(audit_info, amount, price)?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;

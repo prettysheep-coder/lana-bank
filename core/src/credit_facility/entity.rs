@@ -166,11 +166,12 @@ impl FacilityCVL {
         disbursed: CVLPct::ZERO,
     };
 
-    fn is_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
-        if self.total < terms.margin_call_cvl {
-            return Err(CreditFacilityError::BelowMarginLimit);
-        }
-        Ok(())
+    fn is_approval_allowed(&self, terms: TermValues) -> bool {
+        self.total >= terms.margin_call_cvl
+    }
+
+    fn is_disbursement_allowed(&self, terms: TermValues) -> bool {
+        self.disbursed >= terms.margin_call_cvl
     }
 }
 
@@ -363,7 +364,12 @@ impl CreditFacility {
             return Err(CreditFacilityError::NoCollateral);
         }
 
-        self.facility_cvl(price).is_approval_allowed(self.terms)?;
+        if !self
+            .current_facility_cvl(price)
+            .is_approval_allowed(self.terms)
+        {
+            return Err(CreditFacilityError::BelowMarginLimit);
+        }
 
         self.events.push(CreditFacilityEvent::ApprovalAdded {
             approving_user_id,
@@ -425,6 +431,7 @@ impl CreditFacility {
         &mut self,
         audit_info: AuditInfo,
         amount: UsdCents,
+        price: PriceOfOneBTC,
     ) -> Result<NewDisbursement, CreditFacilityError> {
         if self.is_expired() {
             return Err(CreditFacilityError::AlreadyExpired);
@@ -432,6 +439,13 @@ impl CreditFacility {
 
         if self.is_disbursement_in_progress() {
             return Err(CreditFacilityError::DisbursementInProgress);
+        }
+
+        if !self
+            .projected_facility_cvl(price, amount)
+            .is_disbursement_allowed(self.terms)
+        {
+            return Err(CreditFacilityError::BelowMarginLimit);
         }
 
         let idx = self
@@ -612,7 +626,22 @@ impl CreditFacility {
             .unwrap_or(Satoshis::ZERO)
     }
 
-    pub fn facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
+    pub fn collateralization(&self) -> CollateralizationState {
+        if self.status() == CreditFacilityStatus::Closed {
+            return CollateralizationState::NoCollateral;
+        }
+
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
+                _ => None,
+            })
+            .unwrap_or(CollateralizationState::NoCollateral)
+    }
+
+    pub fn current_facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
         let collateral_value = price.sats_to_cents_round_down(self.collateral());
 
         FacilityCVL {
@@ -621,6 +650,23 @@ impl CreditFacility {
                 self.outstanding().total() + self.facility_remaining(),
             ),
             disbursed: CVLPct::from_loan_amounts(collateral_value, self.outstanding().total()),
+        }
+    }
+
+    pub fn projected_facility_cvl(
+        &self,
+        price: PriceOfOneBTC,
+        disbursement: UsdCents,
+    ) -> FacilityCVL {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral());
+        let outstanding = self.outstanding().total() + disbursement;
+
+        FacilityCVL {
+            total: CVLPct::from_loan_amounts(
+                collateral_value,
+                outstanding + self.facility_remaining(),
+            ),
+            disbursed: CVLPct::from_loan_amounts(collateral_value, outstanding),
         }
     }
 
@@ -691,7 +737,7 @@ impl CreditFacility {
         upgrade_buffer_cvl_pct: CVLPct,
         audit_info: AuditInfo,
     ) -> Option<CollateralizationState> {
-        let facility_cvl = self.facility_cvl(price);
+        let facility_cvl = self.current_facility_cvl(price);
         let last_collateralization_state = self.last_collateralization_state();
 
         let collateralization_update = match self.status() {
@@ -1049,7 +1095,11 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         assert!(matches!(
-            facility_from(&events).initiate_disbursement(dummy_audit_info(), UsdCents::ONE),
+            facility_from(&events).initiate_disbursement(
+                dummy_audit_info(),
+                UsdCents::ONE,
+                default_price()
+            ),
             Err(CreditFacilityError::DisbursementInProgress)
         ));
 
@@ -1059,8 +1109,26 @@ mod test {
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
+        assert!(matches!(
+            facility_from(&events).initiate_disbursement(
+                dummy_audit_info(),
+                UsdCents::ONE,
+                default_price()
+            ),
+            Err(CreditFacilityError::BelowMarginLimit)
+        ));
+
+        events.push(CreditFacilityEvent::CollateralUpdated {
+            tx_id: LedgerTxId::new(),
+            tx_ref: "tx-ref".to_string(),
+            total_collateral: Satoshis::from(50000000),
+            abs_diff: Satoshis::from(50000000),
+            action: CollateralAction::Add,
+            recorded_in_ledger_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
         assert!(facility_from(&events)
-            .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
+            .initiate_disbursement(dummy_audit_info(), UsdCents::ONE, default_price())
             .is_ok());
     }
 
@@ -1408,16 +1476,13 @@ mod test {
                 total: terms.margin_call_cvl - CVLPct::from(dec!(1)),
                 disbursed: CVLPct::ZERO,
             };
-            assert!(matches!(
-                facility_cvl.is_approval_allowed(terms),
-                Err(CreditFacilityError::BelowMarginLimit),
-            ));
+            assert!(!facility_cvl.is_approval_allowed(terms));
 
             let facility_cvl = FacilityCVL {
                 total: terms.margin_call_cvl,
                 disbursed: CVLPct::ZERO,
             };
-            assert!(matches!(facility_cvl.is_approval_allowed(terms), Ok(())));
+            assert!(facility_cvl.is_approval_allowed(terms));
         }
 
         #[test]
