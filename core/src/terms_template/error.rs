@@ -26,7 +26,7 @@ impl From<es_entity::EsEntityError> for TermsTemplateError {
             es_entity::EsEntityError::NotFound => TermsTemplateError::NotFound,
             es_entity::EsEntityError::UninitializedFieldError(e) => {
                 panic!(
-                    "Inconsistent data when initializing a Customer entity: {:?}",
+                    "Inconsistent data when initializing a TermsTemplate entity: {:?}",
                     e
                 )
             }

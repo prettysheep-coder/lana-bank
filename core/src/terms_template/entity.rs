@@ -27,11 +27,16 @@ pub struct TermsTemplate {
     pub id: TermsTemplateId,
     pub name: String,
     pub values: TermValues,
-    pub created_at: chrono::DateTime<chrono::Utc>,
     pub(super) events: EntityEvents<TermsTemplateEvent>,
 }
 
 impl TermsTemplate {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("TermsTemplate has never been persisted")
+    }
+
     pub fn update_values(&mut self, new_values: TermValues, audit_info: AuditInfo) {
         self.events.push(TermsTemplateEvent::TermValuesUpdated {
             values: new_values,

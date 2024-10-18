@@ -49,6 +49,10 @@ where
         &self.entity_id
     }
 
+    pub fn entity_first_persisted_at(&self) -> Option<DateTime<Utc>> {
+        self.persisted_events.first().map(|e| e.recorded_at)
+    }
+
     pub fn push(&mut self, event: T) {
         self.new_events.push(event);
     }
