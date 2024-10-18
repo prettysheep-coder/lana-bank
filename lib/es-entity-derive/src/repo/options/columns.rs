@@ -104,7 +104,20 @@ impl FromMeta for Columns {
                     };
                     Ok(column)
                 }
-                _ => Err(darling::Error::custom("Expected name-value pair").with_span(item)),
+                darling::ast::NestedMeta::Meta(meta @ syn::Meta::List(list)) => {
+                    let name = list.path.get_ident().cloned().ok_or_else(|| {
+                        darling::Error::custom("Expected identifier").with_span(&list.path)
+                    })?;
+                    let column = Column {
+                        name,
+                        opts: ColumnOpts::from_meta(meta)?,
+                    };
+                    Ok(column)
+                }
+                _ => Err(
+                    darling::Error::custom("Expected name-value pair or attribute list")
+                        .with_span(item),
+                ),
             })
             .collect::<Result<Vec<_>, _>>()?;
         Ok(Columns { all })
@@ -187,10 +200,14 @@ mod tests {
 
     #[test]
     fn columns_from_list() {
-        let input: syn::Meta = parse_quote!(columns(name = "String"));
+        let input: syn::Meta = parse_quote!(columns(
+            name = "String",
+            email(ty = "String", list_by = false)
+        ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
-        assert_eq!(columns.all.len(), 1);
-
+        assert_eq!(columns.all.len(), 2);
         assert_eq!(columns.all[0].name.to_string(), "name");
+        assert_eq!(columns.all[1].name.to_string(), "email");
+        assert!(!columns.all[1].opts.list_by());
     }
 }
