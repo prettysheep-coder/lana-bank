@@ -87,38 +87,7 @@ impl FromMeta for Columns {
     fn from_list(items: &[darling::ast::NestedMeta]) -> darling::Result<Self> {
         let all = items
             .iter()
-            .map(|item| match item {
-                darling::ast::NestedMeta::Meta(meta @ syn::Meta::NameValue(name_value)) => {
-                    let name = name_value.path.get_ident().cloned().ok_or_else(|| {
-                        darling::Error::custom("Expected identifier").with_span(&name_value.path)
-                    })?;
-                    let column = match name_value.value {
-                        syn::Expr::Lit(syn::ExprLit {
-                            lit: syn::Lit::Str(ref lit_str),
-                            ..
-                        }) => Column::new(name, syn::parse_str(&lit_str.value())?),
-                        _ => Column {
-                            name,
-                            opts: ColumnOpts::from_meta(meta)?,
-                        },
-                    };
-                    Ok(column)
-                }
-                darling::ast::NestedMeta::Meta(meta @ syn::Meta::List(list)) => {
-                    let name = list.path.get_ident().cloned().ok_or_else(|| {
-                        darling::Error::custom("Expected identifier").with_span(&list.path)
-                    })?;
-                    let column = Column {
-                        name,
-                        opts: ColumnOpts::from_meta(meta)?,
-                    };
-                    Ok(column)
-                }
-                _ => Err(
-                    darling::Error::custom("Expected name-value pair or attribute list")
-                        .with_span(item),
-                ),
-            })
+            .map(Column::from_nested_meta)
             .collect::<Result<Vec<_>, _>>()?;
         Ok(Columns { all })
     }
@@ -127,6 +96,42 @@ impl FromMeta for Columns {
 pub struct Column {
     name: syn::Ident,
     opts: ColumnOpts,
+}
+
+impl FromMeta for Column {
+    fn from_nested_meta(item: &darling::ast::NestedMeta) -> darling::Result<Self> {
+        match item {
+            darling::ast::NestedMeta::Meta(
+                meta @ syn::Meta::NameValue(syn::MetaNameValue {
+                    value:
+                        syn::Expr::Lit(syn::ExprLit {
+                            lit: syn::Lit::Str(ref lit_str),
+                            ..
+                        }),
+                    ..
+                }),
+            ) => {
+                let name = meta.path().get_ident().cloned().ok_or_else(|| {
+                    darling::Error::custom("Expected identifier").with_span(meta.path())
+                })?;
+                Ok(Column::new(name, syn::parse_str(&lit_str.value())?))
+            }
+            darling::ast::NestedMeta::Meta(meta @ syn::Meta::List(_)) => {
+                let name = meta.path().get_ident().cloned().ok_or_else(|| {
+                    darling::Error::custom("Expected identifier").with_span(meta.path())
+                })?;
+                let column = Column {
+                    name,
+                    opts: ColumnOpts::from_meta(meta)?,
+                };
+                Ok(column)
+            }
+            _ => Err(
+                darling::Error::custom("Expected name-value pair or attribute list")
+                    .with_span(item),
+            ),
+        }
+    }
 }
 
 impl Column {
