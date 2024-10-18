@@ -38,9 +38,8 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             .collect();
         let list_by_fns = opts
             .columns
-            .all
-            .iter()
-            .map(|c| list_by_fn::ListByFn::new(c.name().clone(), c.ty().clone(), opts))
+            .all_list_by()
+            .map(|c| list_by_fn::ListByFn::new(c.name(), c.ty(), opts))
             .collect();
 
         Self {

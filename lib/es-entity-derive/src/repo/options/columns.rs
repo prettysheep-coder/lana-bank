@@ -22,6 +22,12 @@ impl Columns {
             .filter_map(|c| if c.opts.find_by() { Some(c) } else { None })
     }
 
+    pub fn all_list_by(&self) -> impl Iterator<Item = &Column> {
+        self.all
+            .iter()
+            .filter_map(|c| if c.opts.list_by() { Some(c) } else { None })
+    }
+
     pub fn updates_needed(&self) -> bool {
         self.all.len() > 1
     }
@@ -135,6 +141,8 @@ pub struct ColumnOpts {
     ty: syn::Type,
     #[darling(default)]
     find_by: Option<bool>,
+    #[darling(default)]
+    list_by: Option<bool>,
 }
 
 impl ColumnOpts {
@@ -142,11 +150,16 @@ impl ColumnOpts {
         ColumnOpts {
             ty,
             find_by: Some(true),
+            list_by: Some(true),
         }
     }
 
     fn find_by(&self) -> bool {
         self.find_by.unwrap_or(true)
+    }
+
+    fn list_by(&self) -> bool {
+        self.list_by.unwrap_or(true)
     }
 }
 
