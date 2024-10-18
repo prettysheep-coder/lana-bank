@@ -34,9 +34,3 @@ pub fn es_repo_derive(input: TokenStream) -> TokenStream {
         Err(e) => e.write_errors().into(),
     }
 }
-
-#[proc_macro_derive(EsPLay, attributes(fn_or_field))]
-pub fn es_play_derive(input: TokenStream) -> TokenStream {
-    let ast = parse_macro_input!(input as syn::DeriveInput);
-    play::derive(ast).into()
-}

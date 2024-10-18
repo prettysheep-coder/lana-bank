@@ -1,3 +1,5 @@
+mod fields;
+
 use convert_case::{Case, Casing};
 use darling::{FromDeriveInput, FromMeta};
 use quote::quote;
@@ -8,7 +10,7 @@ use syn::{Expr, Ident, Type};
 pub struct RepositoryOptions {
     pub ident: syn::Ident,
     #[darling(default)]
-    pub indexes: Indexes,
+    pub columns: Indexes,
     #[darling(default)]
     pub post_persist_hook: Option<syn::Ident>,
 

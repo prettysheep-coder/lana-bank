@@ -8,7 +8,7 @@ pub struct PersistFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
     table_name: &'a str,
-    indexes: &'a Indexes,
+    columns: &'a Indexes,
     error: &'a syn::Type,
 }
 
@@ -18,7 +18,7 @@ impl<'a> From<&'a RepositoryOptions> for PersistFn<'a> {
             id: opts.id(),
             entity: opts.entity(),
             error: opts.err(),
-            indexes: &opts.indexes,
+            columns: &opts.columns,
             table_name: opts.table_name(),
         }
     }
@@ -29,15 +29,15 @@ impl<'a> ToTokens for PersistFn<'a> {
         let entity = self.entity;
         let error = self.error;
 
-        let update_tokens = if !self.indexes.columns.is_empty() {
-            let index_tokens = self.indexes.columns.iter().map(|column| {
+        let update_tokens = if !self.columns.columns.is_empty() {
+            let index_tokens = self.columns.columns.iter().map(|column| {
                 let ident = &column.name;
                 quote! {
                     let #ident = &entity.#ident;
                 }
             });
             let column_updates = self
-                .indexes
+                .columns
                 .columns
                 .iter()
                 .enumerate()
@@ -48,7 +48,7 @@ impl<'a> ToTokens for PersistFn<'a> {
                 "UPDATE {} SET {} WHERE id = $1",
                 self.table_name, column_updates,
             );
-            let args = self.indexes.query_args();
+            let args = self.columns.query_args();
             let id = &self.id;
             Some(quote! {
             let id = &entity.id;
@@ -118,7 +118,7 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let indexes = Indexes {
+        let columns = Indexes {
             columns: vec![IndexColumn {
                 name: Ident::new("name", Span::call_site()),
                 ty: syn::parse_str("String").unwrap(),
@@ -130,7 +130,7 @@ mod tests {
             table_name: "entities",
             id: &id,
             error: &error,
-            indexes: &indexes,
+            columns: &columns,
         };
 
         let mut tokens = TokenStream::new();
@@ -188,19 +188,19 @@ mod tests {
     }
 
     #[test]
-    fn persist_fn_no_indexes() {
+    fn persist_fn_no_columns() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let indexes = Indexes { columns: vec![] };
+        let columns = Indexes { columns: vec![] };
 
         let persist_fn = PersistFn {
             entity: &entity,
             table_name: "entities",
             id: &id,
             error: &error,
-            indexes: &indexes,
+            columns: &columns,
         };
 
         let mut tokens = TokenStream::new();

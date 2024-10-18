@@ -12,7 +12,7 @@ const BQ_TABLE_NAME: &str = "customer_events";
 #[es_repo(
     entity = "Customer",
     err = "CustomerError",
-    indexes(email = "String", telegram_id = "String"),
+    columns(email = "String", telegram_id = "String"),
     post_persist_hook = "export"
 )]
 pub struct CustomerRepo {

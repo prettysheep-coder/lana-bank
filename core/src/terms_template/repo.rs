@@ -12,7 +12,7 @@ const BQ_TABLE_NAME: &str = "terms_template_events";
 #[es_repo(
     entity = "TermsTemplate",
     err = "TermsTemplateError",
-    indexes(name = "String"),
+    columns(name = "String"),
     post_persist_hook = "export"
 )]
 pub struct TermsTemplateRepo {

@@ -9,7 +9,7 @@ pub struct CreateFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
     table_name: &'a str,
-    indexes: &'a Indexes,
+    columns: &'a Indexes,
     error: &'a syn::Type,
 }
 
@@ -21,7 +21,7 @@ impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
             id: opts.id(),
             entity: opts.entity(),
             error: opts.err(),
-            indexes: &opts.indexes,
+            columns: &opts.columns,
         }
     }
 }
@@ -33,7 +33,7 @@ impl<'a> ToTokens for CreateFn<'a> {
         let entity = self.entity;
         let error = self.error;
 
-        let index_tokens = self.indexes.columns.iter().map(|column| {
+        let index_tokens = self.columns.columns.iter().map(|column| {
             let ident = &column.name;
             quote! {
                 let #ident = &new_entity.#ident;
@@ -43,12 +43,12 @@ impl<'a> ToTokens for CreateFn<'a> {
         let table_name = self.table_name;
 
         let mut column_names = vec!["id".to_string()];
-        column_names.extend(self.indexes.columns.iter().map(|c| c.name.to_string()));
-        let placeholders = (1..=self.indexes.columns.len() + 1)
+        column_names.extend(self.columns.columns.iter().map(|c| c.name.to_string()));
+        let placeholders = (1..=self.columns.columns.len() + 1)
             .map(|i| format!("${}", i))
             .collect::<Vec<_>>()
             .join(", ");
-        let args = self.indexes.query_args();
+        let args = self.columns.query_args();
 
         let query = format!(
             "INSERT INTO {} ({}) VALUES ({})",
@@ -126,7 +126,7 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
-        let indexes = Indexes::default();
+        let columns = Indexes::default();
 
         let create_fn = CreateFn {
             new_entity: &new_entity,
@@ -134,7 +134,7 @@ mod tests {
             id: &id,
             entity: &entity,
             error: &error,
-            indexes: &indexes,
+            columns: &columns,
         };
 
         let mut tokens = TokenStream::new();
@@ -202,7 +202,7 @@ mod tests {
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
 
-        let indexes = Indexes {
+        let columns = Indexes {
             columns: vec![IndexColumn {
                 name: Ident::new("name", Span::call_site()),
                 ty: syn::parse_str("String").unwrap(),
@@ -215,7 +215,7 @@ mod tests {
             id: &id,
             entity: &entity,
             error: &error,
-            indexes: &indexes,
+            columns: &columns,
         };
 
         let mut tokens = TokenStream::new();
