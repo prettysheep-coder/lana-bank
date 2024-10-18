@@ -1,13 +1,12 @@
 use darling::{FromDeriveInput, ToTokens};
 use proc_macro2::TokenStream;
 use quote::{quote, TokenStreamExt};
-use syn::Path;
 
 #[derive(Debug, Clone, FromDeriveInput)]
 #[darling(attributes(es_event))]
 pub struct EsEvent {
     ident: syn::Ident,
-    id: Path,
+    id: syn::Type,
 }
 
 pub fn derive(ast: syn::DeriveInput) -> darling::Result<proc_macro2::TokenStream> {

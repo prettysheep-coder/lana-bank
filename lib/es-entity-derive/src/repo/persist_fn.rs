@@ -8,7 +8,7 @@ pub struct PersistFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
     table_name: &'a str,
-    columns: &'a Indexes,
+    columns: &'a Columns,
     error: &'a syn::Type,
 }
 
@@ -29,8 +29,8 @@ impl<'a> ToTokens for PersistFn<'a> {
         let entity = self.entity;
         let error = self.error;
 
-        let update_tokens = if !self.columns.columns.is_empty() {
-            let index_tokens = self.columns.columns.iter().map(|column| {
+        let update_tokens = if !self.columns.all.is_empty() {
+            let index_tokens = self.columns.all.iter().map(|column| {
                 let ident = &column.name;
                 quote! {
                     let #ident = &entity.#ident;
@@ -38,7 +38,7 @@ impl<'a> ToTokens for PersistFn<'a> {
             });
             let column_updates = self
                 .columns
-                .columns
+                .all
                 .iter()
                 .enumerate()
                 .map(|(idx, column)| format!("{} = ${}", column.name, idx + 2))
@@ -118,11 +118,11 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let columns = Indexes {
-            columns: vec![IndexColumn {
-                name: Ident::new("name", Span::call_site()),
-                ty: syn::parse_str("String").unwrap(),
-            }],
+        let columns = Columns {
+            all: vec![Column::new(
+                Ident::new("name", Span::call_site()),
+                syn::parse_str("String").unwrap(),
+            )],
         };
 
         let persist_fn = PersistFn {
@@ -193,7 +193,7 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
-        let columns = Indexes { columns: vec![] };
+        let columns = Columns::default();
 
         let persist_fn = PersistFn {
             entity: &entity,

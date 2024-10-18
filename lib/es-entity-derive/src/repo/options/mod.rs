@@ -1,16 +1,16 @@
-mod fields;
+mod columns;
 
 use convert_case::{Case, Casing};
-use darling::{FromDeriveInput, FromMeta};
-use quote::quote;
-use syn::{Expr, Ident, Type};
+use darling::FromDeriveInput;
 
-#[derive(Debug, FromDeriveInput)]
+pub use columns::*;
+
+#[derive(FromDeriveInput)]
 #[darling(attributes(es_repo), map = "Self::update_defaults")]
 pub struct RepositoryOptions {
     pub ident: syn::Ident,
     #[darling(default)]
-    pub columns: Indexes,
+    pub columns: Columns,
     #[darling(default)]
     pub post_persist_hook: Option<syn::Ident>,
 
@@ -97,69 +97,5 @@ impl RepositoryOptions {
 
     pub fn err(&self) -> &syn::Type {
         self.err_ty.as_ref().expect("Error identifier is not set")
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct Indexes {
-    pub columns: Vec<IndexColumn>,
-}
-
-#[derive(Debug)]
-pub struct IndexColumn {
-    pub name: Ident,
-    pub ty: Type,
-}
-
-impl Indexes {
-    pub fn query_args(&self) -> Vec<proc_macro2::TokenStream> {
-        self.columns
-            .iter()
-            .map(|column| {
-                let ident = &column.name;
-                let ty = &column.ty;
-                quote! {
-                    #ident as &#ty
-                }
-            })
-            .collect()
-    }
-}
-
-impl FromMeta for Indexes {
-    fn from_list(items: &[darling::ast::NestedMeta]) -> darling::Result<Self> {
-        let columns = items
-            .iter()
-            .map(|item| match item {
-                darling::ast::NestedMeta::Meta(syn::Meta::NameValue(name_value)) => {
-                    let name = name_value.path.get_ident().cloned().ok_or_else(|| {
-                        darling::Error::custom("Expected identifier").with_span(&name_value.path)
-                    })?;
-                    let ty: Type = match &name_value.value {
-                        Expr::Path(syn::ExprPath { path, .. }) => Ok(Type::Path(syn::TypePath {
-                            qself: None,
-                            path: path.clone(),
-                        })),
-                        Expr::Lit(expr_lit) => {
-                            if let syn::Lit::Str(lit_str) = &expr_lit.lit {
-                                syn::parse_str(&lit_str.value()).map_err(|_| {
-                                    darling::Error::custom("Invalid type").with_span(&expr_lit.lit)
-                                })
-                            } else {
-                                Err(darling::Error::custom("Expected string literal for type")
-                                    .with_span(&expr_lit.lit))
-                            }
-                        }
-                        _ => Err(darling::Error::custom(
-                            "Expected path or string literal for type",
-                        )
-                        .with_span(&name_value.value)),
-                    }?;
-                    Ok(IndexColumn { name, ty })
-                }
-                _ => Err(darling::Error::custom("Expected name-value pair").with_span(item)),
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(Indexes { columns })
     }
 }

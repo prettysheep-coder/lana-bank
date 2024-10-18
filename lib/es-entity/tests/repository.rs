@@ -5,7 +5,11 @@ use es_entity::*;
 use user_entity::*;
 
 #[derive(EsRepo)]
-#[es_repo(entity = "User", columns(email = String), post_persist_hook = export)]
+#[es_repo(
+    entity = "User",
+    columns(email = "String"),
+    post_persist_hook = "export"
+)]
 pub struct Users {
     pool: sqlx::PgPool,
 }

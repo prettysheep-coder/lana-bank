@@ -16,7 +16,7 @@ impl From<uuid::Uuid> for UserId {
 
 #[derive(EsEvent, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = UserId)]
+#[es_event(id = "UserId")]
 pub enum UserEvent {
     Initialized { id: UserId, email: String },
 }

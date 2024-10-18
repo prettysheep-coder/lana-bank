@@ -41,15 +41,15 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             syn::parse_str(&opts.id().to_string()).expect("failed to parse id type"),
             opts,
         )];
-        for i in opts.columns.columns.iter() {
+        for i in opts.columns.all.iter() {
             find_by_fns.push(find_by_fn::FindByFn::new(
                 i.name.clone(),
-                i.ty.clone(),
+                i.opts.ty.clone(),
                 opts,
             ));
             list_by_fns.push(list_by_fn::ListByFn::new(
                 i.name.clone(),
-                i.ty.clone(),
+                i.opts.ty.clone(),
                 opts,
             ));
         }

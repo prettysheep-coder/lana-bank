@@ -9,7 +9,7 @@ pub struct CreateFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
     table_name: &'a str,
-    columns: &'a Indexes,
+    columns: &'a Columns,
     error: &'a syn::Type,
 }
 
@@ -33,7 +33,7 @@ impl<'a> ToTokens for CreateFn<'a> {
         let entity = self.entity;
         let error = self.error;
 
-        let index_tokens = self.columns.columns.iter().map(|column| {
+        let index_tokens = self.columns.all.iter().map(|column| {
             let ident = &column.name;
             quote! {
                 let #ident = &new_entity.#ident;
@@ -43,8 +43,8 @@ impl<'a> ToTokens for CreateFn<'a> {
         let table_name = self.table_name;
 
         let mut column_names = vec!["id".to_string()];
-        column_names.extend(self.columns.columns.iter().map(|c| c.name.to_string()));
-        let placeholders = (1..=self.columns.columns.len() + 1)
+        column_names.extend(self.columns.all.iter().map(|c| c.name.to_string()));
+        let placeholders = (1..=self.columns.all.len() + 1)
             .map(|i| format!("${}", i))
             .collect::<Vec<_>>()
             .join(", ");
@@ -126,7 +126,7 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
-        let columns = Indexes::default();
+        let columns = Columns::default();
 
         let create_fn = CreateFn {
             new_entity: &new_entity,
@@ -202,11 +202,11 @@ mod tests {
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
 
-        let columns = Indexes {
-            columns: vec![IndexColumn {
-                name: Ident::new("name", Span::call_site()),
-                ty: syn::parse_str("String").unwrap(),
-            }],
+        let columns = Columns {
+            all: vec![Column::new(
+                Ident::new("name", Span::call_site()),
+                syn::parse_str("String").unwrap(),
+            )],
         };
 
         let create_fn = CreateFn {
