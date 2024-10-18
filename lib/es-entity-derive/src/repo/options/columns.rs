@@ -16,6 +16,12 @@ impl Columns {
         self.all = all;
     }
 
+    pub fn all_find_by(&self) -> impl Iterator<Item = &Column> {
+        self.all
+            .iter()
+            .filter_map(|c| if c.opts.find_by() { Some(c) } else { None })
+    }
+
     pub fn updates_needed(&self) -> bool {
         self.all.len() > 1
     }
@@ -108,6 +114,14 @@ impl Column {
 }
 
 impl Column {
+    pub fn name(&self) -> &syn::Ident {
+        &self.name
+    }
+
+    pub fn ty(&self) -> &syn::Type {
+        &self.opts.ty
+    }
+
     fn variable_assignment(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
         quote! {
@@ -118,12 +132,21 @@ impl Column {
 
 #[derive(FromMeta)]
 pub struct ColumnOpts {
-    pub ty: syn::Type,
+    ty: syn::Type,
+    #[darling(default)]
+    find_by: Option<bool>,
 }
 
 impl ColumnOpts {
     fn new(ty: syn::Type) -> Self {
-        ColumnOpts { ty }
+        ColumnOpts {
+            ty,
+            find_by: Some(true),
+        }
+    }
+
+    fn find_by(&self) -> bool {
+        self.find_by.unwrap_or(true)
     }
 }
 

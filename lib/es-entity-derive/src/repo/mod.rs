@@ -33,15 +33,14 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         let find_by_fns = opts
             .columns
-            .all
-            .iter()
-            .map(|c| find_by_fn::FindByFn::new(c.name.clone(), c.opts.ty.clone(), opts))
+            .all_find_by()
+            .map(|c| find_by_fn::FindByFn::new(c.name(), c.ty(), opts))
             .collect();
         let list_by_fns = opts
             .columns
             .all
             .iter()
-            .map(|c| list_by_fn::ListByFn::new(c.name.clone(), c.opts.ty.clone(), opts))
+            .map(|c| list_by_fn::ListByFn::new(c.name().clone(), c.ty().clone(), opts))
             .collect();
 
         Self {

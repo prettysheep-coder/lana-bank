@@ -7,8 +7,8 @@ use super::options::*;
 pub struct FindByFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
-    column_name: syn::Ident,
-    column_type: syn::Type,
+    column_name: &'a syn::Ident,
+    column_type: &'a syn::Type,
     table_name: &'a str,
     events_table_name: &'a str,
     error: &'a syn::Type,
@@ -16,8 +16,8 @@ pub struct FindByFn<'a> {
 
 impl<'a> FindByFn<'a> {
     pub fn new(
-        column_name: syn::Ident,
-        column_type: syn::Type,
+        column_name: &'a syn::Ident,
+        column_type: &'a syn::Type,
         opts: &'a RepositoryOptions,
     ) -> Self {
         Self {
@@ -92,19 +92,20 @@ impl<'a> ToTokens for FindByFn<'a> {
 mod tests {
     use super::*;
     use proc_macro2::Span;
-    use syn::Ident;
+    use syn::{parse_quote, Ident};
 
     #[test]
     fn find_by_fn() {
         let id_type = Ident::new("EntityId", Span::call_site());
-        let column_type = syn::parse_str("EntityId").unwrap();
+        let column_name = parse_quote!(id);
+        let column_type = parse_quote!(EntityId);
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
             id: &id_type,
-            column_name: Ident::new("id", Span::call_site()),
-            column_type,
+            column_name: &column_name,
+            column_type: &column_type,
             entity: &entity,
             table_name: "entities",
             events_table_name: "entity_events",
