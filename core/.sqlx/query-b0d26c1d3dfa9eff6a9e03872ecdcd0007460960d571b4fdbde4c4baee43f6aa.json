@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT w.id AS entity_id, e.sequence, e.event, e.recorded_at \n               FROM withdraws w\n               JOIN withdraw_events e ON w.id = e.id\n               WHERE w.customer_id = $1\n               ORDER BY w.id, e.sequence",
+  "query": "WITH entities AS (SELECT reference, id FROM withdraws WHERE ((reference, id) > ($3, $2)) OR $2 IS NULL ORDER BY reference, id LIMIT $1) SELECT i.id AS \"entity_id: WithdrawId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN withdraw_events e ON i.id = e.id ORDER BY i.reference, i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id",
+        "name": "entity_id: WithdrawId",
         "type_info": "Uuid"
       },
       {
@@ -26,7 +26,9 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Int8",
+        "Uuid",
+        "Text"
       ]
     },
     "nullable": [
@@ -36,5 +38,5 @@
       false
     ]
   },
-  "hash": "03eca89e75ff108d7dd80110eee228cd1dbb80ba931e0a7a6dd1f153a9f20d60"
+  "hash": "b0d26c1d3dfa9eff6a9e03872ecdcd0007460960d571b4fdbde4c4baee43f6aa"
 }
