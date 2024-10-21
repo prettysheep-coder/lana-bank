@@ -38,21 +38,15 @@ impl WithdrawRepo {
         &self,
         customer_id: CustomerId,
     ) -> Result<Vec<Withdraw>, WithdrawError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"SELECT w.id AS entity_id, e.sequence, e.event, e.recorded_at 
-               FROM withdraws w
-               JOIN withdraw_events e ON w.id = e.id
-               WHERE w.customer_id = $1
-               ORDER BY w.id, e.sequence"#,
+        let (withdraws, _) = es_entity::es_query!(
+            &self.pool,
+            "SELECT id FROM withdraws WHERE customer_id = $1",
             customer_id as CustomerId,
         )
-        .fetch_all(&self.pool)
+        .fetch_n(usize::MAX)
         .await?;
 
-        let n = rows.len();
-        let deposits = EntityEvents::load_n(rows, n)?;
-        Ok(deposits.0)
+        Ok(withdraws)
     }
 
     async fn export(
