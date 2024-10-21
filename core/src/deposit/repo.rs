@@ -7,7 +7,7 @@ use crate::{
     primitives::{CustomerId, DepositId},
 };
 
-use super::{entity::*, error::*, DepositCursor};
+use super::{entity::*, error::*};
 
 const BQ_TABLE_NAME: &str = "deposit_events";
 
@@ -47,46 +47,6 @@ impl DepositRepo {
         .await?;
 
         Ok(deposits)
-    }
-
-    pub async fn list(
-        &self,
-        query: crate::query::PaginatedQueryArgs<DepositCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Deposit, DepositCursor>, DepositError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"
-        WITH deposits AS (
-            SELECT id, created_at
-            FROM deposits
-            WHERE created_at < $1 OR $1 IS NULL
-            ORDER BY created_at DESC
-            LIMIT $2
-        )
-        SELECT d.id as entity_id, e.sequence, e.event, e.recorded_at
-        FROM deposits d
-        JOIN deposit_events e ON d.id = e.id
-        ORDER BY d.created_at DESC, d.id, e.sequence"#,
-            query.after.map(|c| c.deposit_created_at),
-            query.first as i64 + 1
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        let (entities, has_next_page) = EntityEvents::load_n::<Deposit>(rows, query.first)?;
-
-        let mut end_cursor = None;
-        if let Some(last) = entities.last() {
-            end_cursor = Some(DepositCursor {
-                deposit_created_at: last.created_at(),
-            });
-        }
-
-        Ok(crate::query::PaginatedQueryRet {
-            entities,
-            has_next_page,
-            end_cursor,
-        })
     }
 
     async fn export(
