@@ -266,6 +266,13 @@ impl CreditFacility {
             .await
             .is_ok())
     }
+
+    async fn potential_approvers(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let users = app.credit_facilities().list_potential_approvers().await?;
+
+        Ok(users.into_iter().map(User::from).collect())
+    }
 }
 
 #[derive(SimpleObject)]

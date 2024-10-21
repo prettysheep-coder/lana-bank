@@ -222,6 +222,7 @@ export type CreditFacility = {
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
+  potentialApprovers: Array<User>;
   status: CreditFacilityStatus;
   transactions: Array<CreditFacilityHistoryEntry>;
   userCanApprove: Scalars['Boolean']['output'];

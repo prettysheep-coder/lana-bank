@@ -23,7 +23,7 @@ use crate::{
         UserId,
     },
     terms::TermValues,
-    user::{UserRepo, Users},
+    user::{User, UserRepo, Users},
 };
 
 pub use config::*;
@@ -662,5 +662,26 @@ impl CreditFacilities {
 
         let disbursements = self.disbursement_repo.list(credit_facility_id).await?;
         Ok(disbursements)
+    }
+
+    pub async fn list_potential_approvers(&self) -> Result<Vec<User>, CreditFacilityError> {
+        // self.authz
+        //         .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+        //         .await?;
+        
+        let users = self.user_repo.list().await?;
+        let mut potential_approvers = Vec::new();
+
+        for user in users {
+            if self
+                .user_can_approve(&Subject::User(user.id), false)
+                .await
+                .is_ok()
+            {
+                potential_approvers.push(user);
+            }
+        }
+
+        Ok(potential_approvers)
     }
 }
