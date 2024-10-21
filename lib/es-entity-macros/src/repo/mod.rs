@@ -97,14 +97,14 @@ impl<'a> ToTokens for EsRepo<'a> {
                 }
 
                 impl QueryRes {
-                    pub(super) async fn fetch_one<'a>(
+                    pub(super) async fn fetch_one(
                         self,
                     ) -> Result<Repo__Entity, Repo__Error>
                     {
                         Ok(es_entity::EntityEvents::load_first(self.rows.into_iter())?)
                     }
 
-                    pub(super) async fn fetch_n<'a>(
+                    pub(super) async fn fetch_n(
                         self,
                         first: usize,
                     ) -> Result<(Vec<Repo__Entity>, bool), Repo__Error>
