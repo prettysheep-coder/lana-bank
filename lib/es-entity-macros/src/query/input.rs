@@ -25,6 +25,33 @@ impl QueryInput {
         let table_name = table_name.trim_end_matches(|c: char| !c.is_alphanumeric());
         Ok(table_name.to_string())
     }
+
+    pub(super) fn order_by(&self) -> String {
+        let columns = self.order_by_columns();
+        if columns.is_empty() {
+            return "i.id,".to_string();
+        } else {
+            return columns.join(", ") + ", i.id,";
+        }
+    }
+
+    fn order_by_columns(&self) -> Vec<String> {
+        use regex::Regex;
+        let re = Regex::new(r"(?i)ORDER\s+BY\s+(.+?)(?:\s+(?:LIMIT|OFFSET)|\s*;?\s*$)").unwrap();
+
+        if let Some(captures) = re.captures(&self.sql.to_lowercase()) {
+            if let Some(order_by_clause) = captures.get(1) {
+                return order_by_clause
+                    .as_str()
+                    .split(',')
+                    .map(|s| format!("i.{}", s.trim()))
+                    .filter(|s| !s.is_empty())
+                    .collect();
+            }
+        }
+
+        Vec::new()
+    }
 }
 
 impl Parse for QueryInput {
@@ -91,5 +118,47 @@ mod tests {
         assert_eq!(input.sql, "SELECT * FROM users WHERE name = $1");
         assert_eq!(input.executor, parse_quote!(&mut **tx));
         assert_eq!(input.arg_exprs[0], parse_quote!(id));
+    }
+
+    #[test]
+    fn test_order_by_columns() {
+        let test_cases =
+            vec![
+            (
+                "SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1",
+                vec!["i.id"],
+            ),
+            (
+                "select id from entities order by name asc, date desc",
+                vec!["i.name asc", "i.date desc"],
+            ),
+            ("SELECT TOP 10 id FROM entities Order By id", vec!["i.id"]),
+            ("select id from entities ORDER BY id offset 10", vec!["i.id"]),
+            ("SELECT id FROM entities orDer bY id;", vec!["i.id"]),
+            (
+                "SELECT * FROM users WHERE age > 18 ORDER BY last_name, first_name DESC LIMIT 10",
+                vec!["i.last_name", "i.first_name desc"],
+            ),
+            (
+                "SELECT * FROM products ORDER BY price ASC, stock DESC, name",
+                vec!["i.price asc", "i.stock desc", "i.name"],
+            ),
+            ("SELECT * FROM orders", vec![]),
+        ];
+
+        for (sql, expected) in test_cases {
+            let input = QueryInput {
+                executor: parse_quote!(&mut **tx),
+                sql: sql.to_string(),
+                sql_span: Span::call_site(),
+                arg_exprs: vec![],
+            };
+            assert_eq!(
+                input.order_by_columns(),
+                expected,
+                "Failed for SQL: {}",
+                sql
+            );
+        }
     }
 }
