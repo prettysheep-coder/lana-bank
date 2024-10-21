@@ -24,4 +24,20 @@ pub enum WithdrawError {
     InsufficientBalance(UsdCents, UsdCents),
     #[error("WithdrawError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("WithdrawError - NotFound")]
+    NotFound,
+}
+
+impl From<es_entity::EsEntityError> for WithdrawError {
+    fn from(e: es_entity::EsEntityError) -> Self {
+        match e {
+            es_entity::EsEntityError::NotFound => WithdrawError::NotFound,
+            es_entity::EsEntityError::UninitializedFieldError(e) => {
+                panic!(
+                    "Inconsistent data when initializing a Customer entity: {:?}",
+                    e
+                )
+            }
+        }
+    }
 }

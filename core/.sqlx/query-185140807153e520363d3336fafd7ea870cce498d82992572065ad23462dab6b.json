@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT w.id, e.sequence, e.event,\n                      w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM withdraws w\n            JOIN withdraw_events e ON w.id = e.id\n            WHERE w.id = $1\n            ORDER BY e.sequence",
+  "query": "SELECT i.id AS \"id: WithdrawId\", e.sequence, e.event, e.recorded_at FROM withdraws i JOIN withdraw_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
+        "name": "id: WithdrawId",
         "type_info": "Uuid"
       },
       {
@@ -20,12 +20,7 @@
       },
       {
         "ordinal": 3,
-        "name": "entity_created_at",
-        "type_info": "Timestamptz"
-      },
-      {
-        "ordinal": 4,
-        "name": "event_recorded_at",
+        "name": "recorded_at",
         "type_info": "Timestamptz"
       }
     ],
@@ -38,9 +33,8 @@
       false,
       false,
       false,
-      false,
       false
     ]
   },
-  "hash": "730b6cb18d1aa2547a0a4a60d258704265dca51e9a551d0155d7285c427bcdc0"
+  "hash": "185140807153e520363d3336fafd7ea870cce498d82992572065ad23462dab6b"
 }
