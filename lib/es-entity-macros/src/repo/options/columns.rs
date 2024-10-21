@@ -207,8 +207,14 @@ impl ColumnOpts {
     }
 
     fn accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
-        quote! {
-            #name
+        if let Some(both) = &self.accessor.both {
+            quote! {
+                #both
+            }
+        } else {
+            quote! {
+                #name
+            }
         }
     }
 
@@ -226,6 +232,7 @@ impl ColumnOpts {
 #[derive(Default, FromMeta)]
 struct Accessor {
     new: Option<syn::Expr>,
+    both: Option<syn::Expr>,
 }
 
 #[cfg(test)]
@@ -253,7 +260,7 @@ mod tests {
     fn columns_from_list() {
         let input: syn::Meta = parse_quote!(columns(
             name = "String",
-            email(ty = "String", list_by = false)
+            email(ty = "String", list_by = false, accessor(both = "email()"))
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
         assert_eq!(columns.all.len(), 2);
@@ -262,5 +269,12 @@ mod tests {
 
         assert_eq!(columns.all[1].name.to_string(), "email");
         assert!(!columns.all[1].opts.list_by());
+        assert_eq!(
+            columns.all[1]
+                .opts
+                .accessor(&parse_quote!(email))
+                .to_string(),
+            quote!(email()).to_string()
+        );
     }
 }
