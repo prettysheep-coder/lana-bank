@@ -29,9 +29,9 @@ impl QueryInput {
     pub(super) fn order_by(&self) -> String {
         let columns = self.order_by_columns();
         if columns.is_empty() {
-            return "i.id,".to_string();
+            "i.id,".to_string()
         } else {
-            return columns.join(", ") + ", i.id,";
+            columns.join(", ") + ", i.id,"
         }
     }
 
