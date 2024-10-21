@@ -66,13 +66,13 @@ impl<'a> ToTokens for FindByFn<'a> {
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
                 #column_name: #column_type
             ) -> Result<#entity, #error> {
-                Ok(es_entity::es_query!(
+                es_entity::es_query!(
                         executor,
                         #query,
                         #column_name as #column_type,
                 )
                     .fetch_one()
-                    .await?)
+                    .await
             }
         });
     }
@@ -123,13 +123,13 @@ mod tests {
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
                 id: EntityId
             ) -> Result<Entity, es_entity::EsRepoError> {
-                Ok(es_entity::es_query!(
+                es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
                         id as EntityId,
                 )
                     .fetch_one()
-                    .await?)
+                    .await
             }
         };
 
