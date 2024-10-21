@@ -82,6 +82,8 @@ impl<'a> ToTokens for EsRepo<'a> {
             }
 
             mod repo_types {
+                #![allow(non_camel_case_types)]
+
                 use super::*;
 
                 pub(super) type Repo__Id = #id;
@@ -113,6 +115,8 @@ impl<'a> ToTokens for EsRepo<'a> {
             }
 
             impl #repo {
+                #![allow(non_camel_case_types)]
+
                 #[inline(always)]
                 fn pool(&self) -> &sqlx::PgPool {
                     &self.pool

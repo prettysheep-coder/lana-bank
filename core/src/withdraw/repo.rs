@@ -15,7 +15,10 @@ const BQ_TABLE_NAME: &str = "withdraw_events";
 #[es_repo(
     entity = "Withdraw",
     err = "WithdrawError",
-    columns(customer_id = "CustomerId", reference = "String"),
+    columns(
+        customer_id = "CustomerId",
+        reference(ty = "String", accessor(new = "reference()")),
+    ),
     post_persist_hook = "export"
 )]
 pub struct WithdrawRepo {

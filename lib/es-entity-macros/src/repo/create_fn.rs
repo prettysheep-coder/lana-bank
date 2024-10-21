@@ -32,7 +32,7 @@ impl<'a> ToTokens for CreateFn<'a> {
 
         let assignments = self
             .columns
-            .variable_assignments(syn::parse_quote! { new_entity });
+            .variable_assignments_for_create(syn::parse_quote! { new_entity });
 
         let table_name = self.table_name;
 
@@ -192,7 +192,7 @@ mod tests {
         use darling::FromMeta;
         let input: syn::Meta = syn::parse_quote!(columns(
             id = "EntityId",
-            name(ty = "String", expr = "name()")
+            name(ty = "String", accessor(new = "name()"))
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
 
