@@ -15,6 +15,8 @@ use crate::{
 pub use config::*;
 pub use entity::*;
 use error::UserError;
+use es_entity::PaginatedQueryArgs;
+use repo::cursor::UserByEmailCursor;
 pub use repo::UserRepo;
 
 #[derive(Clone)]
@@ -149,6 +151,32 @@ impl Users {
             .await?;
 
         self.repo.list_by_email(query).await
+        let mut all_users = Vec::new();
+        let mut user: Option<&User> = None;
+        loop {
+            let after = user.and_then(|user| {
+                Some(UserByEmailCursor {
+                    id: user.id,
+                    email: user.email.clone(),
+                })
+            });
+            let page_args = PaginatedQueryArgs { first: 100, after };
+            let page_result = self.repo.list_by_email(page_args).await?;
+            let users = page_result.entities;
+            if users.is_empty() {
+                break;
+            }
+
+            all_users.extend(users);
+
+            user = all_users.last();
+            if user.is_none() {
+                break;
+            }
+        }
+
+        Ok(all_users)
+>>>>>>> 85b13526 (refactor: change 'list_users' to use 'list_by_email' query)
     }
 
     pub async fn can_assign_role_to_user(
