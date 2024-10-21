@@ -38,21 +38,15 @@ impl DepositRepo {
         &self,
         customer_id: CustomerId,
     ) -> Result<Vec<Deposit>, DepositError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"SELECT w.id as entity_id , e.sequence, e.event, e.recorded_at
-               FROM deposits w
-               JOIN deposit_events e ON w.id = e.id
-               WHERE w.customer_id = $1
-               ORDER BY w.id, e.sequence"#,
+        let (deposits, _) = es_entity::es_query!(
+            &self.pool,
+            "SELECT id FROM deposits WHERE customer_id = $1",
             customer_id as CustomerId,
         )
-        .fetch_all(&self.pool)
+        .fetch_n(usize::MAX)
         .await?;
 
-        let n = rows.len();
-        let deposits = EntityEvents::load_n(rows, n)?;
-        Ok(deposits.0)
+        Ok(deposits)
     }
 
     pub async fn list(
