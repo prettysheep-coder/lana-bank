@@ -1,8 +1,9 @@
 use sqlx::PgPool;
 
+use es_entity::*;
+
 use crate::{
     data_export::Export,
-    entity::*,
     primitives::{CustomerId, DepositId},
 };
 
@@ -10,7 +11,16 @@ use super::{entity::*, error::*, DepositCursor};
 
 const BQ_TABLE_NAME: &str = "deposit_events";
 
-#[derive(Clone)]
+#[derive(EsRepo, Clone)]
+#[es_repo(
+    entity = "Deposit",
+    err = "DepositError",
+    columns(
+        customer_id = "CustomerId",
+        reference(ty = "String", accessor(new = "reference()"))
+    ),
+    post_persist_hook = "export"
+)]
 pub struct DepositRepo {
     pool: PgPool,
     export: Export,
@@ -24,57 +34,13 @@ impl DepositRepo {
         }
     }
 
-    pub(super) async fn create_in_tx(
-        &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        new_deposit: NewDeposit,
-    ) -> Result<Deposit, DepositError> {
-        sqlx::query!(
-            r#"INSERT INTO deposits (id, customer_id, reference)
-            VALUES ($1, $2, $3)"#,
-            new_deposit.id as DepositId,
-            new_deposit.customer_id as CustomerId,
-            new_deposit.reference()
-        )
-        .execute(&mut **db)
-        .await?;
-        let mut events = new_deposit.initial_events();
-        let n_events = events.persist(db).await?;
-        self.export
-            .export_last(db, BQ_TABLE_NAME, n_events, &events)
-            .await?;
-        let deposit = Deposit::try_from(events)?;
-        Ok(deposit)
-    }
-
-    pub async fn find_by_id(&self, id: DepositId) -> Result<Deposit, DepositError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"SELECT w.id, e.sequence, e.event,
-               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
-               FROM deposits w
-               JOIN deposit_events e ON w.id = e.id
-               WHERE w.id = $1"#,
-            id as DepositId,
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        match EntityEvents::load_first(rows) {
-            Ok(deposit) => Ok(deposit),
-            Err(EntityError::NoEntityEventsPresent) => Err(DepositError::CouldNotFindById(id)),
-            Err(e) => Err(e.into()),
-        }
-    }
-
     pub async fn list_for_customer(
         &self,
         customer_id: CustomerId,
     ) -> Result<Vec<Deposit>, DepositError> {
         let rows = sqlx::query_as!(
             GenericEvent,
-            r#"SELECT w.id, e.sequence, e.event,
-               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            r#"SELECT w.id as entity_id , e.sequence, e.event, e.recorded_at
                FROM deposits w
                JOIN deposit_events e ON w.id = e.id
                WHERE w.customer_id = $1
@@ -103,8 +69,7 @@ impl DepositRepo {
             ORDER BY created_at DESC
             LIMIT $2
         )
-        SELECT d.id, e.sequence, e.event,
-            d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+        SELECT d.id as entity_id, e.sequence, e.event, e.recorded_at
         FROM deposits d
         JOIN deposit_events e ON d.id = e.id
         ORDER BY d.created_at DESC, d.id, e.sequence"#,
@@ -128,5 +93,16 @@ impl DepositRepo {
             has_next_page,
             end_cursor,
         })
+    }
+
+    async fn export(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        events: impl Iterator<Item = &PersistedEvent<DepositEvent>>,
+    ) -> Result<(), DepositError> {
+        self.export
+            .es_entity_export(db, BQ_TABLE_NAME, events)
+            .await?;
+        Ok(())
     }
 }
