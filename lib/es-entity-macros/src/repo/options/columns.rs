@@ -141,9 +141,7 @@ impl Column {
             opts: ColumnOpts::new(ty),
         }
     }
-}
 
-impl Column {
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }
@@ -154,15 +152,24 @@ impl Column {
 
     fn variable_assignment(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
+        let expr = self.expr();
         quote! {
-            let #name = &#ident.#name;
+            let #name = &#ident.#expr;
         }
+    }
+
+    fn expr(&self) -> syn::Expr {
+        let name = &self.name;
+        self.opts.expr.clone().unwrap_or_else(|| {
+            syn::parse_quote! { #name }
+        })
     }
 }
 
 #[derive(FromMeta)]
 struct ColumnOpts {
     ty: syn::Type,
+    expr: Option<syn::Expr>,
     #[darling(default)]
     find_by: Option<bool>,
     #[darling(default)]
@@ -173,6 +180,7 @@ impl ColumnOpts {
     fn new(ty: syn::Type) -> Self {
         ColumnOpts {
             ty,
+            expr: None,
             find_by: None,
             list_by: None,
         }
@@ -196,11 +204,16 @@ mod tests {
 
     #[test]
     fn column_opts_from_list() {
-        let input: syn::Meta = parse_quote!(thing(ty = "crate::module::Thing", list_by = false));
+        let input: syn::Meta = parse_quote!(thing(
+            ty = "crate::module::Thing",
+            list_by = false,
+            expr = "accessor_fn()"
+        ));
         let values = ColumnOpts::from_meta(&input).expect("Failed to parse Field");
         assert_eq!(values.ty, parse_quote!(crate::module::Thing));
         assert!(!values.list_by());
         assert!(values.find_by());
+        assert_eq!(values.expr.unwrap(), parse_quote!(accessor_fn()));
     }
 
     #[test]
@@ -211,7 +224,10 @@ mod tests {
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
         assert_eq!(columns.all.len(), 2);
+
         assert_eq!(columns.all[0].name.to_string(), "name");
+        assert_eq!(columns.all[0].expr(), parse_quote!(name));
+
         assert_eq!(columns.all[1].name.to_string(), "email");
         assert!(!columns.all[1].opts.list_by());
     }

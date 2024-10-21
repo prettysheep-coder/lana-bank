@@ -184,19 +184,17 @@ mod tests {
     }
 
     #[test]
-    fn create_fn_with_index() {
+    fn create_fn_with_columns() {
         let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
-        let id = Ident::new("EntityId", Span::call_site());
 
-        let columns = Columns::new(
-            &id,
-            [Column::new(
-                Ident::new("name", Span::call_site()),
-                syn::parse_str("String").unwrap(),
-            )],
-        );
+        use darling::FromMeta;
+        let input: syn::Meta = syn::parse_quote!(columns(
+            id = "EntityId",
+            name(ty = "String", expr = "name()")
+        ));
+        let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
 
         let create_fn = CreateFn {
             new_entity: &new_entity,
@@ -245,7 +243,7 @@ mod tests {
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = &new_entity.id;
-                let name = &new_entity.name;
+                let name = &new_entity.name();
 
                 sqlx::query!("INSERT INTO entities (id, name) VALUES ($1, $2)",
                     id as &EntityId,
