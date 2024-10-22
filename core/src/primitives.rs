@@ -11,6 +11,7 @@ crate::entity_id! { UserId }
 crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { DepositId }
+crate::entity_id! { CommitteeId }
 crate::entity_id! { DocumentId }
 crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }
@@ -643,4 +644,11 @@ mod test {
 pub enum CollateralAction {
     Add,
     Remove,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, sqlx::Type)]
+#[sqlx(rename_all = "snake_case")]
+pub enum ApprovalProcessType {
+    CreditFacilityApproval,
+    CreditFacilityDisbursement,
 }

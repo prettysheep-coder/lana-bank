@@ -25,6 +25,7 @@ pub enum Action {
     Ledger(LedgerAction),
     CreditFacility(CreditFacilityAction),
     Document(DocumentAction),
+    Committee(CommitteeAction),
 }
 
 impl Display for Action {
@@ -43,6 +44,7 @@ impl Display for Action {
             Ledger(action) => action.fmt(f),
             CreditFacility(action) => action.fmt(f),
             Document(action) => action.fmt(f),
+            Committee(action) => action.fmt(f),
         }
     }
 }
@@ -67,6 +69,7 @@ impl FromStr for Action {
             Ledger => Action::from(action.parse::<LedgerAction>()?),
             CreditFacility => Action::from(action.parse::<CreditFacilityAction>()?),
             Document => Action::from(action.parse::<DocumentAction>()?),
+            Committee => Action::from(action.parse::<CommitteeAction>()?),
         };
         Ok(res)
     }
@@ -208,6 +211,16 @@ pub enum LedgerAction {
 }
 
 impl_trivial_action!(LedgerAction, Ledger);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CommitteeAction {
+    Create,
+    AddUser,
+    RemoveUser,
+}
+
+impl_trivial_action!(CommitteeAction, Committee);
 
 #[cfg(test)]
 mod test {

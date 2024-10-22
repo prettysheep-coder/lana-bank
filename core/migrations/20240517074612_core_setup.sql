@@ -143,6 +143,21 @@ CREATE TABLE deposit_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE committees (
+  id UUID PRIMARY KEY,
+  approval_process_type VARCHAR NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE committee_events (
+  id UUID NOT NULL REFERENCES committees(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE documents (
   id UUID PRIMARY KEY,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,

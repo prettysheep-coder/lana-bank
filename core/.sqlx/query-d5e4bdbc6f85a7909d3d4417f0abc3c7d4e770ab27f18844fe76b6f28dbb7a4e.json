@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO committees (id, approval_process_type) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d5e4bdbc6f85a7909d3d4417f0abc3c7d4e770ab27f18844fe76b6f28dbb7a4e"
+}

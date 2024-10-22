@@ -88,12 +88,12 @@ pub enum LoanEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
-    ApprovalProcessStarted {
-        process_id: ApprovalProcessId,
-    }
-    ApprovalProcessCompleted {
-        process_id: ApprovalProcessId,
-    }
+    // ApprovalProcessStarted {
+    //     process_id: ApprovalProcessId,
+    // }
+    // ApprovalProcessCompleted {
+    //     process_id: ApprovalProcessId,
+    // }
     ApprovalAdded {
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
