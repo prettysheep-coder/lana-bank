@@ -14,6 +14,7 @@ use crate::{
 use super::{
     convert::ToGlobalId,
     objects::{Collateral, Outstanding},
+    terms::CVLPct,
 };
 
 #[derive(SimpleObject)]
@@ -170,6 +171,20 @@ impl Loan {
             Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
+    }
+
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<CVLPct>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let loan = app
+            .loans()
+            .find_by_id(Some(sub), LoanId::from(&self.loan_id))
+            .await?;
+
+        let price = app.price().usd_cents_per_btc().await?;
+
+        Ok(loan.map(|loan| loan.cvl(price)))
     }
 
     async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {

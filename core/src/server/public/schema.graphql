@@ -71,6 +71,7 @@ type CreditFacility {
 	balance: CreditFacilityBalance!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
+	currentCvl: CVLPct
 	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
@@ -267,6 +268,7 @@ type Loan {
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
+	currentCvl: CVLPct
 	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanUpdateCollateralizationState: Boolean!

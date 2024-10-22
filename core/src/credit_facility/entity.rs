@@ -156,8 +156,8 @@ impl CreditFacilityReceivable {
 }
 
 pub struct FacilityCVL {
-    total: CVLPct,
-    disbursed: CVLPct,
+    pub total: CVLPct,
+    pub disbursed: CVLPct,
 }
 
 impl FacilityCVL {

@@ -201,6 +201,20 @@ impl CreditFacility {
             .collect())
     }
 
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<CVLPct>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let facility = app
+            .credit_facilities()
+            .find_by_id(Some(sub), CreditFacilityId::from(&self.credit_facility_id))
+            .await?;
+
+        let price = app.price().usd_cents_per_btc().await?;
+
+        Ok(facility.map(|facility| facility.facility_cvl(price).total))
+    }
+
     async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
