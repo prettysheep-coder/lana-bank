@@ -1,0 +1,48 @@
+config {
+	type: "table",
+}
+
+WITH projected_payment_months AS (
+
+	SELECT loan_id, principal, duration_value,
+		GENERATE_DATE_ARRAY(DATE(start_timestamp), DATE(end_date), INTERVAL 1 MONTH) AS months
+
+	FROM ${ref("stg_approved_loans")}(CURRENT_TIMESTAMP())
+
+	WHERE accrual_interval = "end_of_month"
+
+), projected_payments AS (
+
+	SELECT loan_id,
+		o+1 AS payment_number,
+		LAST_DAY(projected_month) AS projected_date,
+		principal / duration_value AS projected_principal_amount,
+
+	FROM projected_payment_months,
+		UNNEST(months) AS projected_month
+			WITH OFFSET o
+
+), actual_payments AS (
+
+	SELECT id AS loan_id
+		, ROW_NUMBER() OVER (PARTITION BY id ORDER BY sequence) AS payment_number
+		, recorded_at
+		, CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC) AS total_interest_paid
+		, CAST(JSON_VALUE(event, "$.principal_amount") AS NUMERIC) AS total_principal_paid
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE event_type = "payment_recorded"
+
+)
+
+SELECT loan_id, payment_number, projected_date, projected_principal_amount,
+	recorded_at, total_interest_paid, total_principal_paid,
+
+FROM projected_payments
+FULL JOIN actual_payments USING (loan_id, payment_number)
+
+ORDER BY loan_id, payment_number
