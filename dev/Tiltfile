@@ -35,7 +35,7 @@ local_resource(
     serve_env={
         "BASE_PATH": "/admin-panel"
     },
-    serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
+    serve_cmd="cd ../apps/admin && pnpm install && pnpm run dev",
     allow_parallel=True,
     resource_deps=[
         "next-auth-pg",
