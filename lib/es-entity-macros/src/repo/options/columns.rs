@@ -21,6 +21,7 @@ impl Columns {
                 name: syn::Ident::new("id", proc_macro2::Span::call_site()),
                 opts: ColumnOpts {
                     ty: syn::parse_str(&ty.to_string()).unwrap(),
+                    is_id: true,
                     list_by: Some(true),
                     find_by: Some(true),
                     create_opts: Some(CreateOpts {
@@ -37,6 +38,7 @@ impl Columns {
                 name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
                 opts: ColumnOpts {
                     ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
+                    is_id: false,
                     list_by: Some(true),
                     find_by: Some(false),
                     create_opts: Some(CreateOpts {
@@ -70,7 +72,7 @@ impl Columns {
 
     pub fn variable_assignments_for_update(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
         let assignments = self.all.iter().filter_map(|c| {
-            if c.opts.persist_on_update() || c.is_id() {
+            if c.opts.persist_on_update() || c.opts.is_id {
                 Some(c.variable_assignment_for_update(&ident))
             } else {
                 None
@@ -147,7 +149,7 @@ impl Columns {
     pub fn update_query_args(&self) -> Vec<proc_macro2::TokenStream> {
         self.all
             .iter()
-            .filter(|c| c.opts.persist_on_update() || c.is_id())
+            .filter(|c| c.opts.persist_on_update() || c.opts.is_id)
             .map(|column| {
                 let ident = &column.name;
                 let ty = &column.opts.ty;
@@ -218,10 +220,6 @@ impl Column {
         }
     }
 
-    pub fn is_id(&self) -> bool {
-        self.name.to_string() == "id"
-    }
-
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }
@@ -254,6 +252,8 @@ impl Column {
 #[derive(FromMeta)]
 struct ColumnOpts {
     ty: syn::Type,
+    #[darling(default, skip)]
+    is_id: bool,
     #[darling(default)]
     find_by: Option<bool>,
     #[darling(default)]
@@ -268,6 +268,7 @@ impl ColumnOpts {
     fn new(ty: syn::Type) -> Self {
         ColumnOpts {
             ty,
+            is_id: false,
             find_by: None,
             list_by: None,
             create_opts: None,
