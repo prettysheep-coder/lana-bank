@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -52,6 +54,23 @@ impl Committee {
             user_id,
             audit_info,
         });
+    }
+
+    pub fn users(&self) -> HashSet<UserId> {
+        let mut users = HashSet::new();
+
+        for event in self.events.iter_all() {
+            match event {
+                CommitteeEvent::UserAdded { user_id, .. } => {
+                    users.insert(*user_id);
+                }
+                CommitteeEvent::UserRemoved { user_id, .. } => {
+                    users.remove(user_id);
+                }
+                _ => {}
+            }
+        }
+        users
     }
 }
 
