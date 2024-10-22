@@ -26,7 +26,7 @@ impl<'a> CursorStruct<'a> {
 
     pub fn select_columns(&self) -> String {
         if self.column.is_id() {
-            format!("id")
+            "id".to_string()
         } else {
             format!("{}, id", self.column.name())
         }
