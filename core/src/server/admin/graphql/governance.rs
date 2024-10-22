@@ -1,12 +1,15 @@
-use async_graphql::*;
+use async_graphql::{dataloader::DataLoader, *};
 
 use crate::{
+    primitives::UserId,
     primitives::{ApprovalProcessType, CommitteeId},
     server::shared_graphql::{
         convert::ToGlobalId,
         primitives::{Timestamp, UUID},
     },
 };
+
+use super::{user::User, LavaDataLoader};
 
 impl ToGlobalId for CommitteeId {
     fn to_global_id(&self) -> async_graphql::types::ID {
@@ -15,11 +18,29 @@ impl ToGlobalId for CommitteeId {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct Committee {
     id: ID,
     committee_id: UUID,
     approval_process_type: ApprovalProcessType,
+    #[graphql(skip)]
+    user_ids: Vec<UUID>,
     created_at: Timestamp,
+}
+
+#[ComplexObject]
+impl Committee {
+    async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        let users = loader
+            .load_many(self.user_ids.iter().map(UserId::from))
+            .await?
+            .into_values()
+            .map(User::from)
+            .collect();
+
+        Ok(users)
+    }
 }
 
 impl From<crate::governance::Committee> for Committee {
@@ -28,6 +49,7 @@ impl From<crate::governance::Committee> for Committee {
             id: committee.id.to_global_id(),
             committee_id: committee.id.into(),
             approval_process_type: committee.approval_process_type,
+            user_ids: committee.users().iter().map(|user| user.into()).collect(),
             created_at: committee.created_at().into(),
         }
     }

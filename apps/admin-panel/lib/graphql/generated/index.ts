@@ -215,6 +215,7 @@ export type Committee = {
   committeeId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  users: Array<User>;
 };
 
 export type CommitteeAddUserInput = {

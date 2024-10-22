@@ -187,6 +187,7 @@ type Committee {
 	committeeId: UUID!
 	approvalProcessType: ApprovalProcessType!
 	createdAt: Timestamp!
+	users: [User!]!
 }
 
 input CommitteeAddUserInput {
