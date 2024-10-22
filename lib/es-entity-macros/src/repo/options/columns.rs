@@ -220,10 +220,6 @@ impl Column {
         }
     }
 
-    pub fn is_id(&self) -> bool {
-        self.name.to_string() == "id"
-    }
-
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }
