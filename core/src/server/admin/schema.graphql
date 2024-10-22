@@ -61,6 +61,11 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
+enum ApprovalProcessType {
+	CREDIT_FACILITY_APPROVAL
+	CREDIT_FACILITY_DISBURSEMENT
+}
+
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -175,6 +180,39 @@ type CollateralizationUpdated {
 	outstandingPrincipal: UsdCents!
 	price: UsdCents!
 	recordedAt: Timestamp!
+}
+
+type Committee {
+	id: ID!
+	committeeId: UUID!
+	approvalProcessType: ApprovalProcessType!
+	createdAt: Timestamp!
+}
+
+input CommitteeAddUserInput {
+	userId: UUID!
+	approvalProcessType: ApprovalProcessType!
+}
+
+type CommitteeAddUserPayload {
+	committee: Committee!
+}
+
+input CommitteeCreateInput {
+	approvalProcessType: ApprovalProcessType!
+}
+
+type CommitteeCreatePayload {
+	committee: Committee!
+}
+
+input CommitteeRemoveUserInput {
+	userId: UUID!
+	approvalProcessType: ApprovalProcessType!
+}
+
+type CommitteeRemoveUserPayload {
+	committee: Committee!
 }
 
 type CreditFacility {
@@ -777,6 +815,9 @@ type Mutation {
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
+	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
+	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 }
 
 type Outstanding {

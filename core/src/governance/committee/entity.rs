@@ -68,7 +68,7 @@ impl TryFromEvents<CommitteeEvent> for Committee {
                 } => {
                     builder = builder
                         .id(*id)
-                        .approval_process_type(approval_process_type.clone())
+                        .approval_process_type(*approval_process_type)
                         .audit_info(*audit_info)
                 }
                 CommitteeEvent::UserAdded { .. } => {}

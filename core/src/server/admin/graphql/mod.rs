@@ -4,6 +4,7 @@ pub(in crate::server) mod audit;
 pub(in crate::server) mod credit_facility;
 mod customer;
 mod deposit;
+mod governance;
 pub(in crate::server) mod loader;
 mod loan;
 mod price;

@@ -646,7 +646,9 @@ pub enum CollateralAction {
     Remove,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, sqlx::Type)]
+#[derive(
+    Debug, Clone, Copy, Eq, PartialEq, Deserialize, Serialize, sqlx::Type, async_graphql::Enum,
+)]
 #[sqlx(rename_all = "snake_case")]
 pub enum ApprovalProcessType {
     CreditFacilityApproval,

@@ -90,6 +90,11 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export enum ApprovalProcessType {
+  CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
+  CreditFacilityDisbursement = 'CREDIT_FACILITY_DISBURSEMENT'
+}
+
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
@@ -202,6 +207,43 @@ export type CollateralizationUpdated = {
   price: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   state: LoanCollaterizationState;
+};
+
+export type Committee = {
+  __typename?: 'Committee';
+  approvalProcessType: ApprovalProcessType;
+  committeeId: Scalars['UUID']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+};
+
+export type CommitteeAddUserInput = {
+  approvalProcessType: ApprovalProcessType;
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeAddUserPayload = {
+  __typename?: 'CommitteeAddUserPayload';
+  committee: Committee;
+};
+
+export type CommitteeCreateInput = {
+  approvalProcessType: ApprovalProcessType;
+};
+
+export type CommitteeCreatePayload = {
+  __typename?: 'CommitteeCreatePayload';
+  committee: Committee;
+};
+
+export type CommitteeRemoveUserInput = {
+  approvalProcessType: ApprovalProcessType;
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeRemoveUserPayload = {
+  __typename?: 'CommitteeRemoveUserPayload';
+  committee: Committee;
 };
 
 export type CreditFacility = {
@@ -781,6 +823,9 @@ export enum LoanStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
+  committeeAddUser: CommitteeAddUserPayload;
+  committeeCreate: CommitteeCreatePayload;
+  committeeRemoveUser: CommitteeRemoveUserPayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
@@ -816,6 +861,21 @@ export type Mutation = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
+};
+
+
+export type MutationCommitteeAddUserArgs = {
+  input: CommitteeAddUserInput;
+};
+
+
+export type MutationCommitteeCreateArgs = {
+  input: CommitteeCreateInput;
+};
+
+
+export type MutationCommitteeRemoveUserArgs = {
+  input: CommitteeRemoveUserInput;
 };
 
 

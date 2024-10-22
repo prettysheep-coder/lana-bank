@@ -15,9 +15,15 @@ use crate::{
     },
     server::{
         admin::{
-            graphql::terms_template::{
-                TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput,
-                TermsTemplateUpdatePayload,
+            graphql::{
+                governance::{
+                    CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeCreateInput,
+                    CommitteeCreatePayload, CommitteeRemoveUserInput, CommitteeRemoveUserPayload,
+                },
+                terms_template::{
+                    TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput,
+                    TermsTemplateUpdatePayload,
+                },
             },
             AdminAuthContext,
         },
@@ -1039,5 +1045,61 @@ impl Mutation {
             .update_term_values(sub, TermsTemplateId::from(input.id), term_values)
             .await?;
         Ok(TermsTemplateUpdatePayload::from(terms))
+    }
+
+    async fn committee_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeCreateInput,
+    ) -> async_graphql::Result<CommitteeCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app
+            .governance()
+            .create_committee(sub, input.approval_process_type)
+            .await?;
+
+        Ok(CommitteeCreatePayload::from(committee))
+    }
+
+    async fn committee_add_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeAddUserInput,
+    ) -> async_graphql::Result<CommitteeAddUserPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app
+            .governance()
+            .add_user_to_committee(
+                sub,
+                UserId::from(input.user_id),
+                input.approval_process_type,
+            )
+            .await?;
+
+        Ok(CommitteeAddUserPayload::from(committee))
+    }
+
+    async fn committee_remove_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeRemoveUserInput,
+    ) -> async_graphql::Result<CommitteeRemoveUserPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app
+            .governance()
+            .remove_user_from_committee(
+                sub,
+                UserId::from(input.user_id),
+                input.approval_process_type,
+            )
+            .await?;
+
+        Ok(CommitteeRemoveUserPayload::from(committee))
     }
 }

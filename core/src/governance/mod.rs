@@ -43,7 +43,6 @@ impl Governance {
     pub async fn create_committee(
         &self,
         sub: &Subject,
-        committee_id: CommitteeId,
         approval_process_type: ApprovalProcessType,
     ) -> Result<Committee, GovernanceError> {
         let audit_info = self
@@ -52,7 +51,7 @@ impl Governance {
             .expect("audit info missing");
 
         let new_committee = NewCommittee::builder()
-            .id(committee_id)
+            .id(CommitteeId::new())
             .approval_process_type(approval_process_type)
             .audit_info(audit_info)
             .build()
@@ -72,7 +71,7 @@ impl Governance {
         sub: &Subject,
         user_id: UserId,
         approval_process_type: ApprovalProcessType,
-    ) -> Result<(), GovernanceError> {
+    ) -> Result<Committee, GovernanceError> {
         let audit_info = self
             .authz
             .evaluate_permission(sub, Object::Committee, CommitteeAction::AddUser, true)
@@ -88,7 +87,7 @@ impl Governance {
 
         self.committee_repo.update(&mut committee).await?;
 
-        Ok(())
+        Ok(committee)
     }
 
     pub async fn remove_user_from_committee(
@@ -96,7 +95,7 @@ impl Governance {
         sub: &Subject,
         user_id: UserId,
         approval_process_type: ApprovalProcessType,
-    ) -> Result<(), GovernanceError> {
+    ) -> Result<Committee, GovernanceError> {
         let audit_info = self
             .authz
             .evaluate_permission(sub, Object::Committee, CommitteeAction::RemoveUser, true)
@@ -112,7 +111,7 @@ impl Governance {
 
         self.committee_repo.update(&mut committee).await?;
 
-        Ok(())
+        Ok(committee)
     }
 
     //pub fn create_committee() => ApprovalProcessType
