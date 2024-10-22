@@ -17,10 +17,7 @@ impl Columns {
 
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
         let mut all = vec![
-            Column::for_id(
-                syn::Ident::new("id", proc_macro2::Span::call_site()),
-                syn::parse_str(&ty.to_string()).unwrap(),
-            ),
+            Column::for_id(syn::parse_str(&ty.to_string()).unwrap()),
             Column::for_created_at(),
         ];
         all.append(&mut self.all);
@@ -190,9 +187,9 @@ impl Column {
         }
     }
 
-    pub fn for_id(name: syn::Ident, ty: syn::Type) -> Self {
+    pub fn for_id(ty: syn::Type) -> Self {
         Column {
-            name,
+            name: syn::Ident::new("id", proc_macro2::Span::call_site()),
             opts: ColumnOpts {
                 ty,
                 is_id: true,

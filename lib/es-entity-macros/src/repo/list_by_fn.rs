@@ -6,9 +6,9 @@ use quote::{quote, TokenStreamExt};
 use super::options::*;
 
 pub struct CursorStruct<'a> {
-    id: &'a syn::Ident,
-    entity: &'a syn::Ident,
-    column: &'a Column,
+    pub id: &'a syn::Ident,
+    pub entity: &'a syn::Ident,
+    pub column: &'a Column,
 }
 
 impl<'a> CursorStruct<'a> {
@@ -20,11 +20,52 @@ impl<'a> CursorStruct<'a> {
         )
     }
 
-    fn ident(&self) -> syn::Ident {
+    pub fn ident(&self) -> syn::Ident {
         syn::Ident::new(&self.name(), Span::call_site())
     }
 
-    fn destructure_tokens(&self) -> TokenStream {
+    pub fn select_columns(&self) -> String {
+        if self.column.is_id() {
+            format!("id")
+        } else {
+            format!("{}, id", self.column.name())
+        }
+    }
+
+    pub fn condition(&self, offset: u32) -> String {
+        if self.column.is_id() {
+            format!("(id > ${}) OR ${} IS NULL", offset + 2, offset + 2)
+        } else {
+            format!(
+                "(({}, id) > (${}, ${})) OR ${} IS NULL",
+                self.column.name(),
+                offset + 3,
+                offset + 2,
+                offset + 2
+            )
+        }
+    }
+
+    pub fn query_arg_tokens(&self) -> TokenStream {
+        let id = self.id;
+
+        if self.column.is_id() {
+            quote! {
+                (first + 1) as i64,
+                id as Option<#id>,
+            }
+        } else {
+            let column_name = self.column.name();
+            let column_type = self.column.ty();
+            quote! {
+                (first + 1) as i64,
+                id as Option<#id>,
+                #column_name as Option<#column_type>,
+            }
+        }
+    }
+
+    pub fn destructure_tokens(&self) -> TokenStream {
         let column_name = self.column.name();
 
         let mut after_args = quote! {
@@ -50,6 +91,7 @@ impl<'a> CursorStruct<'a> {
         }
 
         quote! {
+            let es_entity::PaginatedQueryArgs { first, after } = cursor;
             let #after_args = if let Some(after) = after {
                 #after_destruction
             } else {
@@ -134,51 +176,38 @@ impl<'a> ToTokens for ListByFn<'a> {
         let entity = self.entity;
         let column_name = self.column.name();
         let column_type = self.column.ty();
-        let cursor = syn::Ident::new(&self.cursor().name(), Span::call_site());
+        let cursor = self.cursor();
+        let cursor_ident = cursor.ident();
         let error = self.error;
 
         let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
         let name = column_name.to_string();
         let destructure_tokens = self.cursor().destructure_tokens();
-
-        let mut column = format!("{}, ", name);
-        let mut where_pt = format!("({}, id) > ($3, $2)", name);
-        let mut order_by = format!("{}, ", name);
-        let mut arg_tokens = quote! {
-            #column_name as Option<#column_type>,
-        };
-
-        if &name == "id" {
-            column = String::new();
-            where_pt = "id > $2".to_string();
-            order_by = String::new();
-            arg_tokens = quote! {};
-        };
+        let select_columns = cursor.select_columns();
+        let condition = cursor.condition(0);
+        let arg_tokens = cursor.query_arg_tokens();
 
         let query = format!(
-            r#"SELECT {}id FROM {} WHERE ({}) OR $2 IS NULL ORDER BY {}id LIMIT $1"#,
-            column, self.table_name, where_pt, order_by
+            r#"SELECT {} FROM {} WHERE {} ORDER BY {} LIMIT $1"#,
+            select_columns, self.table_name, condition, select_columns
         );
 
         tokens.append_all(quote! {
             pub async fn #fn_name(
                 &self,
-                cursor: es_entity::PaginatedQueryArgs<cursor::#cursor>,
-            ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor>, #error> {
-                let es_entity::PaginatedQueryArgs { first, after } = cursor;
+                cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+            ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
                 #destructure_tokens
 
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
                     #query,
-                    (first + 1) as i64,
-                    id as Option<#id>,
                     #arg_tokens
                 )
                     .fetch_n(first)
                     .await?;
 
-                let end_cursor = entities.last().map(cursor::#cursor::from);
+                let end_cursor = entities.last().map(cursor::#cursor_ident::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
@@ -200,10 +229,7 @@ mod tests {
     fn cursor_struct_by_id() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
-        let by_column = Column::for_id(
-            syn::Ident::new("id", proc_macro2::Span::call_site()),
-            syn::parse_str("EntityId").unwrap(),
-        );
+        let by_column = Column::for_id(syn::parse_str("EntityId").unwrap());
 
         let cursor = CursorStruct {
             column: &by_column,
@@ -275,10 +301,7 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
-        let column = Column::for_id(
-            syn::Ident::new("id", proc_macro2::Span::call_site()),
-            syn::parse_str("EntityId").unwrap(),
-        );
+        let column = Column::for_id(syn::parse_str("EntityId").unwrap());
 
         let persist_fn = ListByFn {
             column: &column,
