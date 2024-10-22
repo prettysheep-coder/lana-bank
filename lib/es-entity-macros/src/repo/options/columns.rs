@@ -32,6 +32,10 @@ impl Columns {
         self.all.iter().filter(|c| c.opts.list_by())
     }
 
+    pub fn all_list_for(&self) -> impl Iterator<Item = &Column> {
+        self.all.iter().filter(|c| c.opts.list_for())
+    }
+
     pub fn updates_needed(&self) -> bool {
         self.all.iter().any(|c| c.opts.persist_on_update())
     }
@@ -273,6 +277,8 @@ struct ColumnOpts {
     find_by: Option<bool>,
     #[darling(default)]
     list_by: Option<bool>,
+    #[darling(default)]
+    list_for: Option<bool>,
     #[darling(default, rename = "create")]
     create_opts: Option<CreateOpts>,
     #[darling(default, rename = "update")]
@@ -286,6 +292,7 @@ impl ColumnOpts {
             is_id: false,
             find_by: None,
             list_by: None,
+            list_for: None,
             create_opts: None,
             update_opts: None,
         }
@@ -296,7 +303,11 @@ impl ColumnOpts {
     }
 
     fn list_by(&self) -> bool {
-        self.list_by.unwrap_or(true)
+        self.list_by.unwrap_or(!self.list_for())
+    }
+
+    fn list_for(&self) -> bool {
+        self.list_for.unwrap_or(false)
     }
 
     fn persist_on_create(&self) -> bool {

@@ -172,16 +172,13 @@ impl<'a> ListByFn<'a> {
 
 impl<'a> ToTokens for ListByFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let id = self.id;
         let entity = self.entity;
         let column_name = self.column.name();
-        let column_type = self.column.ty();
         let cursor = self.cursor();
         let cursor_ident = cursor.ident();
         let error = self.error;
 
         let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
-        let name = column_name.to_string();
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
         let condition = cursor.condition(0);
