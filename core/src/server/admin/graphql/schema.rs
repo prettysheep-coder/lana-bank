@@ -1073,11 +1073,7 @@ impl Mutation {
 
         let committee = app
             .governance()
-            .add_user_to_committee(
-                sub,
-                UserId::from(input.user_id),
-                input.approval_process_type,
-            )
+            .add_user_to_committee(sub, input.committee_id, input.user_id)
             .await?;
 
         Ok(CommitteeAddUserPayload::from(committee))
@@ -1093,11 +1089,7 @@ impl Mutation {
 
         let committee = app
             .governance()
-            .remove_user_from_committee(
-                sub,
-                UserId::from(input.user_id),
-                input.approval_process_type,
-            )
+            .remove_user_from_committee(sub, input.committee_id, input.user_id)
             .await?;
 
         Ok(CommitteeRemoveUserPayload::from(committee))

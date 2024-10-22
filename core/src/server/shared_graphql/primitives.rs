@@ -59,6 +59,16 @@ impl From<UUID> for WithdrawId {
         Self::from(uuid.0)
     }
 }
+impl From<&UUID> for CommitteeId {
+    fn from(uuid: &UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
+impl From<UUID> for CommitteeId {
+    fn from(uuid: UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 impl From<UUID> for LedgerAccountId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)

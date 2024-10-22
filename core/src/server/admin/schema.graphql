@@ -190,8 +190,8 @@ type Committee {
 }
 
 input CommitteeAddUserInput {
+	committeeId: UUID!
 	userId: UUID!
-	approvalProcessType: ApprovalProcessType!
 }
 
 type CommitteeAddUserPayload {
@@ -207,8 +207,8 @@ type CommitteeCreatePayload {
 }
 
 input CommitteeRemoveUserInput {
+	committeeId: UUID!
 	userId: UUID!
-	approvalProcessType: ApprovalProcessType!
 }
 
 type CommitteeRemoveUserPayload {

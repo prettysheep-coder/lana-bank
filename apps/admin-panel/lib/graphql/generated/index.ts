@@ -218,7 +218,7 @@ export type Committee = {
 };
 
 export type CommitteeAddUserInput = {
-  approvalProcessType: ApprovalProcessType;
+  committeeId: Scalars['UUID']['input'];
   userId: Scalars['UUID']['input'];
 };
 
@@ -237,7 +237,7 @@ export type CommitteeCreatePayload = {
 };
 
 export type CommitteeRemoveUserInput = {
-  approvalProcessType: ApprovalProcessType;
+  committeeId: Scalars['UUID']['input'];
   userId: Scalars['UUID']['input'];
 };
 

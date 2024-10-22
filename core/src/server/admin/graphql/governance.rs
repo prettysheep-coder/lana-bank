@@ -53,8 +53,8 @@ impl From<crate::governance::Committee> for CommitteeCreatePayload {
 
 #[derive(InputObject)]
 pub struct CommitteeAddUserInput {
+    pub committee_id: UUID,
     pub user_id: UUID,
-    pub approval_process_type: ApprovalProcessType,
 }
 
 #[derive(SimpleObject)]
@@ -72,8 +72,8 @@ impl From<crate::governance::Committee> for CommitteeAddUserPayload {
 
 #[derive(InputObject)]
 pub struct CommitteeRemoveUserInput {
+    pub committee_id: UUID,
     pub user_id: UUID,
-    pub approval_process_type: ApprovalProcessType,
 }
 
 #[derive(SimpleObject)]

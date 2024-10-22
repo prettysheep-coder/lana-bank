@@ -69,8 +69,8 @@ impl Governance {
     pub async fn add_user_to_committee(
         &self,
         sub: &Subject,
-        user_id: UserId,
-        approval_process_type: ApprovalProcessType,
+        committee_id: impl Into<CommitteeId> + std::fmt::Debug,
+        user_id: impl Into<UserId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
         let audit_info = self
             .authz
@@ -78,12 +78,9 @@ impl Governance {
             .await?
             .expect("audit info missing");
 
-        let mut committee = self
-            .committee_repo
-            .find_by_approval_process_type(approval_process_type)
-            .await?;
+        let mut committee = self.committee_repo.find_by_id(committee_id.into()).await?;
 
-        committee.add_user(user_id, audit_info);
+        committee.add_user(user_id.into(), audit_info);
 
         self.committee_repo.update(&mut committee).await?;
 
@@ -93,8 +90,8 @@ impl Governance {
     pub async fn remove_user_from_committee(
         &self,
         sub: &Subject,
-        user_id: UserId,
-        approval_process_type: ApprovalProcessType,
+        committee_id: impl Into<CommitteeId> + std::fmt::Debug,
+        user_id: impl Into<UserId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
         let audit_info = self
             .authz
@@ -102,12 +99,9 @@ impl Governance {
             .await?
             .expect("audit info missing");
 
-        let mut committee = self
-            .committee_repo
-            .find_by_approval_process_type(approval_process_type)
-            .await?;
+        let mut committee = self.committee_repo.find_by_id(committee_id.into()).await?;
 
-        committee.remove_user(user_id, audit_info);
+        committee.remove_user(user_id.into(), audit_info);
 
         self.committee_repo.update(&mut committee).await?;
 
