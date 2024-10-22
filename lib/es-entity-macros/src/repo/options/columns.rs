@@ -17,42 +17,11 @@ impl Columns {
 
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
         let mut all = vec![
-            Column {
-                name: syn::Ident::new("id", proc_macro2::Span::call_site()),
-                opts: ColumnOpts {
-                    ty: syn::parse_str(&ty.to_string()).unwrap(),
-                    is_id: true,
-                    list_by: Some(true),
-                    find_by: Some(true),
-                    create_opts: Some(CreateOpts {
-                        persist: Some(true),
-                        accessor: None,
-                    }),
-                    update_opts: Some(UpdateOpts {
-                        persist: Some(false),
-                        accessor: None,
-                    }),
-                },
-            },
-            Column {
-                name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
-                opts: ColumnOpts {
-                    ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
-                    is_id: false,
-                    list_by: Some(true),
-                    find_by: Some(false),
-                    create_opts: Some(CreateOpts {
-                        persist: Some(false),
-                        accessor: None,
-                    }),
-                    update_opts: Some(UpdateOpts {
-                        persist: Some(false),
-                        accessor: Some(syn::parse_quote!(events()
-                            .entity_first_persisted_at()
-                            .expect("entity not persisted"))),
-                    }),
-                },
-            },
+            Column::for_id(
+                syn::Ident::new("id", proc_macro2::Span::call_site()),
+                syn::parse_str(&ty.to_string()).unwrap(),
+            ),
+            Column::for_created_at(),
         ];
         all.append(&mut self.all);
         self.all = all;
@@ -171,6 +140,7 @@ impl FromMeta for Columns {
     }
 }
 
+#[derive(PartialEq)]
 pub struct Column {
     name: syn::Ident,
     opts: ColumnOpts,
@@ -220,6 +190,54 @@ impl Column {
         }
     }
 
+    pub fn for_id(name: syn::Ident, ty: syn::Type) -> Self {
+        Column {
+            name,
+            opts: ColumnOpts {
+                ty,
+                is_id: true,
+                list_by: Some(true),
+                find_by: Some(true),
+                list_for: Some(false),
+                create_opts: Some(CreateOpts {
+                    persist: Some(true),
+                    accessor: None,
+                }),
+                update_opts: Some(UpdateOpts {
+                    persist: Some(false),
+                    accessor: None,
+                }),
+            },
+        }
+    }
+
+    pub fn for_created_at() -> Self {
+        Column {
+            name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
+            opts: ColumnOpts {
+                ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
+                is_id: false,
+                list_by: Some(true),
+                find_by: Some(false),
+                list_for: Some(false),
+                create_opts: Some(CreateOpts {
+                    persist: Some(false),
+                    accessor: None,
+                }),
+                update_opts: Some(UpdateOpts {
+                    persist: Some(false),
+                    accessor: Some(syn::parse_quote!(events()
+                        .entity_first_persisted_at()
+                        .expect("entity not persisted"))),
+                }),
+            },
+        }
+    }
+
+    pub fn is_id(&self) -> bool {
+        self.opts.is_id
+    }
+
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }
@@ -249,7 +267,7 @@ impl Column {
     }
 }
 
-#[derive(FromMeta)]
+#[derive(PartialEq, FromMeta)]
 struct ColumnOpts {
     ty: syn::Type,
     #[darling(default, skip)]
@@ -321,13 +339,13 @@ impl ColumnOpts {
     }
 }
 
-#[derive(Default, FromMeta)]
+#[derive(Default, PartialEq, FromMeta)]
 struct CreateOpts {
     persist: Option<bool>,
     accessor: Option<syn::Expr>,
 }
 
-#[derive(Default, FromMeta)]
+#[derive(Default, PartialEq, FromMeta)]
 struct UpdateOpts {
     persist: Option<bool>,
     accessor: Option<syn::Expr>,

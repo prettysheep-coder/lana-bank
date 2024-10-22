@@ -8,9 +8,7 @@ use super::options::*;
 pub struct CursorStruct<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
-    column_name: &'a syn::Ident,
-    column_type: &'a syn::Type,
-    accessor: TokenStream,
+    column: &'a Column,
 }
 
 impl<'a> CursorStruct<'a> {
@@ -18,28 +16,61 @@ impl<'a> CursorStruct<'a> {
         format!(
             "{}By{}Cursor",
             self.entity,
-            self.column_name.to_string().to_case(Case::UpperCamel)
+            self.column.name().to_string().to_case(Case::UpperCamel)
         )
+    }
+
+    fn ident(&self) -> syn::Ident {
+        syn::Ident::new(&self.name(), Span::call_site())
+    }
+
+    fn destructure_tokens(&self) -> TokenStream {
+        let column_name = self.column.name();
+
+        let mut after_args = quote! {
+            (id, #column_name)
+        };
+        let mut after_destruction = quote! {
+            (Some(after.id), Some(after.#column_name))
+        };
+        let mut after_default = quote! {
+            (None, None)
+        };
+
+        if self.column.is_id() {
+            after_args = quote! {
+                id
+            };
+            after_destruction = quote! {
+                Some(after.id)
+            };
+            after_default = quote! {
+                None
+            };
+        }
+
+        quote! {
+            let #after_args = if let Some(after) = after {
+                #after_destruction
+            } else {
+                #after_default
+            };
+        }
     }
 }
 
 impl<'a> ToTokens for CursorStruct<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let entity = self.entity;
-        let accessor = &self.accessor;
-        let struct_ident = syn::Ident::new(
-            &format!(
-                "{}By{}Cursor",
-                self.entity,
-                self.column_name.to_string().to_case(Case::UpperCamel)
-            ),
-            Span::call_site(),
-        );
+        let accessor = &self.column.accessor();
+        let ident = self.ident();
         let id = &self.id;
 
-        let (field, from_impl) = if &self.column_name.to_string() != "id" {
-            let column_name = &self.column_name;
-            let column_type = &self.column_type;
+        let (field, from_impl) = if self.column.is_id() {
+            (quote! {}, quote! {})
+        } else {
+            let column_name = self.column.name();
+            let column_type = self.column.ty();
             (
                 quote! {
                     pub #column_name: #column_type,
@@ -48,18 +79,16 @@ impl<'a> ToTokens for CursorStruct<'a> {
                     #column_name: entity.#accessor.clone(),
                 },
             )
-        } else {
-            (quote! {}, quote! {})
         };
 
         tokens.append_all(quote! {
             #[derive(serde::Serialize, serde::Deserialize)]
-            pub struct #struct_ident {
+            pub struct #ident {
                 pub id: #id,
                 #field
             }
 
-            impl From<&#entity> for #struct_ident {
+            impl From<&#entity> for #ident {
                 fn from(entity: &#entity) -> Self {
                     Self {
                         id: entity.id.clone(),
@@ -92,9 +121,7 @@ impl<'a> ListByFn<'a> {
 
     pub fn cursor(&'a self) -> CursorStruct<'a> {
         CursorStruct {
-            column_name: self.column.name(),
-            column_type: self.column.ty(),
-            accessor: self.column.accessor(),
+            column: self.column,
             id: self.id,
             entity: self.entity,
         }
@@ -112,20 +139,13 @@ impl<'a> ToTokens for ListByFn<'a> {
 
         let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
         let name = column_name.to_string();
+        let destructure_tokens = self.cursor().destructure_tokens();
+
         let mut column = format!("{}, ", name);
         let mut where_pt = format!("({}, id) > ($3, $2)", name);
         let mut order_by = format!("{}, ", name);
         let mut arg_tokens = quote! {
             #column_name as Option<#column_type>,
-        };
-        let mut after_args = quote! {
-            (id, #column_name)
-        };
-        let mut after_destruction = quote! {
-            (Some(after.id), Some(after.#column_name))
-        };
-        let mut after_default = quote! {
-            (None, None)
         };
 
         if &name == "id" {
@@ -133,15 +153,6 @@ impl<'a> ToTokens for ListByFn<'a> {
             where_pt = "id > $2".to_string();
             order_by = String::new();
             arg_tokens = quote! {};
-            after_args = quote! {
-                id
-            };
-            after_destruction = quote! {
-                Some(after.id)
-            };
-            after_default = quote! {
-                None
-            };
         };
 
         let query = format!(
@@ -155,11 +166,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                 cursor: es_entity::PaginatedQueryArgs<cursor::#cursor>,
             ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor>, #error> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
-                let #after_args = if let Some(after) = after {
-                    #after_destruction
-                } else {
-                    #after_default
-                };
+                #destructure_tokens
 
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
@@ -193,13 +200,13 @@ mod tests {
     fn cursor_struct_by_id() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
-        let column_name = Ident::new("id", Span::call_site());
-        let column_type = syn::parse_str(&id_type.to_string()).unwrap();
+        let by_column = Column::for_id(
+            syn::Ident::new("id", proc_macro2::Span::call_site()),
+            syn::parse_str("EntityId").unwrap(),
+        );
 
         let cursor = CursorStruct {
-            column_name: &column_name,
-            column_type: &column_type,
-            accessor: quote!(id),
+            column: &by_column,
             id: &id_type,
             entity: &entity,
         };
@@ -229,15 +236,10 @@ mod tests {
     fn cursor_struct_by_created_at() {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
-        let column_name = Ident::new("created_at", Span::call_site());
-        let column_type = syn::parse_str("DateTime<Utc>").unwrap();
+        let by_column = Column::for_created_at();
 
         let cursor = CursorStruct {
-            column_name: &column_name,
-            column_type: &column_type,
-            accessor: quote!(events()
-                .entity_first_persisted_at()
-                .expect("entity not persisted")),
+            column: &by_column,
             id: &id_type,
             entity: &entity,
         };
@@ -249,7 +251,7 @@ mod tests {
             #[derive(serde::Serialize, serde::Deserialize)]
             pub struct EntityByCreatedAtCursor {
                 pub id: EntityId,
-                pub created_at: DateTime<Utc>,
+                pub created_at: chrono::DateTime<chrono::Utc>,
             }
 
             impl From<&Entity> for EntityByCreatedAtCursor {
@@ -273,7 +275,7 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
-        let column = Column::new(
+        let column = Column::for_id(
             syn::Ident::new("id", proc_macro2::Span::call_site()),
             syn::parse_str("EntityId").unwrap(),
         );
