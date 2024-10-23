@@ -90,6 +90,11 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export enum ApprovalProcessType {
+  CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
+  CreditFacilityDisbursement = 'CREDIT_FACILITY_DISBURSEMENT'
+}
+
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
@@ -239,6 +244,16 @@ export type CommitteeRemoveUserInput = {
 export type CommitteeRemoveUserPayload = {
   __typename?: 'CommitteeRemoveUserPayload';
   committee: Committee;
+};
+
+export type CommitteeUpdateInput = {
+  committeeId: Scalars['UUID']['input'];
+  processAssignmentId: Scalars['UUID']['input'];
+};
+
+export type CommitteeUpdatePayload = {
+  __typename?: 'CommitteeUpdatePayload';
+  processAssignment: ProcessAssignment;
 };
 
 export type CreditFacility = {
@@ -821,6 +836,7 @@ export type Mutation = {
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
+  committeeUpdate: CommitteeUpdatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
@@ -871,6 +887,11 @@ export type MutationCommitteeCreateArgs = {
 
 export type MutationCommitteeRemoveUserArgs = {
   input: CommitteeRemoveUserInput;
+};
+
+
+export type MutationCommitteeUpdateArgs = {
+  input: CommitteeUpdateInput;
 };
 
 
@@ -1039,6 +1060,14 @@ export type PageInfo = {
 export enum Period {
   Months = 'MONTHS'
 }
+
+export type ProcessAssignment = {
+  __typename?: 'ProcessAssignment';
+  approvalProcessType: ApprovalProcessType;
+  committee?: Maybe<Committee>;
+  id: Scalars['ID']['output'];
+  processAssignmentId: Scalars['UUID']['output'];
+};
 
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';

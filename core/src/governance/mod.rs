@@ -121,7 +121,7 @@ impl Governance {
         sub: &Subject,
         process_assignment_id: impl Into<ProcessAssignmentId> + std::fmt::Debug,
         committee_id: impl Into<CommitteeId> + std::fmt::Debug,
-    ) -> Result<(), GovernanceError> {
+    ) -> Result<ProcessAssignment, GovernanceError> {
         let audit_info = self
             .authz
             .evaluate_permission(
@@ -144,7 +144,7 @@ impl Governance {
             .update(&mut process_assignment)
             .await?;
 
-        Ok(())
+        Ok(process_assignment)
     }
 
     #[instrument(name = "lava.governance.create_committee", skip(self), err)]
@@ -219,16 +219,12 @@ impl Governance {
         Ok(committee)
     }
 
-    //pub fn create_committee() => ApprovalProcessType
-    //pub fn add_user_to_committee()
-    //pub fn remove_user_from_committee()
-    //
-    //in GQL User.committeed {}
-    //
-    //pub fn create_approval_process(type: ProcessType) {
-    //  self.find_committee_for_process_type()
-    //}
-    //NewApprovalProcessBuilder::new().process_type(ApprovalProcessType::CreditFacilityApproval).committee(CommitteeId::new()).build()
-    //NewApprovalProcessBuilder::new().process_type(ApprovalProcessType::CreditFacilityDisbursement).build()
-    //pub fn add_approval()
+    #[instrument(name = "lava.governance.find_committee_by_id", skip(self), err)]
+    pub async fn find_committee_by_id_internal(
+        &self,
+        committee_id: CommitteeId,
+    ) -> Result<Committee, GovernanceError> {
+        let committee = self.committee_repo.find_by_id(committee_id).await?;
+        Ok(committee)
+    }
 }

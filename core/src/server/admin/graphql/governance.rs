@@ -1,8 +1,8 @@
 use async_graphql::{dataloader::DataLoader, *};
 
 use crate::{
-    primitives::CommitteeId,
-    primitives::UserId,
+    app::LavaApp,
+    primitives::{ApprovalProcessType, CommitteeId, ProcessAssignmentId, UserId},
     server::shared_graphql::{
         convert::ToGlobalId,
         primitives::{Timestamp, UUID},
@@ -49,6 +49,67 @@ impl From<crate::governance::Committee> for Committee {
             committee_id: committee.id.into(),
             user_ids: committee.users().iter().map(|user| user.into()).collect(),
             created_at: committee.created_at().into(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct ProcessAssignment {
+    id: ID,
+    process_assignment_id: UUID,
+    #[graphql(skip)]
+    committee_id: Option<UUID>,
+    approval_process_type: ApprovalProcessType,
+}
+
+#[ComplexObject]
+impl ProcessAssignment {
+    async fn committee(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Committee>> {
+        if let Some(id) = &self.committee_id {
+            let app = ctx.data_unchecked::<LavaApp>();
+            let committee = app
+                .governance()
+                .find_committee_by_id_internal(id.into())
+                .await?;
+            return Ok(Some(committee.into()));
+        }
+        Ok(None)
+    }
+}
+
+impl ToGlobalId for ProcessAssignmentId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("process_assignment:{}", self))
+    }
+}
+
+impl From<crate::governance::ProcessAssignment> for ProcessAssignment {
+    fn from(process_assignment: crate::governance::ProcessAssignment) -> Self {
+        Self {
+            id: process_assignment.id.to_global_id(),
+            process_assignment_id: process_assignment.id.into(),
+            committee_id: process_assignment.committee_id.map(Into::into),
+            approval_process_type: process_assignment.approval_process_type,
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CommitteeUpdateInput {
+    pub process_assignment_id: UUID,
+    pub committee_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CommitteeUpdatePayload {
+    pub process_assignment: ProcessAssignment,
+}
+
+impl From<crate::governance::ProcessAssignment> for CommitteeUpdatePayload {
+    fn from(process_assignment: crate::governance::ProcessAssignment) -> Self {
+        Self {
+            process_assignment: process_assignment.into(),
         }
     }
 }

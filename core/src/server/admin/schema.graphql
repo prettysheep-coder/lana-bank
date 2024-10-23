@@ -61,6 +61,11 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
+enum ApprovalProcessType {
+	CREDIT_FACILITY_APPROVAL
+	CREDIT_FACILITY_DISBURSEMENT
+}
+
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -208,6 +213,15 @@ input CommitteeRemoveUserInput {
 
 type CommitteeRemoveUserPayload {
 	committee: Committee!
+}
+
+input CommitteeUpdateInput {
+	processAssignmentId: UUID!
+	committeeId: UUID!
+}
+
+type CommitteeUpdatePayload {
+	processAssignment: ProcessAssignment!
 }
 
 type CreditFacility {
@@ -813,6 +827,7 @@ type Mutation {
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	committeeUpdate(input: CommitteeUpdateInput!): CommitteeUpdatePayload!
 }
 
 type Outstanding {
@@ -843,6 +858,13 @@ type PageInfo {
 
 enum Period {
 	MONTHS
+}
+
+type ProcessAssignment {
+	id: ID!
+	processAssignmentId: UUID!
+	approvalProcessType: ApprovalProcessType!
+	committee: Committee
 }
 
 type ProfitAndLossStatement {

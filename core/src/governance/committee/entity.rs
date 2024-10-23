@@ -43,16 +43,10 @@ impl Committee {
 
     fn is_user_added(&self, user_id: UserId) -> bool {
         for event in self.events.iter_all() {
-            match event {
-                CommitteeEvent::UserAdded {
-                    user_id: added_user_id,
-                    ..
-                } => {
-                    if *added_user_id == user_id {
-                        return true;
-                    }
+            if let CommitteeEvent::UserAdded { user_id: id, .. } = event {
+                if *id == user_id {
+                    return true;
                 }
-                _ => {}
             }
         }
         false

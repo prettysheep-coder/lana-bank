@@ -1,9 +1,8 @@
 use async_graphql::{types::connection::*, Context, Object};
 
 use super::{
-    account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
-    price::*, report::*, shareholder_equity::*, terms_template::TermsTemplate, user::*,
-    withdraw::*,
+    account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, governance::*,
+    loan::*, price::*, report::*, shareholder_equity::*, terms_template::*, user::*, withdraw::*,
 };
 
 use crate::{
@@ -14,19 +13,7 @@ use crate::{
         CreditFacilityId, CustomerId, DocumentId, LoanId, ReportId, TermsTemplateId, UserId,
     },
     server::{
-        admin::{
-            graphql::{
-                governance::{
-                    CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeCreateInput,
-                    CommitteeCreatePayload, CommitteeRemoveUserInput, CommitteeRemoveUserPayload,
-                },
-                terms_template::{
-                    TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput,
-                    TermsTemplateUpdatePayload,
-                },
-            },
-            AdminAuthContext,
-        },
+        admin::AdminAuthContext,
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
@@ -1090,5 +1077,21 @@ impl Mutation {
             .await?;
 
         Ok(CommitteeRemoveUserPayload::from(committee))
+    }
+
+    async fn committee_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeUpdateInput,
+    ) -> async_graphql::Result<CommitteeUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app
+            .governance()
+            .update_committee(sub, input.process_assignment_id, input.committee_id)
+            .await?;
+
+        Ok(CommitteeUpdatePayload::from(committee))
     }
 }
