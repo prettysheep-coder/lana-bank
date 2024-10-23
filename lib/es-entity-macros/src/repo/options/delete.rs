@@ -1,9 +1,25 @@
 use darling::FromMeta;
 
-#[derive(Debug, FromMeta)]
+#[derive(Debug, Clone, Copy, FromMeta, PartialEq)]
 pub enum DeleteOption {
     No,
     Soft,
+}
+
+impl DeleteOption {
+    pub fn include_deletion_fn_postfix(&self) -> &'static str {
+        match self {
+            DeleteOption::Soft => "_include_deleted",
+            DeleteOption::No => "",
+        }
+    }
+
+    pub fn not_deleted_condition(&self) -> &'static str {
+        match self {
+            DeleteOption::Soft => " AND deleted = FALSE",
+            DeleteOption::No => "",
+        }
+    }
 }
 
 impl Default for DeleteOption {
