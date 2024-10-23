@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply antialiased font-helvetica text-grey-0;
+  @apply antialiased font-helvetica text-grey-0
 }
 
 .text-headline {

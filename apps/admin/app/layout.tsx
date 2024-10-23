@@ -20,7 +20,7 @@ import { Inter, Helvetica } from "./fonts"
 import { AuthSessionProvider } from "./session-provider"
 import { authOptions } from "./api/auth/[...nextauth]/options"
 
-const PUBLIC_PAGES = ["/auth/signin"]
+const PUBLIC_PAGES = ["/auth/signin", "/auth/error", "/auth/verify"]
 
 const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
   const headerList = headers()

@@ -24,6 +24,8 @@ const config: Config = {
         "warning-bg": "#FFF6EB",
         "success": "#2AAF96",
         "success-bg": "#EFFBF9",
+        "error": "#D50000",
+        "error-bg": "#FFEBEE",
         "grey": {
           0: "#212336",
         },

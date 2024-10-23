@@ -52,7 +52,7 @@ export const authOptions: NextAuthOptions = {
   secret: env.NEXTAUTH_SECRET,
   pages: {
     signIn: `${BASE_PATH}/auth/signin`,
-    signOut: `${BASE_PATH}/auth/signout`,
-    verifyRequest: `${BASE_PATH}/auth/verify-request`,
+    error: `${BASE_PATH}/auth/error`,
+    verifyRequest: `${BASE_PATH}/auth/verify`,
   },
 }

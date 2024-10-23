@@ -6,16 +6,25 @@ import { Button as MTButton } from "@material-tailwind/react"
 
 type ButtonProps = {
   title: string
-  type: ButtonHTMLAttributes<HTMLButtonElement>["type"]
+  type?: ButtonHTMLAttributes<HTMLButtonElement>["type"]
+  onClick?: () => void
+  className?: string
 }
-const Button: React.FC<ButtonProps> = ({ title, type = "button" }) => {
+const Button: React.FC<ButtonProps> = ({
+  title,
+  type = "button",
+  className = "",
+  // eslint-disable-next-line no-empty-function
+  onClick = () => {},
+}) => {
   return (
     <MTButton
-      className="bg-secondary"
+      className={`bg-secondary ${className}`}
       type={type}
       placeholder={undefined}
       onPointerEnterCapture={undefined}
       onPointerLeaveCapture={undefined}
+      onClick={onClick}
     >
       {title}
     </MTButton>
