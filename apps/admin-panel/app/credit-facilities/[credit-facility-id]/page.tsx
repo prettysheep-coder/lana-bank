@@ -31,7 +31,10 @@ gql`
       createdAt
       expiresAt
       canBeCompleted
-      currentCvl
+      currentCvl {
+        total
+        disbursed
+      }
       collateralToMatchInitialCvl @client
       balance {
         facilityRemaining {

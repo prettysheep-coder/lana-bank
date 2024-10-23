@@ -3,6 +3,7 @@ use connection::CursorType;
 
 use crate::{
     app::LavaApp,
+    credit_facility::FacilityCVLData,
     ledger,
     primitives::*,
     server::{
@@ -90,6 +91,8 @@ pub struct CreditFacility {
     customer_id: UUID,
     #[graphql(skip)]
     account_ids: crate::ledger::credit_facility::CreditFacilityAccountIds,
+    #[graphql(skip)]
+    cvl_data: FacilityCVLData,
 }
 
 #[derive(async_graphql::Union)]
@@ -201,18 +204,10 @@ impl CreditFacility {
             .collect())
     }
 
-    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<CVLPct>> {
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-
-        let facility = app
-            .credit_facilities()
-            .find_by_id(Some(sub), CreditFacilityId::from(&self.credit_facility_id))
-            .await?;
-
         let price = app.price().usd_cents_per_btc().await?;
-
-        Ok(facility.map(|facility| facility.facility_cvl(price).total))
+        Ok(FacilityCVL::from(self.cvl_data.cvl(price)))
     }
 
     async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
@@ -351,6 +346,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             expires_at,
             created_at: credit_facility.created_at().into(),
             account_ids: credit_facility.account_ids,
+            cvl_data: credit_facility.facility_cvl_data(),
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),
             approvals,
@@ -613,6 +609,21 @@ impl From<crate::credit_facility::CollateralizationUpdated>
             outstanding_disbursement: collateralization.outstanding_disbursement,
             recorded_at: collateralization.recorded_at.into(),
             price: collateralization.price.into_inner(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct FacilityCVL {
+    total: CVLPct,
+    disbursed: CVLPct,
+}
+
+impl From<crate::credit_facility::FacilityCVL> for FacilityCVL {
+    fn from(value: crate::credit_facility::FacilityCVL) -> Self {
+        Self {
+            total: value.total.into(),
+            disbursed: value.disbursed.into(),
         }
     }
 }

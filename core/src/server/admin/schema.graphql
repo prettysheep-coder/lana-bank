@@ -194,7 +194,7 @@ type CreditFacility {
 	balance: CreditFacilityBalance!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
-	currentCvl: CVLPct
+	currentCvl: FacilityCVL!
 	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
@@ -552,6 +552,11 @@ input DurationInput {
 	units: Int!
 }
 
+type FacilityCVL {
+	total: CVLPct!
+	disbursed: CVLPct!
+}
+
 type FacilityRemaining {
 	usdBalance: UsdCents!
 }
@@ -621,7 +626,7 @@ type Loan {
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
-	currentCvl: CVLPct
+	currentCvl: CVLPct!
 	userCanApprove: Boolean!
 	userCanUpdateCollateral: Boolean!
 	userCanUpdateCollateralizationState: Boolean!
