@@ -1,3 +1,5 @@
+CREATE TYPE approval_process_type AS ENUM ('credit_facility_approval', 'credit_facility_disbursement');
+
 CREATE TABLE customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
@@ -160,13 +162,13 @@ CREATE TABLE committee_events (
 
 CREATE TABLE process_assignments (
   id UUID PRIMARY KEY,
-  approval_process_type VARCHAR NOT NULL UNIQUE,
+  approval_process_type approval_process_type NOT NULL UNIQUE,
   committee_id UUID REFERENCES committees(id) DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE process_assignment_events (
-  id UUID NOT NULL REFERENCES committees(id),
+  id UUID NOT NULL REFERENCES process_assignments(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
