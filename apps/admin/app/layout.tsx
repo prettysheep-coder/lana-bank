@@ -2,16 +2,6 @@
 import "./globals.css"
 
 import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Lava Bank | Admin",
-  description:
-    "Comprehensive banking management system: oversee financials, manage customers, approve loans, and ensure government compliance with seamless reporting",
-  icons: {
-    icon: "/favicon.ico",
-  },
-}
-
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
@@ -39,3 +29,12 @@ const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
 }
 
 export default RootLayout
+
+export const metadata: Metadata = {
+  title: "Lava Bank | Admin",
+  description:
+    "Comprehensive banking management system: oversee financials, manage customers, approve loans, and ensure government compliance with seamless reporting",
+  icons: {
+    icon: "/favicon.ico",
+  },
+}

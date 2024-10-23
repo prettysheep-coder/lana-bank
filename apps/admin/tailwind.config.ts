@@ -28,6 +28,9 @@ const config: Config = {
         "error-bg": "#FFEBEE",
         "grey": {
           0: "#212336",
+          2: "#363849",
+          4: "#797F8F",
+          5: "#E1E3E6",
         },
       },
     },

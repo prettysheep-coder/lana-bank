@@ -9,7 +9,7 @@ const Home = async () => {
     redirect("/api/auth/signin")
   }
 
-  return <div>Home</div>
+  redirect("/app")
 }
 
 export default Home
