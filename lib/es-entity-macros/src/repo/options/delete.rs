@@ -1,7 +1,8 @@
 use darling::FromMeta;
 
-#[derive(Debug, Clone, Copy, FromMeta, PartialEq)]
+#[derive(Debug, Default, Clone, Copy, FromMeta, PartialEq)]
 pub enum DeleteOption {
+    #[default]
     No,
     Soft,
 }
@@ -19,12 +20,6 @@ impl DeleteOption {
             DeleteOption::Soft => " AND deleted = FALSE",
             DeleteOption::No => "",
         }
-    }
-}
-
-impl Default for DeleteOption {
-    fn default() -> Self {
-        DeleteOption::No
     }
 }
 
