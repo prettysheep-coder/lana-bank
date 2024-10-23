@@ -61,11 +61,6 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
-enum ApprovalProcessType {
-	CREDIT_FACILITY_APPROVAL
-	CREDIT_FACILITY_DISBURSEMENT
-}
-
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -185,7 +180,6 @@ type CollateralizationUpdated {
 type Committee {
 	id: ID!
 	committeeId: UUID!
-	approvalProcessType: ApprovalProcessType!
 	createdAt: Timestamp!
 	users: [User!]!
 }
@@ -200,7 +194,7 @@ type CommitteeAddUserPayload {
 }
 
 input CommitteeCreateInput {
-	approvalProcessType: ApprovalProcessType!
+	name: String!
 }
 
 type CommitteeCreatePayload {

@@ -1,8 +1,8 @@
 use async_graphql::{dataloader::DataLoader, *};
 
 use crate::{
+    primitives::CommitteeId,
     primitives::UserId,
-    primitives::{ApprovalProcessType, CommitteeId},
     server::shared_graphql::{
         convert::ToGlobalId,
         primitives::{Timestamp, UUID},
@@ -22,7 +22,6 @@ impl ToGlobalId for CommitteeId {
 pub struct Committee {
     id: ID,
     committee_id: UUID,
-    approval_process_type: ApprovalProcessType,
     #[graphql(skip)]
     user_ids: Vec<UUID>,
     created_at: Timestamp,
@@ -48,7 +47,6 @@ impl From<crate::governance::Committee> for Committee {
         Self {
             id: committee.id.to_global_id(),
             committee_id: committee.id.into(),
-            approval_process_type: committee.approval_process_type,
             user_ids: committee.users().iter().map(|user| user.into()).collect(),
             created_at: committee.created_at().into(),
         }
@@ -57,7 +55,7 @@ impl From<crate::governance::Committee> for Committee {
 
 #[derive(InputObject)]
 pub struct CommitteeCreateInput {
-    pub approval_process_type: ApprovalProcessType,
+    pub name: String,
 }
 
 #[derive(SimpleObject)]

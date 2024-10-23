@@ -14,7 +14,7 @@ pub enum ProcessAssignmentEvent {
         approval_process_type: ApprovalProcessType,
         audit_info: AuditInfo,
     },
-    CommiteeUpdated {
+    CommitteeUpdated {
         committee_id: CommitteeId,
         audit_info: AuditInfo,
     },
@@ -42,7 +42,7 @@ impl ProcessAssignment {
             return;
         }
 
-        self.events.push(ProcessAssignmentEvent::CommiteeUpdated {
+        self.events.push(ProcessAssignmentEvent::CommitteeUpdated {
             committee_id,
             audit_info,
         });
@@ -61,14 +61,13 @@ impl TryFromEvents<ProcessAssignmentEvent> for ProcessAssignment {
                 ProcessAssignmentEvent::Initialized {
                     id,
                     approval_process_type,
-                    audit_info,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .approval_process_type(*approval_process_type)
                 }
-                ProcessAssignmentEvent::AssignedToCommittee { committee_id, .. } => {
+                ProcessAssignmentEvent::CommitteeUpdated { committee_id, .. } => {
                     builder = builder.committee_id(*committee_id)
                 }
             }

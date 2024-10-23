@@ -20,14 +20,14 @@ use super::{entity::*, error::*};
 )]
 pub struct ProcessAssignmentRepo {
     pool: PgPool,
-    export: Export,
+    _export: Export,
 }
 
 impl ProcessAssignmentRepo {
     pub fn new(pool: &PgPool, export: &Export) -> Self {
         Self {
             pool: pool.clone(),
-            export: export.clone(),
+            _export: export.clone(),
         }
     }
 }

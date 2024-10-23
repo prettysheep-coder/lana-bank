@@ -1055,10 +1055,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let committee = app
-            .governance()
-            .create_committee(sub, input.approval_process_type)
-            .await?;
+        let committee = app.governance().create_committee(sub, input.name).await?;
 
         Ok(CommitteeCreatePayload::from(committee))
     }

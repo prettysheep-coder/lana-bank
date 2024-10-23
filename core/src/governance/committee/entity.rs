@@ -41,7 +41,28 @@ impl Committee {
             .expect("No events for deposit")
     }
 
+    fn is_user_added(&self, user_id: UserId) -> bool {
+        for event in self.events.iter_all() {
+            match event {
+                CommitteeEvent::UserAdded {
+                    user_id: added_user_id,
+                    ..
+                } => {
+                    if *added_user_id == user_id {
+                        return true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
+    }
+
     pub fn add_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
+        if self.is_user_added(user_id) {
+            return;
+        }
+
         self.events.push(CommitteeEvent::UserAdded {
             user_id,
             audit_info,
@@ -49,6 +70,9 @@ impl Committee {
     }
 
     pub fn remove_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
+        if !self.is_user_added(user_id) {
+            return;
+        }
         self.events.push(CommitteeEvent::UserRemoved {
             user_id,
             audit_info,

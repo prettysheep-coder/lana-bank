@@ -19,8 +19,9 @@ pub enum Object {
     Report,
     Audit,
     Ledger,
-    Committee,
     CreditFacility,
+    Committee,
+    ProcessAssignment,
 }
 
 impl Display for Object {
@@ -80,6 +81,7 @@ impl FromStr for Object {
             CreditFacility => Object::CreditFacility,
             Document => Object::Document,
             Committee => Object::Committee,
+            ProcessAssignment => Object::ProcessAssignment,
         };
         Ok(res)
     }

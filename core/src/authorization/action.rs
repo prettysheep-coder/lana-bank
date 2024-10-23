@@ -26,6 +26,7 @@ pub enum Action {
     CreditFacility(CreditFacilityAction),
     Document(DocumentAction),
     Committee(CommitteeAction),
+    ProcessAssignment(ProcessAssignmentAction),
 }
 
 impl Display for Action {
@@ -45,6 +46,7 @@ impl Display for Action {
             CreditFacility(action) => action.fmt(f),
             Document(action) => action.fmt(f),
             Committee(action) => action.fmt(f),
+            ProcessAssignment(action) => action.fmt(f),
         }
     }
 }
@@ -70,6 +72,7 @@ impl FromStr for Action {
             CreditFacility => Action::from(action.parse::<CreditFacilityAction>()?),
             Document => Action::from(action.parse::<DocumentAction>()?),
             Committee => Action::from(action.parse::<CommitteeAction>()?),
+            ProcessAssignment => Action::from(action.parse::<ProcessAssignmentAction>()?),
         };
         Ok(res)
     }
@@ -221,6 +224,15 @@ pub enum CommitteeAction {
 }
 
 impl_trivial_action!(CommitteeAction, Committee);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ProcessAssignmentAction {
+    Init,
+    UpdateCommittee,
+}
+
+impl_trivial_action!(ProcessAssignmentAction, ProcessAssignment);
 
 #[cfg(test)]
 mod test {

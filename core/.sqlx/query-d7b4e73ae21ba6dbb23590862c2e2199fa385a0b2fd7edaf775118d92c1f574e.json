@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE committees SET approval_process_type = $2 WHERE id = $1",
+  "query": "UPDATE committees SET name = $2 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "6017deded1f2ebc7d804373a433b5b3ee20e4d3b682afcadbe7ccf5ef5a1026c"
+  "hash": "d7b4e73ae21ba6dbb23590862c2e2199fa385a0b2fd7edaf775118d92c1f574e"
 }

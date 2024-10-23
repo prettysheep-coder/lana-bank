@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO process_assignments (id, approval_process_type) VALUES ($1, $2)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3cf2c1ab241cebe9cdaa7d84af18add23b9a61280edf09a7fe631f785a7ef13f"
+}

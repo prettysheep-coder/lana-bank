@@ -65,7 +65,7 @@ impl LavaApp {
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs, &storage);
-        let governance = Governance::new(&pool, &authz, &export);
+        let governance = Governance::init(&pool, &authz, &audit, &export).await?;
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities = CreditFacilities::new(
             &pool,

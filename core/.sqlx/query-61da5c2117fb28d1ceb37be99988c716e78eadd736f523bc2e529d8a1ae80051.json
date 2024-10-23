@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT approval_process_type, id FROM committees WHERE ((approval_process_type, id) > ($3, $2)) OR $2 IS NULL ORDER BY approval_process_type, id LIMIT $1) SELECT i.id AS \"entity_id: CommitteeId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN committee_events e ON i.id = e.id ORDER BY i.approval_process_type, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM process_assignments WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1) SELECT i.id AS \"entity_id: ProcessAssignmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN process_assignment_events e ON i.id = e.id ORDER BY i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: CommitteeId",
+        "name": "entity_id: ProcessAssignmentId",
         "type_info": "Uuid"
       },
       {
@@ -27,8 +27,7 @@
     "parameters": {
       "Left": [
         "Int8",
-        "Uuid",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -38,5 +37,5 @@
       false
     ]
   },
-  "hash": "ebc122701fbe16cebe5bad14ba182922d9fe2e332b462ba5af1acc31e36bac0e"
+  "hash": "61da5c2117fb28d1ceb37be99988c716e78eadd736f523bc2e529d8a1ae80051"
 }

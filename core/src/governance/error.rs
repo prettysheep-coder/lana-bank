@@ -8,4 +8,8 @@ pub enum GovernanceError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("GovernanceError - CommitteeError: {0}")]
     CommitteeError(#[from] super::committee::error::CommitteeError),
+    #[error("GovernanceError - ProcessAssignment: {0}")]
+    ProcessAssignmentError(#[from] super::process_assignment::error::ProcessAssignmentError),
+    #[error("GovernanceError - Audit: {0}")]
+    AuditError(#[from] crate::audit::error::AuditError),
 }

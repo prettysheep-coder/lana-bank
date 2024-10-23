@@ -90,11 +90,6 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
-export enum ApprovalProcessType {
-  CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
-  CreditFacilityDisbursement = 'CREDIT_FACILITY_DISBURSEMENT'
-}
-
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
@@ -211,7 +206,6 @@ export type CollateralizationUpdated = {
 
 export type Committee = {
   __typename?: 'Committee';
-  approvalProcessType: ApprovalProcessType;
   committeeId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
@@ -229,7 +223,7 @@ export type CommitteeAddUserPayload = {
 };
 
 export type CommitteeCreateInput = {
-  approvalProcessType: ApprovalProcessType;
+  name: Scalars['String']['input'];
 };
 
 export type CommitteeCreatePayload = {

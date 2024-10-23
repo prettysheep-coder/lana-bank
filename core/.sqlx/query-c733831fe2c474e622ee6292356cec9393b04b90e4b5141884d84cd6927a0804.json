@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO committees (id, approval_process_type) VALUES ($1, $2)",
+  "query": "INSERT INTO committees (id, name) VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "d5e4bdbc6f85a7909d3d4417f0abc3c7d4e770ab27f18844fe76b6f28dbb7a4e"
+  "hash": "c733831fe2c474e622ee6292356cec9393b04b90e4b5141884d84cd6927a0804"
 }
