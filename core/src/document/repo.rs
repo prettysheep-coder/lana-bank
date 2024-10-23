@@ -1,4 +1,4 @@
-use sqlx::{PgPool, Transaction};
+use sqlx::PgPool;
 
 use es_entity::*;
 

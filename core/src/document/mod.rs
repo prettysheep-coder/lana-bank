@@ -83,7 +83,11 @@ impl Documents {
             .enforce_permission(sub, Object::Document, DocumentAction::List)
             .await?;
 
-        self.repo.list_for_customer(customer_id).await
+        Ok(self
+            .repo
+            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .await?
+            .entities)
     }
 
     pub async fn generate_download_link(
@@ -129,8 +133,7 @@ impl Documents {
         self.storage.remove(document_location).await?;
 
         document.delete(audit_info);
-        self.repo.update_in_tx(&mut db, &mut document).await?;
-        self.repo.delete_in_tx(&mut db, document_id).await?;
+        self.repo.delete_in_tx(&mut db, document).await?;
         db.commit().await?;
 
         Ok(())

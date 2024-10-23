@@ -7,6 +7,7 @@ use super::{options::DeleteOption, RepositoryOptions};
 pub struct DeleteFn<'a> {
     id: &'a syn::Ident,
     error: &'a syn::Type,
+    entity: &'a syn::Ident,
     table_name: &'a str,
     delete_option: &'a DeleteOption,
 }
@@ -15,6 +16,7 @@ impl<'a> DeleteFn<'a> {
     pub fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
             id: opts.id(),
+            entity: opts.entity(),
             error: opts.err(),
             table_name: opts.table_name(),
             delete_option: &opts.delete,
@@ -29,6 +31,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
         }
 
         let id_ty = self.id;
+        let entity = self.entity;
         let error_ty = self.error;
         let table_name = self.table_name;
 
@@ -40,11 +43,12 @@ impl<'a> ToTokens for DeleteFn<'a> {
         };
 
         tokens.append_all(quote! {
-            pub async fn delete_by_id_in_tx(&self,
-                id: &#id_ty,
+            pub async fn delete_in_tx(&self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                mut entity: #entity
              ) -> Result<(), #error_ty> {
-                sqlx::query!(#query, id)
+                self.update_in_tx(db, &mut entity).await?;
+                sqlx::query!(#query, entity.id as #id_ty)
                     .execute(self.pool())
                     .await?;
                 Ok(())
@@ -62,11 +66,13 @@ mod tests {
     #[test]
     fn delete_fn() {
         let id = Ident::new("EntityId", Span::call_site());
+        let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let delete_option = DeleteOption::Soft;
 
         let delete_fn = DeleteFn {
             id: &id,
+            entity: &entity,
             error: &error,
             table_name: "entities",
             delete_option: &delete_option,
@@ -76,11 +82,12 @@ mod tests {
         delete_fn.to_tokens(&mut tokens);
 
         let expected = quote! {
-            pub async fn delete_by_id_in_tx(&self,
-                id: &EntityId,
+            pub async fn delete_in_tx(&self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                mut entity: Entity
              ) -> Result<(), es_entity::EsRepoError> {
-                sqlx::query!("UPDATE entities SET deleted = TRUE WHERE id = $1", id)
+                self.update_in_tx(db, &mut entity).await?;
+                sqlx::query!("UPDATE entities SET deleted = TRUE WHERE id = $1", entity.id as EntityId)
                     .execute(self.pool())
                     .await?;
                 Ok(())
