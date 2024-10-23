@@ -1,12 +1,14 @@
 mod committee;
 pub mod error;
 
+use tracing::instrument;
+
 // mod approval_process;
 //
 use crate::{
     authorization::{Authorization, CommitteeAction, Object},
     data_export::Export,
-    primitives::{ApprovalProcessType, AuditInfo, CommitteeId, Subject, UserId},
+    primitives::{ApprovalProcessType, CommitteeId, Subject, UserId},
 };
 
 pub use committee::*;
@@ -29,24 +31,15 @@ impl Governance {
         }
     }
 
-    async fn user_can_create_committee(
-        &self,
-        sub: &Subject,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo>, GovernanceError> {
-        Ok(self
-            .authz
-            .evaluate_permission(sub, Object::Committee, CommitteeAction::Create, enforce)
-            .await?)
-    }
-
+    #[instrument(name = "lava.governance.create_committee", skip(self), err)]
     pub async fn create_committee(
         &self,
         sub: &Subject,
         approval_process_type: ApprovalProcessType,
     ) -> Result<Committee, GovernanceError> {
         let audit_info = self
-            .user_can_create_committee(sub, true)
+            .authz
+            .evaluate_permission(sub, Object::Committee, CommitteeAction::Create, true)
             .await?
             .expect("audit info missing");
 
@@ -66,6 +59,7 @@ impl Governance {
         Ok(committee)
     }
 
+    #[instrument(name = "lava.governance.add_user_to_committee", skip(self), err)]
     pub async fn add_user_to_committee(
         &self,
         sub: &Subject,
@@ -87,6 +81,7 @@ impl Governance {
         Ok(committee)
     }
 
+    #[instrument(name = "lava.governance.remove_user_from_committee", skip(self), err)]
     pub async fn remove_user_from_committee(
         &self,
         sub: &Subject,
