@@ -12,6 +12,7 @@ crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { DepositId }
 crate::entity_id! { CommitteeId }
+crate::entity_id! { ProcessAssignmentId }
 crate::entity_id! { DocumentId }
 crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }

@@ -4,8 +4,6 @@ use thiserror::Error;
 pub enum CommitteeError {
     #[error("CommitteeError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CommitteeError - EntityError: {0}")]
-    EntityError(#[from] crate::entity::EntityError),
     #[error("CommitteeError - NotFound")]
     NotFound,
     #[error("CommitteeError - JobError: {0}")]

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::{ApprovalProcessType, AuditInfo, CommitteeId, UserId};
+use crate::primitives::{AuditInfo, CommitteeId, UserId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -13,7 +13,7 @@ use crate::primitives::{ApprovalProcessType, AuditInfo, CommitteeId, UserId};
 pub enum CommitteeEvent {
     Initialized {
         id: CommitteeId,
-        approval_process_type: ApprovalProcessType,
+        name: String,
         audit_info: AuditInfo,
     },
     UserAdded {
@@ -30,9 +30,8 @@ pub enum CommitteeEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Committee {
     pub id: CommitteeId,
-    pub approval_process_type: ApprovalProcessType,
+    pub name: String,
     pub(super) events: EntityEvents<CommitteeEvent>,
-    pub audit_info: AuditInfo,
 }
 
 impl Committee {
@@ -79,16 +78,8 @@ impl TryFromEvents<CommitteeEvent> for Committee {
         let mut builder = CommitteeBuilder::default();
         for event in events.iter_all() {
             match event {
-                CommitteeEvent::Initialized {
-                    id,
-                    approval_process_type,
-                    audit_info,
-                    ..
-                } => {
-                    builder = builder
-                        .id(*id)
-                        .approval_process_type(*approval_process_type)
-                        .audit_info(*audit_info)
+                CommitteeEvent::Initialized { id, name, .. } => {
+                    builder = builder.id(*id).name(name.clone())
                 }
                 CommitteeEvent::UserAdded { .. } => {}
                 CommitteeEvent::UserRemoved { .. } => {}
@@ -102,8 +93,7 @@ impl TryFromEvents<CommitteeEvent> for Committee {
 pub struct NewCommittee {
     #[builder(setter(into))]
     pub(super) id: CommitteeId,
-    #[builder(setter(into))]
-    pub(super) approval_process_type: ApprovalProcessType,
+    pub(super) name: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -120,7 +110,7 @@ impl IntoEvents<CommitteeEvent> for NewCommittee {
             self.id,
             [CommitteeEvent::Initialized {
                 id: self.id,
-                approval_process_type: self.approval_process_type,
+                name: self.name,
                 audit_info: self.audit_info,
             }],
         )

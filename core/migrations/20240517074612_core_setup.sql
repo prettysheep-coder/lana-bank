@@ -145,11 +145,27 @@ CREATE TABLE deposit_events (
 
 CREATE TABLE committees (
   id UUID PRIMARY KEY,
-  approval_process_type VARCHAR NOT NULL,
+  name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE committee_events (
+  id UUID NOT NULL REFERENCES committees(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE process_assignments (
+  id UUID PRIMARY KEY,
+  approval_process_type VARCHAR NOT NULL UNIQUE,
+  committee_id UUID REFERENCES committees(id) DEFAULT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE process_assignment_events (
   id UUID NOT NULL REFERENCES committees(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,

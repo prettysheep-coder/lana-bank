@@ -1,10 +1,9 @@
 mod committee;
 pub mod error;
+mod process_assignment;
 
 use tracing::instrument;
 
-// mod approval_process;
-//
 use crate::{
     authorization::{Authorization, CommitteeAction, Object},
     data_export::Export,
@@ -45,7 +44,6 @@ impl Governance {
 
         let new_committee = NewCommittee::builder()
             .id(CommitteeId::new())
-            .approval_process_type(approval_process_type)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new committee");

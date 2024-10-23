@@ -2,22 +2,12 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::{
-    data_export::Export,
-    primitives::{ApprovalProcessType, CommitteeId},
-};
+use crate::{data_export::Export, primitives::CommitteeId};
 
 use super::{entity::*, error::*};
 
-const BQ_TABLE_NAME: &str = "committee_events";
-
 #[derive(EsRepo, Clone)]
-#[es_repo(
-    entity = "Committee",
-    err = "CommitteeError",
-    columns(approval_process_type = "ApprovalProcessType"),
-    post_persist_hook = "export"
-)]
+#[es_repo(entity = "Committee", err = "CommitteeError", columns(name = "String"))]
 pub struct CommitteeRepo {
     pool: PgPool,
     export: Export,
@@ -29,16 +19,5 @@ impl CommitteeRepo {
             pool: pool.clone(),
             export: export.clone(),
         }
-    }
-
-    async fn export(
-        &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        events: impl Iterator<Item = &PersistedEvent<CommitteeEvent>>,
-    ) -> Result<(), CommitteeError> {
-        self.export
-            .es_entity_export(db, BQ_TABLE_NAME, events)
-            .await?;
-        Ok(())
     }
 }
