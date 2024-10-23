@@ -622,8 +622,8 @@ pub struct FacilityCVL {
 impl From<crate::credit_facility::FacilityCVL> for FacilityCVL {
     fn from(value: crate::credit_facility::FacilityCVL) -> Self {
         Self {
-            total: value.total.into(),
-            disbursed: value.disbursed.into(),
+            total: value.total,
+            disbursed: value.disbursed,
         }
     }
 }
