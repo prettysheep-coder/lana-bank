@@ -69,8 +69,8 @@ fn path_in_bucket_util(id: DocumentId) -> String {
 impl Document {
     fn location_in_cloud(&self) -> LocationInCloud {
         LocationInCloud {
-            bucket: self.bucket.clone(),
-            path_in_bucket: self.path_in_bucket.clone(),
+            bucket: &self.bucket,
+            path_in_bucket: &self.path_in_bucket,
         }
     }
 
