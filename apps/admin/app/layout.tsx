@@ -14,17 +14,20 @@ export const metadata: Metadata = {
 
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 
 import { Inter, Helvetica } from "./fonts"
 import { AuthSessionProvider } from "./session-provider"
-
 import { authOptions } from "./api/auth/[...nextauth]/options"
 
+const PUBLIC_PAGES = ["/auth/signin"]
+
 const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
+  const headerList = headers()
+  const currentPath = headerList.get("x-current-path") || "/"
+
   const session = await getServerSession(authOptions)
-  if (!session) {
-    redirect("/api/auth/signin")
-  }
+  if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/signin")
 
   return (
     <html lang="en">

@@ -3,5 +3,25 @@
 @tailwind utilities;
 
 body {
-  @apply antialiased font-helvetica;
+  @apply antialiased font-helvetica text-grey-0;
+}
+
+.text-headline {
+  @apply font-helvetica font-medium tracking-wide text-2xl
+}
+
+.text-title {
+  @apply font-helvetica font-normal tracking-wide text-xl
+}
+
+.text-medium {
+  @apply font-helvetica font-normal tracking-wide text-base
+}
+
+.text-description {
+  @apply font-helvetica font-light text-base
+}
+
+.text-default {
+  @apply font-helvetica font-normal tracking-wide text-sm
 }

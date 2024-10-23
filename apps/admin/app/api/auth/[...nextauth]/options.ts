@@ -5,6 +5,7 @@ import axios from "axios"
 import { customPostgresAdapter } from "@/lib/auth/db/auth-adapter"
 import { pool } from "@/lib/auth/db"
 import { env } from "@/env"
+import { BASE_PATH } from "@/app/config"
 
 async function checkUserEmail(email: string): Promise<boolean> {
   try {
@@ -49,4 +50,9 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: customPostgresAdapter(pool),
   secret: env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: `${BASE_PATH}/auth/signin`,
+    signOut: `${BASE_PATH}/auth/signout`,
+    verifyRequest: `${BASE_PATH}/auth/verify-request`,
+  },
 }
