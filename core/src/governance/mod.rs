@@ -58,6 +58,15 @@ impl Governance {
     async fn init_credit_facility_approval_process_assignment(
         &self,
     ) -> Result<(), GovernanceError> {
+        if self
+            .process_assignment_repo
+            .find_by_approval_process_type(ApprovalProcessType::CreditFacilityApproval)
+            .await
+            .is_ok()
+        {
+            return Ok(());
+        }
+
         let sub = Subject::System(SystemNode::Init);
         let audit_info = self
             .audit
@@ -88,6 +97,15 @@ impl Governance {
     async fn init_credit_facility_disbursement_process_assignment(
         &self,
     ) -> Result<(), GovernanceError> {
+        if self
+            .process_assignment_repo
+            .find_by_approval_process_type(ApprovalProcessType::CreditFacilityDisbursement)
+            .await
+            .is_ok()
+        {
+            return Ok(());
+        }
+
         let sub = Subject::System(SystemNode::Init);
         let audit_info = self
             .audit
