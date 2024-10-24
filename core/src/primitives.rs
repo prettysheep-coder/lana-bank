@@ -496,7 +496,9 @@ impl From<u64> for UsdCents {
 
 impl fmt::Display for UsdCents {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        let dollars = self.0 / 100;
+        let cents = self.0 % 100;
+        write!(f, "${}.{:02} USD", dollars, cents)
     }
 }
 
