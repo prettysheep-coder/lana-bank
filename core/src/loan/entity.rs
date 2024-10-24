@@ -601,7 +601,7 @@ impl Loan {
     }
 
     pub fn cvl_data(&self) -> CVLData {
-        CVLData::from_loan_amounts(self.collateral(), self.outstanding().total())
+        CVLData::new(self.collateral(), self.outstanding().total())
     }
 
     fn calculate_collaterization(&self, price: PriceOfOneBTC) -> LoanCollaterizationState {

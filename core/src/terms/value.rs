@@ -48,7 +48,7 @@ pub struct CVLData {
 }
 
 impl CVLData {
-    pub fn from_loan_amounts(collateral: Satoshis, amount: UsdCents) -> Self {
+    pub fn new(collateral: Satoshis, amount: UsdCents) -> Self {
         Self { collateral, amount }
     }
 
