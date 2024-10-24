@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT customer_id, collateralization_ratio, id FROM loans WHERE ((customer_id = $1) AND (collateralization_ratio > $4 OR (collateralization_ratio IS NOT DISTINCT FROM $4) AND COALESCE(id > $3, true))) ORDER BY collateralization_ratio NULLS FIRST, id LIMIT $2) SELECT i.id AS \"entity_id: LoanId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN loan_events e ON i.id = e.id ORDER BY i.collateralization_ratio nulls first, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT collateralization_ratio, id FROM loans WHERE ((collateralization_ratio IS NOT DISTINCT FROM $3) AND COALESCE(id > $2, true) OR COALESCE(collateralization_ratio > $3, collateralization_ratio IS NOT NULL)) ORDER BY collateralization_ratio NULLS FIRST, id LIMIT $1) SELECT i.id AS \"entity_id: LoanId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN loan_events e ON i.id = e.id ORDER BY i.collateralization_ratio nulls first, i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -26,7 +26,6 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Int8",
         "Uuid",
         "Numeric"
@@ -39,5 +38,5 @@
       false
     ]
   },
-  "hash": "76f7cf895febe0f8beed1c57c8702160fcb943dff8dc61522968aab6087b6bea"
+  "hash": "676c3c7fcc8bb7149cb329b751172ac0c0b1aa84ca1a0bc39b01a951d8db22ac"
 }
