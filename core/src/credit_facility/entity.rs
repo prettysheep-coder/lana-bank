@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
+use es_entity::*;
+
 use crate::{
-    entity::*,
     ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
     terms::{CVLPct, CollateralizationState, InterestPeriod, TermValues},
@@ -17,8 +18,9 @@ use super::{
     NewInterestAccrual,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "CreditFacilityId")]
 pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
@@ -53,7 +55,7 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
     },
     InterestAccrualStarted {
-        id: InterestAccrualId,
+        interest_accrual_id: InterestAccrualId,
         idx: InterestAccrualIdx,
         started_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -95,13 +97,6 @@ pub enum CreditFacilityEvent {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-}
-
-impl EntityEvent for CreditFacilityEvent {
-    type EntityId = CreditFacilityId;
-    fn event_table_name() -> &'static str {
-        "credit_facility_events"
-    }
 }
 
 pub struct CreditFacilityApproval {
@@ -176,8 +171,8 @@ impl FacilityCVL {
     }
 }
 
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub customer_id: CustomerId,
@@ -191,44 +186,26 @@ pub struct CreditFacility {
     pub(super) events: EntityEvents<CreditFacilityEvent>,
 }
 
-impl Entity for CreditFacility {
-    type Event = CreditFacilityEvent;
-}
-
 impl CreditFacility {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
-            .entity_first_persisted_at
+            .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
 
     pub(super) fn disbursement_id_from_idx(&self, idx: DisbursementIdx) -> Option<DisbursementId> {
-        self.events.iter().find_map(|event| match event {
+        self.events.iter_all().find_map(|event| match event {
             CreditFacilityEvent::DisbursementInitiated {
                 disbursement_id: id,
                 idx: i,
                 ..
-            } if i == idx => Some(*id),
-            _ => None,
-        })
-    }
-
-    pub(super) fn interest_accrual_id_from_idx(
-        &self,
-        idx: InterestAccrualIdx,
-    ) -> Option<InterestAccrualId> {
-        self.events.iter().find_map(|event| match event {
-            CreditFacilityEvent::InterestAccrualStarted {
-                interest_accrual_id: id,
-                idx: i,
-                ..
-            } if i == idx => Some(*id),
+            } if i == &idx => Some(*id),
             _ => None,
         })
     }
 
     pub fn initial_facility(&self) -> UsdCents {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::Initialized { facility, .. } => return *facility,
                 _ => continue,
@@ -238,7 +215,7 @@ impl CreditFacility {
     }
 
     pub fn initial_disbursement_recorded_at(&self) -> Option<DateTime<Utc>> {
-        self.events.iter().find_map(|event| match event {
+        self.events.iter_all().find_map(|event| match event {
             CreditFacilityEvent::DisbursementConcluded { recorded_at, .. } => Some(*recorded_at),
             _ => None,
         })
@@ -247,7 +224,7 @@ impl CreditFacility {
     fn total_disbursed(&self) -> UsdCents {
         let mut amounts = std::collections::HashMap::new();
         self.events
-            .iter()
+            .iter_all()
             .fold(UsdCents::from(0), |mut total_sum, event| {
                 match event {
                     CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
@@ -270,7 +247,7 @@ impl CreditFacility {
 
     fn interest_accrued(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 CreditFacilityEvent::InterestAccrualConcluded { amount, .. } => Some(*amount),
                 _ => None,
@@ -280,7 +257,7 @@ impl CreditFacility {
 
     fn disbursed_payments(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 CreditFacilityEvent::PaymentRecorded {
                     disbursement_amount,
@@ -293,7 +270,7 @@ impl CreditFacility {
 
     fn interest_payments(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 CreditFacilityEvent::PaymentRecorded {
                     interest_amount, ..
@@ -304,11 +281,11 @@ impl CreditFacility {
     }
 
     pub fn history(&self) -> Vec<history::CreditFacilityHistoryEntry> {
-        history::project(self.events.iter())
+        history::project(self.events.iter_all())
     }
 
     pub(super) fn is_approved(&self) -> bool {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::Approved { .. } => return true,
                 _ => continue,
@@ -336,7 +313,7 @@ impl CreditFacility {
         let mut n_admin = 0;
         let mut n_bank_manager = 0;
 
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             if let CreditFacilityEvent::ApprovalAdded {
                 approving_user_roles,
                 ..
@@ -356,7 +333,7 @@ impl CreditFacility {
     }
 
     fn has_user_previously_approved(&self, user_id: UserId) -> bool {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::ApprovalAdded {
                     approving_user_id, ..
@@ -431,7 +408,7 @@ impl CreditFacility {
     pub fn approvals(&self) -> Vec<CreditFacilityApproval> {
         let mut approvals = Vec::new();
 
-        for event in self.events.iter().rev() {
+        for event in self.events.iter_all().rev() {
             if let CreditFacilityEvent::ApprovalAdded {
                 approving_user_id,
                 recorded_at,
@@ -463,7 +440,7 @@ impl CreditFacility {
 
         let idx = self
             .events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(idx.next()),
@@ -475,7 +452,7 @@ impl CreditFacility {
 
         self.events
             .push(CreditFacilityEvent::DisbursementInitiated {
-                id,
+                disbursement_id: id,
                 idx,
                 amount,
                 audit_info,
@@ -483,7 +460,7 @@ impl CreditFacility {
 
         Ok(NewDisbursement::builder()
             .id(id)
-            .facility_id(self.id)
+            .credit_facility_id(self.id)
             .idx(idx)
             .amount(amount)
             .account_ids(self.account_ids)
@@ -510,7 +487,7 @@ impl CreditFacility {
     }
 
     fn is_disbursement_in_progress(&self) -> bool {
-        for event in self.events.iter().rev() {
+        for event in self.events.iter_all().rev() {
             if let CreditFacilityEvent::DisbursementInitiated { .. } = event {
                 return true;
             }
@@ -523,7 +500,7 @@ impl CreditFacility {
     }
 
     fn next_interest_accrual_period(&self) -> Result<Option<InterestPeriod>, CreditFacilityError> {
-        let last_accrual_start_date = self.events.iter().rev().find_map(|event| match event {
+        let last_accrual_start_date = self.events.iter_all().rev().find_map(|event| match event {
             CreditFacilityEvent::InterestAccrualStarted { started_at, .. } => Some(*started_at),
             _ => None,
         });
@@ -555,15 +532,17 @@ impl CreditFacility {
 
         let idx = self
             .events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::InterestAccrualStarted { idx, .. } => Some(idx.next()),
                 _ => None,
             })
             .unwrap_or(InterestAccrualIdx::FIRST);
+        let id = InterestAccrualId::new();
         self.events
             .push(CreditFacilityEvent::InterestAccrualStarted {
+                interest_accrual_id: id,
                 idx,
                 started_at: accrual_starts_at,
                 audit_info,
@@ -571,8 +550,8 @@ impl CreditFacility {
 
         Ok(Some(
             NewInterestAccrual::builder()
-                .id(InterestAccrualId::new())
-                .facility_id(self.id)
+                .id(id)
+                .credit_facility_id(self.id)
                 .idx(idx)
                 .started_at(accrual_starts_at)
                 .facility_expires_at(self.expires_at.expect("Facility is already approved"))
@@ -608,11 +587,14 @@ impl CreditFacility {
 
     pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualId> {
         self.events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::InterestAccrualConcluded { .. } => Some(None),
-                CreditFacilityEvent::InterestAccrualStarted { id, .. } => Some(Some(*id)),
+                CreditFacilityEvent::InterestAccrualStarted {
+                    interest_accrual_id: id,
+                    ..
+                } => Some(Some(*id)),
                 _ => None,
             })
             .and_then(|id| id)
@@ -631,7 +613,7 @@ impl CreditFacility {
 
     pub fn collateral(&self) -> Satoshis {
         self.events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::CollateralUpdated {
@@ -695,7 +677,7 @@ impl CreditFacility {
 
     fn count_recorded_payments(&self) -> usize {
         self.events
-            .iter()
+            .iter_all()
             .filter(|event| matches!(event, CreditFacilityEvent::PaymentRecorded { .. }))
             .count()
     }
@@ -706,7 +688,7 @@ impl CreditFacility {
         }
 
         self.events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
@@ -767,7 +749,7 @@ impl CreditFacility {
 
     fn count_collateral_adjustments(&self) -> usize {
         self.events
-            .iter()
+            .iter_all()
             .filter(|event| matches!(event, CreditFacilityEvent::CollateralUpdated { .. }))
             .count()
     }
@@ -844,7 +826,7 @@ impl CreditFacility {
 
     fn is_completed(&self) -> bool {
         self.events
-            .iter()
+            .iter_all()
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
@@ -920,13 +902,11 @@ impl CreditFacility {
     }
 }
 
-impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
+    fn try_from_events(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CreditFacilityBuilder::default();
         let mut terms = None;
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 CreditFacilityEvent::Initialized {
                     id,
@@ -985,8 +965,10 @@ impl NewCreditFacility {
     pub fn builder() -> NewCreditFacilityBuilder {
         NewCreditFacilityBuilder::default()
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<CreditFacilityEvent> {
+impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
+    fn into_events(self) -> EntityEvents<CreditFacilityEvent> {
         EntityEvents::init(
             self.id,
             [CreditFacilityEvent::Initialized {
@@ -1042,7 +1024,7 @@ mod test {
     }
 
     fn facility_from(events: &Vec<CreditFacilityEvent>) -> CreditFacility {
-        CreditFacility::try_from(EntityEvents::init(CreditFacilityId::new(), events.clone()))
+        CreditFacility::try_from_events(EntityEvents::init(CreditFacilityId::new(), events.clone()))
             .unwrap()
     }
 
@@ -1074,6 +1056,7 @@ mod test {
 
         let first_idx = DisbursementIdx::FIRST;
         events.push(CreditFacilityEvent::DisbursementInitiated {
+            disbursement_id: DisbursementId::new(),
             idx: first_idx,
             amount: UsdCents::ONE,
             audit_info: dummy_audit_info(),
@@ -1125,6 +1108,7 @@ mod test {
         let mut events = initial_events();
         events.extend([
             CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1232,6 +1216,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(10),
                 audit_info: dummy_audit_info(),
@@ -1258,6 +1243,7 @@ mod test {
                 recorded_at: Utc::now(),
             },
             CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1285,7 +1271,7 @@ mod test {
             .start_interest_accrual(dummy_audit_info())
             .unwrap()
             .unwrap();
-        let accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
+        let accrual = InterestAccrual::try_from_events(new_accrual.into_events()).unwrap();
 
         let second_period = credit_facility
             .next_interest_accrual_period()
@@ -1320,6 +1306,7 @@ mod test {
                 recorded_at: Utc::now(),
             },
             CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1337,7 +1324,7 @@ mod test {
             .start_interest_accrual(dummy_audit_info())
             .unwrap()
             .unwrap();
-        let mut accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
+        let mut accrual = InterestAccrual::try_from_events(new_accrual.into_events()).unwrap();
         let mut next_accrual_period = credit_facility.next_interest_accrual_period().unwrap();
         while next_accrual_period.is_some() {
             credit_facility.confirm_interest_accrual(
@@ -1369,7 +1356,7 @@ mod test {
                 });
             let new_accrual = NewInterestAccrual::builder()
                 .id(id)
-                .facility_id(credit_facility.id)
+                .credit_facility_id(credit_facility.id)
                 .idx(new_idx)
                 .started_at(accrual_starts_at)
                 .facility_expires_at(
@@ -1381,7 +1368,7 @@ mod test {
                 .audit_info(dummy_audit_info())
                 .build()
                 .unwrap();
-            accrual = InterestAccrual::try_from(new_accrual.initial_events()).unwrap();
+            accrual = InterestAccrual::try_from_events(new_accrual.into_events()).unwrap();
 
             next_accrual_period = credit_facility.next_interest_accrual_period().unwrap();
         }
@@ -1747,6 +1734,7 @@ mod test {
         let mut events = initial_events();
         events.extend([
             CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
@@ -1784,6 +1772,7 @@ mod test {
         let mut events = initial_events();
         events.extend([
             CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: DisbursementId::new(),
                 idx: DisbursementIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),

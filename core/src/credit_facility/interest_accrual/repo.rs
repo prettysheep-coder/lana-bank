@@ -9,6 +9,8 @@ use crate::{
 
 use super::{entity::*, InterestAccrualError};
 
+const BQ_TABLE_NAME: &str = "interest_accrual_events";
+
 #[derive(EsRepo, Clone)]
 #[es_repo(
     entity = "InterestAccrual",
@@ -16,7 +18,8 @@ use super::{entity::*, InterestAccrualError};
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for),
         idx(ty = "InterestAccrualIdx", update(persist = false)),
-    )
+    ),
+    post_persist_hook = "export"
 )]
 pub(in crate::credit_facility) struct InterestAccrualRepo {
     pool: PgPool,
@@ -29,5 +32,16 @@ impl InterestAccrualRepo {
             pool: pool.clone(),
             export: export.clone(),
         }
+    }
+
+    async fn export(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        events: impl Iterator<Item = &PersistedEvent<InterestAccrualEvent>>,
+    ) -> Result<(), InterestAccrualError> {
+        self.export
+            .es_entity_export(db, BQ_TABLE_NAME, events)
+            .await?;
+        Ok(())
     }
 }

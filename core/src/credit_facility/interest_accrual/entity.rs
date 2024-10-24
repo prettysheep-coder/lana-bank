@@ -290,8 +290,11 @@ mod test {
     }
 
     fn accrual_from(events: &Vec<InterestAccrualEvent>) -> InterestAccrual {
-        InterestAccrual::try_from(EntityEvents::init(InterestAccrualId::new(), events.clone()))
-            .unwrap()
+        InterestAccrual::try_from_events(EntityEvents::init(
+            InterestAccrualId::new(),
+            events.clone(),
+        ))
+        .unwrap()
     }
 
     fn initial_events() -> Vec<InterestAccrualEvent> {

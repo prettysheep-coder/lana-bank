@@ -20,14 +20,14 @@ use super::{entity::*, error::DisbursementError};
 )]
 pub(in crate::credit_facility) struct DisbursementRepo {
     pool: PgPool,
-    export: Export,
+    _export: Export,
 }
 
 impl DisbursementRepo {
     pub fn new(pool: &PgPool, export: &Export) -> Self {
         Self {
             pool: pool.clone(),
-            export: export.clone(),
+            _export: export.clone(),
         }
     }
 }

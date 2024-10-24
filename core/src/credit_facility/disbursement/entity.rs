@@ -90,7 +90,7 @@ impl TryFromEvents<DisbursementEvent> for Disbursement {
 impl Disbursement {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
-            .entity_first_persisted_at
+            .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
 
@@ -282,7 +282,7 @@ mod test {
 
     #[test]
     fn admin_and_bank_manager_can_approve() {
-        let mut disbursement = Disbursement::try_from(init_events()).unwrap();
+        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
         let _admin_approval = disbursement.add_approval(
             UserId::new(),
             [Role::Admin].into_iter().collect(),
@@ -299,7 +299,7 @@ mod test {
 
     #[test]
     fn two_admin_can_approve() {
-        let mut disbursement = Disbursement::try_from(init_events()).unwrap();
+        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
         let _first_admin_approval = disbursement.add_approval(
             UserId::new(),
             [Role::Admin].into_iter().collect(),
@@ -316,7 +316,7 @@ mod test {
 
     #[test]
     fn user_cannot_approve_twice() {
-        let mut disbursement = Disbursement::try_from(init_events()).unwrap();
+        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
         let user_id = UserId::new();
         let first_approval = disbursement.add_approval(
             user_id,
@@ -339,7 +339,7 @@ mod test {
 
     #[test]
     fn two_bank_managers_cannot_approve() {
-        let mut disbursement = Disbursement::try_from(init_events()).unwrap();
+        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
         let first_bank_manager_approval = disbursement.add_approval(
             UserId::new(),
             [Role::BankManager].into_iter().collect(),
