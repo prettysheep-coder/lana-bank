@@ -1,9 +1,45 @@
+:root {
+  --color-primary: #3E54FB;
+  --color-secondary: #363849;
+  --color-white: #FFFFFF;
+  --color-background: #F6F8FA;
+  --color-primary-bg: #EBEDFF;
+  --color-warning: #FA9A20;
+  --color-warning-bg: #FFF6EB;
+  --color-success: #2AAF96;
+  --color-success-bg: #EFFBF9;
+  --color-error: #D50000;
+  --color-error-bg: #FFEBEE;
+  --color-grey-0: #1e1f27;
+  --color-grey-2: #363849;
+  --color-grey-4: #797F8F;
+  --color-grey-5: #E1E3E6;
+}
+
+.dark {
+  --color-primary: #ffae0a;
+  --color-secondary: #5c5c5c;
+  --color-white: #1a1a1a;
+  --color-background: #090705;
+  --color-primary-bg: #141200;
+  --color-warning: #FA9A20;
+  --color-warning-bg: #140e00;
+  --color-success: #2AAF96;
+  --color-success-bg: #041005;
+  --color-error: #D50000;
+  --color-error-bg: #140000;
+  --color-grey-0: #dedcc9;
+  --color-grey-2: #c9c7b6;
+  --color-grey-4: #868070;
+  --color-grey-5: #1f1f1f;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  @apply antialiased font-helvetica text-grey-0
+  @apply antialiased font-helvetica text-grey-0 bg-white
 }
 
 .text-headline {

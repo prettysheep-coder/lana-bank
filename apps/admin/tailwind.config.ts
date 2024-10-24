@@ -1,8 +1,8 @@
 import type { Config } from "tailwindcss"
-
 import withMT from "@material-tailwind/react/utils/withMT"
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -15,22 +15,22 @@ const config: Config = {
         helvetica: ["var(--font-helvetica)", "sans-serif"],
       },
       colors: {
-        "primary": "#3E54FB",
-        "secondary": "#363849",
-        "white": "#FFFFFF",
-        "background": "#F6F8FA",
-        "primary-bg": "#EBEDFF",
-        "warning": "#FA9A20",
-        "warning-bg": "#FFF6EB",
-        "success": "#2AAF96",
-        "success-bg": "#EFFBF9",
-        "error": "#D50000",
-        "error-bg": "#FFEBEE",
+        "primary": "var(--color-primary)",
+        "secondary": "var(--color-secondary)",
+        "white": "var(--color-white)",
+        "background": "var(--color-background)",
+        "primary-bg": "var(--color-primary-bg)",
+        "warning": "var(--color-warning)",
+        "warning-bg": "var(--color-warning-bg)",
+        "success": "var(--color-success)",
+        "success-bg": "var(--color-success-bg)",
+        "error": "var(--color-error)",
+        "error-bg": "var(--color-error-bg)",
         "grey": {
-          0: "#212336",
-          2: "#363849",
-          4: "#797F8F",
-          5: "#E1E3E6",
+          0: "var(--color-grey-0)",
+          2: "var(--color-grey-2)",
+          4: "var(--color-grey-4)",
+          5: "var(--color-grey-5)",
         },
       },
     },

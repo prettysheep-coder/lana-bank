@@ -56,6 +56,6 @@ type CaraouselItemProps = {
 const CarouselItem: React.FC<CaraouselItemProps> = ({ text, icon }) => (
   <div className="flex flex-col justify-center items-center space-y-10 h-full">
     <Image src={`${BASE_PATH}/${icon}`} alt={text} width="300" height="300" />
-    <div className="text-title text-white">{text}</div>
+    <div className="text-title text-grey-5">{text}</div>
   </div>
 )

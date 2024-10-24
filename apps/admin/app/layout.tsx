@@ -18,6 +18,7 @@ const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
 
   const session = await getServerSession(authOptions)
   if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/signin")
+  if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
 
   return (
     <html lang="en">

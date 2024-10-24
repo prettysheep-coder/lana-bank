@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   return (
     <MTButton
-      className={`bg-secondary ${className}`}
+      className={`bg-secondary dark:text-grey-0 ${className}`}
       type={type}
       placeholder={undefined}
       onPointerEnterCapture={undefined}

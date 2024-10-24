@@ -54,7 +54,7 @@ const Input: React.FC<InputProps> = ({
         {label}
       </label>
       <input
-        className=" focus:ring-primary focus:ring-1 focus:outline-none border border-primary-bg rounded-md p-2"
+        className="dark:bg-secondary focus:ring-primary focus:ring-1 focus:outline-none border border-primary-bg rounded-md p-2"
         type={isNumeric ? "text" : type}
         value={displayValue}
         onChange={handleChange}
