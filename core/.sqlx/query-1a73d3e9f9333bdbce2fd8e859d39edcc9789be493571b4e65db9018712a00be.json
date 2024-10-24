@@ -28,7 +28,17 @@
       "Left": [
         "Int8",
         "Uuid",
-        "Text"
+        {
+          "Custom": {
+            "name": "approval_process_type",
+            "kind": {
+              "Enum": [
+                "credit_facility_approval",
+                "credit_facility_disbursement"
+              ]
+            }
+          }
+        }
       ]
     },
     "nullable": [

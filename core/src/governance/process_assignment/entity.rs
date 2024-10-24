@@ -34,7 +34,7 @@ impl ProcessAssignment {
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
             .entity_first_persisted_at()
-            .expect("No events for deposit")
+            .expect("No events for process assignment")
     }
 
     pub fn update_committee(&mut self, committee_id: CommitteeId, audit_info: AuditInfo) {

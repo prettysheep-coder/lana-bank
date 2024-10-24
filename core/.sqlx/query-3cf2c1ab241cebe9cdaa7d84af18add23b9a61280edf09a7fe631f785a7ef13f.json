@@ -6,7 +6,17 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Varchar"
+        {
+          "Custom": {
+            "name": "approval_process_type",
+            "kind": {
+              "Enum": [
+                "credit_facility_approval",
+                "credit_facility_disbursement"
+              ]
+            }
+          }
+        }
       ]
     },
     "nullable": []
