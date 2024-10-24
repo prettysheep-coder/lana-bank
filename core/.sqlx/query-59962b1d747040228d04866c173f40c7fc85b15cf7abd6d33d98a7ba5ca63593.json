@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT approval_process_type, id FROM process_assignments WHERE ((approval_process_type, id) > ($3, $2)) OR $2 IS NULL ORDER BY approval_process_type, id LIMIT $1) SELECT i.id AS \"entity_id: ProcessAssignmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN process_assignment_events e ON i.id = e.id ORDER BY i.approval_process_type, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT approval_process_type, id FROM process_assignments WHERE (COALESCE((approval_process_type, id) > ($3, $2), $2 IS NULL)) ORDER BY approval_process_type, id LIMIT $1) SELECT i.id AS \"entity_id: ProcessAssignmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN process_assignment_events e ON i.id = e.id ORDER BY i.approval_process_type, i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       false
     ]
   },
-  "hash": "1a73d3e9f9333bdbce2fd8e859d39edcc9789be493571b4e65db9018712a00be"
+  "hash": "59962b1d747040228d04866c173f40c7fc85b15cf7abd6d33d98a7ba5ca63593"
 }

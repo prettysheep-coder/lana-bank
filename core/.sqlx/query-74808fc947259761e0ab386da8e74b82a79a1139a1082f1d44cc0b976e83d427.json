@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT committee_id, id FROM process_assignments WHERE ((committee_id, id) > ($3, $2)) OR $2 IS NULL ORDER BY committee_id, id LIMIT $1) SELECT i.id AS \"entity_id: ProcessAssignmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN process_assignment_events e ON i.id = e.id ORDER BY i.committee_id, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT committee_id, id FROM process_assignments WHERE ((committee_id IS NOT DISTINCT FROM $3) AND COALESCE(id > $2, true) OR COALESCE(committee_id > $3, committee_id IS NOT NULL)) ORDER BY committee_id NULLS FIRST, id LIMIT $1) SELECT i.id AS \"entity_id: ProcessAssignmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN process_assignment_events e ON i.id = e.id ORDER BY i.committee_id nulls first, i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "32eb56f56171cbc0fbfced82c79d550a5e026362f2c20bd9ac36891ce648b7ea"
+  "hash": "74808fc947259761e0ab386da8e74b82a79a1139a1082f1d44cc0b976e83d427"
 }

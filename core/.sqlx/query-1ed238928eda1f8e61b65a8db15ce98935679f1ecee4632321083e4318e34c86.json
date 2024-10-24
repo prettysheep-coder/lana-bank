@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT name, id FROM committees WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1) SELECT i.id AS \"entity_id: CommitteeId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN committee_events e ON i.id = e.id ORDER BY i.name, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM committees WHERE (COALESCE(id > $2, true)) ORDER BY id LIMIT $1) SELECT i.id AS \"entity_id: CommitteeId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN committee_events e ON i.id = e.id ORDER BY i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -27,8 +27,7 @@
     "parameters": {
       "Left": [
         "Int8",
-        "Uuid",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -38,5 +37,5 @@
       false
     ]
   },
-  "hash": "0e912e8cab48b089f4ffc50d43bb510acadbab9fa5407149f17e0aba0675bd88"
+  "hash": "1ed238928eda1f8e61b65a8db15ce98935679f1ecee4632321083e4318e34c86"
 }
