@@ -4,9 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
+use es_entity::*;
+
 use crate::{
     credit_facility::CreditFacilityAccountIds,
-    entity::*,
     ledger::{customer::CustomerLedgerAccountIds, disbursement::DisbursementData},
     primitives::*,
 };
@@ -18,8 +19,9 @@ pub struct DisbursementApproval {
     pub approved_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "DisbursementId")]
 pub enum DisbursementEvent {
     Initialized {
         id: DisbursementId,
@@ -43,15 +45,8 @@ pub enum DisbursementEvent {
     },
 }
 
-impl EntityEvent for DisbursementEvent {
-    type EntityId = DisbursementId;
-    fn event_table_name() -> &'static str {
-        "disbursement_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Disbursement {
     pub id: DisbursementId,
     pub facility_id: CreditFacilityId,
@@ -62,16 +57,10 @@ pub struct Disbursement {
     pub(super) events: EntityEvents<DisbursementEvent>,
 }
 
-impl Entity for Disbursement {
-    type Event = DisbursementEvent;
-}
-
-impl TryFrom<EntityEvents<DisbursementEvent>> for Disbursement {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<DisbursementEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<DisbursementEvent> for Disbursement {
+    fn try_from_events(events: EntityEvents<DisbursementEvent>) -> Result<Self, EsEntityError> {
         let mut builder = DisbursementBuilder::default();
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 DisbursementEvent::Initialized {
                     id,
@@ -106,7 +95,7 @@ impl Disbursement {
     }
 
     fn has_user_previously_approved(&self, user_id: UserId) -> bool {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 DisbursementEvent::ApprovalAdded {
                     approving_user_id, ..
@@ -133,7 +122,7 @@ impl Disbursement {
         let mut n_admin = 0;
         let mut n_bank_manager = 0;
 
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             if let DisbursementEvent::ApprovalAdded {
                 approving_user_roles,
                 ..
@@ -153,7 +142,7 @@ impl Disbursement {
     }
 
     pub fn is_approved(&self) -> bool {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 DisbursementEvent::Approved { .. } => return true,
                 _ => continue,
@@ -210,7 +199,7 @@ impl Disbursement {
 
     pub fn approvals(&self) -> Vec<DisbursementApproval> {
         let mut approvals = Vec::new();
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             if let DisbursementEvent::ApprovalAdded {
                 approving_user_id,
                 recorded_at,
@@ -232,7 +221,7 @@ pub struct NewDisbursement {
     #[builder(setter(into))]
     pub(super) id: DisbursementId,
     #[builder(setter(into))]
-    pub(super) facility_id: CreditFacilityId,
+    pub(super) credit_facility_id: CreditFacilityId,
     pub(super) idx: DisbursementIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
@@ -245,13 +234,15 @@ impl NewDisbursement {
     pub fn builder() -> NewDisbursementBuilder {
         NewDisbursementBuilder::default()
     }
+}
 
-    pub fn initial_events(self) -> EntityEvents<DisbursementEvent> {
+impl IntoEvents<DisbursementEvent> for NewDisbursement {
+    fn into_events(self) -> EntityEvents<DisbursementEvent> {
         EntityEvents::init(
             self.id,
             [DisbursementEvent::Initialized {
                 id: self.id,
-                facility_id: self.facility_id,
+                facility_id: self.credit_facility_id,
                 idx: self.idx,
                 amount: self.amount,
                 account_ids: self.account_ids,

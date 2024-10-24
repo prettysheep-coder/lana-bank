@@ -347,13 +347,14 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
+        let disbursement_id = credit_facility
+            .disbursement_id_from_idx(disbursement_idx)
+            .ok_or_else(|| disbursement::error::DisbursementError::NotFound)?;
+
         let subject_id = uuid::Uuid::from(sub);
         let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
 
-        let mut disbursement = self
-            .disbursement_repo
-            .find_by_idx_for_credit_facility(credit_facility_id, disbursement_idx)
-            .await?;
+        let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
 
         let mut db_tx = self.pool.begin().await?;
 
@@ -660,7 +661,11 @@ impl CreditFacilities {
             )
             .await?;
 
-        let disbursements = self.disbursement_repo.list(credit_facility_id).await?;
+        let disbursements = self
+            .disbursement_repo
+            .list_for_credit_facility_id_by_idx(credit_facility_id, Default::default())
+            .await?
+            .entities;
         Ok(disbursements)
     }
 }

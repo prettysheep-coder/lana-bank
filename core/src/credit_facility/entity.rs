@@ -41,6 +41,7 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
     },
     DisbursementInitiated {
+        disbursement_id: DisbursementId,
         idx: DisbursementIdx,
         amount: UsdCents,
         audit_info: AuditInfo,
@@ -198,6 +199,17 @@ impl CreditFacility {
         self.events
             .entity_first_persisted_at
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub(super) fn disbursement_id_from_idx(&self, idx: DisbursementIdx) -> Option<DisbursementId> {
+        self.events.iter().find_map(|event| match event {
+            CreditFacilityEvent::DisbursementInitiated {
+                disbursement_id: id,
+                idx: i,
+                ..
+            } if i == idx => Some(*id),
+            _ => None,
+        })
     }
 
     pub fn initial_facility(&self) -> UsdCents {
@@ -444,15 +456,18 @@ impl CreditFacility {
             })
             .unwrap_or(DisbursementIdx::FIRST);
 
+        let id = DisbursementId::new();
+
         self.events
             .push(CreditFacilityEvent::DisbursementInitiated {
+                id,
                 idx,
                 amount,
                 audit_info,
             });
 
         Ok(NewDisbursement::builder()
-            .id(DisbursementId::new())
+            .id(id)
             .facility_id(self.id)
             .idx(idx)
             .amount(amount)
