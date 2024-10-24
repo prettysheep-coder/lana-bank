@@ -53,6 +53,7 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
     },
     InterestAccrualStarted {
+        id: InterestAccrualId,
         idx: InterestAccrualIdx,
         started_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -205,6 +206,20 @@ impl CreditFacility {
         self.events.iter().find_map(|event| match event {
             CreditFacilityEvent::DisbursementInitiated {
                 disbursement_id: id,
+                idx: i,
+                ..
+            } if i == idx => Some(*id),
+            _ => None,
+        })
+    }
+
+    pub(super) fn interest_accrual_id_from_idx(
+        &self,
+        idx: InterestAccrualIdx,
+    ) -> Option<InterestAccrualId> {
+        self.events.iter().find_map(|event| match event {
+            CreditFacilityEvent::InterestAccrualStarted {
+                interest_accrual_id: id,
                 idx: i,
                 ..
             } if i == idx => Some(*id),
@@ -591,16 +606,16 @@ impl CreditFacility {
             });
     }
 
-    pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualIdx> {
+    pub fn interest_accrual_in_progress(&self) -> Option<InterestAccrualId> {
         self.events
             .iter()
             .rev()
             .find_map(|event| match event {
                 CreditFacilityEvent::InterestAccrualConcluded { .. } => Some(None),
-                CreditFacilityEvent::InterestAccrualStarted { idx, .. } => Some(Some(*idx)),
+                CreditFacilityEvent::InterestAccrualStarted { id, .. } => Some(Some(*id)),
                 _ => None,
             })
-            .and_then(|idx| idx)
+            .and_then(|id| id)
     }
 
     pub fn outstanding(&self) -> CreditFacilityReceivable {
@@ -1343,15 +1358,17 @@ mod test {
 
             let new_idx = accrual.idx.next();
             let accrual_starts_at = next_accrual_period.unwrap().start;
+            let id = InterestAccrualId::new();
             credit_facility
                 .events
                 .push(CreditFacilityEvent::InterestAccrualStarted {
+                    interest_accrual_id: id,
                     idx: new_idx,
                     started_at: accrual_starts_at,
                     audit_info: dummy_audit_info(),
                 });
             let new_accrual = NewInterestAccrual::builder()
-                .id(InterestAccrualId::new())
+                .id(id)
                 .facility_id(credit_facility.id)
                 .idx(new_idx)
                 .started_at(accrual_starts_at)
