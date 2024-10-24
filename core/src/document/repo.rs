@@ -10,7 +10,7 @@ use super::{entity::*, error::DocumentError};
 #[es_repo(
     entity = "Document",
     err = "DocumentError",
-    columns(customer_id(ty = "CustomerId", list_for)),
+    columns(customer_id(ty = "CustomerId", list_for, update(persist = false))),
     delete = "soft"
 )]
 pub struct DocumentsRepo {

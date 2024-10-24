@@ -66,12 +66,16 @@ impl Documents {
         &self,
         sub: &Subject,
         id: DocumentId,
-    ) -> Result<Document, DocumentError> {
+    ) -> Result<Option<Document>, DocumentError> {
         self.authz
             .enforce_permission(sub, Object::Document, DocumentAction::Read)
             .await?;
 
-        self.repo.find_by_id(id).await
+        match self.repo.find_by_id(id).await {
+            Ok(document) => Ok(Some(document)),
+            Err(DocumentError::NotFound) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn list_by_customer_id(
