@@ -329,6 +329,8 @@ impl NewReport {
 
 #[cfg(test)]
 mod test {
+    use crate::audit::AuditEntryId;
+
     use super::*;
 
     fn dummy_audit_info() -> AuditInfo {

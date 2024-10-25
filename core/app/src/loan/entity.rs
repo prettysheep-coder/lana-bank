@@ -891,7 +891,7 @@ impl IntoEvents<LoanEvent> for NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::*;
+    use crate::{audit::AuditEntryId, loan::*};
 
     use super::*;
 

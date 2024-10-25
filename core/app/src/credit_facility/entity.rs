@@ -1014,6 +1014,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
+        audit::AuditEntryId,
         credit_facility::*,
         terms::{Duration, InterestInterval},
     };

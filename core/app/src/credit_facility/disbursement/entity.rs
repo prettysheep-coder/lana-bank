@@ -256,6 +256,7 @@ impl IntoEvents<DisbursementEvent> for NewDisbursement {
 
 #[cfg(test)]
 mod test {
+    use crate::audit::AuditEntryId;
 
     use super::*;
 
