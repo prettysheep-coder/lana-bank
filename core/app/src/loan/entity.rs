@@ -8,6 +8,7 @@ use std::collections::HashSet;
 use es_entity::*;
 
 use crate::{
+    audit::AuditInfo,
     ledger::{
         customer::CustomerLedgerAccountIds,
         loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},

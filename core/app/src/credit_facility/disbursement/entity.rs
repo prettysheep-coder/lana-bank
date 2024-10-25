@@ -7,6 +7,7 @@ use std::collections::HashSet;
 use es_entity::*;
 
 use crate::{
+    audit::AuditInfo,
     credit_facility::CreditFacilityAccountIds,
     ledger::{customer::CustomerLedgerAccountIds, disbursement::DisbursementData},
     primitives::*,

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
+    audit::AuditInfo,
     credit_facility::{
         CreditFacilityAccountIds, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
         CreditFacilityReceivable,

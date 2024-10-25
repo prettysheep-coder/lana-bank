@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*, storage::LocationInCloud};
+use crate::{audit::AuditInfo, entity::*, primitives::*, storage::LocationInCloud};
 
 use super::{
     dataform_client::{CompilationResult, WorkflowInvocation},

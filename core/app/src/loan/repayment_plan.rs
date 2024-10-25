@@ -157,6 +157,7 @@ mod tests {
     use rust_decimal_macros::dec;
 
     use crate::{
+        audit::AuditInfo,
         ledger::{customer::*, loan::*},
         loan::*,
         primitives::*,
