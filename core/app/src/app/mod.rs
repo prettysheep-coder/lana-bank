@@ -172,15 +172,21 @@ impl LavaApp {
         &self.users
     }
 
-    pub fn authz(&self) -> &Authorization {
-        &self.authz
-    }
-
     pub fn terms_templates(&self) -> &TermsTemplates {
         &self.terms_templates
     }
 
     pub fn documents(&self) -> &Documents {
         &self.documents
+    }
+
+    pub async fn get_visible_nav_items(
+        &self,
+        sub: &Subject,
+    ) -> Result<
+        crate::authorization::VisibleNavigationItems,
+        crate::authorization::error::AuthorizationError,
+    > {
+        crate::authorization::get_visible_navigation_items(&self.authz, sub).await
     }
 }
