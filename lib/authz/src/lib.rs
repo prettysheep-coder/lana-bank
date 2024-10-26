@@ -21,7 +21,7 @@ const MODEL: &str = include_str!("./rbac.conf");
 pub struct Authorization<S, R, O, A>
 where
     S: FromStr + fmt::Display + Clone,
-    R: FromStr + fmt::Display + Copy,
+    R: FromStr + fmt::Display + Clone,
     O: FromStr + fmt::Display + Copy + fmt::Debug,
     A: FromStr + fmt::Display + Copy,
     <S as FromStr>::Err: fmt::Debug,
@@ -37,7 +37,7 @@ where
 impl<S, R, O, A> Authorization<S, R, O, A>
 where
     S: FromStr + fmt::Display + fmt::Debug + Clone,
-    R: FromStr + fmt::Display + fmt::Debug + Copy,
+    R: FromStr + fmt::Display + fmt::Debug + Clone,
     O: FromStr + fmt::Display + fmt::Debug + Copy,
     A: FromStr + fmt::Display + fmt::Debug + Copy,
     <S as FromStr>::Err: fmt::Debug,
@@ -85,9 +85,12 @@ where
     pub async fn enforce_permission(
         &self,
         sub: &S,
-        object: O,
-        action: impl Into<A> + std::fmt::Debug + std::marker::Copy,
+        object: impl Into<O> + std::fmt::Debug,
+        action: impl Into<A> + std::fmt::Debug,
     ) -> Result<AuditInfo<S>, AuthorizationError> {
+        let object = object.into();
+        let action = action.into();
+
         let result = self.inspect_permission(sub, object, action).await;
         match result {
             Ok(()) => Ok(self.audit.record_entry(sub, object, action, true).await?),
@@ -103,10 +106,12 @@ where
     pub async fn inspect_permission(
         &self,
         sub: &S,
-        object: O,
+        object: impl Into<O> + std::fmt::Debug,
         action: impl Into<A> + std::fmt::Debug,
     ) -> Result<(), AuthorizationError> {
+        let object = object.into();
         let action = action.into();
+
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
 
@@ -120,11 +125,13 @@ where
     pub async fn evaluate_permission(
         &self,
         sub: &S,
-        object: O,
-        action: impl Into<A> + std::fmt::Debug + std::marker::Copy,
+        object: impl Into<O> + std::fmt::Debug,
+        action: impl Into<A> + std::fmt::Debug,
         enforce: bool,
     ) -> Result<Option<AuditInfo<S>>, AuthorizationError> {
+        let object = object.into();
         let action = action.into();
+
         if enforce {
             Ok(Some(self.enforce_permission(sub, object, action).await?))
         } else {
@@ -137,12 +144,13 @@ where
     pub async fn add_permission_to_role(
         &self,
         role: &R,
-        object: O,
+        object: impl Into<O>,
         action: impl Into<A>,
     ) -> Result<(), AuthorizationError> {
-        let mut enforcer = self.enforcer.write().await;
-
+        let object = object.into();
         let action = action.into();
+
+        let mut enforcer = self.enforcer.write().await;
         match enforcer
             .add_policy(vec![
                 role.to_string(),
