@@ -33,8 +33,8 @@ pub struct Audit<S, O, A> {
 impl<S, O, A> Audit<S, O, A>
 where
     S: FromStr + fmt::Display + Clone,
-    O: FromStr + fmt::Display,
-    A: FromStr + fmt::Display,
+    O: FromStr + fmt::Display + Copy,
+    A: FromStr + fmt::Display + Copy,
     <S as FromStr>::Err: fmt::Debug,
     <O as FromStr>::Err: fmt::Debug,
     <A as FromStr>::Err: fmt::Debug,
@@ -55,22 +55,6 @@ where
         action: impl Into<A>,
         authorized: bool,
     ) -> Result<AuditInfo<S>, AuditError> {
-        let mut db = self.pool.begin().await?;
-        let info = self
-            .record_entry_in_tx(&mut db, subject, object, action, authorized)
-            .await?;
-        db.commit().await?;
-        Ok(info)
-    }
-
-    pub async fn record_entry_in_tx(
-        &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        subject: &S,
-        object: impl Into<O>,
-        action: impl Into<A>,
-        authorized: bool,
-    ) -> Result<AuditInfo<S>, AuditError> {
         let object = object.into();
         let action = action.into();
 
@@ -85,7 +69,7 @@ where
             action.to_string(),
             authorized,
         )
-        .fetch_one(&mut **db)
+        .fetch_one(&self.pool)
         .await?;
 
         Ok(AuditInfo::from((record.id, subject.clone())))
@@ -96,44 +80,27 @@ where
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<es_entity::PaginatedQueryRet<AuditEntry<S, O, A>, AuditCursor>, AuditError> {
         let after_id: Option<AuditEntryId> = query.after.map(|cursor| cursor.id);
-        let limit = i64::try_from(query.first)?;
+        let limit = query.first;
 
-        let raw_events = sqlx::query!(
+        let rows = sqlx::query!(
             r#"
             SELECT id AS "id: AuditEntryId", subject, object, action, authorized, recorded_at
             FROM audit_entries
-            WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
+            WHERE COALESCE(id < $1, true)
             ORDER BY id DESC
             LIMIT $2
             "#,
             after_id as Option<AuditEntryId>,
-            limit + 1,
+            (limit + 1) as i64,
         )
         .fetch_all(&self.pool)
         .await?;
 
-        // Determine if there is a next page
-        let has_next_page = raw_events.len() as i64 > limit;
+        let has_next_page = rows.len() > limit;
 
-        // If we fetched one extra, remove it from the results
-        let events = if has_next_page {
-            raw_events
-                .into_iter()
-                .take(limit.try_into().expect("can't convert to usize"))
-                .collect()
-        } else {
-            raw_events
-        };
-
-        // Create the next cursor if there is a next page
-        let end_cursor = if has_next_page {
-            events.last().map(|event| AuditCursor { id: event.id })
-        } else {
-            None
-        };
-
-        let audit_entries: Vec<AuditEntry<S, O, A>> = events
+        let entries: Vec<AuditEntry<_, _, _>> = rows
             .into_iter()
+            .take(limit)
             .map(|raw_event| AuditEntry {
                 id: raw_event.id,
                 subject: raw_event.subject.parse().expect("Could not parse subject"),
@@ -144,8 +111,14 @@ where
             })
             .collect();
 
+        let end_cursor = if has_next_page {
+            entries.last().map(|event| AuditCursor { id: event.id })
+        } else {
+            None
+        };
+
         Ok(es_entity::PaginatedQueryRet {
-            entities: audit_entries,
+            entities: entries,
             has_next_page,
             end_cursor,
         })
