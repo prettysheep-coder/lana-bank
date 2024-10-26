@@ -32,20 +32,20 @@ pub struct AuditEntry<S, O, A> {
     pub recorded_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct AuditInfo<S> {
-    pub sub: S,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditInfo {
+    pub sub: String,
     pub audit_entry_id: AuditEntryId,
 }
 
-impl<T, U, S> From<(T, U)> for AuditInfo<S>
+impl<T, S> From<(T, S)> for AuditInfo
 where
     T: Into<AuditEntryId>,
-    U: Into<S>,
+    S: std::fmt::Display,
 {
-    fn from((audit_entry_id, sub): (T, U)) -> Self {
+    fn from((audit_entry_id, sub): (T, S)) -> Self {
         Self {
-            sub: sub.into(),
+            sub: sub.to_string(),
             audit_entry_id: audit_entry_id.into(),
         }
     }

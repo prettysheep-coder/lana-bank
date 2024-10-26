@@ -11,12 +11,8 @@ pub enum AuthorizationError {
     PermissionAlreadyExistsForRole(String),
     #[error("AuthorizationError - AuditError: {0}")]
     AuditError(#[from] lava_audit::error::AuditError),
-    #[error("AuthorizationError - ObjectParseError: {value}")]
-    ObjectParseError { value: String },
-    #[error("AuthorizationError - ActionParseError: {value}")]
-    ActionParseError { value: String },
-    #[error("AuthorizationError - ParseError: {0}")]
-    ParseError(#[from] strum::ParseError),
+    #[error("AuthorizationError - RoleParseError: Could not parse '{0}'")]
+    RoleParseError(String),
 }
 
 impl From<CasbinError> for AuthorizationError {

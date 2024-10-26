@@ -18,18 +18,19 @@ pub trait AuditSvc: Clone + Sync {
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
         authorized: bool,
-    ) -> Result<AuditInfo<Self::Subject>, AuditError> {
+    ) -> Result<AuditInfo, AuditError> {
         let subject = subject.clone();
         let object = object.into();
         let action = action.into();
 
+        let sub = subject.to_string();
         let record = sqlx::query!(
             r#"
                 INSERT INTO audit_entries (subject, object, action, authorized)
                 VALUES ($1, $2, $3, $4)
                 RETURNING id, subject
                 "#,
-            subject.to_string(),
+            &sub,
             object.to_string(),
             action.to_string(),
             authorized,
@@ -37,7 +38,7 @@ pub trait AuditSvc: Clone + Sync {
         .fetch_one(self.pool())
         .await?;
 
-        Ok(AuditInfo::from((record.id, subject.clone())))
+        Ok(AuditInfo::from((record.id, sub)))
     }
 
     async fn list(

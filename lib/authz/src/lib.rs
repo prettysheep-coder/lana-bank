@@ -1,5 +1,7 @@
+mod check_trait;
 pub mod error;
 
+use async_trait::async_trait;
 use sqlx_adapter::{
     casbin::{
         prelude::{DefaultModel, Enforcer},
@@ -15,12 +17,15 @@ use lava_audit::{AuditInfo, AuditSvc};
 
 use error::AuthorizationError;
 
+pub use check_trait::PermissionCheck;
+
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
 pub struct Authorization<Audit, R>
 where
     Audit: AuditSvc,
+    R: Send + Sync,
 {
     enforcer: Arc<RwLock<Enforcer>>,
     audit: Audit,
@@ -30,8 +35,7 @@ where
 impl<Audit, R> Authorization<Audit, R>
 where
     Audit: AuditSvc,
-    R: FromStr + fmt::Display + fmt::Debug + Clone,
-    <R as FromStr>::Err: fmt::Debug,
+    R: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
     pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
@@ -63,66 +67,6 @@ where
                 AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
                 e => Err(e),
             },
-        }
-    }
-
-    #[instrument(name = "lava.authz.enforce_permission", skip(self))]
-    pub async fn enforce_permission(
-        &self,
-        sub: &Audit::Subject,
-        object: impl Into<Audit::Object> + std::fmt::Debug,
-        action: impl Into<Audit::Action> + std::fmt::Debug,
-    ) -> Result<AuditInfo<Audit::Subject>, AuthorizationError> {
-        let object = object.into();
-        let action = action.into();
-
-        let result = self.inspect_permission(sub, object, action).await;
-        match result {
-            Ok(()) => Ok(self.audit.record_entry(sub, object, action, true).await?),
-            Err(AuthorizationError::NotAuthorized) => {
-                self.audit.record_entry(sub, object, action, false).await?;
-                Err(AuthorizationError::NotAuthorized)
-            }
-            Err(e) => Err(e),
-        }
-    }
-
-    #[instrument(name = "lava.authz.inspect_permission", skip(self))]
-    pub async fn inspect_permission(
-        &self,
-        sub: &Audit::Subject,
-        object: impl Into<Audit::Object> + std::fmt::Debug,
-        action: impl Into<Audit::Action> + std::fmt::Debug,
-    ) -> Result<(), AuthorizationError> {
-        let object = object.into();
-        let action = action.into();
-
-        let mut enforcer = self.enforcer.write().await;
-        enforcer.load_policy().await?;
-
-        match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
-            Ok(true) => Ok(()),
-            Ok(false) => Err(AuthorizationError::NotAuthorized),
-            Err(e) => Err(AuthorizationError::Casbin(e)),
-        }
-    }
-
-    pub async fn evaluate_permission(
-        &self,
-        sub: &Audit::Subject,
-        object: impl Into<Audit::Object> + std::fmt::Debug,
-        action: impl Into<Audit::Action> + std::fmt::Debug,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo<Audit::Subject>>, AuthorizationError> {
-        let object = object.into();
-        let action = action.into();
-
-        if enforce {
-            Ok(Some(self.enforce_permission(sub, object, action).await?))
-        } else {
-            self.inspect_permission(sub, object, action)
-                .await
-                .map(|_| None)
         }
     }
 
@@ -201,8 +145,11 @@ where
             .get_grouping_policy()
             .into_iter()
             .filter(|r| r[0] == sub_uuid)
-            .map(|r| r[1].parse().expect("Could not parse role"))
-            .collect();
+            .map(|r| {
+                r[1].parse::<R>()
+                    .map_err(|_| AuthorizationError::RoleParseError(r[1].clone()))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(roles)
     }
@@ -221,5 +168,74 @@ where
             }
         }
         Ok(true)
+    }
+
+    async fn inspect_permission(
+        &self,
+        sub: &Audit::Subject,
+        object: impl Into<Audit::Object> + std::fmt::Debug,
+        action: impl Into<Audit::Action> + std::fmt::Debug,
+    ) -> Result<(), AuthorizationError> {
+        let object = object.into();
+        let action = action.into();
+
+        let mut enforcer = self.enforcer.write().await;
+        enforcer.load_policy().await?;
+
+        match enforcer.enforce((sub.to_string(), object.to_string(), action.to_string())) {
+            Ok(true) => Ok(()),
+            Ok(false) => Err(AuthorizationError::NotAuthorized),
+            Err(e) => Err(AuthorizationError::Casbin(e)),
+        }
+    }
+}
+
+#[async_trait]
+impl<Audit, R> PermissionCheck for Authorization<Audit, R>
+where
+    Audit: AuditSvc,
+    R: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync,
+{
+    type Audit = Audit;
+
+    #[instrument(name = "lava.authz.enforce_permission", skip(self))]
+    async fn enforce_permission(
+        &self,
+        sub: &<Self::Audit as AuditSvc>::Subject,
+        object: impl Into<<Self::Audit as AuditSvc>::Object> + std::fmt::Debug + Send,
+        action: impl Into<<Self::Audit as AuditSvc>::Action> + std::fmt::Debug + Send,
+    ) -> Result<AuditInfo, AuthorizationError> {
+        let object = object.into();
+        let action = action.into();
+
+        let result = self.inspect_permission(sub, object, action).await;
+        match result {
+            Ok(()) => Ok(self.audit.record_entry(sub, object, action, true).await?),
+            Err(AuthorizationError::NotAuthorized) => {
+                self.audit.record_entry(sub, object, action, false).await?;
+                Err(AuthorizationError::NotAuthorized)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    #[instrument(name = "lava.authz.inspect_permission", skip(self))]
+    async fn evaluate_permission(
+        &self,
+        sub: &<Self::Audit as AuditSvc>::Subject,
+        object: impl Into<<Self::Audit as AuditSvc>::Object> + std::fmt::Debug + Send,
+        action: impl Into<<Self::Audit as AuditSvc>::Action> + std::fmt::Debug + Send,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, AuthorizationError> {
+        let object = object.into();
+        let action = action.into();
+
+        if enforce {
+            Ok(Some(self.enforce_permission(sub, object, action).await?))
+        } else {
+            self.inspect_permission(sub, object, action)
+                .await
+                .map(|_| None)
+        }
     }
 }

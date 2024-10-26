@@ -12,6 +12,7 @@ lava-audit = { path = "../audit" }
 
 sqlx-adapter = { version = "1.6.0", default-features = false, features = ["postgres", "runtime-tokio-rustls"]}
 
+async-trait = { workspace = true }
 sqlx = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
