@@ -11,44 +11,29 @@ use std::{fmt, marker::PhantomData, str::FromStr, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::instrument;
 
-use lava_audit::{Audit, AuditInfo};
+use lava_audit::{AuditInfo, AuditSvc};
 
 use error::AuthorizationError;
 
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
-pub struct Authorization<S, R, O, A>
+pub struct Authorization<Audit, R>
 where
-    S: FromStr + fmt::Display + Clone,
-    R: FromStr + fmt::Display + Clone,
-    O: FromStr + fmt::Display + Copy + fmt::Debug,
-    A: FromStr + fmt::Display + Copy,
-    <S as FromStr>::Err: fmt::Debug,
-    <R as FromStr>::Err: fmt::Debug,
-    <O as FromStr>::Err: fmt::Debug,
-    <A as FromStr>::Err: fmt::Debug,
+    Audit: AuditSvc,
 {
     enforcer: Arc<RwLock<Enforcer>>,
-    audit: Audit<S, O, A>,
+    audit: Audit,
     _phantom: PhantomData<R>,
 }
 
-impl<S, R, O, A> Authorization<S, R, O, A>
+impl<Audit, R> Authorization<Audit, R>
 where
-    S: FromStr + fmt::Display + fmt::Debug + Clone,
+    Audit: AuditSvc,
     R: FromStr + fmt::Display + fmt::Debug + Clone,
-    O: FromStr + fmt::Display + fmt::Debug + Copy,
-    A: FromStr + fmt::Display + fmt::Debug + Copy,
-    <S as FromStr>::Err: fmt::Debug,
     <R as FromStr>::Err: fmt::Debug,
-    <O as FromStr>::Err: fmt::Debug,
-    <A as FromStr>::Err: fmt::Debug,
 {
-    pub async fn init(
-        pool: &sqlx::PgPool,
-        audit: &Audit<S, O, A>,
-    ) -> Result<Self, AuthorizationError> {
+    pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
@@ -84,10 +69,10 @@ where
     #[instrument(name = "lava.authz.enforce_permission", skip(self))]
     pub async fn enforce_permission(
         &self,
-        sub: &S,
-        object: impl Into<O> + std::fmt::Debug,
-        action: impl Into<A> + std::fmt::Debug,
-    ) -> Result<AuditInfo<S>, AuthorizationError> {
+        sub: &Audit::Subject,
+        object: impl Into<Audit::Object> + std::fmt::Debug,
+        action: impl Into<Audit::Action> + std::fmt::Debug,
+    ) -> Result<AuditInfo<Audit::Subject>, AuthorizationError> {
         let object = object.into();
         let action = action.into();
 
@@ -105,9 +90,9 @@ where
     #[instrument(name = "lava.authz.inspect_permission", skip(self))]
     pub async fn inspect_permission(
         &self,
-        sub: &S,
-        object: impl Into<O> + std::fmt::Debug,
-        action: impl Into<A> + std::fmt::Debug,
+        sub: &Audit::Subject,
+        object: impl Into<Audit::Object> + std::fmt::Debug,
+        action: impl Into<Audit::Action> + std::fmt::Debug,
     ) -> Result<(), AuthorizationError> {
         let object = object.into();
         let action = action.into();
@@ -124,11 +109,11 @@ where
 
     pub async fn evaluate_permission(
         &self,
-        sub: &S,
-        object: impl Into<O> + std::fmt::Debug,
-        action: impl Into<A> + std::fmt::Debug,
+        sub: &Audit::Subject,
+        object: impl Into<Audit::Object> + std::fmt::Debug,
+        action: impl Into<Audit::Action> + std::fmt::Debug,
         enforce: bool,
-    ) -> Result<Option<AuditInfo<S>>, AuthorizationError> {
+    ) -> Result<Option<AuditInfo<Audit::Subject>>, AuthorizationError> {
         let object = object.into();
         let action = action.into();
 
@@ -144,8 +129,8 @@ where
     pub async fn add_permission_to_role(
         &self,
         role: &R,
-        object: impl Into<O>,
-        action: impl Into<A>,
+        object: impl Into<Audit::Object>,
+        action: impl Into<Audit::Action>,
     ) -> Result<(), AuthorizationError> {
         let object = object.into();
         let action = action.into();
@@ -169,10 +154,10 @@ where
 
     pub async fn assign_role_to_subject(
         &self,
-        sub: impl Into<S>,
+        sub: impl Into<Audit::Subject>,
         role: &R,
     ) -> Result<(), AuthorizationError> {
-        let sub: S = sub.into();
+        let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
@@ -189,10 +174,10 @@ where
 
     pub async fn revoke_role_from_subject(
         &self,
-        sub: impl Into<S>,
+        sub: impl Into<Audit::Subject>,
         role: &R,
     ) -> Result<(), AuthorizationError> {
-        let sub: S = sub.into();
+        let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
@@ -204,8 +189,11 @@ where
         }
     }
 
-    pub async fn roles_for_subject(&self, sub: impl Into<S>) -> Result<Vec<R>, AuthorizationError> {
-        let sub: S = sub.into();
+    pub async fn roles_for_subject(
+        &self,
+        sub: impl Into<Audit::Subject>,
+    ) -> Result<Vec<R>, AuthorizationError> {
+        let sub = sub.into();
         let sub_uuid = sub.to_string();
         let enforcer = self.enforcer.read().await;
 
@@ -221,9 +209,9 @@ where
 
     pub async fn check_all_permissions(
         &self,
-        sub: &S,
-        object: O,
-        actions: &[A],
+        sub: &Audit::Subject,
+        object: Audit::Object,
+        actions: &[Audit::Action],
     ) -> Result<bool, AuthorizationError> {
         for action in actions {
             match self.enforce_permission(sub, object, *action).await {

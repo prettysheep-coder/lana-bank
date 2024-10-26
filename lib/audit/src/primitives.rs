@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(sqlx::Type, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -22,6 +23,15 @@ impl From<AuditEntryId> for i64 {
     }
 }
 
+pub struct AuditEntry<S, O, A> {
+    pub id: AuditEntryId,
+    pub subject: S,
+    pub object: O,
+    pub action: A,
+    pub authorized: bool,
+    pub recorded_at: DateTime<Utc>,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct AuditInfo<S> {
     pub sub: S,
@@ -38,5 +48,33 @@ where
             sub: sub.into(),
             audit_entry_id: audit_entry_id.into(),
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditCursor {
+    pub id: AuditEntryId,
+}
+
+impl<S, O, A> From<&AuditEntry<S, O, A>> for AuditCursor {
+    fn from(entry: &AuditEntry<S, O, A>) -> Self {
+        Self { id: entry.id }
+    }
+}
+
+impl std::fmt::Display for AuditCursor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.id)
+    }
+}
+
+impl std::str::FromStr for AuditCursor {
+    type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let id = s.parse::<i64>()?;
+        Ok(AuditCursor {
+            id: AuditEntryId::from(id),
+        })
     }
 }

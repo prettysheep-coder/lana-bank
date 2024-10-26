@@ -4,6 +4,10 @@ use thiserror::Error;
 pub enum AuditError {
     #[error("AuditError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("AuditError - ParseCursorError: {0}")]
-    ParseCursorError(#[from] std::num::TryFromIntError),
+    #[error("AuditError - SubjectParseError: Could not parse '{0}'")]
+    SubjectParseError(String),
+    #[error("AuditError - ObjectParseError: Could not parse '{0}'")]
+    ObjectParseError(String),
+    #[error("AuditError - ActionParseError: Could not parse '{0}'")]
+    ActionParseError(String),
 }
