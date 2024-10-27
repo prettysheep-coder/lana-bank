@@ -6,14 +6,18 @@ use es_entity::*;
 use super::error::*;
 use crate::{
     audit::AuditInfo,
-    primitives::{CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
+    primitives::{
+        ApprovalProcessId, CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId,
+    },
 };
 
 #[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum WithdrawalStatus {
-    Initiated,
-    Cancelled,
+    Initialized,
+    PendingApproval,
+    PendingConfirmation,
     Confirmed,
+    Cancelled,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +31,15 @@ pub enum WithdrawEvent {
         reference: String,
         debit_account_id: LedgerAccountId,
         ledger_tx_id: LedgerTxId,
+        audit_info: AuditInfo,
+    },
+    ApprovalProcessStarted {
+        approval_process_id: ApprovalProcessId,
+        audit_info: AuditInfo,
+    },
+    ApprovalProcessConcluded {
+        approval_process_id: ApprovalProcessId,
+        approved: bool,
         audit_info: AuditInfo,
     },
     Confirmed {
@@ -43,6 +56,8 @@ pub enum WithdrawEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Withdraw {
     pub id: WithdrawId,
+    pub status: WithdrawalStatus,
+    pub approval_process_id: ApprovalProcessId,
     pub reference: String,
     pub customer_id: CustomerId,
     pub amount: UsdCents,
@@ -57,7 +72,19 @@ impl Withdraw {
             .expect("Withdraw has never been persisted")
     }
 
+    pub(super) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
+        self.events.push(WithdrawEvent::ApprovalProcessConcluded {
+            approval_process_id: self.id.into(),
+            approved,
+            audit_info,
+        });
+    }
+
     pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
+        if !self.is_approved() {
+            return Err(WithdrawError::NotApproved(self.id));
+        }
+
         if self.is_confirmed() {
             return Err(WithdrawError::AlreadyConfirmed(self.id));
         }
@@ -104,14 +131,13 @@ impl Withdraw {
             .any(|e| matches!(e, WithdrawEvent::Cancelled { .. }))
     }
 
-    pub fn status(&self) -> WithdrawalStatus {
-        if self.is_confirmed() {
-            WithdrawalStatus::Confirmed
-        } else if self.is_cancelled() {
-            WithdrawalStatus::Cancelled
-        } else {
-            WithdrawalStatus::Initiated
-        }
+    fn is_approved(&self) -> bool {
+        self.events.iter_all().any(|e| {
+            matches!(
+                e,
+                WithdrawEvent::ApprovalProcessConcluded { approved: true, .. }
+            )
+        })
     }
 }
 
@@ -140,9 +166,25 @@ impl TryFromEvents<WithdrawEvent> for Withdraw {
                         .amount(*amount)
                         .debit_account_id(*debit_account_id)
                         .reference(reference.clone())
+                        .status(WithdrawalStatus::Initialized)
                 }
-                WithdrawEvent::Confirmed { .. } => {}
-                WithdrawEvent::Cancelled { .. } => {}
+                WithdrawEvent::ApprovalProcessStarted {
+                    approval_process_id,
+                    ..
+                } => {
+                    builder = builder
+                        .approval_process_id(*approval_process_id)
+                        .status(WithdrawalStatus::PendingApproval)
+                }
+                WithdrawEvent::ApprovalProcessConcluded { .. } => {
+                    builder = builder.status(WithdrawalStatus::PendingConfirmation)
+                }
+                WithdrawEvent::Confirmed { .. } => {
+                    builder = builder.status(WithdrawalStatus::Confirmed)
+                }
+                WithdrawEvent::Cancelled { .. } => {
+                    builder = builder.status(WithdrawalStatus::Cancelled)
+                }
             }
         }
         builder.events(events).build()
@@ -153,6 +195,8 @@ impl TryFromEvents<WithdrawEvent> for Withdraw {
 pub struct NewWithdraw {
     #[builder(setter(into))]
     pub(super) id: WithdrawId,
+    #[builder(setter(into))]
+    pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     #[builder(setter(into))]
@@ -181,15 +225,21 @@ impl IntoEvents<WithdrawEvent> for NewWithdraw {
     fn into_events(self) -> EntityEvents<WithdrawEvent> {
         EntityEvents::init(
             self.id,
-            [WithdrawEvent::Initialized {
-                reference: self.reference(),
-                id: self.id,
-                ledger_tx_id: LedgerTxId::from(uuid::Uuid::from(self.id)),
-                customer_id: self.customer_id,
-                amount: self.amount,
-                debit_account_id: self.debit_account_id,
-                audit_info: self.audit_info,
-            }],
+            [
+                WithdrawEvent::Initialized {
+                    reference: self.reference(),
+                    id: self.id,
+                    ledger_tx_id: LedgerTxId::from(uuid::Uuid::from(self.id)),
+                    customer_id: self.customer_id,
+                    amount: self.amount,
+                    debit_account_id: self.debit_account_id,
+                    audit_info: self.audit_info.clone(),
+                },
+                WithdrawEvent::ApprovalProcessStarted {
+                    approval_process_id: self.approval_process_id,
+                    audit_info: self.audit_info,
+                },
+            ],
         )
     }
 }

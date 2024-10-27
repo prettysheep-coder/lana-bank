@@ -13,6 +13,7 @@ use tracing::instrument;
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use outbox::Outbox;
+use shared_primitives::ApprovalProcessId;
 
 pub use approval_process::*;
 pub use committee::*;
@@ -113,9 +114,11 @@ where
         Ok(policy)
     }
 
+    #[instrument(name = "governance.start_process", skip(self), err)]
     pub async fn start_process(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        id: impl Into<ApprovalProcessId> + std::fmt::Debug,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
         let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
@@ -130,7 +133,7 @@ where
                 true,
             )
             .await?;
-        let process = policy.spawn_process(audit_info);
+        let process = policy.spawn_process(id.into(), audit_info);
         let process = self.process_repo.create_in_tx(db, process).await?;
         self.outbox
             .persist(

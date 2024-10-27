@@ -44,9 +44,13 @@ pub struct Policy {
 }
 
 impl Policy {
-    pub(crate) fn spawn_process(&self, audit_info: AuditInfo) -> NewApprovalProcess {
+    pub(crate) fn spawn_process(
+        &self,
+        id: ApprovalProcessId,
+        audit_info: AuditInfo,
+    ) -> NewApprovalProcess {
         NewApprovalProcess::builder()
-            .id(ApprovalProcessId::new())
+            .id(id)
             .policy_id(self.id)
             .process_type(self.process_type.clone())
             .rules(self.rules.clone())

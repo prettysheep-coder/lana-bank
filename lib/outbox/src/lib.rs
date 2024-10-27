@@ -5,7 +5,7 @@ mod event;
 mod listener;
 mod repo;
 
-use futures::{Stream, StreamExt};
+use futures::{stream::BoxStream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{postgres::PgListener, PgPool, Postgres, Transaction};
 use tokio::sync::broadcast;
@@ -121,13 +121,13 @@ where
     pub async fn listen_persisted(
         &self,
         start_after: Option<EventSequence>,
-    ) -> Result<impl Stream<Item = Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
+    ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
         let listener = self.listen_all(start_after).await?;
-        Ok(listener.filter_map(|event| async move {
+        Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
             }
-        }))
+        })))
     }
 
     async fn spawn_pg_listener(

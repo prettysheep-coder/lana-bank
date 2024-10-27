@@ -53,7 +53,7 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             customer_id: UUID::from(withdraw.customer_id),
             amount: withdraw.amount,
-            status: withdraw.status(),
+            status: withdraw.status,
             reference: withdraw.reference,
         }
     }
