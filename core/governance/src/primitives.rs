@@ -8,6 +8,7 @@ pub use shared_primitives::{AllOrOne, CommitteeId, PolicyId, UserId};
 pub enum GovernanceAction {
     Committee(CommitteeAction),
     Policy(PolicyAction),
+    ApprovalProcess(ApprovalProcessAction),
 }
 
 impl Display for GovernanceAction {
@@ -17,6 +18,7 @@ impl Display for GovernanceAction {
         match self {
             Committee(action) => action.fmt(f),
             Policy(action) => action.fmt(f),
+            ApprovalProcess(action) => action.fmt(f),
         }
     }
 }
@@ -30,6 +32,7 @@ impl FromStr for GovernanceAction {
         let res = match entity.parse()? {
             Committee => GovernanceAction::from(action.parse::<CommitteeAction>()?),
             Policy => GovernanceAction::from(action.parse::<PolicyAction>()?),
+            ApprovalProcess => GovernanceAction::from(action.parse::<ApprovalProcessAction>()?),
         };
         Ok(res)
     }
@@ -47,8 +50,15 @@ pub enum PolicyAction {
     Create,
 }
 
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ApprovalProcessAction {
+    Create,
+}
+
 pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;
 pub type PolicyAllOrOne = AllOrOne<PolicyId>;
+pub type ApprovalProcessAllOrOne = AllOrOne<PolicyId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -56,6 +66,7 @@ pub type PolicyAllOrOne = AllOrOne<PolicyId>;
 pub enum GovernanceObject {
     Committee(CommitteeAllOrOne),
     Policy(PolicyAllOrOne),
+    ApprovalProcess(ApprovalProcessAllOrOne),
 }
 
 impl Display for GovernanceObject {
@@ -65,6 +76,7 @@ impl Display for GovernanceObject {
         match self {
             Committee(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Policy(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ApprovalProcess(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -84,6 +96,10 @@ impl FromStr for GovernanceObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse GovernanceObject")?;
                 GovernanceObject::Policy(obj_ref)
             }
+            ApprovalProcess => {
+                let obj_ref = id.parse().map_err(|_| "could not parse GovernanceObject")?;
+                GovernanceObject::ApprovalProcess(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -98,6 +114,12 @@ impl From<CommitteeAction> for GovernanceAction {
 impl From<PolicyAction> for GovernanceAction {
     fn from(action: PolicyAction) -> Self {
         GovernanceAction::Policy(action)
+    }
+}
+
+impl From<ApprovalProcessAction> for GovernanceAction {
+    fn from(action: ApprovalProcessAction) -> Self {
+        GovernanceAction::ApprovalProcess(action)
     }
 }
 

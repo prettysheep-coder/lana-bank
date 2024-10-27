@@ -5,9 +5,10 @@ use std::borrow::Cow;
 
 use audit::AuditInfo;
 use es_entity::*;
-use shared_primitives::{CommitteeId, PolicyId};
+use shared_primitives::{ApprovalProcessId, CommitteeId, PolicyId};
 
 use super::rules::ApprovalRules;
+use crate::approval_process::NewApprovalProcess;
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
@@ -27,7 +28,7 @@ pub enum PolicyEvent {
         id: PolicyId,
         process_type: ApprovalProcessType,
         rules: ApprovalRules,
-        committee_id: CommitteeId,
+        committee_id: Option<CommitteeId>,
         audit_info: AuditInfo,
     },
 }
@@ -37,8 +38,22 @@ pub enum PolicyEvent {
 pub struct Policy {
     pub id: PolicyId,
     pub process_type: ApprovalProcessType,
-    pub committee_id: CommitteeId,
+    pub committee_id: Option<CommitteeId>,
+    pub rules: ApprovalRules,
     pub(super) events: EntityEvents<PolicyEvent>,
+}
+
+impl Policy {
+    pub(crate) fn spawn_process(&self, audit_info: AuditInfo) -> NewApprovalProcess {
+        NewApprovalProcess::builder()
+            .id(ApprovalProcessId::new())
+            .policy_id(self.id)
+            .process_type(self.process_type.clone())
+            .rules(self.rules.clone())
+            .audit_info(audit_info)
+            .build()
+            .expect("failed to build new approval process")
+    }
 }
 
 impl TryFromEvents<PolicyEvent> for Policy {
@@ -60,8 +75,8 @@ pub struct NewPolicy {
     #[builder(setter(into))]
     pub(super) id: PolicyId,
     pub(super) process_type: ApprovalProcessType,
-    #[builder(setter(into))]
-    pub(super) committee_id: CommitteeId,
+    #[builder(default, setter(into))]
+    pub(super) committee_id: Option<CommitteeId>,
     pub(super) rules: ApprovalRules,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,

@@ -205,6 +205,23 @@ CREATE TABLE policy_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE approval_processes (
+  id UUID PRIMARY KEY,
+  policy_id UUID REFERENCES policies(id),
+  committee_id UUID REFERENCES committees(id),
+  process_type VARCHAR NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE approval_process_events (
+  id UUID NOT NULL REFERENCES approval_processes(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL,

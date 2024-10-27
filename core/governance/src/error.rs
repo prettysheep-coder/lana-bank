@@ -7,9 +7,11 @@ pub enum GovernanceError {
     #[error("GovernanceError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("GovernanceError - CommitteeError: {0}")]
-    CommitteeError(#[from] super::committee::error::CommitteeError),
+    CommitteeError(#[from] crate::committee::error::CommitteeError),
     #[error("GovernanceError - PolicyError: {0}")]
-    PolicyError(#[from] super::policy::error::PolicyError),
+    PolicyError(#[from] crate::policy::error::PolicyError),
+    #[error("GovernanceError - ApprovalProcessError: {0}")]
+    ApprovalProcessError(#[from] crate::approval_process::error::ApprovalProcessError),
     #[error("GovernanceError - Audit: {0}")]
     AuditError(#[from] audit::error::AuditError),
 }
