@@ -4,7 +4,7 @@ pub mod error;
 mod repo;
 
 use authz::PermissionCheck;
-use governance::{ApprovalProcessType, ApprovalRules};
+use governance::ApprovalProcessType;
 
 use crate::{
     audit::AuditInfo,
@@ -54,14 +54,7 @@ impl Withdraws {
             authz.audit(),
             outbox,
         ));
-        let _ = governance
-            .create_policy(
-                &Subject::core(),
-                APPROVE_WITHDRAW_PROCESS,
-                ApprovalRules::Automatic,
-                None,
-            )
-            .await;
+        let _ = governance.init_policy(APPROVE_WITHDRAW_PROCESS).await;
         Ok(Self {
             pool: pool.clone(),
             repo,

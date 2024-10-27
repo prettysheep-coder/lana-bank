@@ -83,22 +83,23 @@ where
         db: &mut Transaction<'_, Postgres>,
         events: impl IntoIterator<Item = impl Into<P>>,
     ) -> Result<(), sqlx::Error> {
-        let events = self
+        let _ = self
             .repo
             .persist_events(db, events.into_iter().map(Into::into))
             .await?;
 
-        let mut new_highest_sequence = EventSequence::BEGIN;
-        for event in events {
-            new_highest_sequence = event.sequence;
-            let _ = self
-                .event_sender
-                .send(event.into())
-                .map_err(|_| ())
-                .expect("event receiver dropped");
-        }
-        self.highest_known_sequence
-            .fetch_max(u64::from(new_highest_sequence), Ordering::AcqRel);
+        // Optimization but needs AtomicOperation
+        //         let mut new_highest_sequence = EventSequence::BEGIN;
+        //         for event in events {
+        //             new_highest_sequence = event.sequence;
+        //             let _ = self
+        //                 .event_sender
+        //                 .send(event.into())
+        //                 .map_err(|_| ())
+        //                 .expect("event receiver dropped");
+        //         }
+        //         self.highest_known_sequence
+        //             .fetch_max(u64::from(new_highest_sequence), Ordering::AcqRel);
         Ok(())
     }
 

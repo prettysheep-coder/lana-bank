@@ -38,6 +38,7 @@ pub enum PolicyEvent {
 pub struct Policy {
     pub id: PolicyId,
     pub process_type: ApprovalProcessType,
+    #[builder(default)]
     pub committee_id: Option<CommitteeId>,
     pub rules: ApprovalRules,
     pub(super) events: EntityEvents<PolicyEvent>,
@@ -66,8 +67,16 @@ impl TryFromEvents<PolicyEvent> for Policy {
         for event in events.iter_all() {
             match event {
                 PolicyEvent::Initialized {
-                    id, process_type, ..
-                } => builder = builder.id(*id).process_type(process_type.clone()),
+                    id,
+                    process_type,
+                    rules,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .process_type(process_type.clone())
+                        .rules(rules.clone())
+                }
             }
         }
         builder.events(events).build()

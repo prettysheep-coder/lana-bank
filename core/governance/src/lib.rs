@@ -81,30 +81,27 @@ where
         }
     }
 
-    #[instrument(name = "governance.create_policy", skip(self), err)]
-    pub async fn create_policy(
+    #[instrument(name = "governance.init_policy", skip(self), err)]
+    pub async fn init_policy(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         process_type: ApprovalProcessType,
-        rules: ApprovalRules,
-        committee_id: Option<CommitteeId>,
     ) -> Result<Policy, GovernanceError> {
+        let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
         let audit_info = self
             .authz
-            .evaluate_permission(
-                sub,
+            .audit()
+            .record_entry(
+                &sub,
                 GovernanceObject::Policy(PolicyAllOrOne::All),
                 g_action(PolicyAction::Create),
                 true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .committee_id(committee_id)
-            .rules(rules)
+            .rules(ApprovalRules::Automatic)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new policy");
@@ -139,7 +136,7 @@ where
                 db,
                 GovernanceEvent::ApprovalProcessConcluded {
                     id: process.id,
-                    approved: false,
+                    approved: true,
                 },
             )
             .await?;

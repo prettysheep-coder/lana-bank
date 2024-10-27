@@ -431,7 +431,6 @@ type Withdrawal {
 }
 
 enum WithdrawalStatus {
-	INITIALIZED
 	PENDING_APPROVAL
 	PENDING_CONFIRMATION
 	CONFIRMED

@@ -9,5 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 governance = { path = "../../core/governance" }
+shared-primitives = { path = "../../core/shared-primitives" }
 
 serde = { workspace = true }
+serde_json = { workspace = true }

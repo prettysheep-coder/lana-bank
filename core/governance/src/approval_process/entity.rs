@@ -40,8 +40,18 @@ impl TryFromEvents<ApprovalProcessEvent> for ApprovalProcess {
         for event in events.iter_all() {
             match event {
                 ApprovalProcessEvent::Initialized {
-                    id, process_type, ..
-                } => builder = builder.id(*id).process_type(process_type.clone()),
+                    id,
+                    process_type,
+                    policy_id,
+                    committee_id,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .process_type(process_type.clone())
+                        .policy_id(*policy_id)
+                        .committee_id(*committee_id)
+                }
                 ApprovalProcessEvent::Concluded { .. } => {}
             }
         }

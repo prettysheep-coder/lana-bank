@@ -13,7 +13,6 @@ use crate::{
 
 #[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum WithdrawalStatus {
-    Initialized,
     PendingApproval,
     PendingConfirmation,
     Confirmed,
@@ -56,7 +55,6 @@ pub enum WithdrawEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Withdraw {
     pub id: WithdrawId,
-    pub status: WithdrawalStatus,
     pub approval_process_id: ApprovalProcessId,
     pub reference: String,
     pub customer_id: CustomerId,
@@ -70,6 +68,16 @@ impl Withdraw {
         self.events
             .entity_first_persisted_at()
             .expect("Withdraw has never been persisted")
+    }
+
+    pub fn status(&self) -> WithdrawalStatus {
+        if self.is_confirmed() {
+            WithdrawalStatus::Confirmed
+        } else if self.is_cancelled() {
+            WithdrawalStatus::Cancelled
+        } else {
+            WithdrawalStatus::PendingApproval
+        }
     }
 
     pub(super) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
@@ -166,25 +174,14 @@ impl TryFromEvents<WithdrawEvent> for Withdraw {
                         .amount(*amount)
                         .debit_account_id(*debit_account_id)
                         .reference(reference.clone())
-                        .status(WithdrawalStatus::Initialized)
                 }
                 WithdrawEvent::ApprovalProcessStarted {
                     approval_process_id,
                     ..
-                } => {
-                    builder = builder
-                        .approval_process_id(*approval_process_id)
-                        .status(WithdrawalStatus::PendingApproval)
-                }
-                WithdrawEvent::ApprovalProcessConcluded { .. } => {
-                    builder = builder.status(WithdrawalStatus::PendingConfirmation)
-                }
-                WithdrawEvent::Confirmed { .. } => {
-                    builder = builder.status(WithdrawalStatus::Confirmed)
-                }
-                WithdrawEvent::Cancelled { .. } => {
-                    builder = builder.status(WithdrawalStatus::Cancelled)
-                }
+                } => builder = builder.approval_process_id(*approval_process_id),
+                WithdrawEvent::ApprovalProcessConcluded { .. } => {}
+                WithdrawEvent::Confirmed { .. } => {}
+                WithdrawEvent::Cancelled { .. } => {}
             }
         }
         builder.events(events).build()

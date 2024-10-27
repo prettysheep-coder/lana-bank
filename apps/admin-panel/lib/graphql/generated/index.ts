@@ -1446,7 +1446,6 @@ export type WithdrawalInitiatePayload = {
 export enum WithdrawalStatus {
   Cancelled = 'CANCELLED',
   Confirmed = 'CONFIRMED',
-  Initialized = 'INITIALIZED',
   PendingApproval = 'PENDING_APPROVAL',
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
