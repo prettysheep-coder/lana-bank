@@ -36,6 +36,7 @@ pub struct Withdraws {
 }
 
 impl Withdraws {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         pool: &sqlx::PgPool,
         customers: &Customers,

@@ -70,6 +70,7 @@ pub struct WithdrawApprovalJobRunner {
 }
 #[async_trait]
 impl JobRunner for WithdrawApprovalJobRunner {
+    #[allow(clippy::single_match)]
     async fn run(
         &self,
         mut current_job: CurrentJob,
