@@ -84,7 +84,6 @@ where
     #[instrument(name = "governance.create_policy", skip(self), err)]
     pub async fn create_policy(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         process_type: ApprovalProcessType,
         rules: ApprovalRules,
@@ -110,7 +109,7 @@ where
             .build()
             .expect("Could not build new policy");
 
-        let policy = self.policy_repo.create_in_tx(db, new_policy).await?;
+        let policy = self.policy_repo.create(new_policy).await?;
         Ok(policy)
     }
 

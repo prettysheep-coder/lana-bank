@@ -65,7 +65,7 @@ impl LavaApp {
         let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
-        let withdraws = Withdraws::new(
+        let withdraws = Withdraws::init(
             &pool,
             &customers,
             &ledger,
@@ -74,7 +74,8 @@ impl LavaApp {
             &governance,
             &jobs,
             &outbox,
-        );
+        )
+        .await?;
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new(&pool, &jobs, &export);
         let storage = Storage::new(&config.storage);

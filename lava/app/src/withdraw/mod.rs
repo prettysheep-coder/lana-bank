@@ -4,7 +4,7 @@ pub mod error;
 mod repo;
 
 use authz::PermissionCheck;
-use governance::ApprovalProcessType;
+use governance::{ApprovalProcessType, ApprovalRules};
 
 use crate::{
     audit::AuditInfo,
@@ -37,7 +37,7 @@ pub struct Withdraws {
 
 impl Withdraws {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         customers: &Customers,
         ledger: &Ledger,
@@ -46,7 +46,7 @@ impl Withdraws {
         governance: &Governance,
         jobs: &Jobs,
         outbox: &Outbox,
-    ) -> Self {
+    ) -> Result<Self, WithdrawError> {
         let repo = WithdrawRepo::new(pool, export);
         jobs.add_initializer(approve_job::WithdrawApprovalJobInitializer::new(
             pool,
@@ -54,7 +54,15 @@ impl Withdraws {
             authz.audit(),
             outbox,
         ));
-        Self {
+        let _ = governance
+            .create_policy(
+                &Subject::core(),
+                APPROVE_WITHDRAW_PROCESS,
+                ApprovalRules::Automatic,
+                None,
+            )
+            .await;
+        Ok(Self {
             pool: pool.clone(),
             repo,
             customers: customers.clone(),
@@ -62,7 +70,7 @@ impl Withdraws {
             authz: authz.clone(),
             governance: governance.clone(),
             jobs: jobs.clone(),
-        }
+        })
     }
 
     pub async fn spawn_global_jobs(&self) -> Result<(), WithdrawError> {
