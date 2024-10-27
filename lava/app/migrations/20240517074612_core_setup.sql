@@ -189,6 +189,22 @@ CREATE TABLE committee_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE policies (
+  id UUID PRIMARY KEY,
+  committee_id UUID REFERENCES committees(id),
+  process_type VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE policy_events (
+  id UUID NOT NULL REFERENCES policies(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL,

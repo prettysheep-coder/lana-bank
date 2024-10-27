@@ -3,6 +3,7 @@
 
 es_entity::entity_id! { UserId }
 es_entity::entity_id! { CommitteeId }
+es_entity::entity_id! { PolicyId }
 es_entity::entity_id! { CustomerId }
 es_entity::entity_id! { LineOfCreditContractId }
 es_entity::entity_id! { WithdrawId }

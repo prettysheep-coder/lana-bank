@@ -8,8 +8,8 @@ pub enum GovernanceError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("GovernanceError - CommitteeError: {0}")]
     CommitteeError(#[from] super::committee::error::CommitteeError),
-    // #[error("GovernanceError - ProcessAssignment: {0}")]
-    // ProcessAssignmentError(#[from] super::process_assignment::error::ProcessAssignmentError),
+    #[error("GovernanceError - PolicyError: {0}")]
+    PolicyError(#[from] super::policy::error::PolicyError),
     #[error("GovernanceError - Audit: {0}")]
     AuditError(#[from] audit::error::AuditError),
 }

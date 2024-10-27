@@ -3,6 +3,7 @@
 
 mod committee;
 pub mod error;
+mod policy;
 mod primitives;
 
 use tracing::instrument;
@@ -12,6 +13,7 @@ use authz::PermissionCheck;
 
 pub use committee::*;
 use error::*;
+pub use policy::*;
 pub use primitives::*;
 
 #[derive(Clone)]
@@ -21,6 +23,7 @@ where
 {
     pool: sqlx::PgPool,
     committee_repo: CommitteeRepo,
+    policy_repo: PolicyRepo,
     authz: Perms,
 }
 
@@ -30,19 +33,52 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
 {
-    pub async fn init(pool: &sqlx::PgPool, authz: &Perms) -> Result<Self, GovernanceError> {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
         let committee_repo = CommitteeRepo::new(pool);
+        let policy_repo = PolicyRepo::new(pool);
 
-        let governance = Self {
+        Self {
             pool: pool.clone(),
             committee_repo,
+            policy_repo,
             authz: authz.clone(),
-        };
-
-        Ok(governance)
+        }
     }
 
-    #[instrument(name = "lava.governance.create_committee", skip(self), err)]
+    #[instrument(name = "governance.create_policy", skip(self), err)]
+    pub async fn create_policy(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        process_type: ApprovalProcessType,
+        rules: ApprovalRules,
+        committee_id: CommitteeId,
+    ) -> Result<Policy, GovernanceError> {
+        let audit_info = self
+            .authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::Policy(PolicyAllOrOne::All),
+                g_action(PolicyAction::Create),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        let new_policy = NewPolicy::builder()
+            .id(PolicyId::new())
+            .process_type(process_type)
+            .committee_id(committee_id)
+            .rules(rules)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build new policy");
+
+        let policy = self.policy_repo.create_in_tx(db, new_policy).await?;
+        Ok(policy)
+    }
+
+    #[instrument(name = "governance.create_committee", skip(self), err)]
     pub async fn create_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
