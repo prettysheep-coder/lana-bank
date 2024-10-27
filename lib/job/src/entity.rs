@@ -5,6 +5,8 @@ use std::borrow::Cow;
 
 use es_entity::*;
 
+use crate::{error::JobError, JobId};
+
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
@@ -23,13 +25,6 @@ impl std::fmt::Display for JobType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
-}
-use crate::error::JobError;
-
-#[derive(Clone, Hash, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum JobId {
-    Id(uuid::Uuid),
-    Unique(JobType),
 }
 
 #[derive(EsEvent, Debug, Serialize, Deserialize)]
@@ -96,6 +91,7 @@ impl TryFromEvents<JobEvent> for Job {
 
 #[derive(Debug, Builder)]
 pub struct NewJob {
+    #[builder(setter(into))]
     pub(super) id: JobId,
     pub(super) job_type: JobType,
     #[builder(setter(custom))]
@@ -126,68 +122,5 @@ impl IntoEvents<JobEvent> for NewJob {
                 config: self.config,
             }],
         )
-    }
-}
-
-mod id_sqlx {
-    use sqlx::{encode::*, postgres::*, *};
-
-    use std::{fmt, str::FromStr};
-
-    use super::JobId;
-    use crate::JobType;
-
-    impl fmt::Display for JobId {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            match self {
-                JobId::Id(uuid) => write!(f, "id:{}", uuid),
-                JobId::Unique(job_type) => write!(f, "unique:{:?}", job_type),
-            }
-        }
-    }
-
-    impl FromStr for JobId {
-        type Err = Box<dyn std::error::Error + Sync + Send>;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            match s.split_once(':') {
-                Some(("id", uuid_str)) => Ok(JobId::Id(uuid::Uuid::parse_str(uuid_str)?)),
-                Some(("unique", job_type_str)) => Ok(JobId::Unique(JobType::from_string(
-                    job_type_str.to_string(),
-                ))),
-                _ => Err("Invalid format".into()),
-            }
-        }
-    }
-    impl Type<Postgres> for JobId {
-        fn type_info() -> PgTypeInfo {
-            <String as Type<Postgres>>::type_info()
-        }
-
-        fn compatible(ty: &PgTypeInfo) -> bool {
-            <String as Type<Postgres>>::compatible(ty)
-        }
-    }
-
-    impl<'q> sqlx::Encode<'q, Postgres> for JobId {
-        fn encode_by_ref(
-            &self,
-            buf: &mut sqlx::postgres::PgArgumentBuffer,
-        ) -> Result<IsNull, Box<dyn std::error::Error + Sync + Send>> {
-            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
-        }
-    }
-
-    impl<'r> sqlx::Decode<'r, Postgres> for JobId {
-        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
-            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
-            s.parse()
-        }
-    }
-
-    impl PgHasArrayType for JobId {
-        fn array_type_info() -> sqlx::postgres::PgTypeInfo {
-            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
-        }
     }
 }
