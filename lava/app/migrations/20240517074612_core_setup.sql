@@ -241,7 +241,6 @@ CREATE TYPE JobExecutionState AS ENUM ('pending', 'running');
 CREATE TABLE job_executions (
   id VARCHAR REFERENCES jobs(id) NOT NULL UNIQUE,
   attempt_index INT NOT NULL DEFAULT 1,
-  name VARCHAR NOT NULL,
   state JobExecutionState NOT NULL DEFAULT 'pending',
   execution_data_json JSONB,
   reschedule_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
