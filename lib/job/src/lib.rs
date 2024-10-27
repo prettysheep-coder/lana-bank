@@ -186,7 +186,7 @@ mod id_sqlx {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match self {
                 JobId::Id(uuid) => write!(f, "id:{}", uuid),
-                JobId::Unique(job_type) => write!(f, "unique:{:?}", job_type),
+                JobId::Unique(job_type) => write!(f, "unique:{}", job_type),
             }
         }
     }
