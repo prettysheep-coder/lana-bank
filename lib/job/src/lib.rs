@@ -28,39 +28,6 @@ use error::*;
 use executor::*;
 use repo::*;
 
-#[derive(
-    sqlx::Type,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    serde::Deserialize,
-    serde::Serialize,
-)]
-#[serde(transparent)]
-#[sqlx(transparent)]
-pub struct JobId(uuid::Uuid);
-impl JobId {
-    #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
-        Self(uuid::Uuid::new_v4())
-    }
-}
-impl From<uuid::Uuid> for JobId {
-    fn from(uuid: uuid::Uuid) -> Self {
-        Self(uuid)
-    }
-}
-impl std::fmt::Display for JobId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
 #[derive(Clone)]
 pub struct Jobs {
     _pool: PgPool,
@@ -87,40 +54,38 @@ impl Jobs {
         registry.add_initializer(initializer);
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, initial_data))]
-    pub async fn create_and_spawn_in_tx<I: JobInitializer, D: serde::Serialize>(
+    #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, config))]
+    pub async fn create_and_spawn_in_tx<I: JobInitializer, C: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
-        name: String,
-        initial_data: D,
+        config: C,
     ) -> Result<Job, JobError> {
-        let new_job = Job::new(
-            name,
-            id.into(),
-            <I as JobInitializer>::job_type(),
-            initial_data,
-        );
+        let new_job = NewJob::builder()
+            .id(id.into())
+            .job_type(<I as JobInitializer>::job_type())
+            .config(config)?
+            .build()
+            .expect("Could not build new job");
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor.spawn_job::<I>(db, &job, None).await?;
         Ok(job)
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, initial_data))]
-    pub async fn create_and_spawn_at_in_tx<I: JobInitializer, D: serde::Serialize>(
+    #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, config))]
+    pub async fn create_and_spawn_at_in_tx<I: JobInitializer, C: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
-        name: String,
-        initial_data: D,
+        config: C,
         schedule_at: DateTime<Utc>,
     ) -> Result<Job, JobError> {
-        let new_job = Job::new(
-            name,
-            id.into(),
-            <I as JobInitializer>::job_type(),
-            initial_data,
-        );
+        let new_job = NewJob::builder()
+            .id(id.into())
+            .job_type(<I as JobInitializer>::job_type())
+            .config(config)?
+            .build()
+            .expect("Could not build new job");
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor
             .spawn_job::<I>(db, &job, Some(schedule_at))

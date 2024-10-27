@@ -27,17 +27,17 @@ impl std::fmt::Display for JobType {
 use crate::error::JobError;
 
 #[derive(Clone, Hash, Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub enum JobId {
+pub enum AltJobId {
     Id(uuid::Uuid),
     Unique(JobType),
 }
 
 #[derive(EsEvent, Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "JobId")]
-pub enum JobEvent {
+#[es_event(id = "AltJobId")]
+pub enum AltJobEvent {
     Initialized {
-        id: JobId,
+        id: AltJobId,
         job_type: JobType,
         config: serde_json::Value,
     },
@@ -49,33 +49,33 @@ pub enum JobEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct Job {
-    pub id: JobId,
+pub struct AltJob {
+    pub id: AltJobId,
     pub job_type: JobType,
     config: serde_json::Value,
-    pub(super) events: EntityEvents<JobEvent>,
+    pub(super) events: EntityEvents<AltJobEvent>,
 }
 
-impl Job {
+impl AltJob {
     pub fn config<T: serde::de::DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
         serde_json::from_value(self.config.clone())
     }
 
     pub(super) fn completed(&mut self) {
-        self.events.push(JobEvent::Completed);
+        self.events.push(AltJobEvent::Completed);
     }
 
     pub(super) fn fail(&mut self, error: String) {
-        self.events.push(JobEvent::Errored { error });
+        self.events.push(AltJobEvent::Errored { error });
     }
 }
 
-impl TryFromEvents<JobEvent> for Job {
-    fn try_from_events(events: EntityEvents<JobEvent>) -> Result<Self, EsEntityError> {
-        let mut builder = JobBuilder::default();
+impl TryFromEvents<AltJobEvent> for AltJob {
+    fn try_from_events(events: EntityEvents<AltJobEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = AltJobBuilder::default();
         for event in events.iter_all() {
             match event {
-                JobEvent::Initialized {
+                AltJobEvent::Initialized {
                     id,
                     job_type,
                     config,
@@ -86,8 +86,8 @@ impl TryFromEvents<JobEvent> for Job {
                         .job_type(job_type.clone())
                         .config(config.clone())
                 }
-                JobEvent::Errored { .. } => {}
-                JobEvent::Completed => {}
+                AltJobEvent::Errored { .. } => {}
+                AltJobEvent::Completed => {}
             }
         }
         builder.events(events).build()
@@ -95,20 +95,14 @@ impl TryFromEvents<JobEvent> for Job {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewJob {
-    pub(super) id: JobId,
+pub struct NewAltJob {
+    pub(super) id: AltJobId,
     pub(super) job_type: JobType,
     #[builder(setter(custom))]
     pub(super) config: serde_json::Value,
 }
 
-impl NewJob {
-    pub fn builder() -> NewJobBuilder {
-        NewJobBuilder::default()
-    }
-}
-
-impl NewJobBuilder {
+impl NewAltJobBuilder {
     pub fn config<C: serde::Serialize>(&mut self, config: C) -> Result<&mut Self, JobError> {
         self.config =
             Some(serde_json::to_value(config).map_err(JobError::CouldNotSerializeConfig)?);
@@ -116,11 +110,11 @@ impl NewJobBuilder {
     }
 }
 
-impl IntoEvents<JobEvent> for NewJob {
-    fn into_events(self) -> EntityEvents<JobEvent> {
+impl IntoEvents<AltJobEvent> for NewAltJob {
+    fn into_events(self) -> EntityEvents<AltJobEvent> {
         EntityEvents::init(
             self.id.clone(),
-            [JobEvent::Initialized {
+            [AltJobEvent::Initialized {
                 id: self.id,
                 job_type: self.job_type,
                 config: self.config,
@@ -134,32 +128,32 @@ mod id_sqlx {
 
     use std::{fmt, str::FromStr};
 
-    use super::JobId;
+    use super::AltJobId;
     use crate::JobType;
 
-    impl fmt::Display for JobId {
+    impl fmt::Display for AltJobId {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             match self {
-                JobId::Id(uuid) => write!(f, "id:{}", uuid),
-                JobId::Unique(job_type) => write!(f, "unique:{:?}", job_type),
+                AltJobId::Id(uuid) => write!(f, "id:{}", uuid),
+                AltJobId::Unique(job_type) => write!(f, "unique:{:?}", job_type),
             }
         }
     }
 
-    impl FromStr for JobId {
+    impl FromStr for AltJobId {
         type Err = Box<dyn std::error::Error + Sync + Send>;
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
             match s.split_once(':') {
-                Some(("id", uuid_str)) => Ok(JobId::Id(uuid::Uuid::parse_str(uuid_str)?)),
-                Some(("unique", job_type_str)) => Ok(JobId::Unique(JobType::from_string(
+                Some(("id", uuid_str)) => Ok(AltJobId::Id(uuid::Uuid::parse_str(uuid_str)?)),
+                Some(("unique", job_type_str)) => Ok(AltJobId::Unique(JobType::from_string(
                     job_type_str.to_string(),
                 ))),
                 _ => Err("Invalid format".into()),
             }
         }
     }
-    impl Type<Postgres> for JobId {
+    impl Type<Postgres> for AltJobId {
         fn type_info() -> PgTypeInfo {
             <String as Type<Postgres>>::type_info()
         }
@@ -169,7 +163,7 @@ mod id_sqlx {
         }
     }
 
-    impl<'q> sqlx::Encode<'q, Postgres> for JobId {
+    impl<'q> sqlx::Encode<'q, Postgres> for AltJobId {
         fn encode_by_ref(
             &self,
             buf: &mut sqlx::postgres::PgArgumentBuffer,
@@ -178,14 +172,14 @@ mod id_sqlx {
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for JobId {
+    impl<'r> sqlx::Decode<'r, Postgres> for AltJobId {
         fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
             let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
             s.parse()
         }
     }
 
-    impl PgHasArrayType for JobId {
+    impl PgHasArrayType for AltJobId {
         fn array_type_info() -> sqlx::postgres::PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
         }

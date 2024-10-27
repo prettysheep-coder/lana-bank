@@ -77,7 +77,7 @@ impl<'a> ToTokens for FindByFn<'a> {
             tokens.append_all(quote! {
                 pub async fn #fn_name(
                     &self,
-                    #column_name: #column_type
+                    #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
                     self.#fn_via(self.pool(), #column_name).await
                 }
@@ -85,7 +85,7 @@ impl<'a> ToTokens for FindByFn<'a> {
                 pub async fn #fn_in_tx(
                     &self,
                     db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                    #column_name: #column_type
+                    #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
                     self.#fn_via(&mut **db, #column_name).await
                 }
@@ -93,12 +93,13 @@ impl<'a> ToTokens for FindByFn<'a> {
                 async fn #fn_via(
                     &self,
                     executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                    #column_name: #column_type
+                    #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
+                    let #column_name = #column_name.borrow();
                     es_entity::es_query!(
                             executor,
                             #query,
-                            #column_name as #column_type,
+                            #column_name as &#column_type,
                     )
                         .fetch_one()
                         .await
