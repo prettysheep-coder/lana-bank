@@ -141,7 +141,7 @@ mod tests {
         let expected = quote! {
             pub async fn find_by_id(
                 &self,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(self.pool(), id).await
             }
@@ -149,7 +149,7 @@ mod tests {
             pub async fn find_by_id_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(&mut **db, id).await
             }
@@ -157,12 +157,13 @@ mod tests {
             async fn find_by_id_via(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
+                let id = id.borrow();
                 es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
-                        id as EntityId,
+                        id as &EntityId,
                 )
                     .fetch_one()
                     .await
@@ -194,7 +195,7 @@ mod tests {
         let expected = quote! {
             pub async fn find_by_id(
                 &self,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(self.pool(), id).await
             }
@@ -202,7 +203,7 @@ mod tests {
             pub async fn find_by_id_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(&mut **db, id).await
             }
@@ -210,12 +211,13 @@ mod tests {
             async fn find_by_id_via(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
+                let id = id.borrow();
                 es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1 AND deleted = FALSE",
-                        id as EntityId,
+                        id as &EntityId,
                 )
                     .fetch_one()
                     .await
@@ -223,7 +225,7 @@ mod tests {
 
             pub async fn find_by_id_include_deleted(
                 &self,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via_include_deleted(self.pool(), id).await
             }
@@ -231,7 +233,7 @@ mod tests {
             pub async fn find_by_id_in_tx_include_deleted(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via_include_deleted(&mut **db, id).await
             }
@@ -239,12 +241,13 @@ mod tests {
             async fn find_by_id_via_include_deleted(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
+                let id = id.borrow();
                 es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
-                        id as EntityId,
+                        id as &EntityId,
                 )
                     .fetch_one()
                     .await
