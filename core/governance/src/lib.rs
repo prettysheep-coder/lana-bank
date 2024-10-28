@@ -369,9 +369,16 @@ where
     pub async fn list_committees(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<CommitteeByCreatedAtCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Committee, CommitteeByCreatedAtCursor>, GovernanceError>
-    {
+        query: es_entity::PaginatedQueryArgs<
+            committee::committee_cursor::CommitteeByCreatedAtCursor,
+        >,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            Committee,
+            committee::committee_cursor::CommitteeByCreatedAtCursor,
+        >,
+        GovernanceError,
+    > {
         self.authz
             .evaluate_permission(
                 sub,
