@@ -89,6 +89,7 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
             committee_id: self.committee_id,
             audit_info: self.audit_info,
         }];
+        // this logic will probably move
         if auto_approved {
             events.push(ApprovalProcessEvent::Concluded { approved: true });
         }
