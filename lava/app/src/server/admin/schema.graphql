@@ -193,12 +193,41 @@ type CommitteeAddUserPayload {
 	committee: Committee!
 }
 
+type CommitteeConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CommitteeEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Committee!]!
+}
+
 input CommitteeCreateInput {
 	name: String!
 }
 
 type CommitteeCreatePayload {
 	committee: Committee!
+}
+
+"""
+An edge in a connection.
+"""
+type CommitteeEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Committee!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 input CommitteeRemoveUserInput {
@@ -871,6 +900,8 @@ type Query {
 	termsTemplates: [TermsTemplate!]!
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
+	committee(id: UUID!): Committee
+	committees(first: Int!, after: String): CommitteeConnection!
 	loans(first: Int!, after: String): LoanConnection!
 	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance

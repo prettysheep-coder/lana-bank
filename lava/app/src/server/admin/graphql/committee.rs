@@ -1,5 +1,7 @@
 use async_graphql::{dataloader::DataLoader, *};
+use chrono::{DateTime, Utc};
 use connection::CursorType;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::{CommitteeId, UserId},
@@ -109,7 +111,12 @@ impl From<governance::Committee> for CommitteeRemoveUserPayload {
     }
 }
 
-pub use crate::governance::CommitteeByCreatedAtCursor;
+#[derive(Serialize, Deserialize)]
+pub(super) struct CommitteeByCreatedAtCursor {
+    pub id: CommitteeId,
+    pub created_at: DateTime<Utc>,
+}
+
 impl CursorType for CommitteeByCreatedAtCursor {
     type Error = String;
 
@@ -126,5 +133,20 @@ impl CursorType for CommitteeByCreatedAtCursor {
             .map_err(|e| e.to_string())?;
         let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
+    }
+}
+
+impl From<(CommitteeId, DateTime<Utc>)> for CommitteeByCreatedAtCursor {
+    fn from((id, created_at): (CommitteeId, DateTime<Utc>)) -> Self {
+        Self { id, created_at }
+    }
+}
+
+impl From<CommitteeByCreatedAtCursor> for crate::governance::CommitteeByCreatedAtCursor {
+    fn from(cursor: CommitteeByCreatedAtCursor) -> Self {
+        Self {
+            id: cursor.id,
+            created_at: cursor.created_at,
+        }
     }
 }

@@ -1,5 +1,4 @@
 use async_graphql::{types::connection::*, Context, Object};
-use governance::CommitteeByCreatedAtCursor;
 
 use super::{
     account_set::*,
@@ -221,10 +220,7 @@ impl Query {
     ) -> async_graphql::Result<Option<Committee>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let committee = app
-            .governance()
-            .find_committee_by_id(sub, id)
-            .await?;
+        let committee = app.governance().find_committee_by_id(sub, id).await?;
         Ok(committee.map(Committee::from))
     }
 
@@ -247,15 +243,26 @@ impl Query {
                 let first = first.expect("First always exists");
                 let res = app
                     .governance()
-                    .list_committees(sub, es_entity::PaginatedQueryArgs { first, after })
+                    .list_committees(
+                        sub,
+                        es_entity::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::governance::CommitteeByCreatedAtCursor::from),
+                        },
+                    )
                     .await?;
+
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|committee| {
-                        let cursor = CommitteeByCreatedAtCursor::from(&committee);
+                        let cursor = CommitteeByCreatedAtCursor::from((
+                            committee.id,
+                            committee.created_at(),
+                        ));
                         Edge::new(cursor, Committee::from(committee))
                     }));
+
                 Ok::<_, async_graphql::Error>(connection)
             },
         )
