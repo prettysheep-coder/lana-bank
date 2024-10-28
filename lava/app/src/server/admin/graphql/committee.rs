@@ -50,7 +50,7 @@ impl From<governance::Committee> for Committee {
         Self {
             id: committee.id.to_global_id(),
             committee_id: committee.id.into(),
-            user_ids: committee.users().iter().map(|user| user.into()).collect(),
+            user_ids: committee.members().iter().map(|user| user.into()).collect(),
             created_at: committee.created_at().into(),
             name: committee.name,
         }
