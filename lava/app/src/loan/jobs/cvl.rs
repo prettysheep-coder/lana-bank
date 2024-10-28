@@ -7,7 +7,7 @@ use crate::{
     audit::*,
     authorization::{LoanAction, LoanAllOrOne, Object},
     job::*,
-    loan::{repo::*, LoanByCollateralizationRatioCursor, Subject},
+    loan::{repo::*, LoanByCollateralizationRatioCursor},
     price::Price,
     terms::CVLPct,
 };

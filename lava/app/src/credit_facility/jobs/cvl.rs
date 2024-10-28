@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, CreditFacilityByCollateralizationRatioCursor, Subject},
+    credit_facility::{repo::*, CreditFacilityByCollateralizationRatioCursor},
     job::*,
     price::Price,
     terms::CVLPct,

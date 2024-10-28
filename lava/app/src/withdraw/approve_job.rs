@@ -4,7 +4,7 @@ use futures::StreamExt;
 use governance::GovernanceEvent;
 use job::*;
 use lava_events::LavaEvent;
-use rbac_types::{AppObject, Subject, WithdrawAction};
+use rbac_types::{AppObject, WithdrawAction};
 
 use crate::{
     audit::{Audit, AuditSvc},

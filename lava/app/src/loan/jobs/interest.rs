@@ -6,7 +6,7 @@ use crate::{
     authorization::{LoanAction, LoanAllOrOne, Object},
     job::*,
     ledger::*,
-    loan::{error::LoanError, repo::*, Subject},
+    loan::{error::LoanError, repo::*},
     primitives::LoanId,
 };
 

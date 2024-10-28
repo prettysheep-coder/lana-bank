@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, InterestAccrualRepo, Subject},
+    credit_facility::{repo::*, InterestAccrualRepo},
     job::*,
     ledger::*,
     primitives::CreditFacilityId,
