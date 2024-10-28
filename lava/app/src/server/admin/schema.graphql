@@ -181,6 +181,7 @@ type Committee {
 	id: ID!
 	committeeId: UUID!
 	createdAt: Timestamp!
+	name: String!
 	users: [User!]!
 }
 

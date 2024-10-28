@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
-import Link from "next/link"
 
 import { useRouter } from "next/navigation"
 
@@ -31,6 +30,7 @@ gql`
           id
           committeeId
           createdAt
+          name
           users {
             userId
           }
@@ -118,6 +118,7 @@ function CommitteesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Members</TableHead>
                 </TableRow>
@@ -128,11 +129,8 @@ function CommitteesPage() {
                     key={committee.committeeId}
                     onClick={() => router.push(`/committees/${committee.committeeId}`)}
                   >
-                    <TableCell>
-                      <Link href={`/committees/${committee.committeeId}`}>
-                        {committee.committeeId}
-                      </Link>
-                    </TableCell>
+                    <TableCell>{committee.committeeId}</TableCell>
+                    <TableCell>{committee.name}</TableCell>
                     <TableCell>{formatDate(committee.createdAt)}</TableCell>
                     <TableCell>{committee.users.length}</TableCell>
                   </TableRow>

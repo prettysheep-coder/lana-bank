@@ -15,6 +15,7 @@ gql`
       id
       committeeId
       createdAt
+      name
       users {
         userId
         email

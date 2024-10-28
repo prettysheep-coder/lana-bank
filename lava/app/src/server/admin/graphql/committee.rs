@@ -21,6 +21,7 @@ pub struct Committee {
     #[graphql(skip)]
     user_ids: Vec<UUID>,
     created_at: Timestamp,
+    name: String,
 }
 
 #[ComplexObject]
@@ -51,6 +52,7 @@ impl From<governance::Committee> for Committee {
             committee_id: committee.id.into(),
             user_ids: committee.users().iter().map(|user| user.into()).collect(),
             created_at: committee.created_at().into(),
+            name: committee.name,
         }
     }
 }
