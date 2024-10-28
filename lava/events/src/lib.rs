@@ -14,21 +14,3 @@ impl From<governance::GovernanceEvent> for LavaEvent {
         Self::Governance(event)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn serialize() {
-        let val = serde_json::to_string(&LavaEvent::from(
-            governance::GovernanceEvent::ApprovalProcessConcluded {
-                id: shared_primitives::ApprovalProcessId::new(),
-                approved: true,
-            },
-        ))
-        .unwrap();
-        dbg!(val);
-        assert!(false);
-    }
-}
