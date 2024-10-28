@@ -16,7 +16,8 @@ impl JobType {
         JobType(Cow::Borrowed(job_type))
     }
 
-    pub(super) fn from_string(job_type: String) -> Self {
+    #[cfg(test)]
+    pub(crate) fn from_owned(job_type: String) -> Self {
         JobType(Cow::Owned(job_type))
     }
 }
@@ -93,6 +94,8 @@ impl TryFromEvents<JobEvent> for Job {
 pub struct NewJob {
     #[builder(setter(into))]
     pub(super) id: JobId,
+    #[builder(default)]
+    pub(super) unique_per_type: bool,
     pub(super) job_type: JobType,
     #[builder(setter(custom))]
     pub(super) config: serde_json::Value,
