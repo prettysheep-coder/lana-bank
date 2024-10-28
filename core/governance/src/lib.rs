@@ -163,7 +163,7 @@ where
             .expect("audit info missing");
         let user_id = UserId::from(sub);
         let mut process = self.process_repo.find_by_id(process_id).await?;
-        let elligible = if let Some(committee_id) = process.committee_id {
+        let eligible = if let Some(committee_id) = process.committee_id {
             self.committee_repo
                 .find_by_id(committee_id)
                 .await?
@@ -171,9 +171,9 @@ where
         } else {
             HashSet::new()
         };
-        process.approve(&elligible, user_id, audit_info)?;
+        process.approve(&eligible, user_id, audit_info)?;
         let mut db = self.pool.begin().await?;
-        self.maybe_fire_concluded_event(db.begin().await?, elligible, &mut process)
+        self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
         self.process_repo
             .update_in_tx(&mut db, &mut process)
@@ -204,7 +204,7 @@ where
             .expect("audit info missing");
         let user_id = UserId::from(sub);
         let mut process = self.process_repo.find_by_id(process_id).await?;
-        let elligible = if let Some(committee_id) = process.committee_id {
+        let eligible = if let Some(committee_id) = process.committee_id {
             self.committee_repo
                 .find_by_id(committee_id)
                 .await?
@@ -212,9 +212,9 @@ where
         } else {
             HashSet::new()
         };
-        process.deny(&elligible, user_id, audit_info)?;
+        process.deny(&eligible, user_id, audit_info)?;
         let mut db = self.pool.begin().await?;
-        self.maybe_fire_concluded_event(db.begin().await?, elligible, &mut process)
+        self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
         self.process_repo
             .update_in_tx(&mut db, &mut process)
@@ -260,7 +260,7 @@ where
     async fn maybe_fire_concluded_event(
         &self,
         mut db: sqlx::Transaction<'_, sqlx::Postgres>,
-        elligible: HashSet<UserId>,
+        eligible: HashSet<UserId>,
         process: &mut ApprovalProcess,
     ) -> Result<bool, GovernanceError> {
         let audit_info = self
@@ -272,7 +272,7 @@ where
                 GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude),
             )
             .await?;
-        let res = if let Some(approved) = process.check_concluded(elligible, audit_info) {
+        let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
             self.outbox
                 .persist(
                     &mut db,
