@@ -127,7 +127,3 @@ impl From<ApprovalProcessAction> for GovernanceAction {
         GovernanceAction::ApprovalProcess(action)
     }
 }
-
-pub(crate) fn g_action(a: impl Into<GovernanceAction>) -> GovernanceAction {
-    a.into()
-}

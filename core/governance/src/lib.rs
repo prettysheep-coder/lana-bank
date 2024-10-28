@@ -95,7 +95,7 @@ where
             .record_entry(
                 &sub,
                 GovernanceObject::Policy(PolicyAllOrOne::All),
-                g_action(PolicyAction::Create),
+                GovernanceAction::Policy(PolicyAction::Create),
                 true,
             )
             .await?;
@@ -127,7 +127,7 @@ where
             .record_entry(
                 &sub,
                 GovernanceObject::Policy(PolicyAllOrOne::All),
-                g_action(PolicyAction::Create),
+                GovernanceAction::Policy(PolicyAction::Create),
                 true,
             )
             .await?;
@@ -235,7 +235,7 @@ where
             .evaluate_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::All),
-                g_action(CommitteeAction::Create),
+                GovernanceAction::Committee(CommitteeAction::Create),
                 true,
             )
             .await?
@@ -293,22 +293,23 @@ where
     pub async fn add_user_to_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        committee_id: CommitteeId,
-        user_id: UserId,
+        committee_id: impl Into<CommitteeId> + std::fmt::Debug,
+        user_id: impl Into<UserId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
+        let committee_id = committee_id.into();
         let audit_info = self
             .authz
             .evaluate_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
-                g_action(CommitteeAction::AddUser),
+                GovernanceAction::Committee(CommitteeAction::AddUser),
                 true,
             )
             .await?
             .expect("audit info missing");
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        committee.add_user(user_id, audit_info);
+        committee.add_user(user_id.into(), audit_info)?;
         self.committee_repo.update(&mut committee).await?;
 
         Ok(committee)
@@ -318,22 +319,23 @@ where
     pub async fn remove_user_from_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        committee_id: CommitteeId,
-        user_id: UserId,
+        committee_id: impl Into<CommitteeId> + std::fmt::Debug,
+        user_id: impl Into<UserId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
+        let committee_id = committee_id.into();
         let audit_info = self
             .authz
             .evaluate_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
-                g_action(CommitteeAction::RemoveUser),
+                GovernanceAction::Committee(CommitteeAction::RemoveUser),
                 true,
             )
             .await?
             .expect("audit info missing");
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        committee.remove_user(user_id, audit_info);
+        committee.remove_user(user_id.into(), audit_info);
         self.committee_repo.update(&mut committee).await?;
 
         Ok(committee)
