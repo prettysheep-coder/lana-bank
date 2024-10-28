@@ -247,7 +247,9 @@ impl Query {
                         sub,
                         es_entity::PaginatedQueryArgs {
                             first,
-                            after: after.map(crate::governance::CommitteeByCreatedAtCursor::from),
+                            after: after.map(
+                                governance::committee_cursor::CommitteeByCreatedAtCursor::from,
+                            ),
                         },
                     )
                     .await?;

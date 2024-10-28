@@ -144,7 +144,7 @@ impl From<(CommitteeId, DateTime<Utc>)> for CommitteeByCreatedAtCursor {
     }
 }
 
-impl From<CommitteeByCreatedAtCursor> for crate::governance::CommitteeByCreatedAtCursor {
+impl From<CommitteeByCreatedAtCursor> for governance::committee_cursor::CommitteeByCreatedAtCursor {
     fn from(cursor: CommitteeByCreatedAtCursor) -> Self {
         Self {
             id: cursor.id,
