@@ -78,7 +78,7 @@ impl TryFromEvents<JobEvent> for Job {
                     ..
                 } => {
                     builder = builder
-                        .id(id.clone())
+                        .id(*id)
                         .job_type(job_type.clone())
                         .config(config.clone())
                 }
@@ -118,7 +118,7 @@ impl NewJobBuilder {
 impl IntoEvents<JobEvent> for NewJob {
     fn into_events(self) -> EntityEvents<JobEvent> {
         EntityEvents::init(
-            self.id.clone(),
+            self.id,
             [JobEvent::Initialized {
                 id: self.id,
                 job_type: self.job_type,
