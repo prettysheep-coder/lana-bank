@@ -150,7 +150,7 @@ impl JobExecutor {
         let rows = sqlx::query!(
             r#"
               WITH selected_jobs AS (
-                  SELECT je.id, je.execution_data_json AS data_json
+                  SELECT je.id, je.execution_state_json AS data_json
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
                   WHERE reschedule_after < NOW()

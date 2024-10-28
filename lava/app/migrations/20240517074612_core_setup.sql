@@ -243,7 +243,7 @@ CREATE TABLE job_executions (
   id VARCHAR REFERENCES jobs(id) NOT NULL UNIQUE,
   attempt_index INT NOT NULL DEFAULT 1,
   state JobExecutionState NOT NULL DEFAULT 'pending',
-  execution_data_json JSONB,
+  execution_state_json JSONB,
   reschedule_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
