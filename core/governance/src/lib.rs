@@ -133,8 +133,12 @@ where
             .await?;
         let process = policy.spawn_process(id.into(), audit_info);
         let mut process = self.process_repo.create_in_tx(db, process).await?;
-        self.maybe_fire_concluded_event(db.begin().await?, HashSet::new(), &mut process)
-            .await?;
+        if self
+            .maybe_fire_concluded_event(db.begin().await?, HashSet::new(), &mut process)
+            .await?
+        {
+            self.process_repo.update_in_tx(db, &mut process).await?;
+        }
         Ok(process)
     }
 
@@ -168,8 +172,13 @@ where
             HashSet::new()
         };
         process.approve(&elligible, user_id, audit_info)?;
-        self.maybe_fire_concluded_event(self.pool.begin().await?, elligible, &mut process)
+        let mut db = self.pool.begin().await?;
+        self.maybe_fire_concluded_event(db.begin().await?, elligible, &mut process)
             .await?;
+        self.process_repo
+            .update_in_tx(&mut db, &mut process)
+            .await?;
+        db.commit().await?;
 
         Ok(process)
     }
@@ -204,8 +213,13 @@ where
             HashSet::new()
         };
         process.deny(&elligible, user_id, audit_info)?;
-        self.maybe_fire_concluded_event(self.pool.begin().await?, elligible, &mut process)
+        let mut db = self.pool.begin().await?;
+        self.maybe_fire_concluded_event(db.begin().await?, elligible, &mut process)
             .await?;
+        self.process_repo
+            .update_in_tx(&mut db, &mut process)
+            .await?;
+        db.commit().await?;
 
         Ok(process)
     }
@@ -268,13 +282,11 @@ where
                     },
                 )
                 .await?;
-            self.process_repo.update_in_tx(&mut db, process).await?;
+            db.commit().await?;
             true
         } else {
             false
         };
-        self.process_repo.update_in_tx(&mut db, process).await?;
-        db.commit().await?;
         Ok(res)
     }
 }
