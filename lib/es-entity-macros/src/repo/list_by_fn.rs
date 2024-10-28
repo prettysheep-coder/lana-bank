@@ -131,17 +131,17 @@ impl<'a> CursorStruct<'a> {
     pub fn gql_cursor(&self) -> TokenStream {
         let ident = self.ident();
         quote! {
-            impl async_graphql::CursorType for #ident {
+            impl es_entity::graphql::async_graphql::connection::CursorType for #ident {
                 type Error = String;
 
                 fn encode_cursor(&self) -> String {
-                    use base64::{engine::general_purpose, Engine as _};
+                    use es_entity::graphql::base64::{engine::general_purpose, Engine as _};
                     let json = serde_json::to_string(&self).expect("could not serialize token");
                     general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
                 }
 
                 fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-                    use base64::{engine::general_purpose, Engine as _};
+                    use es_entity::graphql::base64::{engine::general_purpose, Engine as _};
                     let bytes = general_purpose::STANDARD_NO_PAD
                         .decode(s.as_bytes())
                         .map_err(|e| e.to_string())?;
