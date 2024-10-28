@@ -1,0 +1,14 @@
+[package]
+name = "user"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+graphql = [ "shared-primitives/graphql" ]
+
+[dependencies]
+shared-primitives = { path = "../shared-primitives" }
+
+strum = { workspace = true }
