@@ -166,6 +166,7 @@ teardown_file() {
 
   assert_accounts_balanced
 
+  sleep 1
   variables=$(
     jq -n \
       --arg withdrawalId "$withdrawal_id" \
