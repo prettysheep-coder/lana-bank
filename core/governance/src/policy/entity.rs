@@ -20,7 +20,7 @@ impl ApprovalProcessType {
     }
 
     #[cfg(test)]
-    pub(super) fn from_owned(job_type: String) -> Self {
+    pub(crate) fn from_owned(job_type: String) -> Self {
         ApprovalProcessType(Cow::Owned(job_type))
     }
 }
