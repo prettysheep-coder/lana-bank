@@ -48,8 +48,12 @@ pub struct ApprovalProcess {
 }
 
 impl ApprovalProcess {
-    pub fn check_concluded(&mut self, eligible: HashSet<UserId>, audit_info: AuditInfo) -> bool {
-        if !self.concluded() {
+    pub fn check_concluded(
+        &mut self,
+        eligible: HashSet<UserId>,
+        audit_info: AuditInfo,
+    ) -> Option<bool> {
+        if self.concluded().is_none() {
             if let Some(approved) =
                 self.rules
                     .is_approved_or_denied(&eligible, &self.approvers(), &self.deniers())
@@ -58,26 +62,29 @@ impl ApprovalProcess {
                     approved,
                     audit_info,
                 });
-                return true;
+                return Some(approved);
             }
         }
-        false
+        None
     }
 
-    pub fn concluded(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|event| matches!(event, ApprovalProcessEvent::Concluded { .. }))
+    pub fn concluded(&self) -> Option<bool> {
+        for event in self.events.iter_all().rev() {
+            match event {
+                ApprovalProcessEvent::Concluded { approved, .. } => return Some(*approved),
+                _ => {}
+            }
+        }
+        None
     }
 
     pub fn approve(
         &mut self,
-        eligible_members: HashSet<UserId>,
+        eligible_members: &HashSet<UserId>,
         approver_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
-        if self.concluded() {
+        if self.concluded().is_some() {
             return Err(ApprovalProcessError::AlreadyConcluded);
         }
 
@@ -99,11 +106,11 @@ impl ApprovalProcess {
 
     pub fn deny(
         &mut self,
-        eligible_members: HashSet<UserId>,
+        eligible_members: &HashSet<UserId>,
         denier_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
-        if self.concluded() {
+        if self.concluded().is_some() {
             return Err(ApprovalProcessError::AlreadyConcluded);
         }
 
@@ -251,7 +258,7 @@ mod tests {
         let audit_info = dummy_audit_info();
         let eligible = [approver].iter().copied().collect();
         assert!(process
-            .approve(eligible, approver, audit_info.clone())
+            .approve(&eligible, approver, audit_info.clone())
             .is_ok());
         assert!(process.approvers().contains(&approver));
     }
@@ -266,7 +273,7 @@ mod tests {
         let approver = UserId::new();
         let audit_info = dummy_audit_info();
         assert!(matches!(
-            process.approve(HashSet::new(), approver, audit_info.clone()),
+            process.approve(&HashSet::new(), approver, audit_info.clone()),
             Err(ApprovalProcessError::NotEligible)
         ));
         assert!(process.approvers().is_empty());
@@ -283,10 +290,10 @@ mod tests {
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(process
-            .approve(eligible.clone(), approver, audit_info.clone())
+            .approve(&eligible, approver, audit_info.clone())
             .is_ok());
         assert!(matches!(
-            process.approve(eligible, approver, audit_info.clone()),
+            process.approve(&eligible, approver, audit_info.clone()),
             Err(ApprovalProcessError::AlreadyVoted)
         ));
     }
@@ -300,7 +307,7 @@ mod tests {
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(matches!(
-            process.approve(eligible.clone(), approver, audit_info.clone()),
+            process.approve(&eligible, approver, audit_info.clone()),
             Err(ApprovalProcessError::AlreadyConcluded)
         ));
     }
@@ -315,7 +322,7 @@ mod tests {
         let denier = UserId::new();
         let audit_info = dummy_audit_info();
         let eligible = [denier].iter().copied().collect();
-        assert!(process.deny(eligible, denier, audit_info.clone()).is_ok());
+        assert!(process.deny(&eligible, denier, audit_info.clone()).is_ok());
         assert!(process.deniers().contains(&denier));
     }
 
@@ -329,7 +336,7 @@ mod tests {
         let denier = UserId::new();
         let audit_info = dummy_audit_info();
         assert!(matches!(
-            process.deny(HashSet::new(), denier, audit_info.clone()),
+            process.deny(&HashSet::new(), denier, audit_info.clone()),
             Err(ApprovalProcessError::NotEligible)
         ));
         assert!(process.deniers().is_empty());
@@ -346,10 +353,10 @@ mod tests {
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(process
-            .approve(eligible.clone(), denier, audit_info.clone())
+            .approve(&eligible, denier, audit_info.clone())
             .is_ok());
         assert!(matches!(
-            process.deny(eligible, denier, audit_info.clone()),
+            process.deny(&eligible, denier, audit_info.clone()),
             Err(ApprovalProcessError::AlreadyVoted)
         ));
     }
@@ -363,7 +370,7 @@ mod tests {
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(matches!(
-            process.deny(eligible.clone(), denier, audit_info.clone()),
+            process.deny(&eligible, denier, audit_info.clone()),
             Err(ApprovalProcessError::AlreadyConcluded)
         ));
     }
