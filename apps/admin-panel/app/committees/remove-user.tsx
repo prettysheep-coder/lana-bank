@@ -7,7 +7,6 @@ import { toast } from "sonner"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -79,10 +78,11 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Remove Committee Member</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to remove {userEmail} from this committee?
-          </DialogDescription>
         </DialogHeader>
+        <p>
+          Are you sure you want to remove <span className="font-bold">{userEmail}</span>{" "}
+          from this committee?
+        </p>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpenRemoveUserDialog(false)}>
             Cancel

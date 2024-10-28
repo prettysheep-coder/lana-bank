@@ -3,6 +3,8 @@ import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import Link from "next/link"
 
+import { useRouter } from "next/navigation"
+
 import { CreateCommitteeDialog } from "./create"
 import { AddUserCommitteeDialog } from "./add-user"
 
@@ -47,6 +49,7 @@ function CommitteesPage() {
     useState<boolean>(false)
   const [openAddUserDialog, setOpenAddUserDialog] = useState<Committee | null>(null)
 
+  const router = useRouter()
   const { data: me } = useMeQuery()
   const { data, loading, error, fetchMore } = useCommitteesQuery({
     variables: {
@@ -121,7 +124,10 @@ function CommitteesPage() {
               </TableHeader>
               <TableBody>
                 {data.committees.edges.map(({ node: committee }) => (
-                  <TableRow key={committee.committeeId}>
+                  <TableRow
+                    key={committee.committeeId}
+                    onClick={() => router.push(`/committees/${committee.committeeId}`)}
+                  >
                     <TableCell>
                       <Link href={`/committees/${committee.committeeId}`}>
                         {committee.committeeId}

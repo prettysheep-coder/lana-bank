@@ -10,14 +10,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
+import { Button } from "@/components/primitive/button"
 import {
   CommitteesDocument,
   GetCommitteeDetailsDocument,
   useCommitteeAddUserMutation,
+  useUsersQuery,
 } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
-import { Label } from "@/components/primitive/label"
-import { Input } from "@/components/primitive/input"
+import { Select } from "@/components/primitive/select"
+import { formatRole } from "@/lib/utils"
 
 gql`
   mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
@@ -49,20 +50,26 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   refetch,
 }) => {
   const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
+  const { data: userData, loading: usersLoading } = useUsersQuery()
 
-  const [userId, setUserId] = useState("")
+  const [selectedUserId, setSelectedUserId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
+    if (!selectedUserId) {
+      setError("Please select a user")
+      return
+    }
+
     try {
       const { data } = await addUser({
         variables: {
           input: {
             committeeId,
-            userId,
+            userId: selectedUserId,
           },
         },
         refetchQueries: [CommitteesDocument, GetCommitteeDetailsDocument],
@@ -89,7 +96,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   }
 
   const resetForm = () => {
-    setUserId("")
+    setSelectedUserId("")
     setError(null)
     reset()
   }
@@ -104,31 +111,28 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
         }
       }}
     >
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add User to Committee</DialogTitle>
-          <DialogDescription>
-            Enter the user ID to add to this committee
-          </DialogDescription>
+          <DialogDescription>Select a user to add to this committee</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div>
-            <Label htmlFor="userId">User ID</Label>
-            <Input
-              id="userId"
-              name="userId"
-              type="text"
-              required
-              placeholder="Enter user ID"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-            />
-          </div>
+          <Select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
+          >
+            <option value="">Select a user</option>
+            {userData?.users.map((user) => (
+              <option key={user.userId} value={user.userId}>
+                {user.email} ({formatRole(user.roles.map(formatRole).join(", "))})
+              </option>
+            ))}
+          </Select>
 
-          {error && <p className="text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <DialogFooter>
-            <Button type="submit" loading={loading}>
+            <Button type="submit" disabled={loading || usersLoading || !selectedUserId}>
               Add User
             </Button>
           </DialogFooter>
@@ -137,3 +141,5 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
     </Dialog>
   )
 }
+
+export default AddUserCommitteeDialog

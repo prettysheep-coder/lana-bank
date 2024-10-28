@@ -3,9 +3,11 @@
 import React, { useState } from "react"
 import Link from "next/link"
 
+import { IoTrashOutline } from "react-icons/io5"
+
 import { RemoveUserCommitteeDialog } from "../remove-user"
 
-import { GetCommitteeDetailsQuery, useMeQuery } from "@/lib/graphql/generated"
+import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
   Table,
@@ -16,6 +18,8 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { Button } from "@/components/primitive/button"
+import { formatRole } from "@/lib/utils"
+import { Badge } from "@/components/primitive/badge"
 
 type CommitteeUsersProps = {
   committee: NonNullable<GetCommitteeDetailsQuery["committee"]>
@@ -53,7 +57,20 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
                     </TableCell>
                     <TableCell>{user.userId}</TableCell>
                     <TableCell>
+                      <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
+                        {user.roles.length > 0
+                          ? user.roles.sort().map((role) => (
+                              <Badge variant="secondary" key={role}>
+                                {formatRole(role)}
+                              </Badge>
+                            ))
+                          : "No roles Assigned"}
+                      </div>
+                    </TableCell>
+
+                    <TableCell className="text-right px-1">
                       <Button
+                        className="gap-2 text-destructive"
                         variant="ghost"
                         onClick={() =>
                           setUserToRemove({
@@ -62,6 +79,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
                           })
                         }
                       >
+                        <IoTrashOutline className="w-4 h-4" />
                         Remove member
                       </Button>
                     </TableCell>
