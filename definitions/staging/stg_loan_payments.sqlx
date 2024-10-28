@@ -1,6 +1,5 @@
 config {
 	type: "table",
-	tags: ["current"],
 }
 
 WITH projected_payment_months AS (
