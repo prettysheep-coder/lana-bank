@@ -53,7 +53,7 @@ impl ApprovalProcess {
         eligible: HashSet<UserId>,
         audit_info: AuditInfo,
     ) -> Option<bool> {
-        if self.concluded().is_none() {
+        if !self.is_concluded() {
             if let Some(approved) =
                 self.rules
                     .is_approved_or_denied(&eligible, &self.approvers(), &self.deniers())
@@ -68,14 +68,11 @@ impl ApprovalProcess {
         None
     }
 
-    pub fn concluded(&self) -> Option<bool> {
-        for event in self.events.iter_all().rev() {
-            match event {
-                ApprovalProcessEvent::Concluded { approved, .. } => return Some(*approved),
-                _ => {}
-            }
-        }
-        None
+    fn is_concluded(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .any(|event| matches!(event, ApprovalProcessEvent::Concluded { .. }))
     }
 
     pub fn approve(
@@ -84,7 +81,7 @@ impl ApprovalProcess {
         approver_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
-        if self.concluded().is_some() {
+        if self.is_concluded() {
             return Err(ApprovalProcessError::AlreadyConcluded);
         }
 
@@ -110,7 +107,7 @@ impl ApprovalProcess {
         denier_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
-        if self.concluded().is_some() {
+        if self.is_concluded() {
             return Err(ApprovalProcessError::AlreadyConcluded);
         }
 
