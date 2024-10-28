@@ -35,7 +35,7 @@ pub mod job {
 pub mod governance {
     use crate::authorization::Authorization;
     use lava_events::LavaEvent;
-
+    pub use governance::CommitteeByCreatedAtCursor;
     pub type Governance = governance::Governance<Authorization, LavaEvent>;
 }
 

@@ -340,4 +340,49 @@ where
 
         Ok(committee)
     }
+
+    #[instrument(name = "governance.find_committee_by_id", skip(self), err)]
+    pub async fn find_committee_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        committee_id: impl Into<CommitteeId> + std::fmt::Debug,
+    ) -> Result<Option<Committee>, GovernanceError> {
+        let committee_id = committee_id.into();
+        self.authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
+                GovernanceAction::Committee(CommitteeAction::Read),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        match self.committee_repo.find_by_id(committee_id).await {
+            Ok(committee) => Ok(Some(committee)),
+            Err(CommitteeError::NotFound) => Ok(None),
+            Err(e) => Err(GovernanceError::CommitteeError(e)),
+        }
+    }
+
+    #[instrument(name = "governance.list_committees", skip(self), err)]
+    pub async fn list_committees(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<CommitteeByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Committee, CommitteeByCreatedAtCursor>, GovernanceError>
+    {
+        self.authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::Committee(CommitteeAllOrOne::All),
+                GovernanceAction::Committee(CommitteeAction::List),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        let committees = self.committee_repo.list_by_created_at(query).await?;
+        Ok(committees)
+    }
 }

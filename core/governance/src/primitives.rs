@@ -44,6 +44,8 @@ pub enum CommitteeAction {
     Create,
     AddUser,
     RemoveUser,
+    Read,
+    List,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
