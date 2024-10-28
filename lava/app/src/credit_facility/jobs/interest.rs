@@ -82,11 +82,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
 
         let audit_info = self
             .audit
-            .record_entry(
-                &Subject::core(),
+            .record_system_entry_in_tx(
+                &mut db_tx,
                 Object::CreditFacility,
                 CreditFacilityAction::RecordInterest,
-                true,
             )
             .await?;
 

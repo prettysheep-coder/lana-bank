@@ -88,11 +88,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             let mut db = current_job.pool().begin().await?;
             let audit_info = self
                 .audit
-                .record_entry(
-                    &Subject::core(),
+                .record_system_entry_in_tx(
+                    &mut db,
                     Object::CreditFacility,
                     CreditFacilityAction::UpdateCollateralizationState,
-                    true,
                 )
                 .await?;
 

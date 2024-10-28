@@ -67,11 +67,10 @@ impl JobRunner for LoanProcessingJobRunner {
         let mut db_tx = current_job.pool().begin().await?;
         let audit_info = self
             .audit
-            .record_entry(
-                &Subject::core(),
+            .record_system_entry_in_tx(
+                &mut db_tx,
                 Object::Loan(LoanAllOrOne::ById(loan.id)),
                 LoanAction::RecordInterest,
-                true,
             )
             .await?;
         let interest_accrual = match loan.initiate_interest() {
