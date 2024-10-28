@@ -1,8 +1,7 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 
 import { CreateCommitteeDialog } from "./create"
 import { AddUserCommitteeDialog } from "./add-user"
@@ -24,41 +23,67 @@ import { formatDate } from "@/lib/utils"
 gql`
   query Committees($first: Int!, $after: String) {
     committees(first: $first, after: $after) {
-      pageInfo {
-        hasPreviousPage
-        hasNextPage
-        startCursor
-        endCursor
-      }
-      nodes {
-        id
-        committeeId
-        createdAt
-        users {
-          userId
+      edges {
+        cursor
+        node {
+          id
+          committeeId
+          createdAt
+          users {
+            userId
+          }
         }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
       }
     }
   }
 `
 
 function CommitteesPage() {
-  const searchParams = useSearchParams()
-
-  const { data, refetch, loading, error, fetchMore } = useCommitteesQuery({
-    variables: { first: 2 },
-    fetchPolicy: "cache-and-network",
-  })
-
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] =
     useState<boolean>(false)
   const [openAddUserDialog, setOpenAddUserDialog] = useState<Committee | null>(null)
 
-  useEffect(() => {
-    if (searchParams.get("create")) setOpenCreateCommitteeDialog(true)
-  }, [searchParams, setOpenCreateCommitteeDialog])
-
   const { data: me } = useMeQuery()
+  const { data, loading, error, fetchMore } = useCommitteesQuery({
+    variables: {
+      first: 20,
+    },
+    fetchPolicy: "cache-and-network",
+  })
+
+  if (loading && !data) {
+    return (
+      <main>
+        <div className="flex justify-between items-center mb-8">
+          <PageHeading className="mb-0">Committees</PageHeading>
+        </div>
+        <Card>
+          <CardContent>
+            <p className="mt-6">Loading...</p>
+          </CardContent>
+        </Card>
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main>
+        <div className="flex justify-between items-center mb-8">
+          <PageHeading className="mb-0">Committees</PageHeading>
+        </div>
+        <Card>
+          <CardContent>
+            <p className="text-destructive mt-6">{error.message}</p>
+          </CardContent>
+        </Card>
+      </main>
+    )
+  }
 
   return (
     <main>
@@ -67,13 +92,11 @@ function CommitteesPage() {
           committeeId={openAddUserDialog.committeeId}
           openAddUserDialog={Boolean(openAddUserDialog)}
           setOpenAddUserDialog={() => setOpenAddUserDialog(null)}
-          refetch={refetch}
         />
       )}
       <CreateCommitteeDialog
         openCreateCommitteeDialog={openCreateCommitteeDialog}
         setOpenCreateCommitteeDialog={setOpenCreateCommitteeDialog}
-        refetch={refetch}
       />
 
       <div className="flex justify-between items-center mb-8">
@@ -85,11 +108,9 @@ function CommitteesPage() {
 
       <Card>
         <CardContent>
-          {loading ? (
-            <p className="mt-6">Loading...</p>
-          ) : error ? (
-            <p className="text-destructive mt-6">{error.message}</p>
-          ) : data?.committees.nodes && data.committees.nodes.length > 0 ? (
+          {!data?.committees.edges || data.committees.edges.length === 0 ? (
+            <p className="mt-6">No committees found</p>
+          ) : (
             <Table className="mt-6">
               <TableHeader>
                 <TableRow>
@@ -99,7 +120,7 @@ function CommitteesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.committees.nodes.map((committee) => (
+                {data.committees.edges.map(({ node: committee }) => (
                   <TableRow key={committee.committeeId}>
                     <TableCell>
                       <Link href={`/committees/${committee.committeeId}`}>
@@ -116,7 +137,9 @@ function CommitteesPage() {
                     onClick={() =>
                       fetchMore({
                         variables: {
-                          after: data.committees.pageInfo.endCursor,
+                          after:
+                            data.committees.edges[data.committees.edges.length - 1]
+                              .cursor,
                         },
                       })
                     }
@@ -130,8 +153,6 @@ function CommitteesPage() {
                 )}
               </TableBody>
             </Table>
-          ) : (
-            <p className="mt-6">No committees found</p>
           )}
         </CardContent>
       </Card>

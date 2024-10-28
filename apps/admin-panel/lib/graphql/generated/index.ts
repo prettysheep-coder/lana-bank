@@ -1601,7 +1601,7 @@ export type CommitteesQueryVariables = Exact<{
 }>;
 
 
-export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Committee', id: string, committeeId: string, createdAt: any, users: Array<{ __typename?: 'User', userId: string }> }> } };
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, users: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CommitteeRemoveUserMutationVariables = Exact<{
   input: CommitteeRemoveUserInput;
@@ -2510,19 +2510,20 @@ export type CreateCommitteeMutationOptions = Apollo.BaseMutationOptions<CreateCo
 export const CommitteesDocument = gql`
     query Committees($first: Int!, $after: String) {
   committees(first: $first, after: $after) {
-    pageInfo {
-      hasPreviousPage
-      hasNextPage
-      startCursor
-      endCursor
-    }
-    nodes {
-      id
-      committeeId
-      createdAt
-      users {
-        userId
+    edges {
+      cursor
+      node {
+        id
+        committeeId
+        createdAt
+        users {
+          userId
+        }
       }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
     }
   }
 }
