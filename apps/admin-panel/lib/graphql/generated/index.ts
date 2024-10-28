@@ -204,6 +204,43 @@ export type CollateralizationUpdated = {
   state: LoanCollaterizationState;
 };
 
+export type Committee = {
+  __typename?: 'Committee';
+  committeeId: Scalars['UUID']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  users: Array<User>;
+};
+
+export type CommitteeAddUserInput = {
+  committeeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeAddUserPayload = {
+  __typename?: 'CommitteeAddUserPayload';
+  committee: Committee;
+};
+
+export type CommitteeCreateInput = {
+  name: Scalars['String']['input'];
+};
+
+export type CommitteeCreatePayload = {
+  __typename?: 'CommitteeCreatePayload';
+  committee: Committee;
+};
+
+export type CommitteeRemoveUserInput = {
+  committeeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeRemoveUserPayload = {
+  __typename?: 'CommitteeRemoveUserPayload';
+  committee: Committee;
+};
+
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   approvals: Array<CreditFacilityApproval>;
@@ -789,6 +826,9 @@ export enum LoanStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
+  committeeAddUser: CommitteeAddUserPayload;
+  committeeCreate: CommitteeCreatePayload;
+  committeeRemoveUser: CommitteeRemoveUserPayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
@@ -824,6 +864,21 @@ export type Mutation = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
+};
+
+
+export type MutationCommitteeAddUserArgs = {
+  input: CommitteeAddUserInput;
+};
+
+
+export type MutationCommitteeCreateArgs = {
+  input: CommitteeCreateInput;
+};
+
+
+export type MutationCommitteeRemoveUserArgs = {
+  input: CommitteeRemoveUserInput;
 };
 
 

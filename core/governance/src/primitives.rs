@@ -42,6 +42,8 @@ impl FromStr for GovernanceAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum CommitteeAction {
     Create,
+    AddUser,
+    RemoveUser,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]

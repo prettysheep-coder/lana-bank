@@ -177,6 +177,39 @@ type CollateralizationUpdated {
 	recordedAt: Timestamp!
 }
 
+type Committee {
+	id: ID!
+	committeeId: UUID!
+	createdAt: Timestamp!
+	users: [User!]!
+}
+
+input CommitteeAddUserInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeAddUserPayload {
+	committee: Committee!
+}
+
+input CommitteeCreateInput {
+	name: String!
+}
+
+type CommitteeCreatePayload {
+	committee: Committee!
+}
+
+input CommitteeRemoveUserInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeRemoveUserPayload {
+	committee: Committee!
+}
+
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
@@ -786,6 +819,9 @@ type Mutation {
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
+	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
+	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 }
 
 type Outstanding {

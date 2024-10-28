@@ -289,4 +289,53 @@ where
         };
         Ok(res)
     }
+    #[instrument(name = "governance.add_user_to_committee", skip(self), err)]
+    pub async fn add_user_to_committee(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        committee_id: CommitteeId,
+        user_id: UserId,
+    ) -> Result<Committee, GovernanceError> {
+        let audit_info = self
+            .authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
+                g_action(CommitteeAction::AddUser),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        let mut committee = self.committee_repo.find_by_id(committee_id).await?;
+        committee.add_user(user_id, audit_info);
+        self.committee_repo.update(&mut committee).await?;
+
+        Ok(committee)
+    }
+
+    #[instrument(name = "governance.remove_user_from_committee", skip(self), err)]
+    pub async fn remove_user_from_committee(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        committee_id: CommitteeId,
+        user_id: UserId,
+    ) -> Result<Committee, GovernanceError> {
+        let audit_info = self
+            .authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
+                g_action(CommitteeAction::RemoveUser),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        let mut committee = self.committee_repo.find_by_id(committee_id).await?;
+        committee.remove_user(user_id, audit_info);
+        self.committee_repo.update(&mut committee).await?;
+
+        Ok(committee)
+    }
 }
