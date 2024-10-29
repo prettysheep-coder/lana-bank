@@ -222,11 +222,12 @@ where
     pub async fn approve_process(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        process_id: ApprovalProcessId,
+        process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
         UserId: for<'a> From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
+        let process_id = process_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -261,11 +262,12 @@ where
     pub async fn deny_process(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        process_id: ApprovalProcessId,
+        process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
         UserId: for<'a> From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
+        let process_id = process_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
