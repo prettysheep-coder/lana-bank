@@ -13,7 +13,7 @@ use tracing::instrument;
 
 use std::collections::{HashMap, HashSet};
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
