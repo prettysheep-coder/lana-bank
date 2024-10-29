@@ -1683,6 +1683,13 @@ export type ApprovalProcessApproveMutationVariables = Exact<{
 
 export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } } };
 
+export type ApprovalProcessDenyMutationVariables = Exact<{
+  input: ApprovalProcessDenyInput;
+}>;
+
+
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } } };
+
 export type ApprovalProcessesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -2299,6 +2306,44 @@ export function useApprovalProcessApproveMutation(baseOptions?: Apollo.MutationH
 export type ApprovalProcessApproveMutationHookResult = ReturnType<typeof useApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationResult = Apollo.MutationResult<ApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+export const ApprovalProcessDenyDocument = gql`
+    mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+  approvalProcessDeny(input: $input) {
+    approvalProcess {
+      id
+      approvalProcessId
+      processType
+      createdAt
+    }
+  }
+}
+    `;
+export type ApprovalProcessDenyMutationFn = Apollo.MutationFunction<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
+
+/**
+ * __useApprovalProcessDenyMutation__
+ *
+ * To run a mutation, you first call `useApprovalProcessDenyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessDenyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approvalProcessDenyMutation, { data, loading, error }] = useApprovalProcessDenyMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApprovalProcessDenyMutation(baseOptions?: Apollo.MutationHookOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>(ApprovalProcessDenyDocument, options);
+      }
+export type ApprovalProcessDenyMutationHookResult = ReturnType<typeof useApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationResult = Apollo.MutationResult<ApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
 export const ApprovalProcessesDocument = gql`
     query ApprovalProcesses($first: Int!, $after: String) {
   approvalProcesses(first: $first, after: $after) {

@@ -127,6 +127,7 @@ function CommitteesPage() {
                 {data.committees.edges.map(({ node: committee }) => (
                   <TableRow
                     key={committee.committeeId}
+                    className="cursor-pointer"
                     onClick={() => router.push(`/committees/${committee.committeeId}`)}
                   >
                     <TableCell>{committee.committeeId}</TableCell>
