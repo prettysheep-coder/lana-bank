@@ -2,13 +2,15 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use shared_primitives::{AllOrOne, UserId};
+pub use shared_primitives::{event::UserModuleEvent, AllOrOne, UserId};
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct Role(Cow<'static, str>);
 impl Role {
+    pub const SUPERUSER: Role = Role::new("superuser");
+
     pub const fn new(job_type: &'static str) -> Self {
         Role(Cow::Borrowed(job_type))
     }
@@ -18,12 +20,6 @@ impl Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
-}
-
-#[derive(Clone, Debug)]
-pub struct SuperuserInit {
-    pub email: String,
-    pub role: Role,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]

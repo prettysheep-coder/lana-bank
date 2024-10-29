@@ -119,13 +119,13 @@ where
     pub async fn revoke_role_from_subject(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: &R,
+        role: impl std::borrow::Borrow<R>,
     ) -> Result<(), AuthorizationError> {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .remove_grouping_policy(vec![sub.to_string(), role.to_string()])
+            .remove_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
             .await
         {
             Ok(_) => Ok(()),
