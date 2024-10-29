@@ -156,11 +156,6 @@ where
             self.authz
                 .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_READ)
                 .await?;
-        } else {
-            self.authz
-                .audit()
-                .record_system_entry(UserObject::all_users(), CoreUserAction::USER_READ)
-                .await?;
         }
 
         match self.repo.find_by_email(email).await {
