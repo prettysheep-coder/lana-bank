@@ -32,13 +32,14 @@ impl<'a> CursorStruct<'a> {
         }
     }
 
-    pub fn order_by(&self) -> String {
+    pub fn order_by(&self, ascending: bool) -> String {
+        let dir = if ascending { "ASC" } else { "DESC" };
         if self.column.is_id() {
-            "id".to_string()
+            format!("id {dir}")
         } else if self.column.is_optional() {
-            format!("{} NULLS FIRST, id", self.column.name())
+            format!("{0} {dir} NULLS FIRST, id {dir}", self.column.name())
         } else {
-            format!("{}, id", self.column.name())
+            format!("{} {dir}, id {dir}", self.column.name())
         }
     }
 
@@ -234,7 +235,7 @@ impl<'a> ToTokens for ListByFn<'a> {
 
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
-        let order_by = cursor.order_by();
+        let order_by = cursor.order_by(true);
         let condition = cursor.condition(0);
         let arg_tokens = cursor.query_arg_tokens();
 
@@ -401,7 +402,7 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT id FROM entities WHERE (COALESCE(id > $2, true)) AND deleted = FALSE ORDER BY id LIMIT $1",
+                    "SELECT id FROM entities WHERE (COALESCE(id > $2, true)) AND deleted = FALSE ORDER BY id ASC LIMIT $1",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
@@ -427,7 +428,7 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT id FROM entities WHERE (COALESCE(id > $2, true)) ORDER BY id LIMIT $1",
+                    "SELECT id FROM entities WHERE (COALESCE(id > $2, true)) ORDER BY id ASC LIMIT $1",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
@@ -481,7 +482,7 @@ mod tests {
 
                 let (entities, has_next_page) = es_entity::es_query!(
                         self.pool(),
-                        "SELECT name, id FROM entities WHERE (COALESCE((name, id) > ($3, $2), $2 IS NULL)) ORDER BY name, id LIMIT $1",
+                        "SELECT name, id FROM entities WHERE (COALESCE((name, id) > ($3, $2), $2 IS NULL)) ORDER BY name ASC, id ASC LIMIT $1",
                         (first + 1) as i64,
                         id as Option<EntityId>,
                         name as Option<String>,
@@ -538,7 +539,7 @@ mod tests {
 
                 let (entities, has_next_page) = es_entity::es_query!(
                         self.pool(),
-                        "SELECT value, id FROM entities WHERE ((value IS NOT DISTINCT FROM $3) AND COALESCE(id > $2, true) OR COALESCE(value > $3, value IS NOT NULL)) ORDER BY value NULLS FIRST, id LIMIT $1",
+                        "SELECT value, id FROM entities WHERE ((value IS NOT DISTINCT FROM $3) AND COALESCE(id > $2, true) OR COALESCE(value > $3, value IS NOT NULL)) ORDER BY value ASC NULLS FIRST, id ASC LIMIT $1",
                         (first + 1) as i64,
                         id as Option<EntityId>,
                         value as Option<rust_decimal::Decimal>,
