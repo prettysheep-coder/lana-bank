@@ -4,12 +4,14 @@ use thiserror::Error;
 pub enum UserError {
     #[error("UserError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CustomerError - NotFound")]
+    #[error("UserError - NotFound")]
     NotFound,
     #[error("UserError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("UserError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
+    #[error("SubjectError - SubjectIsNotUser")]
+    SubjectIsNotUser,
 }
 
 impl From<es_entity::EsEntityError> for UserError {

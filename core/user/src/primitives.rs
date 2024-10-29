@@ -16,6 +16,9 @@ impl Role {
     }
 }
 
+#[cfg(feature = "graphql")]
+async_graphql::scalar!(Role);
+
 impl Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -27,6 +30,14 @@ impl Display for Role {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum UserModuleAction {
     User(UserEntityAction),
+}
+
+impl UserModuleAction {
+    pub const USER_CREATE: Self = UserModuleAction::User(UserEntityAction::Create);
+    pub const USER_READ: Self = UserModuleAction::User(UserEntityAction::Read);
+    pub const USER_LIST: Self = UserModuleAction::User(UserEntityAction::List);
+    pub const USER_ASSIGN_ROLE: Self = UserModuleAction::User(UserEntityAction::AssignRole);
+    pub const USER_REVOKE_ROLE: Self = UserModuleAction::User(UserEntityAction::RevokeRole);
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
@@ -76,6 +87,18 @@ pub type UserAllOrOne = AllOrOne<UserId>;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum UserObject {
     User(UserAllOrOne),
+}
+
+impl UserObject {
+    pub fn all_users() -> UserObject {
+        UserObject::User(AllOrOne::All)
+    }
+    pub fn user(id: impl Into<Option<UserId>>) -> UserObject {
+        match id.into() {
+            Some(id) => UserObject::User(AllOrOne::ById(id)),
+            None => UserObject::all_users(),
+        }
+    }
 }
 
 impl Display for UserObject {

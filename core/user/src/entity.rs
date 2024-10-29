@@ -10,7 +10,7 @@ use std::collections::HashSet;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
-pub enum UserEvent {
+pub(crate) enum UserEvent {
     Initialized {
         id: UserId,
         email: String,
@@ -35,7 +35,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
+    pub(crate) fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
         let mut roles = self.current_roles();
         if roles.insert(role.clone()) {
             self.events
@@ -46,7 +46,7 @@ impl User {
         }
     }
 
-    pub fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
+    pub(crate) fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
         let mut roles = self.current_roles();
         if roles.remove(&role) {
             self.events
@@ -98,7 +98,7 @@ impl TryFromEvents<UserEvent> for User {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewUser {
+pub(crate) struct NewUser {
     #[builder(setter(into))]
     pub(super) id: UserId,
     #[builder(setter(into))]

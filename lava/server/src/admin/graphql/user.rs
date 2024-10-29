@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use crate::shared_graphql::primitives::UUID;
+use crate::{admin::AdminAuthContext, shared_graphql::primitives::UUID};
 use lava_app::{
     app::LavaApp,
     authorization::VisibleNavigationItems,
@@ -34,7 +34,7 @@ impl User {
 
     async fn can_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let sub = Subject::User(UserId::from(&self.user_id));
+        let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .customers()
             .user_can_create_customer(&sub, false)
@@ -50,27 +50,27 @@ impl User {
 
     async fn can_assign_role_to_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let sub = Subject::User(UserId::from(&self.user_id));
+        let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .users()
-            .can_assign_role_to_user(&sub, false)
+            .can_assign_role_to_user(&sub, None, false)
             .await
             .is_ok())
     }
 
     async fn can_revoke_role_from_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let sub = Subject::User(UserId::from(&self.user_id));
+        let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .users()
-            .can_revoke_role_from_user(&sub, false)
+            .can_revoke_role_from_user(&sub, None, false)
             .await
             .is_ok())
     }
 
     async fn can_create_terms_template(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let sub = Subject::User(UserId::from(&self.user_id));
+        let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .terms_templates()
             .user_can_create_terms_template(&sub, false)
@@ -80,7 +80,7 @@ impl User {
 
     async fn can_update_terms_template(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let sub = Subject::User(UserId::from(&self.user_id));
+        let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .terms_templates()
             .user_can_update_terms_template(&sub, false)

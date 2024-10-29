@@ -7,12 +7,13 @@ mod primitives;
 mod repo;
 
 use std::collections::HashMap;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use outbox::{Outbox, OutboxEventMarker};
 
-use entity::*;
+pub use entity::*;
 use error::*;
 pub use primitives::*;
 use repo::*;
@@ -20,13 +21,29 @@ use repo::*;
 pub struct Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin,
+    E: OutboxEventMarker<UserModuleEvent>,
 {
     pool: sqlx::PgPool,
     authz: Authorization<Audit, Role>,
     outbox: Outbox<E>,
     repo: UserRepo,
 }
+
+impl<Audit, E> Clone for Users<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<UserModuleEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            authz: self.authz.clone(),
+            outbox: self.outbox.clone(),
+            repo: self.repo.clone(),
+        }
+    }
+}
+
 impl<Audit, E> Users<Audit, E>
 where
     Audit: AuditSvc,
@@ -65,17 +82,18 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                UserObject::User(UserAllOrOne::All),
-                UserModuleAction::User(UserEntityAction::Create),
+                UserObject::all_users(),
+                UserModuleAction::USER_CREATE,
                 enforce,
             )
             .await?)
     }
 
+    #[instrument("core_user.create_user", skip(self))]
     pub async fn create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        email: impl Into<String>,
+        email: impl Into<String> + std::fmt::Debug,
     ) -> Result<User, UserError> {
         let audit_info = self
             .can_create_user(sub, true)
@@ -96,17 +114,30 @@ where
         Ok(user)
     }
 
+    #[instrument("core_user.find_for_subject", skip(self))]
+    pub async fn find_for_subject(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+    ) -> Result<User, UserError>
+    where
+        UserId: for<'a> TryFrom<&'a <Audit as AuditSvc>::Subject>,
+    {
+        let id = UserId::try_from(sub).map_err(|_| UserError::SubjectIsNotUser)?;
+        self.authz
+            .enforce_permission(sub, UserObject::user(id), UserModuleAction::USER_READ)
+            .await?;
+        self.repo.find_by_id(id).await
+    }
+
+    #[instrument("core_user.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        id: UserId,
+        id: impl Into<UserId> + std::fmt::Debug,
     ) -> Result<Option<User>, UserError> {
+        let id = id.into();
         self.authz
-            .enforce_permission(
-                sub,
-                UserObject::User(UserAllOrOne::ById(id)),
-                UserModuleAction::User(UserEntityAction::Read),
-            )
+            .enforce_permission(sub, UserObject::user(id), UserModuleAction::USER_READ)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -115,6 +146,24 @@ where
         }
     }
 
+    #[instrument("core_user.find_by_email", skip(self))]
+    pub async fn find_by_email(
+        &self,
+        // sub: &<Audit as AuditSvc>::Subject,
+        email: &String,
+    ) -> Result<Option<User>, UserError> {
+        // let id = id.into();
+        // self.authz
+        //     .enforce_permission(sub, UserObject::user(id), UserModuleAction::USER_READ)
+        //     .await?;
+        match self.repo.find_by_email(email).await {
+            Ok(user) => Ok(Some(user)),
+            Err(UserError::NotFound) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    #[instrument("core_user.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,
         ids: &[UserId],
@@ -122,16 +171,13 @@ where
         self.repo.find_all(ids).await
     }
 
+    #[instrument("core_user.list_users", skip(self))]
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
     ) -> Result<Vec<User>, UserError> {
         self.authz
-            .enforce_permission(
-                sub,
-                UserObject::User(UserAllOrOne::All),
-                UserModuleAction::User(UserEntityAction::List),
-            )
+            .enforce_permission(sub, UserObject::all_users(), UserModuleAction::USER_LIST)
             .await?;
 
         Ok(self.repo.list_by_email(Default::default()).await?.entities)
@@ -140,15 +186,15 @@ where
     pub async fn can_assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        user_id: UserId,
+        user_id: impl Into<Option<UserId>>,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, UserError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                UserObject::User(UserAllOrOne::ById(user_id)),
-                UserModuleAction::User(UserEntityAction::AssignRole),
+                UserObject::user(user_id),
+                UserModuleAction::USER_ASSIGN_ROLE,
                 enforce,
             )
             .await?)
@@ -182,15 +228,15 @@ where
     pub async fn can_revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        user_id: UserId,
+        user_id: impl Into<Option<UserId>>,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, UserError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                UserObject::User(UserAllOrOne::ById(user_id)),
-                UserModuleAction::User(UserEntityAction::RevokeRole),
+                UserObject::user(user_id),
+                UserModuleAction::USER_REVOKE_ROLE,
                 enforce,
             )
             .await?)
@@ -229,8 +275,8 @@ where
             .audit()
             .record_system_entry_in_tx(
                 &mut db,
-                UserObject::User(UserAllOrOne::All),
-                UserModuleAction::User(UserEntityAction::Create),
+                UserObject::all_users(),
+                UserModuleAction::USER_CREATE,
             )
             .await?;
 
