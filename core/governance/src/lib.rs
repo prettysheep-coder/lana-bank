@@ -225,7 +225,7 @@ where
         process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
-        UserId: for<'a> From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+        UserId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let process_id = process_id.into();
         let audit_info = self
@@ -236,7 +236,7 @@ where
                 GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve),
             )
             .await?;
-        let user_id = UserId::from(sub);
+        let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
@@ -265,7 +265,7 @@ where
         process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
-        UserId: for<'a> From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+        UserId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let process_id = process_id.into();
         let audit_info = self
@@ -276,7 +276,7 @@ where
                 GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny),
             )
             .await?;
-        let user_id = UserId::from(sub);
+        let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
