@@ -15,7 +15,7 @@ use std::collections::{HashMap, HashSet};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use outbox::Outbox;
+use outbox::{Outbox, OutboxEventMarker};
 
 pub use approval_process::*;
 pub use committee::error as committee_error;
@@ -61,13 +61,7 @@ where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
-    E: serde::de::DeserializeOwned
-        + serde::Serialize
-        + Send
-        + Sync
-        + 'static
-        + Unpin
-        + From<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         let committee_repo = CommitteeRepo::new(pool);

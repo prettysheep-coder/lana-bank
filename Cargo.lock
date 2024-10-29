@@ -2116,7 +2116,9 @@ name = "lava-events"
 version = "0.2.3-dev"
 dependencies = [
  "governance",
+ "outbox",
  "serde",
+ "shared-primitives",
 ]
 
 [[package]]
