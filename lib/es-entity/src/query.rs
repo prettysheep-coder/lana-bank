@@ -1,4 +1,6 @@
+#[derive(Default)]
 pub enum ListDirection {
+    #[default]
     Ascending,
     Descending,
 }
