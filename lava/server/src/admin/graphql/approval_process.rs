@@ -34,9 +34,9 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
             id: process.id.to_global_id(),
             approval_process_id: process.id.into(),
             process_type: process.process_type.to_string(),
-            rules: process.rules.into(),
-            status: process.status.into(),
+            status: process.status(),
             created_at: process.created_at().into(),
+            rules: process.rules.into(),
         }
     }
 }
