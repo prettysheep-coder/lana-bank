@@ -173,12 +173,12 @@ impl From<&Subject> for uuid::Uuid {
 }
 
 impl TryFrom<&Subject> for UserId {
-    type Error = String;
+    type Error = &'static str;
 
     fn try_from(value: &Subject) -> Result<Self, Self::Error> {
         match value {
             Subject::User(id) => Ok(*id),
-            _ => Err("Subject is not User".to_string()),
+            _ => Err("Subject is not User"),
         }
     }
 }
