@@ -297,7 +297,7 @@ mod tests {
 
     #[test]
     fn approve_already_concluded() {
-        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Automatic))
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::System))
             .expect("Could not build approval process");
         process.check_concluded(HashSet::new(), dummy_audit_info());
         let approver = UserId::new();
@@ -360,7 +360,7 @@ mod tests {
 
     #[test]
     fn deny_already_concluded() {
-        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::Automatic))
+        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::System))
             .expect("Could not build approval process");
         process.check_concluded(HashSet::new(), dummy_audit_info());
         let denier = UserId::new();

@@ -153,7 +153,7 @@ mod test {
             [PolicyEvent::Initialized {
                 id: PolicyId::new(),
                 process_type: ApprovalProcessType::new("test"),
-                rules: ApprovalRules::Automatic,
+                rules: ApprovalRules::System,
                 committee_id: None,
                 audit_info: dummy_audit_info(),
             }],

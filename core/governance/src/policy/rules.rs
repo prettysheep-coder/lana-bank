@@ -6,7 +6,7 @@ use std::collections::HashSet;
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
     CommitteeThreshold { threshold: usize },
-    Automatic,
+    System,
 }
 
 impl ApprovalRules {
@@ -17,7 +17,7 @@ impl ApprovalRules {
         denying_members: &HashSet<Id>,
     ) -> Option<bool> {
         match self {
-            ApprovalRules::Automatic => Some(true),
+            ApprovalRules::System => Some(true),
             ApprovalRules::CommitteeThreshold { threshold } => {
                 let approved_eligible = eligible_members.intersection(approving_members).count();
                 if approved_eligible >= *threshold {
@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn test_automatic() {
-        let rules = ApprovalRules::Automatic;
+        let rules = ApprovalRules::System;
 
         assert_eq!(
             rules.is_approved_or_denied(&make_set(&[1, 2, 3]), &HashSet::new(), &HashSet::new()),

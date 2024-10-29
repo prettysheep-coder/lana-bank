@@ -118,7 +118,7 @@ export type ApprovalProcessEdge = {
   node: ApprovalProcess;
 };
 
-export type ApprovalRules = Automatic | CommitteeThreshold;
+export type ApprovalRules = CommitteeThreshold | SystemApproval;
 
 export type AuditEntry = {
   __typename?: 'AuditEntry';
@@ -147,11 +147,6 @@ export type AuditEntryEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: AuditEntry;
-};
-
-export type Automatic = {
-  __typename?: 'Automatic';
-  enabled: Scalars['Boolean']['output'];
 };
 
 export type BalanceSheet = {
@@ -1432,6 +1427,11 @@ export type SumsubPermalinkCreatePayload = {
 export type System = {
   __typename?: 'System';
   name: Scalars['String']['output'];
+};
+
+export type SystemApproval = {
+  __typename?: 'SystemApproval';
+  autoApprove: Scalars['Boolean']['output'];
 };
 
 export type TermValues = {

@@ -98,7 +98,7 @@ type ApprovalProcessEdge {
 	cursor: String!
 }
 
-union ApprovalRules = CommitteeThreshold | Automatic
+union ApprovalRules = CommitteeThreshold | SystemApproval
 
 type AuditEntry {
 	id: ID!
@@ -136,10 +136,6 @@ type AuditEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
-}
-
-type Automatic {
-	enabled: Boolean!
 }
 
 type BalanceSheet {
@@ -1098,6 +1094,10 @@ type SumsubPermalinkCreatePayload {
 
 type System {
 	name: String!
+}
+
+type SystemApproval {
+	autoApprove: Boolean!
 }
 
 type TermValues {

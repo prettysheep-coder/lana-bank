@@ -105,7 +105,7 @@ where
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .rules(ApprovalRules::Automatic)
+            .rules(ApprovalRules::System)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new policy");

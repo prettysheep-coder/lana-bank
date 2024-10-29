@@ -22,14 +22,14 @@ struct CommitteeThreshold {
 }
 
 #[derive(SimpleObject)]
-struct Automatic {
-    enabled: bool,
+struct SystemApproval {
+    auto_approve: bool,
 }
 
 #[derive(async_graphql::Union)]
 enum ApprovalRules {
     CommitteeThreshold(CommitteeThreshold),
-    Automatic(Automatic),
+    System(SystemApproval),
 }
 
 #[derive(InputObject)]
@@ -76,8 +76,8 @@ impl From<governance::ApprovalRules> for ApprovalRules {
             governance::ApprovalRules::CommitteeThreshold { threshold } => {
                 ApprovalRules::CommitteeThreshold(CommitteeThreshold { threshold })
             }
-            governance::ApprovalRules::Automatic => {
-                ApprovalRules::Automatic(Automatic { enabled: true })
+            governance::ApprovalRules::System => {
+                ApprovalRules::System(SystemApproval { auto_approve: true })
             }
         }
     }
