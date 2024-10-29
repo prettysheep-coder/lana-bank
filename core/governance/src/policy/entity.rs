@@ -65,7 +65,10 @@ impl Policy {
         audit_info: AuditInfo,
     ) {
         self.committee_id = Some(committee_id);
-        self.rules = ApprovalRules::CommitteeThreshold { threshold };
+        self.rules = ApprovalRules::CommitteeThreshold {
+            threshold,
+            committee_id,
+        };
         self.events.push(PolicyEvent::ApprovalRulesUpdated {
             committee_id: self.committee_id,
             rules: self.rules.clone(),
@@ -170,7 +173,10 @@ mod test {
         assert_eq!(policy.committee_id, Some(committee_id));
         assert_eq!(
             policy.rules,
-            ApprovalRules::CommitteeThreshold { threshold }
+            ApprovalRules::CommitteeThreshold {
+                threshold,
+                committee_id
+            }
         );
     }
 }

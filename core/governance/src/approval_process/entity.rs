@@ -249,6 +249,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
                 threshold: 2,
+                committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
         let approver = UserId::new();
@@ -265,6 +266,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
                 threshold: 2,
+                committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
         let approver = UserId::new();
@@ -281,6 +283,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
                 threshold: 2,
+                committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
         let approver = UserId::new();
@@ -314,6 +317,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
                 threshold: 2,
+                committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
         let denier = UserId::new();
@@ -328,6 +332,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
                 threshold: 2,
+                committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
         let denier = UserId::new();
@@ -344,6 +349,7 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::CommitteeThreshold {
                 threshold: 2,
+                committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
         let denier = UserId::new();

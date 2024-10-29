@@ -2,10 +2,15 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
+use shared_primitives::CommitteeId;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
-    CommitteeThreshold { threshold: usize },
+    CommitteeThreshold {
+        threshold: usize,
+        committee_id: CommitteeId,
+    },
     System,
 }
 
@@ -18,7 +23,7 @@ impl ApprovalRules {
     ) -> Option<bool> {
         match self {
             ApprovalRules::System => Some(true),
-            ApprovalRules::CommitteeThreshold { threshold } => {
+            ApprovalRules::CommitteeThreshold { threshold, .. } => {
                 let approved_eligible = eligible_members.intersection(approving_members).count();
                 if approved_eligible >= *threshold {
                     return Some(true);
@@ -46,7 +51,10 @@ mod tests {
 
     #[test]
     fn test_committee_threshold_approval() {
-        let rules = ApprovalRules::CommitteeThreshold { threshold: 3 };
+        let rules = ApprovalRules::CommitteeThreshold {
+            threshold: 3,
+            committee_id: CommitteeId::new(),
+        };
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
         let approving = make_set(&[1, 2, 3, 4]);
@@ -68,7 +76,10 @@ mod tests {
 
     #[test]
     fn test_committee_threshold_denial() {
-        let rules = ApprovalRules::CommitteeThreshold { threshold: 3 };
+        let rules = ApprovalRules::CommitteeThreshold {
+            threshold: 3,
+            committee_id: CommitteeId::new(),
+        };
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
         let approving = make_set(&[1]);
@@ -90,7 +101,10 @@ mod tests {
 
     #[test]
     fn test_committee_threshold_pending() {
-        let rules = ApprovalRules::CommitteeThreshold { threshold: 3 };
+        let rules = ApprovalRules::CommitteeThreshold {
+            threshold: 3,
+            committee_id: CommitteeId::new(),
+        };
 
         let eligible = make_set(&[1, 2, 3, 4, 5]);
         let approving = make_set(&[1, 2]);
@@ -125,7 +139,10 @@ mod tests {
 
     #[test]
     fn test_edge_cases() {
-        let rules = ApprovalRules::CommitteeThreshold { threshold: 3 };
+        let rules = ApprovalRules::CommitteeThreshold {
+            threshold: 3,
+            committee_id: CommitteeId::new(),
+        };
 
         // Empty sets
         let empty = HashSet::new();

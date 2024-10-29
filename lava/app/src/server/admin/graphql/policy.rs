@@ -19,6 +19,7 @@ pub struct Policy {
 #[derive(SimpleObject)]
 struct CommitteeThreshold {
     threshold: usize,
+    committee_id: UUID,
 }
 
 #[derive(SimpleObject)]
@@ -73,9 +74,13 @@ impl From<governance::Policy> for PolicyAssignCommitteePayload {
 impl From<governance::ApprovalRules> for ApprovalRules {
     fn from(rules: governance::ApprovalRules) -> Self {
         match rules {
-            governance::ApprovalRules::CommitteeThreshold { threshold } => {
-                ApprovalRules::CommitteeThreshold(CommitteeThreshold { threshold })
-            }
+            governance::ApprovalRules::CommitteeThreshold {
+                threshold,
+                committee_id,
+            } => ApprovalRules::CommitteeThreshold(CommitteeThreshold {
+                threshold,
+                committee_id: committee_id.into(),
+            }),
             governance::ApprovalRules::System => {
                 ApprovalRules::System(SystemApproval { auto_approve: true })
             }
