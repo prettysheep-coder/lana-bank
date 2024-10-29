@@ -61,15 +61,15 @@ impl Loans {
             ledger,
             loan_repo.clone(),
             audit,
-        ))
-        .await?;
+        ));
         jobs.add_initializer_and_spawn_unique(
             cvl::LoanProcessingJobInitializer::new(loan_repo.clone(), price, audit),
             cvl::LoanJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
             },
-        );
+        )
+        .await?;
         Ok(Self {
             loan_repo,
             customers: customers.clone(),
