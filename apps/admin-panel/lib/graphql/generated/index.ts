@@ -93,10 +93,10 @@ export enum AccountStatus {
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
-  committee?: Maybe<Committee>;
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   processType: Scalars['String']['output'];
+  rules: ApprovalRules;
 };
 
 export type ApprovalProcessConnection = {
@@ -293,6 +293,7 @@ export type CommitteeRemoveUserPayload = {
 
 export type CommitteeThreshold = {
   __typename?: 'CommitteeThreshold';
+  committee: Committee;
   threshold: Scalars['Int']['output'];
 };
 
@@ -1111,7 +1112,6 @@ export enum Period {
 
 export type Policy = {
   __typename?: 'Policy';
-  committeeId?: Maybe<Scalars['UUID']['output']>;
   id: Scalars['ID']['output'];
   policyId: Scalars['UUID']['output'];
   processType: Scalars['String']['output'];

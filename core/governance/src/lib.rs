@@ -175,9 +175,9 @@ where
             .await?;
 
         let committee_id = committee_id.into();
-        let commitee = self.committee_repo.find_by_id(committee_id).await?;
+        let committee = self.committee_repo.find_by_id(committee_id).await?;
         let mut policy = self.policy_repo.find_by_id(policy_id).await?;
-        policy.assign_committee(commitee.id, threshold, audit_info);
+        policy.assign_committee(committee.id, threshold, audit_info);
 
         let mut db_tx = self.pool.begin().await?;
         self.policy_repo
