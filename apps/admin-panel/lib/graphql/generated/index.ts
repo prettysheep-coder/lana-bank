@@ -1666,6 +1666,7 @@ export type WithdrawalInitiatePayload = {
 export enum WithdrawalStatus {
   Cancelled = 'CANCELLED',
   Confirmed = 'CONFIRMED',
+  Denied = 'DENIED',
   PendingApproval = 'PENDING_APPROVAL',
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
@@ -1683,7 +1684,7 @@ export type ApprovalProcessesQueryVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string } } | { __typename?: 'SystemApproval', autoApprove: boolean } } }> } };
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2304,9 +2305,7 @@ export const ApprovalProcessesDocument = gql`
     query ApprovalProcesses($first: Int!, $after: String) {
   approvalProcesses(first: $first, after: $after) {
     pageInfo {
-      hasPreviousPage
       hasNextPage
-      startCursor
       endCursor
     }
     edges {
@@ -2314,20 +2313,6 @@ export const ApprovalProcessesDocument = gql`
       node {
         id
         approvalProcessId
-        rules {
-          ... on CommitteeThreshold {
-            threshold
-            committee {
-              id
-              committeeId
-              createdAt
-              name
-            }
-          }
-          ... on SystemApproval {
-            autoApprove
-          }
-        }
         processType
         createdAt
       }
