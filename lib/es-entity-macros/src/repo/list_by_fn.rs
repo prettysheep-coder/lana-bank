@@ -34,10 +34,11 @@ impl<'a> CursorStruct<'a> {
 
     pub fn order_by(&self, ascending: bool) -> String {
         let dir = if ascending { "ASC" } else { "DESC" };
+        let nulls = if ascending { "FIRST" } else { "LAST" };
         if self.column.is_id() {
             format!("id {dir}")
         } else if self.column.is_optional() {
-            format!("{0} {dir} NULLS FIRST, id {dir}", self.column.name())
+            format!("{0} {dir} NULLS {nulls}, id {dir}", self.column.name())
         } else {
             format!("{} {dir}, id {dir}", self.column.name())
         }
@@ -626,7 +627,7 @@ mod tests {
                     es_entity::ListDirection::Descending => {
                         es_entity::es_query!(
                             self.pool(),
-                            "SELECT value, id FROM entities WHERE ((value IS NOT DISTINCT FROM $3) AND COALESCE(id < $2, true) OR COALESCE(value < $3, value IS NOT NULL)) ORDER BY value DESC NULLS FIRST, id DESC LIMIT $1",
+                            "SELECT value, id FROM entities WHERE ((value IS NOT DISTINCT FROM $3) AND COALESCE(id < $2, true) OR COALESCE(value < $3, value IS NOT NULL)) ORDER BY value DESC NULLS LAST, id DESC LIMIT $1",
                             (first + 1) as i64,
                             id as Option<EntityId>,
                             value as Option<rust_decimal::Decimal>,
