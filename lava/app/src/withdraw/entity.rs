@@ -16,6 +16,7 @@ pub enum WithdrawalStatus {
     PendingApproval,
     PendingConfirmation,
     Confirmed,
+    Denied,
     Cancelled,
 }
 
@@ -76,7 +77,11 @@ impl Withdraw {
         } else if self.is_cancelled() {
             WithdrawalStatus::Cancelled
         } else {
-            WithdrawalStatus::PendingApproval
+            match self.is_approved_or_denied() {
+                Some(true) => WithdrawalStatus::PendingConfirmation,
+                Some(false) => WithdrawalStatus::Denied,
+                None => WithdrawalStatus::PendingApproval,
+            }
         }
     }
 
@@ -89,7 +94,7 @@ impl Withdraw {
     }
 
     pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
-        if !self.is_approved() {
+        if self.is_approved_or_denied().is_some() {
             return Err(WithdrawError::NotApproved(self.id));
         }
 
@@ -139,12 +144,13 @@ impl Withdraw {
             .any(|e| matches!(e, WithdrawEvent::Cancelled { .. }))
     }
 
-    fn is_approved(&self) -> bool {
-        self.events.iter_all().any(|e| {
-            matches!(
-                e,
-                WithdrawEvent::ApprovalProcessConcluded { approved: true, .. }
-            )
+    fn is_approved_or_denied(&self) -> Option<bool> {
+        self.events.iter_all().find_map(|e| {
+            if let WithdrawEvent::ApprovalProcessConcluded { approved, .. } = e {
+                Some(*approved)
+            } else {
+                None
+            }
         })
     }
 }
