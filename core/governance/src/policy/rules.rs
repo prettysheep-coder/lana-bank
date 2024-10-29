@@ -8,13 +8,20 @@ use shared_primitives::CommitteeId;
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
     CommitteeThreshold {
-        threshold: usize,
         committee_id: CommitteeId,
+        threshold: usize,
     },
     System,
 }
 
 impl ApprovalRules {
+    pub fn committee_id(&self) -> Option<CommitteeId> {
+        match self {
+            ApprovalRules::CommitteeThreshold { committee_id, .. } => Some(*committee_id),
+            ApprovalRules::System => None,
+        }
+    }
+
     pub fn is_approved_or_denied<Id: Eq + std::hash::Hash>(
         &self,
         eligible_members: &HashSet<Id>,

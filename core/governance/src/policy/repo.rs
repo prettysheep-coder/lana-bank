@@ -12,7 +12,11 @@ use super::{entity::*, error::*};
     err = "PolicyError",
     columns(
         process_type(ty = "ApprovalProcessType"),
-        committee_id(ty = "Option<CommitteeId>")
+        committee_id(
+            ty = "Option<CommitteeId>",
+            create(accessor = "committee_id()"),
+            update(accessor = "committee_id()")
+        ),
     )
 )]
 pub(crate) struct PolicyRepo {

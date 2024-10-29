@@ -19,7 +19,6 @@ pub(crate) enum ApprovalProcessEvent {
         policy_id: PolicyId,
         process_type: ApprovalProcessType,
         rules: ApprovalRules,
-        committee_id: Option<CommitteeId>,
         audit_info: AuditInfo,
     },
     Approved {
@@ -43,7 +42,6 @@ pub struct ApprovalProcess {
     pub process_type: ApprovalProcessType,
     pub policy_id: PolicyId,
     pub rules: ApprovalRules,
-    pub committee_id: Option<CommitteeId>,
     pub(super) events: EntityEvents<ApprovalProcessEvent>,
 }
 
@@ -52,6 +50,10 @@ impl ApprovalProcess {
         self.events
             .entity_first_persisted_at()
             .expect("No events for committee")
+    }
+
+    pub fn committee_id(&self) -> Option<CommitteeId> {
+        self.rules.committee_id()
     }
 
     pub(crate) fn check_concluded(
@@ -163,7 +165,6 @@ impl TryFromEvents<ApprovalProcessEvent> for ApprovalProcess {
                     id,
                     process_type,
                     policy_id,
-                    committee_id,
                     rules,
                     ..
                 } => {
@@ -171,7 +172,6 @@ impl TryFromEvents<ApprovalProcessEvent> for ApprovalProcess {
                         .id(*id)
                         .process_type(process_type.clone())
                         .policy_id(*policy_id)
-                        .committee_id(*committee_id)
                         .rules(rules.clone());
                 }
                 ApprovalProcessEvent::Approved { .. } => {}
@@ -189,8 +189,6 @@ pub(crate) struct NewApprovalProcess {
     pub(super) id: ApprovalProcessId,
     pub(super) policy_id: PolicyId,
     pub(super) process_type: ApprovalProcessType,
-    #[builder(default, setter(into))]
-    pub(super) committee_id: Option<CommitteeId>,
     pub(super) rules: ApprovalRules,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -199,6 +197,10 @@ pub(crate) struct NewApprovalProcess {
 impl NewApprovalProcess {
     pub fn builder() -> NewApprovalProcessBuilder {
         NewApprovalProcessBuilder::default()
+    }
+
+    pub fn committee_id(&self) -> Option<CommitteeId> {
+        self.rules.committee_id()
     }
 }
 
@@ -211,7 +213,6 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
                 policy_id: self.policy_id,
                 process_type: self.process_type,
                 rules: self.rules,
-                committee_id: self.committee_id,
                 audit_info: self.audit_info,
             }],
         )
@@ -238,7 +239,6 @@ mod tests {
                 policy_id: PolicyId::new(),
                 process_type: ApprovalProcessType::from_owned("type".to_string()),
                 rules,
-                committee_id: None,
                 audit_info: dummy_audit_info(),
             }],
         )

@@ -1,9 +1,11 @@
-use async_graphql::*;
+use async_graphql::{dataloader::DataLoader, *};
 
 use crate::{
     primitives::PolicyId,
     server::shared_graphql::{convert::ToGlobalId, primitives::UUID},
 };
+
+use super::{committee::Committee, LavaDataLoader};
 
 pub use governance::policy_cursor::PolicyByCreatedAtCursor;
 
@@ -12,23 +14,36 @@ pub struct Policy {
     id: ID,
     policy_id: UUID,
     process_type: String,
-    committee_id: Option<UUID>,
     rules: ApprovalRules,
 }
 
 #[derive(SimpleObject)]
-struct CommitteeThreshold {
+#[graphql(complex)]
+pub(super) struct CommitteeThreshold {
     threshold: usize,
-    committee_id: UUID,
+    #[graphql(skip)]
+    committee_id: governance::CommitteeId,
+}
+
+#[ComplexObject]
+impl CommitteeThreshold {
+    async fn committee(&self, ctx: &Context<'_>) -> async_graphql::Result<Committee> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        let committee = loader
+            .load_one(self.committee_id)
+            .await?
+            .map(Committee::from);
+        Ok(committee.expect("committee not found"))
+    }
 }
 
 #[derive(SimpleObject)]
-struct SystemApproval {
+pub(super) struct SystemApproval {
     auto_approve: bool,
 }
 
 #[derive(async_graphql::Union)]
-enum ApprovalRules {
+pub(super) enum ApprovalRules {
     CommitteeThreshold(CommitteeThreshold),
     System(SystemApproval),
 }
@@ -57,7 +72,6 @@ impl From<governance::Policy> for Policy {
             id: policy.id.to_global_id(),
             policy_id: policy.id.into(),
             process_type: policy.process_type.to_string(),
-            committee_id: policy.committee_id.map(UUID::from),
             rules: ApprovalRules::from(policy.rules),
         }
     }
@@ -79,7 +93,7 @@ impl From<governance::ApprovalRules> for ApprovalRules {
                 committee_id,
             } => ApprovalRules::CommitteeThreshold(CommitteeThreshold {
                 threshold,
-                committee_id: committee_id.into(),
+                committee_id,
             }),
             governance::ApprovalRules::System => {
                 ApprovalRules::System(SystemApproval { auto_approve: true })
