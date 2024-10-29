@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use lava_app::{authorization::Authorization, outbox::Outbox, primitives::Subject, user::Users};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
