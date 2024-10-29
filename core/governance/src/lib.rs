@@ -193,8 +193,8 @@ where
             .authz
             .audit()
             .record_system_entry(
-                GovernanceObject::ApprovalProcess(AllOrOne::All),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Create),
+                GovernanceObject::all_approval_processes(),
+                GovernanceAction::APPROVAL_PROCESS_CREATE,
             )
             .await?;
         let process = policy.spawn_process(id.into(), audit_info);
@@ -324,8 +324,8 @@ where
             .audit()
             .record_system_entry_in_tx(
                 &mut db,
-                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process.id)),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude),
+                GovernanceObject::approval_process(process.id),
+                GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
             .await?;
         let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
