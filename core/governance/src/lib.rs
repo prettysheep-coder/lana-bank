@@ -13,7 +13,7 @@ use tracing::instrument;
 
 use std::collections::{HashMap, HashSet};
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
@@ -188,16 +188,13 @@ where
         id: impl Into<ApprovalProcessId> + std::fmt::Debug,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
-        let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
         let audit_info = self
             .authz
             .audit()
-            .record_entry(
-                &sub,
+            .record_system_entry(
                 GovernanceObject::all_approval_processes(),
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
-                true,
             )
             .await?;
         let process = policy.spawn_process(id.into(), audit_info);
