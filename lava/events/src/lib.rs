@@ -5,13 +5,13 @@ use serde::{Deserialize, Serialize};
 
 use governance::GovernanceEvent;
 use outbox::OutboxEventMarker;
-use shared_primitives::event::UserModuleEvent;
+use shared_primitives::event::CoreUserEvent;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "module")]
 pub enum LavaEvent {
     Governance(GovernanceEvent),
-    User(UserModuleEvent),
+    User(CoreUserEvent),
 }
 
 macro_rules! impl_event_marker {
@@ -33,4 +33,4 @@ macro_rules! impl_event_marker {
 }
 
 impl_event_marker!(GovernanceEvent, Governance);
-impl_event_marker!(UserModuleEvent, User);
+impl_event_marker!(CoreUserEvent, User);

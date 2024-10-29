@@ -4,7 +4,7 @@ use super::ids::UserId;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum UserModuleEvent {
+pub enum CoreUserEvent {
     UserCreated { id: UserId },
     UserRemoved { id: UserId },
 }

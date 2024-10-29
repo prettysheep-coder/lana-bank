@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use core_user::UserModuleAction;
+use core_user::CoreUserAction;
 use governance::GovernanceAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -9,7 +9,7 @@ use governance::GovernanceAction;
 pub enum LavaAction {
     App(AppAction),
     Governance(GovernanceAction),
-    User(UserModuleAction),
+    User(CoreUserAction),
 }
 
 impl From<AppAction> for LavaAction {
@@ -22,8 +22,8 @@ impl From<GovernanceAction> for LavaAction {
         LavaAction::Governance(action)
     }
 }
-impl From<UserModuleAction> for LavaAction {
-    fn from(action: UserModuleAction) -> Self {
+impl From<CoreUserAction> for LavaAction {
+    fn from(action: CoreUserAction) -> Self {
         LavaAction::User(action)
     }
 }
@@ -49,7 +49,7 @@ impl FromStr for LavaAction {
         let res = match module.parse()? {
             App => LavaAction::from(action.parse::<AppAction>()?),
             Governance => LavaAction::from(action.parse::<GovernanceAction>()?),
-            User => LavaAction::from(action.parse::<UserModuleAction>()?),
+            User => LavaAction::from(action.parse::<CoreUserAction>()?),
         };
         Ok(res)
     }

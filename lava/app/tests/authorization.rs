@@ -56,7 +56,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             UserObject::all_users(),
-            UserModuleAction::USER_CREATE,
+            CoreUserAction::USER_CREATE,
         )
         .await
         .is_ok());
@@ -66,7 +66,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             UserObject::all_users(),
-            UserModuleAction::USER_ASSIGN_ROLE,
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -76,7 +76,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             UserObject::user(UserId::new()),
-            UserModuleAction::USER_ASSIGN_ROLE,
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -99,7 +99,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             UserObject::all_users(),
-            UserModuleAction::USER_CREATE,
+            CoreUserAction::USER_CREATE,
         )
         .await
         .is_ok());
@@ -109,7 +109,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             UserObject::all_users(),
-            UserModuleAction::USER_ASSIGN_ROLE,
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -117,7 +117,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             UserObject::user(UserId::new()),
-            UserModuleAction::USER_ASSIGN_ROLE,
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -142,7 +142,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .enforce_permission(
                 &bank_manager_subject,
                 UserObject::all_users(),
-                UserModuleAction::USER_CREATE,
+                CoreUserAction::USER_CREATE,
             )
             .await,
         Err(AuthorizationError::NotAuthorized)
@@ -154,7 +154,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .enforce_permission(
                 &bank_manager_subject,
                 UserObject::all_users(),
-                UserModuleAction::USER_ASSIGN_ROLE,
+                CoreUserAction::USER_ASSIGN_ROLE,
             )
             .await,
         Err(AuthorizationError::NotAuthorized)

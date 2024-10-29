@@ -1,5 +1,5 @@
 use authz::error::AuthorizationError;
-use core_user::{UserEntityAction, UserModuleAction, UserObject};
+use core_user::{CoreUserAction, UserEntityAction, UserObject};
 use governance::{GovernanceAction, GovernanceObject};
 
 use super::*;
@@ -38,14 +38,14 @@ async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), Auth
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::USER_ASSIGN_ROLE,
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::USER_REVOKE_ROLE,
+            CoreUserAction::USER_REVOKE_ROLE,
         )
         .await?;
     Ok(())
@@ -58,42 +58,42 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::User(UserEntityAction::Create),
+            CoreUserAction::User(UserEntityAction::Create),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::User(UserEntityAction::List),
+            CoreUserAction::User(UserEntityAction::List),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::User(UserEntityAction::Read),
+            CoreUserAction::User(UserEntityAction::Read),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::User(UserEntityAction::Update),
+            CoreUserAction::User(UserEntityAction::Update),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::User(UserEntityAction::AssignRole),
+            CoreUserAction::User(UserEntityAction::AssignRole),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             UserObject::all_users(),
-            UserModuleAction::User(UserEntityAction::RevokeRole),
+            CoreUserAction::User(UserEntityAction::RevokeRole),
         )
         .await?;
 

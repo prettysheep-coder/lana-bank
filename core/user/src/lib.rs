@@ -21,7 +21,7 @@ use repo::*;
 pub struct Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<UserModuleEvent>,
+    E: OutboxEventMarker<CoreUserEvent>,
 {
     pool: sqlx::PgPool,
     authz: Authorization<Audit, Role>,
@@ -32,7 +32,7 @@ where
 impl<Audit, E> Clone for Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<UserModuleEvent>,
+    E: OutboxEventMarker<CoreUserEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -48,9 +48,9 @@ impl<Audit, E> Users<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<UserModuleAction>,
+    <Audit as AuditSvc>::Action: From<CoreUserAction>,
     <Audit as AuditSvc>::Object: From<UserObject>,
-    E: OutboxEventMarker<UserModuleEvent>,
+    E: OutboxEventMarker<CoreUserEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -83,7 +83,7 @@ where
             .evaluate_permission(
                 sub,
                 UserObject::all_users(),
-                UserModuleAction::USER_CREATE,
+                CoreUserAction::USER_CREATE,
                 enforce,
             )
             .await?)
@@ -108,7 +108,7 @@ where
         let mut db = self.pool.begin().await?;
         let user = self.repo.create_in_tx(&mut db, new_user).await?;
         self.outbox
-            .persist(&mut db, UserModuleEvent::UserCreated { id: user.id })
+            .persist(&mut db, CoreUserEvent::UserCreated { id: user.id })
             .await?;
         db.commit().await?;
         Ok(user)
@@ -124,7 +124,7 @@ where
     {
         let id = UserId::try_from(sub).map_err(|_| UserError::SubjectIsNotUser)?;
         self.authz
-            .enforce_permission(sub, UserObject::user(id), UserModuleAction::USER_READ)
+            .enforce_permission(sub, UserObject::user(id), CoreUserAction::USER_READ)
             .await?;
         self.repo.find_by_id(id).await
     }
@@ -137,7 +137,7 @@ where
     ) -> Result<Option<User>, UserError> {
         let id = id.into();
         self.authz
-            .enforce_permission(sub, UserObject::user(id), UserModuleAction::USER_READ)
+            .enforce_permission(sub, UserObject::user(id), CoreUserAction::USER_READ)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -154,7 +154,7 @@ where
     ) -> Result<Option<User>, UserError> {
         // let id = id.into();
         // self.authz
-        //     .enforce_permission(sub, UserObject::user(id), UserModuleAction::USER_READ)
+        //     .enforce_permission(sub, UserObject::user(id), CoreUserAction::USER_READ)
         //     .await?;
         match self.repo.find_by_email(email).await {
             Ok(user) => Ok(Some(user)),
@@ -177,7 +177,7 @@ where
         sub: &<Audit as AuditSvc>::Subject,
     ) -> Result<Vec<User>, UserError> {
         self.authz
-            .enforce_permission(sub, UserObject::all_users(), UserModuleAction::USER_LIST)
+            .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_LIST)
             .await?;
 
         Ok(self.repo.list_by_email(Default::default()).await?.entities)
@@ -194,7 +194,7 @@ where
             .evaluate_permission(
                 sub,
                 UserObject::user(user_id),
-                UserModuleAction::USER_ASSIGN_ROLE,
+                CoreUserAction::USER_ASSIGN_ROLE,
                 enforce,
             )
             .await?)
@@ -236,7 +236,7 @@ where
             .evaluate_permission(
                 sub,
                 UserObject::user(user_id),
-                UserModuleAction::USER_REVOKE_ROLE,
+                CoreUserAction::USER_REVOKE_ROLE,
                 enforce,
             )
             .await?)
@@ -276,7 +276,7 @@ where
             .record_system_entry_in_tx(
                 &mut db,
                 UserObject::all_users(),
-                UserModuleAction::USER_CREATE,
+                CoreUserAction::USER_CREATE,
             )
             .await?;
 
@@ -310,7 +310,7 @@ where
         };
         if let Some(user) = user {
             self.outbox
-                .persist(&mut db, UserModuleEvent::UserCreated { id: user.id })
+                .persist(&mut db, CoreUserEvent::UserCreated { id: user.id })
                 .await?;
         }
         db.commit().await?;

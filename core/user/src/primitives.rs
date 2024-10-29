@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use shared_primitives::{event::UserModuleEvent, AllOrOne, UserId};
+pub use shared_primitives::{event::CoreUserEvent, AllOrOne, UserId};
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
@@ -28,16 +28,16 @@ impl Display for Role {
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum UserModuleAction {
+pub enum CoreUserAction {
     User(UserEntityAction),
 }
 
-impl UserModuleAction {
-    pub const USER_CREATE: Self = UserModuleAction::User(UserEntityAction::Create);
-    pub const USER_READ: Self = UserModuleAction::User(UserEntityAction::Read);
-    pub const USER_LIST: Self = UserModuleAction::User(UserEntityAction::List);
-    pub const USER_ASSIGN_ROLE: Self = UserModuleAction::User(UserEntityAction::AssignRole);
-    pub const USER_REVOKE_ROLE: Self = UserModuleAction::User(UserEntityAction::RevokeRole);
+impl CoreUserAction {
+    pub const USER_CREATE: Self = CoreUserAction::User(UserEntityAction::Create);
+    pub const USER_READ: Self = CoreUserAction::User(UserEntityAction::Read);
+    pub const USER_LIST: Self = CoreUserAction::User(UserEntityAction::List);
+    pub const USER_ASSIGN_ROLE: Self = CoreUserAction::User(UserEntityAction::AssignRole);
+    pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserEntityAction::RevokeRole);
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
@@ -51,32 +51,32 @@ pub enum UserEntityAction {
     RevokeRole,
 }
 
-impl Display for UserModuleAction {
+impl Display for CoreUserAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", UserModuleActionDiscriminants::from(self))?;
-        use UserModuleAction::*;
+        write!(f, "{}:", CoreUserActionDiscriminants::from(self))?;
+        use CoreUserAction::*;
         match self {
             User(action) => action.fmt(f),
         }
     }
 }
 
-impl FromStr for UserModuleAction {
+impl FromStr for CoreUserAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, action) = s.split_once(':').expect("missing colon");
-        use UserModuleActionDiscriminants::*;
+        use CoreUserActionDiscriminants::*;
         let res = match entity.parse()? {
-            User => UserModuleAction::from(action.parse::<UserEntityAction>()?),
+            User => CoreUserAction::from(action.parse::<UserEntityAction>()?),
         };
         Ok(res)
     }
 }
 
-impl From<UserEntityAction> for UserModuleAction {
+impl From<UserEntityAction> for CoreUserAction {
     fn from(action: UserEntityAction) -> Self {
-        UserModuleAction::User(action)
+        CoreUserAction::User(action)
     }
 }
 
