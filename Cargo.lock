@@ -4778,8 +4778,16 @@ dependencies = [
 name = "user"
 version = "0.1.0"
 dependencies = [
+ "audit",
+ "authz",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "serde",
  "shared-primitives",
+ "sqlx",
  "strum",
+ "thiserror",
 ]
 
 [[package]]

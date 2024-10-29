@@ -59,7 +59,6 @@ where
 impl<Perms, E> Governance<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: audit::SystemSubject,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
     E: serde::de::DeserializeOwned

@@ -11,4 +11,13 @@ graphql = [ "shared-primitives/graphql" ]
 [dependencies]
 shared-primitives = { path = "../shared-primitives" }
 
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+outbox = { path = "../../lib/outbox" }
+es-entity = { path = "../../lib/es-entity" }
+
 strum = { workspace = true }
+serde = { workspace = true }
+derive_builder = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
