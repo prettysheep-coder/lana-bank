@@ -118,6 +118,8 @@ export type ApprovalProcessEdge = {
   node: ApprovalProcess;
 };
 
+export type ApprovalRules = Automatic | CommitteeThreshold;
+
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
@@ -145,6 +147,11 @@ export type AuditEntryEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: AuditEntry;
+};
+
+export type Automatic = {
+  __typename?: 'Automatic';
+  enabled: Scalars['Boolean']['output'];
 };
 
 export type BalanceSheet = {
@@ -287,6 +294,11 @@ export type CommitteeRemoveUserInput = {
 export type CommitteeRemoveUserPayload = {
   __typename?: 'CommitteeRemoveUserPayload';
   committee: Committee;
+};
+
+export type CommitteeThreshold = {
+  __typename?: 'CommitteeThreshold';
+  threshold: Scalars['Int']['output'];
 };
 
 export type CreditFacility = {
@@ -1108,6 +1120,7 @@ export type Policy = {
   id: Scalars['ID']['output'];
   policyId: Scalars['UUID']['output'];
   processType: Scalars['String']['output'];
+  rules: ApprovalRules;
 };
 
 export type PolicyAssignCommitteeInput = {

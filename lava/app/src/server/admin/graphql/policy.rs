@@ -13,7 +13,23 @@ pub struct Policy {
     policy_id: UUID,
     process_type: String,
     committee_id: Option<UUID>,
-    // rules: ApprovalRules,
+    rules: ApprovalRules,
+}
+
+#[derive(SimpleObject)]
+struct CommitteeThreshold {
+    threshold: usize,
+}
+
+#[derive(SimpleObject)]
+struct Automatic {
+    enabled: bool,
+}
+
+#[derive(async_graphql::Union)]
+enum ApprovalRules {
+    CommitteeThreshold(CommitteeThreshold),
+    Automatic(Automatic),
 }
 
 #[derive(InputObject)]
@@ -41,6 +57,7 @@ impl From<governance::Policy> for Policy {
             policy_id: policy.id.into(),
             process_type: policy.process_type.to_string(),
             committee_id: policy.committee_id.map(UUID::from),
+            rules: ApprovalRules::from(policy.rules),
         }
     }
 }
@@ -49,6 +66,19 @@ impl From<governance::Policy> for PolicyAssignCommitteePayload {
     fn from(policy: governance::Policy) -> Self {
         Self {
             policy: policy.into(),
+        }
+    }
+}
+
+impl From<governance::ApprovalRules> for ApprovalRules {
+    fn from(rules: governance::ApprovalRules) -> Self {
+        match rules {
+            governance::ApprovalRules::CommitteeThreshold { threshold } => {
+                ApprovalRules::CommitteeThreshold(CommitteeThreshold { threshold })
+            }
+            governance::ApprovalRules::Automatic => {
+                ApprovalRules::Automatic(Automatic { enabled: true })
+            }
         }
     }
 }

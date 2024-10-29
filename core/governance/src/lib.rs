@@ -360,6 +360,7 @@ where
         };
         Ok(res)
     }
+
     #[instrument(name = "governance.add_user_to_committee", skip(self), err)]
     pub async fn add_user_to_committee(
         &self,

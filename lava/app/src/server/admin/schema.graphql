@@ -98,6 +98,8 @@ type ApprovalProcessEdge {
 	cursor: String!
 }
 
+union ApprovalRules = CommitteeThreshold | Automatic
+
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -134,6 +136,10 @@ type AuditEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+type Automatic {
+	enabled: Boolean!
 }
 
 type BalanceSheet {
@@ -275,6 +281,10 @@ input CommitteeRemoveUserInput {
 
 type CommitteeRemoveUserPayload {
 	committee: Committee!
+}
+
+type CommitteeThreshold {
+	threshold: Int!
 }
 
 type CreditFacility {
@@ -927,6 +937,7 @@ type Policy {
 	policyId: UUID!
 	processType: String!
 	committeeId: UUID
+	rules: ApprovalRules!
 }
 
 input PolicyAssignCommitteeInput {
