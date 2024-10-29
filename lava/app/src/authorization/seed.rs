@@ -1,5 +1,8 @@
 use authz::error::AuthorizationError;
-use governance::{CommitteeAction, CommitteeAllOrOne, GovernanceAction, GovernanceObject};
+use governance::{
+    CommitteeAction, CommitteeAllOrOne, GovernanceAction, GovernanceObject, PolicyAction,
+    PolicyAllOrOne,
+};
 
 use super::*;
 use crate::primitives::Role;
@@ -115,6 +118,35 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
             &role,
             GovernanceObject::Committee(CommitteeAllOrOne::All),
             GovernanceAction::Committee(CommitteeAction::RemoveUser),
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Policy(PolicyAllOrOne::All),
+            GovernanceAction::Policy(PolicyAction::Create),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Policy(PolicyAllOrOne::All),
+            GovernanceAction::Policy(PolicyAction::UpdatePolicyRules),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Policy(PolicyAllOrOne::All),
+            GovernanceAction::Policy(PolicyAction::Read),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Policy(PolicyAllOrOne::All),
+            GovernanceAction::Policy(PolicyAction::List),
         )
         .await?;
     Ok(())
