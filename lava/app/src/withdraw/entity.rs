@@ -94,8 +94,10 @@ impl Withdraw {
     }
 
     pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
-        if self.is_approved_or_denied().is_some() {
-            return Err(WithdrawError::NotApproved(self.id));
+        match self.is_approved_or_denied() {
+            Some(false) => return Err(WithdrawError::NotApproved(self.id)),
+            None => return Err(WithdrawError::NotApproved(self.id)),
+            _ => (),
         }
 
         if self.is_confirmed() {
