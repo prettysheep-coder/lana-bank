@@ -1,6 +1,6 @@
 use async_graphql::{dataloader::DataLoader, *};
 
-use std::collections::HashSet;
+use std::sync::Arc;
 
 use crate::shared_graphql::{
     convert::ToGlobalId,
@@ -17,7 +17,8 @@ use super::{
 };
 
 pub use governance::{
-    approval_process_cursor::ApprovalProcessByCreatedAtCursor, ApprovalProcessStatus,
+    approval_process_cursor::ApprovalProcessByCreatedAtCursor,
+    ApprovalProcess as DomainApprovalProcess, ApprovalProcessStatus,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -31,15 +32,7 @@ pub struct ApprovalProcess {
     created_at: Timestamp,
 
     #[graphql(skip)]
-    committee_id: Option<governance::CommitteeId>,
-    #[graphql(skip)]
-    approvers: HashSet<UserId>,
-    #[graphql(skip)]
-    deniers: HashSet<UserId>,
-    #[graphql(skip)]
-    policy_id: governance::PolicyId,
-    #[graphql(skip)]
-    target_ref: String,
+    entity: Arc<DomainApprovalProcess>,
 }
 
 #[ComplexObject]
@@ -47,21 +40,21 @@ impl ApprovalProcess {
     async fn policy(&self, ctx: &Context<'_>) -> async_graphql::Result<Policy> {
         let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
         let policy = loader
-            .load_one(self.policy_id)
+            .load_one(self.entity.policy_id)
             .await?
             .expect("policy not found");
         Ok(policy)
     }
 
     async fn voters(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<ApprovalProcessVoter>> {
-        if let Some(committee_id) = self.committee_id {
+        if let Some(committee_id) = self.entity.committee_id() {
             let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
             let committee = loader
                 .load_one(committee_id)
                 .await?
                 .expect("committee not found");
-            let mut approvers = self.approvers.clone();
-            let mut deniers = self.deniers.clone();
+            let mut approvers = self.entity.approvers();
+            let mut deniers = self.entity.deniers();
             let mut voters: Vec<_> = committee
                 .user_ids
                 .iter()
@@ -103,7 +96,8 @@ impl ApprovalProcess {
             ApprovalProcessType::WithdrawApproval => {
                 let withdrawal = loader
                     .load_one(
-                        self.target_ref
+                        self.entity
+                            .target_ref()
                             .parse::<WithdrawId>()
                             .expect("invalid target ref"),
                     )
@@ -114,7 +108,8 @@ impl ApprovalProcess {
             ApprovalProcessType::CreditFacilityApproval => {
                 let credit_facility = loader
                     .load_one(
-                        self.target_ref
+                        self.entity
+                            .target_ref()
                             .parse::<CreditFacilityId>()
                             .expect("invalid target ref"),
                     )
@@ -164,12 +159,8 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
             approval_process_type: ApprovalProcessType::from(&process.process_type),
             status: process.status(),
             created_at: process.created_at().into(),
-            committee_id: process.committee_id(),
-            approvers: process.approvers(),
-            deniers: process.deniers(),
-            policy_id: process.policy_id,
-            target_ref: process.target_ref().to_string(),
             rules: process.rules.into(),
+            entity: Arc::new(process),
         }
     }
 }
