@@ -2,9 +2,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod auth;
-mod auth_context;
 mod config;
-mod graphql;
+pub mod graphql;
 mod primitives;
 mod sumsub;
 
@@ -17,13 +16,10 @@ use tower_http::cors::CorsLayer;
 use tracing::instrument;
 
 use jwks_utils::{Claims, JwtDecoderState, RemoteJwksDecoder};
-use lava_app::{
-    app::LavaApp,
-    primitives::{Subject, UserId},
-};
+use lava_app::app::LavaApp;
 
-use auth_context::*;
 pub use config::*;
+use primitives::*;
 
 use std::sync::Arc;
 

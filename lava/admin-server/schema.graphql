@@ -1,0 +1,57 @@
+type AuthenticatedSubject {
+	user: User!
+	visibleNavigationItems: VisibleNavigationItems!
+	canCreateCustomer: Boolean!
+	canCreateUser: Boolean!
+	canCreateTermsTemplate: Boolean!
+	canUpdateTermsTemplate: Boolean!
+	canAssignRoleToUser: Boolean!
+	canRevokeRoleFromUser: Boolean!
+}
+
+
+
+
+
+type Mutation {
+	hello: String!
+}
+
+type Query {
+	me: AuthenticatedSubject!
+}
+
+enum Role {
+	SUPERUSER
+	ADMIN
+	BANK_MANAGER
+	ACCOUNTANT
+}
+
+
+scalar UUID
+
+type User {
+	userId: UUID!
+	roles: [Role!]!
+	email: String!
+}
+
+type VisibleNavigationItems {
+	loan: Boolean!
+	term: Boolean!
+	user: Boolean!
+	customer: Boolean!
+	deposit: Boolean!
+	withdraw: Boolean!
+	audit: Boolean!
+	financials: Boolean!
+	creditFacilities: Boolean!
+}
+
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+schema {
+	query: Query
+	mutation: Mutation
+}

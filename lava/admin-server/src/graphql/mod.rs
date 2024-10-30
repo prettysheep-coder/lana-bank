@@ -1,4 +1,7 @@
+// mod audit;
+mod authenticated_subject;
 mod schema;
+mod user;
 
 use async_graphql::{dataloader::*, *};
 
