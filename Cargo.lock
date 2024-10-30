@@ -2031,6 +2031,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "jwks-utils"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "axum-extra",
+ "jsonwebtoken 9.3.0",
+ "reqwest 0.12.9",
+ "serde",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "lalrpop"
 version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
