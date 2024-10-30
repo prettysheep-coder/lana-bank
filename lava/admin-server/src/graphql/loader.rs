@@ -7,7 +7,7 @@ use lava_app::{app::LavaApp, user::error::UserError};
 
 use crate::primitives::*;
 
-use super::user::User;
+use super::{committee::Committee, user::User};
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
 pub struct LavaLoader {
@@ -28,5 +28,21 @@ impl Loader<UserId> for LavaLoader {
 
     async fn load(&self, keys: &[UserId]) -> Result<HashMap<UserId, User>, Self::Error> {
         self.app.users().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<governance::CommitteeId> for LavaLoader {
+    type Value = Committee;
+    type Error = Arc<governance::committee_error::CommitteeError>;
+
+    async fn load(
+        &self,
+        keys: &[governance::CommitteeId],
+    ) -> Result<HashMap<governance::CommitteeId, Committee>, Self::Error> {
+        self.app
+            .governance()
+            .find_all_committees(keys)
+            .await
+            .map_err(Arc::new)
     }
 }

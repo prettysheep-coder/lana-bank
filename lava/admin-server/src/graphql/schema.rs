@@ -4,15 +4,14 @@ use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
-use super::{audit::*, authenticated_subject::*, loader::*, user::*};
+use super::{audit::*, authenticated_subject::*, committee::*, loader::*, user::*};
 
 pub struct Query;
 
 #[Object]
 impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.users().find_for_subject(sub).await?);
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
@@ -20,21 +19,12 @@ impl Query {
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        if let Some(user) = app.users().find_by_id(sub, UserId::from(id)).await? {
-            let user = User::from(user);
-            let loader = ctx.data_unchecked::<LavaDataLoader>();
-            loader.feed_one(user.entity.id, user.clone()).await;
-            Ok(Some(user))
-        } else {
-            Ok(None)
-        }
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(User, ctx, app.users().find_by_id(sub, id))
     }
 
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         let users: Vec<_> = app
             .users()
@@ -47,6 +37,38 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn committee(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Committee>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Committee,
+            ctx,
+            app.governance().find_committee_by_id(sub, id)
+        )
+    }
+
+    async fn committees(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CommitteeByCreatedAtCursor, Committee, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CommitteeByCreatedAtCursor,
+            Committee,
+            ctx,
+            after,
+            first,
+            |query| app.governance().list_committees(sub, query)
+        )
     }
 
     async fn audit(
@@ -98,10 +120,13 @@ impl Mutation {
         ctx: &Context<'_>,
         input: UserCreateInput,
     ) -> async_graphql::Result<UserCreatePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        let user = app.users().create_user(sub, input.email).await?;
-        Ok(UserCreatePayload::from(user))
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            UserCreatePayload,
+            User,
+            ctx,
+            app.users().create_user(sub, input.email)
+        )
     }
 
     async fn user_assign_role(
@@ -109,11 +134,14 @@ impl Mutation {
         ctx: &Context<'_>,
         input: UserAssignRoleInput,
     ) -> async_graphql::Result<UserAssignRolePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let UserAssignRoleInput { id, role } = input;
-        let user = app.users().assign_role_to_user(sub, id, role).await?;
-        Ok(UserAssignRolePayload::from(user))
+        exec_mutation!(
+            UserAssignRolePayload,
+            User,
+            ctx,
+            app.users().assign_role_to_user(sub, id, role)
+        )
     }
 
     async fn user_revoke_role(
@@ -121,10 +149,13 @@ impl Mutation {
         ctx: &Context<'_>,
         input: UserRevokeRoleInput,
     ) -> async_graphql::Result<UserRevokeRolePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         let UserRevokeRoleInput { id, role } = input;
-        let user = app.users().revoke_role_from_user(sub, id, role).await?;
-        Ok(UserRevokeRolePayload::from(user))
+        exec_mutation!(
+            UserRevokeRolePayload,
+            User,
+            ctx,
+            app.users().revoke_role_from_user(sub, id, role)
+        )
     }
 }

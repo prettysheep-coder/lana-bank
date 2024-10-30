@@ -1,6 +1,10 @@
 mod audit;
 mod authenticated_subject;
+mod committee;
 mod loader;
+#[macro_use]
+pub mod macros;
+mod policy;
 mod schema;
 mod user;
 

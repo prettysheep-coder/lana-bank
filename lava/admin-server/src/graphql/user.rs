@@ -3,11 +3,6 @@ use async_graphql::*;
 use crate::primitives::*;
 use lava_app::user::User as DomainUser;
 
-#[derive(InputObject)]
-pub struct UserCreateInput {
-    pub email: String,
-}
-
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct User {
@@ -32,11 +27,6 @@ impl User {
     }
 }
 
-#[derive(SimpleObject)]
-pub struct UserCreatePayload {
-    user: User,
-}
-
 impl From<DomainUser> for User {
     fn from(user: DomainUser) -> Self {
         Self {
@@ -55,32 +45,19 @@ impl From<Arc<DomainUser>> for User {
     }
 }
 
-impl From<DomainUser> for UserCreatePayload {
-    fn from(user: DomainUser) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
+#[derive(InputObject)]
+pub struct UserCreateInput {
+    pub email: String,
 }
+
+mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserAssignRoleInput {
     pub id: UUID,
     pub role: LavaRole,
 }
-
-#[derive(SimpleObject)]
-pub struct UserAssignRolePayload {
-    user: User,
-}
-
-impl From<DomainUser> for UserAssignRolePayload {
-    fn from(user: DomainUser) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
+mutation_payload! { UserAssignRolePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserRevokeRoleInput {
@@ -88,15 +65,4 @@ pub struct UserRevokeRoleInput {
     pub role: LavaRole,
 }
 
-#[derive(SimpleObject)]
-pub struct UserRevokeRolePayload {
-    user: User,
-}
-
-impl From<DomainUser> for UserRevokeRolePayload {
-    fn from(user: DomainUser) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
+mutation_payload! { UserRevokeRolePayload, user: User }

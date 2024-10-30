@@ -3,7 +3,7 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-pub use lava_app::primitives::{LavaRole, Subject, UserId};
+pub use lava_app::primitives::{CommitteeId, LavaRole, PolicyId, Subject, UserId};
 
 pub use std::sync::Arc;
 
@@ -22,7 +22,7 @@ impl AdminAuthContext {
 
 pub use es_entity::graphql::UUID;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Timestamp(chrono::DateTime<chrono::Utc>);
 scalar!(Timestamp);
@@ -46,7 +46,7 @@ macro_rules! impl_to_global_id {
         $(
             impl ToGlobalId for $ty {
                 fn to_global_id(&self) -> async_graphql::types::ID {
-                    async_graphql::types::ID::from(format!("{}:{}", stringify!($ty), self))
+                    async_graphql::types::ID::from(format!("{}:{}", stringify!($ty).trim_end_matches("Id"), self))
                 }
             }
         )*
@@ -55,5 +55,7 @@ macro_rules! impl_to_global_id {
 
 impl_to_global_id! {
     UserId,
-    audit::AuditEntryId
+    audit::AuditEntryId,
+    PolicyId,
+    CommitteeId
 }
