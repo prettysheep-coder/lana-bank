@@ -124,7 +124,7 @@ enum ApprovalProcessStatus {
 }
 
 type ApprovalProcessVoter {
-	stillElligible: Boolean!
+	stillEligible: Boolean!
 	didVote: Boolean!
 	didApprove: Boolean!
 	didDeny: Boolean!

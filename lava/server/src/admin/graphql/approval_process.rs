@@ -63,7 +63,7 @@ impl ApprovalProcess {
                 .iter()
                 .map(|user_id| ApprovalProcessVoter {
                     user_id: *user_id,
-                    still_elligible: true,
+                    still_eligible: true,
                     did_vote: approvers.contains(user_id) || deniers.contains(user_id),
                     did_approve: approvers.remove(&user_id),
                     did_deny: deniers.remove(&user_id),
@@ -74,14 +74,14 @@ impl ApprovalProcess {
                     .into_iter()
                     .map(|user_id| ApprovalProcessVoter {
                         user_id,
-                        still_elligible: false,
+                        still_eligible: false,
                         did_vote: true,
                         did_approve: true,
                         did_deny: false,
                     })
                     .chain(deniers.into_iter().map(|user_id| ApprovalProcessVoter {
                         user_id,
-                        still_elligible: false,
+                        still_eligible: false,
                         did_vote: true,
                         did_approve: false,
                         did_deny: true,
@@ -105,7 +105,7 @@ impl ToGlobalId for ApprovalProcessId {
 pub struct ApprovalProcessVoter {
     #[graphql(skip)]
     user_id: UserId,
-    still_elligible: bool,
+    still_eligible: bool,
     did_vote: bool,
     did_approve: bool,
     did_deny: bool,

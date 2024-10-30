@@ -150,7 +150,7 @@ export type ApprovalProcessVoter = {
   didApprove: Scalars['Boolean']['output'];
   didDeny: Scalars['Boolean']['output'];
   didVote: Scalars['Boolean']['output'];
-  stillElligible: Scalars['Boolean']['output'];
+  stillEligible: Scalars['Boolean']['output'];
   user: User;
 };
 
