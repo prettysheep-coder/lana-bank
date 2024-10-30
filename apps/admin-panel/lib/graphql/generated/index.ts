@@ -95,9 +95,11 @@ export type ApprovalProcess = {
   approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  policy: Policy;
   processType: Scalars['String']['output'];
   rules: ApprovalRules;
   status: ApprovalProcessStatus;
+  voters: Array<ApprovalProcessVoter>;
 };
 
 export type ApprovalProcessApproveInput = {
@@ -142,6 +144,15 @@ export enum ApprovalProcessStatus {
   Denied = 'DENIED',
   InProgress = 'IN_PROGRESS'
 }
+
+export type ApprovalProcessVoter = {
+  __typename?: 'ApprovalProcessVoter';
+  didApprove: Scalars['Boolean']['output'];
+  didDeny: Scalars['Boolean']['output'];
+  didVote: Scalars['Boolean']['output'];
+  stillElligible: Scalars['Boolean']['output'];
+  user: User;
+};
 
 export type ApprovalRules = CommitteeThreshold | SystemApproval;
 
@@ -263,9 +274,9 @@ export type Committee = {
   __typename?: 'Committee';
   committeeId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
+  currentMembers: Array<User>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  users: Array<User>;
 };
 
 export type CommitteeAddUserInput = {
@@ -1596,6 +1607,8 @@ export type VisibleNavigationItems = {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
+  approvalProcess: ApprovalProcess;
+  approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
@@ -1719,21 +1732,21 @@ export type GetCommitteeDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } | null };
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } | null };
 
 export type CommitteeAddUserMutationVariables = Exact<{
   input: CommitteeAddUserInput;
 }>;
 
 
-export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
 
 export type CreateCommitteeMutationVariables = Exact<{
   input: CommitteeCreateInput;
 }>;
 
 
-export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
 
 export type CommitteesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1741,14 +1754,14 @@ export type CommitteesQueryVariables = Exact<{
 }>;
 
 
-export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CommitteeRemoveUserMutationVariables = Exact<{
   input: CommitteeRemoveUserInput;
 }>;
 
 
-export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
 
 export type GetCreditFacilityDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1970,7 +1983,7 @@ export type GetPolicyDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
 
 export type PoliciesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2630,7 +2643,7 @@ export const GetCommitteeDetailsDocument = gql`
     committeeId
     createdAt
     name
-    users {
+    currentMembers {
       userId
       email
       roles
@@ -2672,7 +2685,7 @@ export const CommitteeAddUserDocument = gql`
     committee {
       id
       committeeId
-      users {
+      currentMembers {
         userId
         email
         roles
@@ -2714,7 +2727,7 @@ export const CreateCommitteeDocument = gql`
       id
       committeeId
       createdAt
-      users {
+      currentMembers {
         userId
         email
         roles
@@ -2759,7 +2772,7 @@ export const CommitteesDocument = gql`
         committeeId
         createdAt
         name
-        users {
+        currentMembers {
           userId
         }
       }
@@ -2806,7 +2819,7 @@ export const CommitteeRemoveUserDocument = gql`
     committee {
       id
       committeeId
-      users {
+      currentMembers {
         userId
         email
         roles
@@ -4450,7 +4463,7 @@ export const GetPolicyDetailsDocument = gql`
           committeeId
           createdAt
           name
-          users {
+          currentMembers {
             userId
             email
             roles

@@ -68,6 +68,8 @@ type ApprovalProcess {
 	processType: String!
 	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
+	policy: Policy!
+	voters: [ApprovalProcessVoter!]!
 }
 
 input ApprovalProcessApproveInput {
@@ -119,6 +121,14 @@ enum ApprovalProcessStatus {
 	APPROVED
 	DENIED
 	IN_PROGRESS
+}
+
+type ApprovalProcessVoter {
+	stillElligible: Boolean!
+	didVote: Boolean!
+	didApprove: Boolean!
+	didDeny: Boolean!
+	user: User!
 }
 
 union ApprovalRules = CommitteeThreshold | SystemApproval
@@ -244,7 +254,7 @@ type Committee {
 	committeeId: UUID!
 	createdAt: Timestamp!
 	name: String!
-	users: [User!]!
+	currentMembers: [User!]!
 }
 
 input CommitteeAddUserInput {
@@ -1250,11 +1260,13 @@ type VisibleNavigationItems {
 type Withdrawal {
 	customerId: UUID!
 	withdrawalId: UUID!
+	approvalProcessId: UUID!
 	amount: UsdCents!
 	status: WithdrawalStatus!
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+	approvalProcess: ApprovalProcess!
 	userCanConfirm: Boolean!
 	userCanCancel: Boolean!
 }

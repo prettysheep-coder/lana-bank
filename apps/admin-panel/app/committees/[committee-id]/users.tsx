@@ -50,7 +50,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {committee.users.map((user) => (
+                {committee.currentMembers.map((user) => (
                   <TableRow key={user.userId}>
                     <TableCell>
                       <Link href={`/users/${user.userId}`}>{user.email}</Link>
