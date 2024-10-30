@@ -15,7 +15,7 @@ import {
   useApprovalProcessApproveMutation,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatDate } from "@/lib/utils"
+import { formatDate, formatProcessType } from "@/lib/utils"
 
 gql`
   mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
@@ -77,8 +77,10 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
           <DialogTitle>Approve Process</DialogTitle>
         </DialogHeader>
         <DetailsGroup>
-          <DetailItem label="Process Id" value={approvalProcess?.approvalProcessId} />
-          <DetailItem label="Process Type" value={approvalProcess?.processType} />
+          <DetailItem
+            label="Process Type"
+            value={formatProcessType(approvalProcess?.processType)}
+          />
           <DetailItem label="Created At" value={formatDate(approvalProcess?.createdAt)} />
         </DetailsGroup>
         {error && <p className="text-destructive text-sm">{error}</p>}

@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/primitive/button"
 import { ApprovalProcess, useApprovalProcessDenyMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { formatDate } from "@/lib/utils"
+import { formatDate, formatProcessType } from "@/lib/utils"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
@@ -74,8 +74,10 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           <DialogTitle>Deny Process</DialogTitle>
         </DialogHeader>
         <DetailsGroup>
-          <DetailItem label="Process Id" value={approvalProcess?.approvalProcessId} />
-          <DetailItem label="Process Type" value={approvalProcess?.processType} />
+          <DetailItem
+            label="Process Type"
+            value={formatProcessType(approvalProcess?.processType)}
+          />
           <DetailItem label="Created At" value={formatDate(approvalProcess?.createdAt)} />
         </DetailsGroup>
         {error && <p className="text-destructive text-sm">{error}</p>}

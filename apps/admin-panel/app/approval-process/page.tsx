@@ -26,7 +26,7 @@ import {
 } from "@/components/primitive/dropdown-menu"
 import { PageHeading } from "@/components/page-heading"
 import { ApprovalProcess, useApprovalProcessesQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
+import { formatDate, formatProcessType } from "@/lib/utils"
 
 gql`
   query ApprovalProcesses($first: Int!, $after: String) {
@@ -84,7 +84,6 @@ export default function ApprovalProcessesTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Process ID</TableHead>
                 <TableHead>Process Type</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Actions</TableHead>
@@ -101,8 +100,7 @@ export default function ApprovalProcessesTable() {
                     )
                   }}
                 >
-                  <TableCell>{process.approvalProcessId}</TableCell>
-                  <TableCell>{process.processType}</TableCell>
+                  <TableCell>{formatProcessType(process.processType)}</TableCell>
                   <TableCell>{formatDate(process.createdAt)}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
