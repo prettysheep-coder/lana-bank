@@ -50,6 +50,11 @@ gql`
         audit
         financials
         creditFacilities
+        governance {
+          committee
+          policy
+          approvalProcess
+        }
       }
     }
   }
@@ -119,22 +124,17 @@ const NavigationLinks = () => {
       visible: true,
     },
     {
-      href: "/committees",
-      label: "Committees",
-      icon: FiUsers,
-      visible: true,
-    },
-    {
-      href: "/policies",
-      label: "Policies",
+      label: "Governance",
       icon: MdOutlinePolicy,
-      visible: true,
-    },
-    {
-      href: "/approval-process",
-      label: "Approval Process",
-      icon: MdOutlinePolicy,
-      visible: true,
+      visible:
+        visibleItems?.governance.committee ||
+        visibleItems?.governance.policy ||
+        visibleItems?.governance.approvalProcess,
+      subMenu: [
+        { href: "/committees", label: "Committees" },
+        { href: "/policies", label: "Policies" },
+        { href: "/approval-process", label: "Approval Process" },
+      ],
     },
     {
       label: "Financials",

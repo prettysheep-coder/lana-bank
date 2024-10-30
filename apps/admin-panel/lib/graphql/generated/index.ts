@@ -704,6 +704,13 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type GovernanceNavigationItems = {
+  __typename?: 'GovernanceNavigationItems';
+  approvalProcess: Scalars['Boolean']['output'];
+  committee: Scalars['Boolean']['output'];
+  policy: Scalars['Boolean']['output'];
+};
+
 export type IncrementalPayment = {
   __typename?: 'IncrementalPayment';
   cents: Scalars['UsdCents']['output'];
@@ -1599,6 +1606,7 @@ export type VisibleNavigationItems = {
   customer: Scalars['Boolean']['output'];
   deposit: Scalars['Boolean']['output'];
   financials: Scalars['Boolean']['output'];
+  governance: GovernanceNavigationItems;
   loan: Scalars['Boolean']['output'];
   term: Scalars['Boolean']['output'];
   user: Scalars['Boolean']['output'];
@@ -2166,7 +2174,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
@@ -5633,6 +5641,11 @@ export const MeDocument = gql`
       audit
       financials
       creditFacilities
+      governance {
+        committee
+        policy
+        approvalProcess
+      }
     }
   }
 }

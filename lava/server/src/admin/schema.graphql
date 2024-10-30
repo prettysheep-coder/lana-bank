@@ -689,6 +689,12 @@ type FacilityRemaining {
 }
 
 
+type GovernanceNavigationItems {
+	committee: Boolean!
+	policy: Boolean!
+	approvalProcess: Boolean!
+}
+
 
 type IncrementalPayment {
 	cents: UsdCents!
@@ -1255,6 +1261,7 @@ type VisibleNavigationItems {
 	withdraw: Boolean!
 	audit: Boolean!
 	financials: Boolean!
+	governance: GovernanceNavigationItems!
 	creditFacilities: Boolean!
 }
 
