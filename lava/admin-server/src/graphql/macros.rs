@@ -133,6 +133,9 @@ macro_rules! list_with_cursor {
 // pub struct SomeMutationPayload {
 //   entity: Entity
 // }
+//
+// eg:
+// mutation_payload! { PolicyAssignCommitteePayload, policy: Policy }
 #[macro_export]
 macro_rules! mutation_payload {
     ($payload:ident, $name:ident: $gql_type:ty) => {

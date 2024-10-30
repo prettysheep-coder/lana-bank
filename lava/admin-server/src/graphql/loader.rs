@@ -7,7 +7,7 @@ use lava_app::{app::LavaApp, user::error::UserError};
 
 use crate::primitives::*;
 
-use super::{committee::Committee, user::User};
+use super::{committee::Committee, policy::Policy, user::User};
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
 pub struct LavaLoader {
@@ -42,6 +42,22 @@ impl Loader<governance::CommitteeId> for LavaLoader {
         self.app
             .governance()
             .find_all_committees(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<governance::PolicyId> for LavaLoader {
+    type Value = Policy;
+    type Error = Arc<governance::policy_error::PolicyError>;
+
+    async fn load(
+        &self,
+        keys: &[governance::PolicyId],
+    ) -> Result<HashMap<governance::PolicyId, Policy>, Self::Error> {
+        self.app
+            .governance()
+            .find_all_policies(keys)
             .await
             .map_err(Arc::new)
     }

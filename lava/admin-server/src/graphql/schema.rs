@@ -4,7 +4,7 @@ use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
-use super::{audit::*, authenticated_subject::*, committee::*, loader::*, user::*};
+use super::{audit::*, authenticated_subject::*, committee::*, loader::*, policy::*, user::*};
 
 pub struct Query;
 
@@ -71,14 +71,36 @@ impl Query {
         )
     }
 
+    async fn policy(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Policy>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Policy, ctx, app.governance().find_policy(sub, id))
+    }
+
+    async fn policies(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<PolicyByCreatedAtCursor, Policy, EmptyFields, EmptyFields>>
+    {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            PolicyByCreatedAtCursor,
+            Policy,
+            ctx,
+            after,
+            first,
+            |query| app.governance().list_policies_by_created_at(sub, query)
+        )
+    }
+
     async fn audit(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
         query(
             after,
             None,
@@ -156,6 +178,69 @@ impl Mutation {
             User,
             ctx,
             app.users().revoke_role_from_user(sub, id, role)
+        )
+    }
+
+    async fn committee_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeCreateInput,
+    ) -> async_graphql::Result<CommitteeCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CommitteeCreatePayload,
+            Committee,
+            ctx,
+            app.governance().create_committee(sub, input.name)
+        )
+    }
+
+    async fn committee_add_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeAddUserInput,
+    ) -> async_graphql::Result<CommitteeAddUserPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CommitteeAddUserPayload,
+            Committee,
+            ctx,
+            app.governance()
+                .add_user_to_committee(sub, input.committee_id, input.user_id)
+        )
+    }
+
+    async fn committee_remove_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeRemoveUserInput,
+    ) -> async_graphql::Result<CommitteeRemoveUserPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CommitteeRemoveUserPayload,
+            Committee,
+            ctx,
+            app.governance()
+                .remove_user_from_committee(sub, input.committee_id, input.user_id)
+        )
+    }
+
+    async fn policy_assign_committee(
+        &self,
+        ctx: &Context<'_>,
+        input: PolicyAssignCommitteeInput,
+    ) -> async_graphql::Result<PolicyAssignCommitteePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            PolicyAssignCommitteePayload,
+            Policy,
+            ctx,
+            app.governance().assign_committee_to_policy(
+                sub,
+                input.policy_id,
+                input.committee_id,
+                input.threshold
+            )
         )
     }
 }

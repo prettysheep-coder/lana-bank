@@ -16,6 +16,17 @@ pub struct Committee {
     pub(super) entity: Arc<DomainCommittee>,
 }
 
+impl From<DomainCommittee> for Committee {
+    fn from(committee: DomainCommittee) -> Self {
+        Self {
+            id: committee.id.to_global_id(),
+            committee_id: committee.id.into(),
+            created_at: committee.created_at().into(),
+            entity: Arc::new(committee),
+        }
+    }
+}
+
 #[ComplexObject]
 impl Committee {
     async fn name(&self) -> &str {
@@ -35,69 +46,22 @@ impl Committee {
     }
 }
 
-impl From<governance::Committee> for Committee {
-    fn from(committee: governance::Committee) -> Self {
-        Self {
-            id: committee.id.to_global_id(),
-            committee_id: committee.id.into(),
-            created_at: committee.created_at().into(),
-            entity: Arc::new(committee),
-        }
-    }
-}
-
 #[derive(InputObject)]
 pub struct CommitteeCreateInput {
     pub name: String,
 }
-
-#[derive(SimpleObject)]
-pub struct CommitteeCreatePayload {
-    pub committee: Committee,
-}
-
-impl From<governance::Committee> for CommitteeCreatePayload {
-    fn from(committee: governance::Committee) -> Self {
-        Self {
-            committee: committee.into(),
-        }
-    }
-}
+crate::mutation_payload! { CommitteeCreatePayload, committee: Committee }
 
 #[derive(InputObject)]
 pub struct CommitteeAddUserInput {
     pub committee_id: UUID,
     pub user_id: UUID,
 }
-
-#[derive(SimpleObject)]
-pub struct CommitteeAddUserPayload {
-    pub committee: Committee,
-}
-
-impl From<governance::Committee> for CommitteeAddUserPayload {
-    fn from(committee: governance::Committee) -> Self {
-        Self {
-            committee: committee.into(),
-        }
-    }
-}
+crate::mutation_payload! { CommitteeAddUserPayload, committee: Committee }
 
 #[derive(InputObject)]
 pub struct CommitteeRemoveUserInput {
     pub committee_id: UUID,
     pub user_id: UUID,
 }
-
-#[derive(SimpleObject)]
-pub struct CommitteeRemoveUserPayload {
-    pub committee: Committee,
-}
-
-impl From<governance::Committee> for CommitteeRemoveUserPayload {
-    fn from(committee: governance::Committee) -> Self {
-        Self {
-            committee: committee.into(),
-        }
-    }
-}
+crate::mutation_payload! { CommitteeRemoveUserPayload, committee: Committee }

@@ -1,3 +1,10 @@
+enum ApprovalProcessType {
+	WITHDRAW_APPROVAL
+	CREDIT_FACILITY_APPROVAL
+}
+
+union ApprovalRules = SystemApproval | CommitteeThreshold
+
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -48,6 +55,74 @@ type AuthenticatedSubject {
 }
 
 
+type Committee {
+	id: ID!
+	committeeId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	currentMembers: [User!]!
+}
+
+input CommitteeAddUserInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeAddUserPayload {
+	committee: Committee!
+}
+
+type CommitteeConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CommitteeEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Committee!]!
+}
+
+input CommitteeCreateInput {
+	name: String!
+}
+
+type CommitteeCreatePayload {
+	committee: Committee!
+}
+
+"""
+An edge in a connection.
+"""
+type CommitteeEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Committee!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input CommitteeRemoveUserInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeRemoveUserPayload {
+	committee: Committee!
+}
+
+type CommitteeThreshold {
+	threshold: Int!
+	committee: Committee!
+}
+
 
 
 
@@ -55,6 +130,10 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
+	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
+	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
+	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 }
 
 """
@@ -79,10 +158,60 @@ type PageInfo {
 	endCursor: String
 }
 
+type Policy {
+	id: ID!
+	policyId: UUID!
+	approvalProcessType: ApprovalProcessType!
+	rules: ApprovalRules!
+}
+
+input PolicyAssignCommitteeInput {
+	policyId: UUID!
+	committeeId: UUID!
+	threshold: Int!
+}
+
+type PolicyAssignCommitteePayload {
+	policy: Policy!
+}
+
+type PolicyConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [PolicyEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Policy!]!
+}
+
+"""
+An edge in a connection.
+"""
+type PolicyEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Policy!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type Query {
 	me: AuthenticatedSubject!
 	user(id: UUID!): User
 	users: [User!]!
+	committee(id: UUID!): Committee
+	committees(first: Int!, after: String): CommitteeConnection!
+	policy(id: UUID!): Policy
+	policies(first: Int!, after: String): PolicyConnection!
 	audit(first: Int!, after: String): AuditEntryConnection!
 }
 
@@ -98,6 +227,10 @@ union Subject = User | System
 
 type System {
 	name: String!
+}
+
+type SystemApproval {
+	autoApprove: Boolean!
 }
 
 scalar Timestamp

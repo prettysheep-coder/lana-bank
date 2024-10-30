@@ -12,21 +12,6 @@ pub struct User {
     pub(super) entity: Arc<DomainUser>,
 }
 
-#[ComplexObject]
-impl User {
-    async fn roles(&self) -> Vec<LavaRole> {
-        self.entity
-            .current_roles()
-            .into_iter()
-            .map(LavaRole::from)
-            .collect()
-    }
-
-    async fn email(&self) -> &str {
-        &self.entity.email
-    }
-}
-
 impl From<DomainUser> for User {
     fn from(user: DomainUser) -> Self {
         Self {
@@ -42,6 +27,21 @@ impl From<Arc<DomainUser>> for User {
             user_id: UUID::from(user.id),
             entity: user,
         }
+    }
+}
+
+#[ComplexObject]
+impl User {
+    async fn roles(&self) -> Vec<LavaRole> {
+        self.entity
+            .current_roles()
+            .into_iter()
+            .map(LavaRole::from)
+            .collect()
+    }
+
+    async fn email(&self) -> &str {
+        &self.entity.email
     }
 }
 
