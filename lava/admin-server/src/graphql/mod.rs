@@ -6,6 +6,7 @@ mod committee;
 mod customer;
 mod document;
 mod loader;
+mod sumsub;
 #[macro_use]
 pub mod macros;
 mod policy;

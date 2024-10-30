@@ -6,7 +6,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*,
-    document::*, loader::*, policy::*, user::*,
+    document::*, loader::*, policy::*, sumsub::*, user::*,
 };
 
 pub struct Query;
@@ -231,6 +231,18 @@ impl Mutation {
             app.documents()
                 .create(sub, file.content.to_vec(), input.customer_id, file.filename)
         )
+    }
+
+    pub async fn sumsub_permalink_create(
+        &self,
+        ctx: &Context<'_>,
+        input: SumsubPermalinkCreateInput,
+    ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let res = app.applicants().create_permalink(input.customer_id).await?;
+
+        let url = res.url;
+        Ok(SumsubPermalinkCreatePayload { url })
     }
 
     async fn user_create(
