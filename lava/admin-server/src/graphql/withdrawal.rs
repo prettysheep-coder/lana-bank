@@ -77,3 +77,23 @@ impl Withdrawal {
         Ok(app.withdraws().subject_can_cancel(sub, false).await.is_ok())
     }
 }
+
+#[derive(InputObject)]
+pub struct WithdrawalInitiateInput {
+    pub customer_id: UUID,
+    pub amount: UsdCents,
+    pub reference: Option<String>,
+}
+crate::mutation_payload! { WithdrawalInitiatePayload, withdrawal: Withdrawal }
+
+#[derive(InputObject)]
+pub struct WithdrawalConfirmInput {
+    pub withdrawal_id: UUID,
+}
+crate::mutation_payload! { WithdrawalConfirmPayload, withdrawal: Withdrawal }
+
+#[derive(InputObject)]
+pub struct WithdrawalCancelInput {
+    pub withdrawal_id: UUID,
+}
+crate::mutation_payload! { WithdrawalCancelPayload, withdrawal: Withdrawal }

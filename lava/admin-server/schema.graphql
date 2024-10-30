@@ -260,6 +260,55 @@ type CustomerUpdatePayload {
 	customer: Customer!
 }
 
+type Deposit {
+	id: ID!
+	depositId: UUID!
+	customerId: UUID!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	reference: String!
+	customer: Customer!
+}
+
+type DepositConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [DepositEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Deposit!]!
+}
+
+"""
+An edge in a connection.
+"""
+type DepositEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Deposit!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input DepositRecordInput {
+	customerId: UUID!
+	amount: UsdCents!
+	reference: String
+}
+
+type DepositRecordPayload {
+	deposit: Deposit!
+}
+
 type Document {
 	id: ID!
 	documentId: UUID!
@@ -324,6 +373,10 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
+	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -412,6 +465,8 @@ type Query {
 	customers(first: Int!, after: String): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
+	deposit(id: UUID!): Deposit
+	deposits(first: Int!, after: String): DepositConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
@@ -515,6 +570,22 @@ type Withdrawal {
 	userCanCancel: Boolean!
 }
 
+input WithdrawalCancelInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalCancelPayload {
+	withdrawal: Withdrawal!
+}
+
+input WithdrawalConfirmInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalConfirmPayload {
+	withdrawal: Withdrawal!
+}
+
 type WithdrawalConnection {
 	"""
 	Information to aid in pagination.
@@ -542,6 +613,16 @@ type WithdrawalEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+input WithdrawalInitiateInput {
+	customerId: UUID!
+	amount: UsdCents!
+	reference: String
+}
+
+type WithdrawalInitiatePayload {
+	withdrawal: Withdrawal!
 }
 
 enum WithdrawalStatus {

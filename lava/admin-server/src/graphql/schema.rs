@@ -5,7 +5,7 @@ use lava_app::app::LavaApp;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*,
+    approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*, deposit::*,
     document::*, loader::*, policy::*, sumsub::*, user::*, withdrawal::*,
 };
 
@@ -103,6 +103,29 @@ impl Query {
             after,
             first,
             |query| app.withdraws().list(sub, query)
+        )
+    }
+
+    async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Deposit, ctx, app.deposits().find_by_id(sub, id))
+    }
+    async fn deposits(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<DepositByCreatedAtCursor, Deposit, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            DepositByCreatedAtCursor,
+            Deposit,
+            ctx,
+            after,
+            first,
+            |query| app.deposits().list(sub, query)
         )
     }
 
@@ -343,6 +366,64 @@ impl Mutation {
             ctx,
             app.customers()
                 .update(sub, input.customer_id, input.telegram_id)
+        )
+    }
+
+    pub async fn deposit_record(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositRecordInput,
+    ) -> async_graphql::Result<DepositRecordPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            DepositRecordPayload,
+            Deposit,
+            ctx,
+            app.deposits()
+                .record(sub, input.customer_id, input.amount, input.reference)
+        )
+    }
+
+    pub async fn withdrawal_initiate(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalInitiateInput,
+    ) -> async_graphql::Result<WithdrawalInitiatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            WithdrawalInitiatePayload,
+            Withdrawal,
+            ctx,
+            app.withdraws()
+                .initiate(sub, input.customer_id, input.amount, input.reference)
+        )
+    }
+
+    pub async fn withdrawal_confirm(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalConfirmInput,
+    ) -> async_graphql::Result<WithdrawalConfirmPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            WithdrawalConfirmPayload,
+            Withdrawal,
+            ctx,
+            app.withdraws().confirm(sub, input.withdrawal_id)
+        )
+    }
+
+    pub async fn withdrawal_cancel(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalCancelInput,
+    ) -> async_graphql::Result<WithdrawalCancelPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            WithdrawalCancelPayload,
+            Withdrawal,
+            ctx,
+            app.withdraws().cancel(sub, input.withdrawal_id)
         )
     }
 

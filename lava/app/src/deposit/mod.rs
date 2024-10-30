@@ -1,6 +1,8 @@
 mod entity;
-mod error;
+pub mod error;
 mod repo;
+
+use std::collections::HashMap;
 
 use authz::PermissionCheck;
 
@@ -147,5 +149,12 @@ impl Deposits {
         self.repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await
+    }
+
+    pub async fn find_all<T: From<Deposit>>(
+        &self,
+        ids: &[DepositId],
+    ) -> Result<HashMap<DepositId, T>, DepositError> {
+        self.repo.find_all(ids).await
     }
 }

@@ -35,18 +35,6 @@ pub enum CustomerEvent {
     },
 }
 
-impl CustomerEvent {
-    fn audit_info(&self) -> &AuditInfo {
-        match self {
-            CustomerEvent::Initialized { audit_info, .. } => audit_info,
-            CustomerEvent::KycStarted { audit_info, .. } => audit_info,
-            CustomerEvent::KycApproved { audit_info, .. } => audit_info,
-            CustomerEvent::KycDeclined { audit_info, .. } => audit_info,
-            CustomerEvent::TelegramIdUpdated { audit_info, .. } => audit_info,
-        }
-    }
-}
-
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Customer {

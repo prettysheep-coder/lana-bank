@@ -4,8 +4,8 @@ use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
 pub use lava_app::primitives::{
-    AccountStatus, ApprovalProcessId, CommitteeId, CustomerId, DocumentId, KycLevel, LavaRole,
-    PolicyId, Subject, UsdCents, UserId, WithdrawId,
+    AccountStatus, ApprovalProcessId, CommitteeId, CustomerId, DepositId, DocumentId, KycLevel,
+    LavaRole, PolicyId, Subject, UsdCents, UserId, WithdrawId,
 };
 
 pub use std::sync::Arc;
@@ -82,5 +82,6 @@ impl_to_global_id! {
     PolicyId,
     CommitteeId,
     WithdrawId,
+    DepositId,
     ApprovalProcessId
 }

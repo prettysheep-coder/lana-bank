@@ -4,6 +4,7 @@ mod audit;
 mod authenticated_subject;
 mod committee;
 mod customer;
+mod deposit;
 mod document;
 mod loader;
 mod sumsub;
