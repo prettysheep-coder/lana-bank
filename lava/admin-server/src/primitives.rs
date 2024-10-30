@@ -31,8 +31,29 @@ impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
         Self(value)
     }
 }
-impl Timestamp {
-    pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
-        self.0
-    }
+// impl Timestamp {
+//     pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
+//         self.0
+//     }
+// }
+
+pub trait ToGlobalId {
+    fn to_global_id(&self) -> async_graphql::types::ID;
+}
+
+macro_rules! impl_to_global_id {
+    ($($ty:ty),*) => {
+        $(
+            impl ToGlobalId for $ty {
+                fn to_global_id(&self) -> async_graphql::types::ID {
+                    async_graphql::types::ID::from(format!("{}:{}", stringify!($ty), self))
+                }
+            }
+        )*
+    };
+}
+
+impl_to_global_id! {
+    UserId,
+    audit::AuditEntryId
 }

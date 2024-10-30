@@ -1,10 +1,10 @@
-use async_graphql::{Context, Object};
+use async_graphql::{types::connection::*, Context, Object};
 
 use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
-use super::{authenticated_subject::*, loader::*, user::*};
+use super::{audit::*, authenticated_subject::*, loader::*, user::*};
 
 pub struct Query;
 
@@ -47,6 +47,45 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn audit(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .list_audit(
+                        sub,
+                        es_entity::PaginatedQueryArgs {
+                            first,
+                            after: after.map(lava_app::audit::AuditCursor::from),
+                        },
+                    )
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor = AuditCursor::from(&entry);
+                        Edge::new(cursor, AuditEntry::from(entry))
+                    }));
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }
 

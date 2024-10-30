@@ -1,3 +1,41 @@
+type AuditEntry {
+	id: ID!
+	object: String!
+	action: String!
+	authorized: Boolean!
+	recordedAt: Timestamp!
+	subject: Subject!
+}
+
+type AuditEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AuditEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AuditEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AuditEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AuditEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type AuthenticatedSubject {
 	user: User!
 	visibleNavigationItems: VisibleNavigationItems!
@@ -14,11 +52,38 @@ type AuthenticatedSubject {
 
 
 type Mutation {
-	hello: String!
+	userCreate(input: UserCreateInput!): UserCreatePayload!
+	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
+	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
+}
+
+"""
+Information about pagination in a connection
+"""
+type PageInfo {
+	"""
+	When paginating backwards, are there more items?
+	"""
+	hasPreviousPage: Boolean!
+	"""
+	When paginating forwards, are there more items?
+	"""
+	hasNextPage: Boolean!
+	"""
+	When paginating backwards, the cursor to continue.
+	"""
+	startCursor: String
+	"""
+	When paginating forwards, the cursor to continue.
+	"""
+	endCursor: String
 }
 
 type Query {
 	me: AuthenticatedSubject!
+	user(id: UUID!): User
+	users: [User!]!
+	audit(first: Int!, after: String): AuditEntryConnection!
 }
 
 enum Role {
@@ -29,12 +94,46 @@ enum Role {
 }
 
 
+union Subject = User | System
+
+type System {
+	name: String!
+}
+
+scalar Timestamp
+
 scalar UUID
 
 type User {
 	userId: UUID!
 	roles: [Role!]!
 	email: String!
+}
+
+input UserAssignRoleInput {
+	id: UUID!
+	role: Role!
+}
+
+type UserAssignRolePayload {
+	user: User!
+}
+
+input UserCreateInput {
+	email: String!
+}
+
+type UserCreatePayload {
+	user: User!
+}
+
+input UserRevokeRoleInput {
+	id: UUID!
+	role: Role!
+}
+
+type UserRevokeRolePayload {
+	user: User!
 }
 
 type VisibleNavigationItems {

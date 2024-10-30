@@ -1,4 +1,4 @@
-// mod audit;
+mod audit;
 mod authenticated_subject;
 mod loader;
 mod schema;

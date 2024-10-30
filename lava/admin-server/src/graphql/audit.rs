@@ -1,12 +1,10 @@
-use async_graphql::{
-    connection::CursorType, dataloader::DataLoader, ComplexObject, Context, SimpleObject, Union, ID,
-};
+use async_graphql::{connection::CursorType, ComplexObject, Context, SimpleObject, Union, ID};
 use serde::{Deserialize, Serialize};
 
-use crate::shared_graphql::{convert::*, customer::Customer, primitives::Timestamp};
+use crate::primitives::*;
 use lava_app::primitives::Subject as DomainSubject;
 
-use super::{loader::LavaDataLoader, user::User};
+use super::{loader::*, user::User};
 
 #[derive(SimpleObject)]
 pub struct System {
@@ -16,7 +14,6 @@ pub struct System {
 #[derive(Union)]
 enum Subject {
     User(User),
-    Customer(Customer),
     System(System),
 }
 
@@ -24,18 +21,19 @@ enum Subject {
 #[graphql(complex)]
 pub struct AuditEntry {
     id: ID,
-    #[graphql(skip)]
-    subject: DomainSubject,
     object: String,
     action: String,
     authorized: bool,
     recorded_at: Timestamp,
+
+    #[graphql(skip)]
+    subject: DomainSubject,
 }
 
 #[ComplexObject]
 impl AuditEntry {
     async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<Subject> {
-        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
 
         match self.subject {
             DomainSubject::User(id) => {
@@ -45,16 +43,12 @@ impl AuditEntry {
                     Some(user) => Ok(Subject::User(user)),
                 }
             }
-            DomainSubject::Customer(id) => {
-                let customer = loader.load_one(id).await?;
-                match customer {
-                    None => Err("Customer not found".into()),
-                    Some(customer) => Ok(Subject::Customer(customer)),
-                }
-            }
             DomainSubject::System => {
                 let system = System { name: "lava" };
                 Ok(Subject::System(system))
+            }
+            DomainSubject::Customer(_) => {
+                panic!("Whoops - have we gone live yet?");
             }
         }
     }
@@ -70,12 +64,6 @@ impl From<lava_app::audit::AuditEntry> for AuditEntry {
             authorized: entry.authorized,
             recorded_at: entry.recorded_at.into(),
         }
-    }
-}
-
-impl ToGlobalId for audit::AuditEntryId {
-    fn to_global_id(&self) -> async_graphql::types::ID {
-        async_graphql::types::ID::from(format!("audit_entry:{}", self))
     }
 }
 
