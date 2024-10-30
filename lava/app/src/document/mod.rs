@@ -1,19 +1,23 @@
 mod entity;
-mod error;
+pub mod error;
 mod repo;
 
+use tracing::instrument;
+
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
-
-use error::DocumentError;
-use repo::DocumentsRepo;
-
-pub use entity::*;
 
 use crate::{
     authorization::{Authorization, DocumentAction, Object},
     primitives::{CustomerId, DocumentId, Subject},
     storage::Storage,
 };
+
+use error::DocumentError;
+use repo::DocumentsRepo;
+
+pub use entity::*;
 
 #[derive(Clone)]
 pub struct Documents {
@@ -33,6 +37,7 @@ impl Documents {
         }
     }
 
+    #[instrument(name = "documents.create", skip(self), err)]
     pub async fn create(
         &self,
         sub: &Subject,
@@ -64,6 +69,7 @@ impl Documents {
         Ok(document)
     }
 
+    #[instrument(name = "documents.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
         sub: &Subject,
@@ -80,6 +86,7 @@ impl Documents {
         }
     }
 
+    #[instrument(name = "documents.list_by_customer_id", skip(self), err)]
     pub async fn list_by_customer_id(
         &self,
         sub: &Subject,
@@ -100,6 +107,7 @@ impl Documents {
             .entities)
     }
 
+    #[instrument(name = "documents.generate_download_link", skip(self), err)]
     pub async fn generate_download_link(
         &self,
         sub: &Subject,
@@ -126,6 +134,7 @@ impl Documents {
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
 
+    #[instrument(name = "documents.delete", skip(self), err)]
     pub async fn delete(
         &self,
         sub: &Subject,
@@ -149,6 +158,7 @@ impl Documents {
         Ok(())
     }
 
+    #[instrument(name = "documents.archive", skip(self), err)]
     pub async fn archive(
         &self,
         sub: &Subject,
@@ -167,5 +177,13 @@ impl Documents {
         db.commit().await?;
 
         Ok(document)
+    }
+
+    #[instrument(name = "documents.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Document>>(
+        &self,
+        ids: &[DocumentId],
+    ) -> Result<HashMap<DocumentId, T>, DocumentError> {
+        self.repo.find_all(ids).await
     }
 }
