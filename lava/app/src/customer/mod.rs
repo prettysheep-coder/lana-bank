@@ -74,8 +74,8 @@ impl Customers {
             .await?)
     }
 
-    #[instrument(name = "lava.customer.create_customer_through_admin", skip(self), err)]
-    pub async fn create_customer_through_admin(
+    #[instrument(name = "lava.customer.create", skip(self), err)]
+    pub async fn create(
         &self,
         sub: &Subject,
         email: String,
@@ -286,12 +286,14 @@ impl Customers {
         self.repo.find_all(ids).await
     }
 
+    #[instrument(name = "customer.update", skip(self), err)]
     pub async fn update(
         &self,
         sub: &Subject,
-        customer_id: CustomerId,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         new_telegram_id: String,
     ) -> Result<Customer, CustomerError> {
+        let customer_id = customer_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -304,10 +306,7 @@ impl Customers {
         let mut customer = self.repo.find_by_id(customer_id).await?;
         customer.update_telegram_id(new_telegram_id, audit_info);
 
-        let mut db = self.pool.begin().await?;
-        self.repo.update_in_tx(&mut db, &mut customer).await?;
-
-        db.commit().await?;
+        self.repo.update(&mut customer).await?;
 
         Ok(customer)
     }

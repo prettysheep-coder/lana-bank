@@ -9,7 +9,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, committee::Committee, customer::*, document::Document, policy::Policy,
-    user::User,
+    user::User, withdrawal::*,
 };
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
@@ -100,5 +100,17 @@ impl Loader<CustomerId> for LavaLoader {
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
         self.app.customers().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<WithdrawId> for LavaLoader {
+    type Value = Withdrawal;
+    type Error = Arc<lava_app::withdraw::error::WithdrawError>;
+
+    async fn load(
+        &self,
+        keys: &[WithdrawId],
+    ) -> Result<HashMap<WithdrawId, Withdrawal>, Self::Error> {
+        self.app.withdraws().find_all(keys).await.map_err(Arc::new)
     }
 }

@@ -6,7 +6,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*,
-    document::*, loader::*, policy::*, sumsub::*, user::*,
+    document::*, loader::*, policy::*, sumsub::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -75,6 +75,34 @@ impl Query {
             after,
             first,
             |query| app.customers().list(sub, query)
+        )
+    }
+
+    async fn withdrawal(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Withdrawal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Withdrawal, ctx, app.withdraws().find_by_id(sub, id))
+    }
+
+    async fn withdrawals(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<WithdrawByCreatedAtCursor, Withdrawal, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            WithdrawByCreatedAtCursor,
+            Withdrawal,
+            ctx,
+            after,
+            first,
+            |query| app.withdraws().list(sub, query)
         )
     }
 
@@ -286,6 +314,35 @@ impl Mutation {
             User,
             ctx,
             app.users().revoke_role_from_user(sub, id, role)
+        )
+    }
+
+    async fn customer_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerCreateInput,
+    ) -> async_graphql::Result<CustomerCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerCreatePayload,
+            Customer,
+            ctx,
+            app.customers().create(sub, input.email, input.telegram_id)
+        )
+    }
+
+    async fn customer_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerUpdateInput,
+    ) -> async_graphql::Result<CustomerUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerUpdatePayload,
+            Customer,
+            ctx,
+            app.customers()
+                .update(sub, input.customer_id, input.telegram_id)
         )
     }
 

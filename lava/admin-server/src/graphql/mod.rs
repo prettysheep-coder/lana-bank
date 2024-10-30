@@ -7,6 +7,7 @@ mod customer;
 mod document;
 mod loader;
 mod sumsub;
+mod withdrawal;
 #[macro_use]
 pub mod macros;
 mod policy;

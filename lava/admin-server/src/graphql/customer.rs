@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::document::Document;
+use super::{document::Document, withdrawal::Withdrawal};
 
 pub use lava_app::{
     app::LavaApp, customer::Customer as DomainCustomer, customer::CustomerByEmailCursor,
@@ -79,18 +79,17 @@ impl Customer {
     //     Ok(deposits)
     // }
 
-    // async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let withdraws = app
-    //         .withdraws()
-    //         .list_for_customer(sub, primitives::CustomerId::from(&self.customer_id))
-    //         .await?
-    //         .into_iter()
-    //         .map(Withdrawal::from)
-    //         .collect();
-    //     Ok(withdraws)
-    // }
+    async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let withdraws = app
+            .withdraws()
+            .list_for_customer(sub, self.entity.id)
+            .await?
+            .into_iter()
+            .map(Withdrawal::from)
+            .collect();
+        Ok(withdraws)
+    }
 
     // async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
     //     let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
@@ -131,11 +130,14 @@ impl Customer {
     //     Ok(app.deposits().user_can_record(sub, false).await.is_ok())
     // }
 
-    // async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     Ok(app.withdraws().user_can_initiate(sub, false).await.is_ok())
-    // }
+    async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .withdraws()
+            .subject_can_initiate(sub, false)
+            .await
+            .is_ok())
+    }
 
     // async fn credit_facilities(
     //     &self,
@@ -163,3 +165,17 @@ impl Customer {
         Ok(documents.into_iter().map(Document::from).collect())
     }
 }
+
+#[derive(InputObject)]
+pub struct CustomerCreateInput {
+    pub email: String,
+    pub telegram_id: String,
+}
+crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
+
+#[derive(InputObject)]
+pub struct CustomerUpdateInput {
+    pub customer_id: UUID,
+    pub telegram_id: String,
+}
+crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
