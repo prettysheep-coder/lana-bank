@@ -56,7 +56,7 @@ impl ApprovalProcess {
         if let ApprovalProcessEvent::Initialized { target_ref, .. } =
             self.events.iter_all().next().expect("No events")
         {
-            &target_ref
+            target_ref
         } else {
             panic!("No events")
         }

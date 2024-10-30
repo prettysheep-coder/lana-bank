@@ -54,7 +54,7 @@ impl Policy {
             .target_ref(target_ref)
             .policy_id(self.id)
             .process_type(self.process_type.clone())
-            .rules(self.rules.clone())
+            .rules(self.rules)
             .audit_info(audit_info)
             .build()
             .expect("failed to build new approval process")
@@ -71,7 +71,7 @@ impl Policy {
             committee_id,
         };
         self.events.push(PolicyEvent::ApprovalRulesUpdated {
-            rules: self.rules.clone(),
+            rules: self.rules,
             audit_info,
         });
     }
@@ -91,11 +91,9 @@ impl TryFromEvents<PolicyEvent> for Policy {
                     builder = builder
                         .id(*id)
                         .process_type(process_type.clone())
-                        .rules(rules.clone())
+                        .rules(*rules)
                 }
-                PolicyEvent::ApprovalRulesUpdated { rules, .. } => {
-                    builder = builder.rules(rules.clone())
-                }
+                PolicyEvent::ApprovalRulesUpdated { rules, .. } => builder = builder.rules(*rules),
             }
         }
         builder.events(events).build()
