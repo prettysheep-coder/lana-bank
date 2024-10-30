@@ -65,8 +65,8 @@ impl ApprovalProcess {
                     user_id: *user_id,
                     still_eligible: true,
                     did_vote: approvers.contains(user_id) || deniers.contains(user_id),
-                    did_approve: approvers.remove(&user_id),
-                    did_deny: deniers.remove(&user_id),
+                    did_approve: approvers.remove(user_id),
+                    did_deny: deniers.remove(user_id),
                 })
                 .collect();
             voters.extend(
