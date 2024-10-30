@@ -55,8 +55,8 @@ impl From<Arc<DomainUser>> for User {
     }
 }
 
-impl From<lava_app::user::User> for UserCreatePayload {
-    fn from(user: lava_app::user::User) -> Self {
+impl From<DomainUser> for UserCreatePayload {
+    fn from(user: DomainUser) -> Self {
         Self {
             user: User::from(user),
         }
@@ -74,8 +74,8 @@ pub struct UserAssignRolePayload {
     user: User,
 }
 
-impl From<lava_app::user::User> for UserAssignRolePayload {
-    fn from(user: lava_app::user::User) -> Self {
+impl From<DomainUser> for UserAssignRolePayload {
+    fn from(user: DomainUser) -> Self {
         Self {
             user: User::from(user),
         }
@@ -93,8 +93,8 @@ pub struct UserRevokeRolePayload {
     user: User,
 }
 
-impl From<lava_app::user::User> for UserRevokeRolePayload {
-    fn from(user: lava_app::user::User) -> Self {
+impl From<DomainUser> for UserRevokeRolePayload {
+    fn from(user: DomainUser) -> Self {
         Self {
             user: User::from(user),
         }

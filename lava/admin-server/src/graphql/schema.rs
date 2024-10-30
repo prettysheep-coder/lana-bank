@@ -54,7 +54,38 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    async fn hello(&self) -> String {
-        "world".to_string()
+    async fn user_create(
+        &self,
+        ctx: &Context<'_>,
+        input: UserCreateInput,
+    ) -> async_graphql::Result<UserCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let user = app.users().create_user(sub, input.email).await?;
+        Ok(UserCreatePayload::from(user))
+    }
+
+    async fn user_assign_role(
+        &self,
+        ctx: &Context<'_>,
+        input: UserAssignRoleInput,
+    ) -> async_graphql::Result<UserAssignRolePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let UserAssignRoleInput { id, role } = input;
+        let user = app.users().assign_role_to_user(sub, id, role).await?;
+        Ok(UserAssignRolePayload::from(user))
+    }
+
+    async fn user_revoke_role(
+        &self,
+        ctx: &Context<'_>,
+        input: UserRevokeRoleInput,
+    ) -> async_graphql::Result<UserRevokeRolePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let UserRevokeRoleInput { id, role } = input;
+        let user = app.users().revoke_role_from_user(sub, id, role).await?;
+        Ok(UserRevokeRolePayload::from(user))
     }
 }
