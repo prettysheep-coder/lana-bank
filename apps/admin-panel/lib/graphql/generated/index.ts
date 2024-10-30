@@ -2128,7 +2128,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, status: ApprovalProcessStatus, policy: { __typename?: 'Policy', rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
@@ -5318,6 +5318,38 @@ export const GetWithdrawalDetailsDocument = gql`
       email
       customerId
       applicantId
+    }
+    approvalProcess {
+      approvalProcessId
+      status
+      policy {
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              name
+              currentMembers {
+                email
+                roles
+              }
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
     }
   }
 }
