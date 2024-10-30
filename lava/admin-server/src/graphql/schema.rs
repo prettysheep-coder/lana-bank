@@ -6,7 +6,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*, deposit::*,
-    document::*, loader::*, policy::*, sumsub::*, user::*, withdrawal::*,
+    document::*, loader::*, policy::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -127,6 +127,31 @@ impl Query {
             first,
             |query| app.deposits().list(sub, query)
         )
+    }
+
+    async fn terms_template(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<TermsTemplate>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            TermsTemplate,
+            ctx,
+            app.terms_templates().find_by_id(sub, id)
+        )
+    }
+
+    async fn terms_templates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<TermsTemplate>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let terms_templates = app.terms_templates().list(sub).await?;
+        Ok(terms_templates
+            .into_iter()
+            .map(TermsTemplate::from)
+            .collect())
     }
 
     async fn committee(
@@ -424,6 +449,59 @@ impl Mutation {
             Withdrawal,
             ctx,
             app.withdraws().cancel(sub, input.withdrawal_id)
+        )
+    }
+
+    async fn terms_template_create(
+        &self,
+        ctx: &Context<'_>,
+        input: TermsTemplateCreateInput,
+    ) -> async_graphql::Result<TermsTemplateCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let term_values = lava_app::terms::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .accrual_interval(input.accrual_interval)
+            .incurrence_interval(input.incurrence_interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+
+        exec_mutation!(
+            TermsTemplateCreatePayload,
+            TermsTemplate,
+            ctx,
+            app.terms_templates()
+                .create_terms_template(sub, input.name, term_values)
+        )
+    }
+
+    async fn terms_template_update(
+        &self,
+        ctx: &Context<'_>,
+        input: TermsTemplateUpdateInput,
+    ) -> async_graphql::Result<TermsTemplateUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let term_values = lava_app::terms::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .accrual_interval(input.accrual_interval)
+            .incurrence_interval(input.incurrence_interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+        exec_mutation!(
+            TermsTemplateUpdatePayload,
+            TermsTemplate,
+            ctx,
+            app.terms_templates().update_term_values(
+                sub,
+                TermsTemplateId::from(input.id),
+                term_values
+            )
         )
     }
 

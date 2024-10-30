@@ -9,7 +9,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, committee::Committee, customer::*, deposit::*, document::Document,
-    policy::Policy, user::User, withdrawal::*,
+    policy::Policy, terms_template::*, user::User, withdrawal::*,
 };
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
@@ -121,5 +121,21 @@ impl Loader<DepositId> for LavaLoader {
 
     async fn load(&self, keys: &[DepositId]) -> Result<HashMap<DepositId, Deposit>, Self::Error> {
         self.app.deposits().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<TermsTemplateId> for LavaLoader {
+    type Value = TermsTemplate;
+    type Error = Arc<lava_app::terms_template::error::TermsTemplateError>;
+
+    async fn load(
+        &self,
+        keys: &[TermsTemplateId],
+    ) -> Result<HashMap<TermsTemplateId, TermsTemplate>, Self::Error> {
+        self.app
+            .terms_templates()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }

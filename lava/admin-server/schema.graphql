@@ -3,6 +3,8 @@ enum AccountStatus {
 	INACTIVE
 }
 
+scalar AnnualRatePct
+
 type ApprovalProcess {
 	id: ID!
 	approvalProcessId: UUID!
@@ -131,6 +133,8 @@ type AuthenticatedSubject {
 	canRevokeRoleFromUser: Boolean!
 }
 
+
+scalar CVLPct
 
 type Committee {
 	id: ID!
@@ -356,8 +360,23 @@ enum DocumentStatus {
 	ARCHIVED
 }
 
+type Duration {
+	period: Period!
+	units: Int!
+}
+
+input DurationInput {
+	period: Period!
+	units: Int!
+}
 
 
+
+
+enum InterestInterval {
+	END_OF_MONTH
+	END_OF_DAY
+}
 
 enum KycLevel {
 	NOT_KYCED
@@ -377,6 +396,8 @@ type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
+	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -408,6 +429,10 @@ type PageInfo {
 	When paginating forwards, the cursor to continue.
 	"""
 	endCursor: String
+}
+
+enum Period {
+	MONTHS
 }
 
 type Policy {
@@ -467,6 +492,8 @@ type Query {
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
 	deposits(first: Int!, after: String): DepositConnection!
+	termsTemplate(id: UUID!): TermsTemplate
+	termsTemplates: [TermsTemplate!]!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
@@ -501,6 +528,54 @@ type System {
 
 type SystemApproval {
 	autoApprove: Boolean!
+}
+
+type TermValues {
+	annualRate: AnnualRatePct!
+	accrualInterval: InterestInterval!
+	incurrenceInterval: InterestInterval!
+	duration: Duration!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type TermsTemplate {
+	id: ID!
+	termsId: UUID!
+	values: TermValues!
+	createdAt: Timestamp!
+	name: String!
+}
+
+input TermsTemplateCreateInput {
+	name: String!
+	annualRate: AnnualRatePct!
+	accrualInterval: InterestInterval!
+	incurrenceInterval: InterestInterval!
+	duration: DurationInput!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type TermsTemplateCreatePayload {
+	termsTemplate: TermsTemplate!
+}
+
+input TermsTemplateUpdateInput {
+	id: UUID!
+	annualRate: AnnualRatePct!
+	accrualInterval: InterestInterval!
+	incurrenceInterval: InterestInterval!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type TermsTemplateUpdatePayload {
+	termsTemplate: TermsTemplate!
 }
 
 scalar Timestamp
