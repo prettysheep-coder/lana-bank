@@ -4,7 +4,10 @@ use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
-use super::{audit::*, authenticated_subject::*, committee::*, loader::*, policy::*, user::*};
+use super::{
+    approval_process::*, audit::*, authenticated_subject::*, committee::*, loader::*, policy::*,
+    user::*,
+};
 
 pub struct Query;
 
@@ -91,6 +94,38 @@ impl Query {
             after,
             first,
             |query| app.governance().list_policies_by_created_at(sub, query)
+        )
+    }
+
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<ApprovalProcess>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            ApprovalProcess,
+            ctx,
+            app.governance().find_approval_process_by_id(sub, id)
+        )
+    }
+
+    async fn approval_processes(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ApprovalProcessByCreatedAtCursor, ApprovalProcess, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            ApprovalProcessByCreatedAtCursor,
+            ApprovalProcess,
+            ctx,
+            after,
+            first,
+            |query| app.governance().list_approval_processes(sub, query)
         )
     }
 
@@ -241,6 +276,34 @@ impl Mutation {
                 input.committee_id,
                 input.threshold
             )
+        )
+    }
+
+    async fn approval_process_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: ApprovalProcessApproveInput,
+    ) -> async_graphql::Result<ApprovalProcessApprovePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ApprovalProcessApprovePayload,
+            ApprovalProcess,
+            ctx,
+            app.governance().approve_process(sub, input.process_id)
+        )
+    }
+
+    async fn approval_process_deny(
+        &self,
+        ctx: &Context<'_>,
+        input: ApprovalProcessDenyInput,
+    ) -> async_graphql::Result<ApprovalProcessDenyPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ApprovalProcessDenyPayload,
+            ApprovalProcess,
+            ctx,
+            app.governance().deny_process(sub, input.process_id)
         )
     }
 }

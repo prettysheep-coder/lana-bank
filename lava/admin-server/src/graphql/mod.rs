@@ -1,3 +1,4 @@
+mod approval_process;
 mod approval_rules;
 mod audit;
 mod authenticated_subject;
