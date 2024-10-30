@@ -3,6 +3,8 @@ mod approval_rules;
 mod audit;
 mod authenticated_subject;
 mod committee;
+mod document;
+// mod customer;
 mod loader;
 #[macro_use]
 pub mod macros;

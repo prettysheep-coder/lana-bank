@@ -5,8 +5,8 @@ use lava_app::app::LavaApp;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, committee::*, loader::*, policy::*,
-    user::*,
+    approval_process::*, audit::*, authenticated_subject::*, committee::*, document::*, loader::*,
+    policy::*, user::*,
 };
 
 pub struct Query;
@@ -127,6 +127,15 @@ impl Query {
             first,
             |query| app.governance().list_approval_processes(sub, query)
         )
+    }
+
+    async fn document(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Document>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
     }
 
     async fn audit(
@@ -304,6 +313,49 @@ impl Mutation {
             ApprovalProcess,
             ctx,
             app.governance().deny_process(sub, input.process_id)
+        )
+    }
+
+    async fn document_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<DocumentDownloadLinksGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // not using macro here because DocumentDownloadLinksGeneratePayload is non standard
+        let doc = app
+            .documents()
+            .generate_download_link(sub, input.document_id.into())
+            .await?;
+        Ok(DocumentDownloadLinksGeneratePayload::from(doc))
+    }
+
+    async fn document_delete(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentDeleteInput,
+    ) -> async_graphql::Result<DocumentDeletePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        // not using macro here because DocumentDeletePayload is non standard
+        app.documents()
+            .delete(sub, input.document_id.clone())
+            .await?;
+        Ok(DocumentDeletePayload {
+            deleted_document_id: input.document_id,
+        })
+    }
+
+    async fn document_archive(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentArchiveInput,
+    ) -> async_graphql::Result<DocumentArchivePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            DocumentArchivePayload,
+            Document,
+            ctx,
+            app.documents().archive(sub, input.document_id)
         )
     }
 }

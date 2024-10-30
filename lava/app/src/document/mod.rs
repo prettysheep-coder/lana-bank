@@ -42,7 +42,7 @@ impl Documents {
         &self,
         sub: &Subject,
         content: Vec<u8>,
-        customer_id: impl Into<CustomerId>,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         filename: String,
     ) -> Result<Document, DocumentError> {
         let audit_info = self
@@ -73,13 +73,13 @@ impl Documents {
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: DocumentId,
+        id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<Option<Document>, DocumentError> {
         self.authz
             .enforce_permission(sub, Object::Document, DocumentAction::Read)
             .await?;
 
-        match self.repo.find_by_id(id).await {
+        match self.repo.find_by_id(id.into()).await {
             Ok(document) => Ok(Some(document)),
             Err(DocumentError::NotFound) => Ok(None),
             Err(e) => Err(e),
@@ -138,7 +138,7 @@ impl Documents {
     pub async fn delete(
         &self,
         sub: &Subject,
-        document_id: DocumentId,
+        document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<(), DocumentError> {
         let audit_info = self
             .authz
@@ -146,7 +146,7 @@ impl Documents {
             .await?;
 
         let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
-        let mut document = self.repo.find_by_id(document_id).await?;
+        let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         let document_location = document.path_for_removal();
         self.storage.remove(document_location).await?;
@@ -162,19 +162,17 @@ impl Documents {
     pub async fn archive(
         &self,
         sub: &Subject,
-        document_id: DocumentId,
+        document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<Document, DocumentError> {
         let audit_info = self
             .authz
             .enforce_permission(sub, Object::Document, DocumentAction::Archive)
             .await?;
 
-        let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
-        let mut document = self.repo.find_by_id(document_id).await?;
+        let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         document.archive(audit_info);
-        self.repo.update_in_tx(&mut db, &mut document).await?;
-        db.commit().await?;
+        self.repo.update(&mut document).await?;
 
         Ok(document)
     }

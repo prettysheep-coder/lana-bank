@@ -7,7 +7,9 @@ use lava_app::{app::LavaApp, user::error::UserError};
 
 use crate::primitives::*;
 
-use super::{approval_process::*, committee::Committee, policy::Policy, user::User};
+use super::{
+    approval_process::*, committee::Committee, document::Document, policy::Policy, user::User,
+};
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
 pub struct LavaLoader {
@@ -37,8 +39,8 @@ impl Loader<governance::CommitteeId> for LavaLoader {
 
     async fn load(
         &self,
-        keys: &[governance::CommitteeId],
-    ) -> Result<HashMap<governance::CommitteeId, Committee>, Self::Error> {
+        keys: &[CommitteeId],
+    ) -> Result<HashMap<CommitteeId, Committee>, Self::Error> {
         self.app
             .governance()
             .find_all_committees(keys)
@@ -51,10 +53,7 @@ impl Loader<governance::PolicyId> for LavaLoader {
     type Value = Policy;
     type Error = Arc<governance::policy_error::PolicyError>;
 
-    async fn load(
-        &self,
-        keys: &[governance::PolicyId],
-    ) -> Result<HashMap<governance::PolicyId, Policy>, Self::Error> {
+    async fn load(&self, keys: &[PolicyId]) -> Result<HashMap<PolicyId, Policy>, Self::Error> {
         self.app
             .governance()
             .find_all_policies(keys)
@@ -69,12 +68,24 @@ impl Loader<governance::ApprovalProcessId> for LavaLoader {
 
     async fn load(
         &self,
-        keys: &[governance::ApprovalProcessId],
-    ) -> Result<HashMap<governance::ApprovalProcessId, ApprovalProcess>, Self::Error> {
+        keys: &[ApprovalProcessId],
+    ) -> Result<HashMap<ApprovalProcessId, ApprovalProcess>, Self::Error> {
         self.app
             .governance()
             .find_all_approval_processes(keys)
             .await
             .map_err(Arc::new)
+    }
+}
+
+impl Loader<DocumentId> for LavaLoader {
+    type Value = Document;
+    type Error = Arc<lava_app::document::error::DocumentError>;
+
+    async fn load(
+        &self,
+        keys: &[DocumentId],
+    ) -> Result<HashMap<DocumentId, Document>, Self::Error> {
+        self.app.documents().find_all(keys).await.map_err(Arc::new)
     }
 }

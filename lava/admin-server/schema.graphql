@@ -1,6 +1,78 @@
+type ApprovalProcess {
+	id: ID!
+	approvalProcessId: UUID!
+	approvalProcessType: ApprovalProcessType!
+	status: ApprovalProcessStatus!
+	createdAt: Timestamp!
+	rules: ApprovalRules!
+	policy: Policy!
+	canVote: Boolean!
+	voters: [ApprovalProcessVoter!]!
+}
+
+input ApprovalProcessApproveInput {
+	processId: UUID!
+}
+
+type ApprovalProcessApprovePayload {
+	approvalProcess: ApprovalProcess!
+}
+
+type ApprovalProcessConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ApprovalProcessEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [ApprovalProcess!]!
+}
+
+input ApprovalProcessDenyInput {
+	processId: UUID!
+}
+
+type ApprovalProcessDenyPayload {
+	approvalProcess: ApprovalProcess!
+}
+
+"""
+An edge in a connection.
+"""
+type ApprovalProcessEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: ApprovalProcess!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+enum ApprovalProcessStatus {
+	APPROVED
+	DENIED
+	IN_PROGRESS
+}
+
 enum ApprovalProcessType {
 	WITHDRAW_APPROVAL
 	CREDIT_FACILITY_APPROVAL
+}
+
+type ApprovalProcessVoter {
+	stillEligible: Boolean!
+	didVote: Boolean!
+	didApprove: Boolean!
+	didDeny: Boolean!
+	votedAt: Timestamp
+	user: User!
 }
 
 union ApprovalRules = SystemApproval | CommitteeThreshold
@@ -123,6 +195,44 @@ type CommitteeThreshold {
 	committee: Committee!
 }
 
+type Document {
+	id: ID!
+	documentId: UUID!
+	customerId: UUID!
+	status: DocumentStatus!
+	filename: String!
+}
+
+input DocumentArchiveInput {
+	documentId: UUID!
+}
+
+type DocumentArchivePayload {
+	document: Document!
+}
+
+input DocumentDeleteInput {
+	documentId: UUID!
+}
+
+type DocumentDeletePayload {
+	deletedDocumentId: UUID!
+}
+
+input DocumentDownloadLinksGenerateInput {
+	documentId: UUID!
+}
+
+type DocumentDownloadLinksGeneratePayload {
+	documentId: UUID!
+	link: String!
+}
+
+enum DocumentStatus {
+	ACTIVE
+	ARCHIVED
+}
+
 
 
 
@@ -134,6 +244,11 @@ type Mutation {
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
+	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
+	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
+	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
+	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
+	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 }
 
 """
@@ -212,6 +327,9 @@ type Query {
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
 	policies(first: Int!, after: String): PolicyConnection!
+	approvalProcess(id: UUID!): ApprovalProcess
+	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
+	document(id: UUID!): Document
 	audit(first: Int!, after: String): AuditEntryConnection!
 }
 
