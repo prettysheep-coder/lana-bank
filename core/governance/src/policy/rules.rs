@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use shared_primitives::CommitteeId;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
     CommitteeThreshold {

@@ -195,6 +195,7 @@ where
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<ApprovalProcessId> + std::fmt::Debug,
+        target_ref: String,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
@@ -206,7 +207,7 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
             )
             .await?;
-        let process = policy.spawn_process(id.into(), audit_info);
+        let process = policy.spawn_process(id.into(), target_ref, audit_info);
         let mut process = self.process_repo.create_in_tx(db, process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self

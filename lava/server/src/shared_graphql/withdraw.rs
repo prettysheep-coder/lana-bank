@@ -9,7 +9,7 @@ use crate::{
 };
 use lava_app::{app::LavaApp, primitives::UsdCents, withdraw::WithdrawalStatus};
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Withdrawal {
     customer_id: UUID,

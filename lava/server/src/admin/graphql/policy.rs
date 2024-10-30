@@ -11,7 +11,7 @@ pub use governance::policy_cursor::PolicyByCreatedAtCursor;
 pub struct Policy {
     id: ID,
     policy_id: UUID,
-    process_type: String,
+    approval_process_type: ApprovalProcessType,
     rules: ApprovalRules,
 }
 
@@ -46,6 +46,24 @@ pub(super) enum ApprovalRules {
     System(SystemApproval),
 }
 
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum ApprovalProcessType {
+    WithdrawApproval,
+    CreditFacilityApproval,
+}
+
+impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
+    fn from(process_type: &governance::ApprovalProcessType) -> Self {
+        if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
+            Self::WithdrawApproval
+        } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
+            Self::CreditFacilityApproval
+        } else {
+            panic!("Unknown ApprovalProcessType")
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct PolicyAssignCommitteeInput {
     pub policy_id: UUID,
@@ -69,7 +87,7 @@ impl From<governance::Policy> for Policy {
         Self {
             id: policy.id.to_global_id(),
             policy_id: policy.id.into(),
-            process_type: policy.process_type.to_string(),
+            approval_process_type: ApprovalProcessType::from(&policy.process_type),
             rules: ApprovalRules::from(policy.rules),
         }
     }

@@ -3,16 +3,18 @@ use async_graphql::dataloader::Loader;
 use std::{collections::HashMap, sync::Arc};
 
 use super::{
-    approval_process::ApprovalProcess, audit::AuditEntry, committee::Committee, policy::Policy,
-    user::User,
+    approval_process::ApprovalProcess, audit::AuditEntry, committee::Committee,
+    credit_facility::CreditFacility, policy::Policy, user::User,
 };
-use crate::shared_graphql::customer::Customer;
+use crate::shared_graphql::{customer::Customer, withdraw::Withdrawal};
 use lava_app::{
     app::LavaApp,
     audit::{error::AuditError, AuditEntryId, AuditSvc},
+    credit_facility::error::CreditFacilityError,
     customer::error::CustomerError,
-    primitives::{CustomerId, UserId},
+    primitives::*,
     user::error::UserError,
+    withdraw::error::WithdrawError,
 };
 
 pub struct LavaDataLoader {
@@ -49,6 +51,34 @@ impl Loader<CustomerId> for LavaDataLoader {
         keys: &[CustomerId],
     ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
         self.app.customers().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<WithdrawId> for LavaDataLoader {
+    type Value = Withdrawal;
+    type Error = Arc<WithdrawError>;
+
+    async fn load(
+        &self,
+        keys: &[WithdrawId],
+    ) -> Result<HashMap<WithdrawId, Withdrawal>, Self::Error> {
+        self.app.withdraws().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<CreditFacilityId> for LavaDataLoader {
+    type Value = CreditFacility;
+    type Error = Arc<CreditFacilityError>;
+
+    async fn load(
+        &self,
+        keys: &[CreditFacilityId],
+    ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
+        self.app
+            .credit_facilities()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

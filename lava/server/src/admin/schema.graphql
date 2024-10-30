@@ -70,6 +70,7 @@ type ApprovalProcess {
 	createdAt: Timestamp!
 	policy: Policy!
 	voters: [ApprovalProcessVoter!]!
+	target: ApprovalProcessTarget!
 }
 
 input ApprovalProcessApproveInput {
@@ -122,6 +123,8 @@ enum ApprovalProcessStatus {
 	DENIED
 	IN_PROGRESS
 }
+
+union ApprovalProcessTarget = Withdrawal | CreditFacility
 
 enum ApprovalProcessType {
 	WITHDRAW_APPROVAL
@@ -955,7 +958,7 @@ enum Period {
 type Policy {
 	id: ID!
 	policyId: UUID!
-	processType: String!
+	approvalProcessType: ApprovalProcessType!
 	rules: ApprovalRules!
 }
 

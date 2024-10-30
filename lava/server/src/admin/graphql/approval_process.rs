@@ -5,11 +5,13 @@ use std::collections::HashSet;
 use crate::shared_graphql::{
     convert::ToGlobalId,
     primitives::{Timestamp, UUID},
+    withdraw::Withdrawal,
 };
-use lava_app::primitives::{ApprovalProcessId, UserId};
+use lava_app::primitives::{ApprovalProcessId, CreditFacilityId, UserId, WithdrawId};
 
 use super::{
-    policy::{ApprovalRules, Policy},
+    credit_facility::CreditFacility,
+    policy::{ApprovalProcessType, ApprovalRules, Policy},
     user::User,
     LavaDataLoader,
 };
@@ -36,6 +38,8 @@ pub struct ApprovalProcess {
     deniers: HashSet<UserId>,
     #[graphql(skip)]
     policy_id: governance::PolicyId,
+    #[graphql(skip)]
+    target_ref: String,
 }
 
 #[ComplexObject]
@@ -92,6 +96,34 @@ impl ApprovalProcess {
             Ok(vec![])
         }
     }
+
+    async fn target(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcessTarget> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        match self.approval_process_type {
+            ApprovalProcessType::WithdrawApproval => {
+                let withdrawal = loader
+                    .load_one(
+                        self.target_ref
+                            .parse::<WithdrawId>()
+                            .expect("invalid target ref"),
+                    )
+                    .await?
+                    .expect("withdrawal not found");
+                Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
+            }
+            ApprovalProcessType::CreditFacilityApproval => {
+                let credit_facility = loader
+                    .load_one(
+                        self.target_ref
+                            .parse::<CreditFacilityId>()
+                            .expect("invalid target ref"),
+                    )
+                    .await?
+                    .expect("credit facility not found");
+                Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
+            }
+        }
+    }
 }
 
 impl ToGlobalId for ApprovalProcessId {
@@ -136,27 +168,16 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
             approvers: process.approvers(),
             deniers: process.deniers(),
             policy_id: process.policy_id,
+            target_ref: process.target_ref().to_string(),
             rules: process.rules.into(),
         }
     }
 }
 
-#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
-pub enum ApprovalProcessType {
-    WithdrawApproval,
-    CreditFacilityApproval,
-}
-
-impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
-    fn from(process_type: &governance::ApprovalProcessType) -> Self {
-        if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
-            Self::WithdrawApproval
-        } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
-            Self::CreditFacilityApproval
-        } else {
-            panic!("Unknown ApprovalProcessType")
-        }
-    }
+#[derive(async_graphql::Union, Clone)]
+pub(super) enum ApprovalProcessTarget {
+    Withdrawal(Withdrawal),
+    CreditFacility(CreditFacility),
 }
 
 #[derive(InputObject)]

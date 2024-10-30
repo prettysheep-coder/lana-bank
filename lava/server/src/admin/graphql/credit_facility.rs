@@ -66,7 +66,7 @@ pub struct CreditFacilityCreateInput {
     pub terms: TermsInput,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct CreditFacility {
     id: ID,
@@ -92,7 +92,7 @@ pub struct CreditFacility {
     domain_customer_id: CustomerId,
 }
 
-#[derive(async_graphql::Union)]
+#[derive(async_graphql::Union, Clone)]
 pub enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
     Collateral(CreditFacilityCollateralUpdated),
@@ -101,14 +101,14 @@ pub enum CreditFacilityHistoryEntry {
     Disbursement(CreditFacilityDisbursementExecuted),
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityCollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: Timestamp,
@@ -116,14 +116,14 @@ pub struct CreditFacilityCollateralUpdated {
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityOrigination {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityCollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
@@ -133,7 +133,7 @@ pub struct CreditFacilityCollateralizationUpdated {
     pub price: UsdCents,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityDisbursementExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,

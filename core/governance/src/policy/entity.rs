@@ -46,10 +46,12 @@ impl Policy {
     pub(crate) fn spawn_process(
         &self,
         id: ApprovalProcessId,
+        target_ref: String,
         audit_info: AuditInfo,
     ) -> NewApprovalProcess {
         NewApprovalProcess::builder()
             .id(id)
+            .target_ref(target_ref)
             .policy_id(self.id)
             .process_type(self.process_type.clone())
             .rules(self.rules.clone())
