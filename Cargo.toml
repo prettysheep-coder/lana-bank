@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "lava/cli",
+  "lava/admin-server",
   "lava/server",
   "lava/app",
   "lava/rbac-types",
