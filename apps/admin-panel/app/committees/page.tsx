@@ -117,7 +117,6 @@ function CommitteesPage() {
             <Table className="mt-6">
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Members</TableHead>
@@ -130,7 +129,6 @@ function CommitteesPage() {
                     className="cursor-pointer"
                     onClick={() => router.push(`/committees/${committee.committeeId}`)}
                   >
-                    <TableCell>{committee.committeeId}</TableCell>
                     <TableCell>{committee.name}</TableCell>
                     <TableCell>{formatDate(committee.createdAt)}</TableCell>
                     <TableCell>{committee.currentMembers.length}</TableCell>

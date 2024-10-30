@@ -17,7 +17,6 @@ import { RiAdminLine } from "react-icons/ri"
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi"
 import { HiOutlineDocumentReport } from "react-icons/hi"
 import { MdOutlinePolicy } from "react-icons/md"
-import { FiUsers } from "react-icons/fi"
 
 import { gql } from "@apollo/client"
 

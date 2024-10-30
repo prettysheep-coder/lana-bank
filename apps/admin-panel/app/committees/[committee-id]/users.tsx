@@ -35,7 +35,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
 
   return (
     <>
-      {committee.users.length > 0 ? (
+      {committee.currentMembers.length > 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Committee Members</CardTitle>
@@ -92,7 +92,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({ committee }) => 
       ) : (
         <Card>
           <CardContent>
-            <p className="mt-6">No members found</p>
+            <p className="mt-6">No members found in this committee</p>
           </CardContent>
         </Card>
       )}
