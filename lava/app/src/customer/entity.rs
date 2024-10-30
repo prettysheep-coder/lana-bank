@@ -72,13 +72,6 @@ impl Customer {
         true
     }
 
-    pub fn audit_info(&self) -> Vec<AuditInfo> {
-        self.events
-            .iter_persisted()
-            .map(|e| e.event.audit_info().clone())
-            .collect()
-    }
-
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),

@@ -91,15 +91,6 @@ impl Customer {
         Ok(withdraws)
     }
 
-    // async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
-    //     let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
-    //     let entries = loader
-    //         .load_many(self.audit_info.iter().map(|info| info.audit_entry_id))
-    //         .await?;
-
-    //     Ok(entries.into_values().collect())
-    // }
-
     // async fn user_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
     //     let app = ctx.data_unchecked::<LavaApp>();
     //     let AdminAuthContext { sub } = ctx.data()?;
