@@ -1,10 +1,10 @@
-use async_graphql::{types::connection::*, Context, Object};
+use async_graphql::{Context, Object};
 
 use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
-use super::{authenticated_subject::*, user::*};
+use super::{authenticated_subject::*, loader::*, user::*};
 
 pub struct Query;
 
@@ -13,7 +13,9 @@ impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        let user = app.users().find_for_subject(sub).await?;
+        let user = Arc::new(app.users().find_for_subject(sub).await?);
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(AuthenticatedSubject::from(user))
     }
 }

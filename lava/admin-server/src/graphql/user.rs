@@ -14,7 +14,7 @@ pub struct User {
     user_id: UUID,
 
     #[graphql(skip)]
-    entity: Arc<DomainUser>,
+    pub(super) entity: Arc<DomainUser>,
 }
 
 #[ComplexObject]

@@ -81,10 +81,8 @@ impl AuthenticatedSubject {
     }
 }
 
-impl From<DomainUser> for AuthenticatedSubject {
-    fn from(entity: DomainUser) -> Self {
-        Self {
-            entity: Arc::new(entity),
-        }
+impl From<Arc<DomainUser>> for AuthenticatedSubject {
+    fn from(entity: Arc<DomainUser>) -> Self {
+        Self { entity }
     }
 }
