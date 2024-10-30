@@ -58,7 +58,7 @@ impl Customers {
         &self.repo
     }
 
-    pub async fn user_can_create_customer(
+    pub async fn subject_can_create_customer(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -82,7 +82,7 @@ impl Customers {
         telegram_id: String,
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
-            .user_can_create_customer(sub, true)
+            .subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
         let customer_id = self.kratos.create_identity(&email).await?.into();
@@ -138,22 +138,20 @@ impl Customers {
         customer
     }
 
+    #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
+        sub: &Subject,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         let id = id.into();
-
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(
-                    sub,
-                    Object::Customer(CustomerAllOrOne::ById(id)),
-                    CustomerAction::Read,
-                )
-                .await?;
-        }
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(id)),
+                CustomerAction::Read,
+            )
+            .await?;
         match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
             Err(CustomerError::NotFound) => Ok(None),
@@ -161,6 +159,7 @@ impl Customers {
         }
     }
 
+    #[instrument(name = "customer.find_by_email", skip(self), err)]
     pub async fn find_by_email(
         &self,
         sub: &Subject,

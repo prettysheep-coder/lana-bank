@@ -5,8 +5,8 @@ use lava_app::app::LavaApp;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, committee::*, document::*, loader::*,
-    policy::*, user::*,
+    approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*,
+    document::*, loader::*, policy::*, user::*,
 };
 
 pub struct Query;
@@ -40,6 +40,42 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn customer(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Customer>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Customer, ctx, app.customers().find_by_id(sub, id))
+    }
+
+    async fn customer_by_email(
+        &self,
+        ctx: &Context<'_>,
+        email: String,
+    ) -> async_graphql::Result<Option<Customer>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
+    }
+
+    async fn customers(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<CustomerByEmailCursor, Customer, EmptyFields, EmptyFields>>
+    {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CustomerByEmailCursor,
+            Customer,
+            ctx,
+            after,
+            first,
+            |query| app.customers().list(sub, query)
+        )
     }
 
     async fn committee(
@@ -181,6 +217,22 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    pub async fn customer_document_attach(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentCreateInput,
+    ) -> async_graphql::Result<DocumentCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let file = input.file.value(ctx)?;
+        exec_mutation!(
+            DocumentCreatePayload,
+            Document,
+            ctx,
+            app.documents()
+                .create(sub, file.content.to_vec(), input.customer_id, file.filename)
+        )
+    }
+
     async fn user_create(
         &self,
         ctx: &Context<'_>,

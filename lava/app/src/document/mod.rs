@@ -37,7 +37,7 @@ impl Documents {
         }
     }
 
-    #[instrument(name = "documents.create", skip(self), err)]
+    #[instrument(name = "documents.create", skip(self, content), err)]
     pub async fn create(
         &self,
         sub: &Subject,
@@ -86,8 +86,8 @@ impl Documents {
         }
     }
 
-    #[instrument(name = "documents.list_by_customer_id", skip(self), err)]
-    pub async fn list_by_customer_id(
+    #[instrument(name = "documents.list_for_customer_id", skip(self), err)]
+    pub async fn list_for_customer_id(
         &self,
         sub: &Subject,
         customer_id: CustomerId,

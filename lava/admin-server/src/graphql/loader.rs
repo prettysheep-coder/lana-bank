@@ -8,7 +8,8 @@ use lava_app::{app::LavaApp, user::error::UserError};
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, committee::Committee, document::Document, policy::Policy, user::User,
+    approval_process::*, committee::Committee, customer::*, document::Document, policy::Policy,
+    user::User,
 };
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
@@ -87,5 +88,17 @@ impl Loader<DocumentId> for LavaLoader {
         keys: &[DocumentId],
     ) -> Result<HashMap<DocumentId, Document>, Self::Error> {
         self.app.documents().find_all(keys).await.map_err(Arc::new)
+    }
+}
+
+impl Loader<CustomerId> for LavaLoader {
+    type Value = Customer;
+    type Error = Arc<lava_app::customer::error::CustomerError>;
+
+    async fn load(
+        &self,
+        keys: &[CustomerId],
+    ) -> Result<HashMap<CustomerId, Customer>, Self::Error> {
+        self.app.customers().find_all(keys).await.map_err(Arc::new)
     }
 }

@@ -172,7 +172,7 @@ impl CreditFacilities {
             .await?
             .expect("audit info missing");
 
-        let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
+        let customer = match self.customers.find_by_id(sub, customer_id).await? {
             Some(customer) => customer,
             None => return Err(CreditFacilityError::CustomerNotFound(customer_id)),
         };

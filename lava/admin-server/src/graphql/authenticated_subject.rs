@@ -29,7 +29,7 @@ impl AuthenticatedSubject {
         let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .customers()
-            .user_can_create_customer(sub, false)
+            .subject_can_create_customer(sub, false)
             .await
             .is_ok())
     }

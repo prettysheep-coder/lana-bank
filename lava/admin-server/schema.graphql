@@ -1,3 +1,8 @@
+enum AccountStatus {
+	ACTIVE
+	INACTIVE
+}
+
 type ApprovalProcess {
 	id: ID!
 	approvalProcessId: UUID!
@@ -195,6 +200,46 @@ type CommitteeThreshold {
 	committee: Committee!
 }
 
+type Customer {
+	id: ID!
+	customerId: UUID!
+	status: AccountStatus!
+	level: KycLevel!
+	email: String!
+	telegramId: String!
+	applicantId: String
+	documents: [Document!]!
+}
+
+type CustomerConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CustomerEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Customer!]!
+}
+
+"""
+An edge in a connection.
+"""
+type CustomerEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Customer!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type Document {
 	id: ID!
 	documentId: UUID!
@@ -235,6 +280,12 @@ enum DocumentStatus {
 
 
 
+
+enum KycLevel {
+	NOT_KYCED
+	BASIC
+	ADVANCED
+}
 
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
@@ -323,6 +374,9 @@ type Query {
 	me: AuthenticatedSubject!
 	user(id: UUID!): User
 	users: [User!]!
+	customer(id: UUID!): Customer
+	customerByEmail(email: String!): Customer
+	customers(first: Int!, after: String): CustomerConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy

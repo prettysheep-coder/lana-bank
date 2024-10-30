@@ -4,7 +4,8 @@ use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
 pub use lava_app::primitives::{
-    ApprovalProcessId, CommitteeId, DocumentId, LavaRole, PolicyId, Subject, UserId,
+    AccountStatus, ApprovalProcessId, CommitteeId, CustomerId, DocumentId, KycLevel, LavaRole,
+    PolicyId, Subject, UserId,
 };
 
 pub use std::sync::Arc;
@@ -75,6 +76,7 @@ macro_rules! impl_to_global_id {
 
 impl_to_global_id! {
     UserId,
+    CustomerId,
     audit::AuditEntryId,
     DocumentId,
     PolicyId,
