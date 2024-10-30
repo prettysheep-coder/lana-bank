@@ -13,7 +13,7 @@ gql`
     policy(id: $id) {
       id
       policyId
-      processType
+      approvalProcessType
       rules {
         ... on CommitteeThreshold {
           threshold

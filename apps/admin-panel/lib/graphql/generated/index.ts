@@ -93,12 +93,13 @@ export enum AccountStatus {
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
+  approvalProcessType: ApprovalProcessType;
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   policy: Policy;
-  processType: Scalars['String']['output'];
   rules: ApprovalRules;
   status: ApprovalProcessStatus;
+  target: ApprovalProcessTarget;
   voters: Array<ApprovalProcessVoter>;
 };
 
@@ -143,6 +144,13 @@ export enum ApprovalProcessStatus {
   Approved = 'APPROVED',
   Denied = 'DENIED',
   InProgress = 'IN_PROGRESS'
+}
+
+export type ApprovalProcessTarget = CreditFacility | Withdrawal;
+
+export enum ApprovalProcessType {
+  CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
+  WithdrawApproval = 'WITHDRAW_APPROVAL'
 }
 
 export type ApprovalProcessVoter = {
@@ -1136,9 +1144,9 @@ export enum Period {
 
 export type Policy = {
   __typename?: 'Policy';
+  approvalProcessType: ApprovalProcessType;
   id: Scalars['ID']['output'];
   policyId: Scalars['UUID']['output'];
-  processType: Scalars['String']['output'];
   rules: ApprovalRules;
 };
 
@@ -1681,7 +1689,7 @@ export type ApprovalProcessApproveMutationVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } } };
+export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
 
 export type ApprovalProcessesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1689,7 +1697,7 @@ export type ApprovalProcessesQueryVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } }> } };
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1977,14 +1985,14 @@ export type PolicyAssignCommitteeMutationVariables = Exact<{
 }>;
 
 
-export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, processType: string } } };
+export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType } } };
 
 export type GetPolicyDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
 
 export type PoliciesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1992,7 +2000,7 @@ export type PoliciesQueryVariables = Exact<{
 }>;
 
 
-export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string } } | { __typename?: 'SystemApproval', autoApprove: boolean } } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string } } | { __typename?: 'SystemApproval', autoApprove: boolean } } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
 
 export type PnlAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -2267,7 +2275,7 @@ export const ApprovalProcessApproveDocument = gql`
     approvalProcess {
       id
       approvalProcessId
-      processType
+      approvalProcessType
       createdAt
     }
   }
@@ -2311,7 +2319,7 @@ export const ApprovalProcessesDocument = gql`
       node {
         id
         approvalProcessId
-        processType
+        approvalProcessType
         createdAt
       }
     }
@@ -4419,7 +4427,7 @@ export const PolicyAssignCommitteeDocument = gql`
     policy {
       id
       policyId
-      processType
+      approvalProcessType
     }
   }
 }
@@ -4455,7 +4463,7 @@ export const GetPolicyDetailsDocument = gql`
   policy(id: $id) {
     id
     policyId
-    processType
+    approvalProcessType
     rules {
       ... on CommitteeThreshold {
         threshold
@@ -4514,7 +4522,7 @@ export const PoliciesDocument = gql`
       node {
         id
         policyId
-        processType
+        approvalProcessType
         rules {
           ... on CommitteeThreshold {
             threshold
