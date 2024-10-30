@@ -109,6 +109,7 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	transactions: [CreditFacilityHistoryEntry!]!
 	balance: CreditFacilityBalance!
+	approvalProcess: ApprovalProcess!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
 	currentCvl: FacilityCVL!

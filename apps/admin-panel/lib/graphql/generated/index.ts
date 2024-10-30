@@ -336,6 +336,7 @@ export type CommitteeThreshold = {
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   activatedAt?: Maybe<Scalars['Timestamp']['output']>;
+  approvalProcess: ApprovalProcess;
   approvalProcessId: Scalars['UUID']['output'];
   balance: CreditFacilityBalance;
   canBeCompleted: Scalars['Boolean']['output'];
