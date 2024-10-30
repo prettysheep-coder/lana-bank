@@ -24,7 +24,7 @@ pub struct ApprovalProcess {
     id: ID,
     approval_process_id: UUID,
     rules: ApprovalRules,
-    process_type: String,
+    approval_process_type: ApprovalProcessType,
     status: ApprovalProcessStatus,
     created_at: Timestamp,
 
@@ -129,7 +129,7 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
         Self {
             id: process.id.to_global_id(),
             approval_process_id: process.id.into(),
-            process_type: process.process_type.to_string(),
+            approval_process_type: ApprovalProcessType::from(&process.process_type),
             status: process.status(),
             created_at: process.created_at().into(),
             committee_id: process.committee_id(),
@@ -137,6 +137,24 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
             deniers: process.deniers(),
             policy_id: process.policy_id,
             rules: process.rules.into(),
+        }
+    }
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum ApprovalProcessType {
+    WithdrawApproval,
+    CreditFacilityApproval,
+}
+
+impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
+    fn from(process_type: &governance::ApprovalProcessType) -> Self {
+        if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
+            Self::WithdrawApproval
+        } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
+            Self::CreditFacilityApproval
+        } else {
+            panic!("Unknown ApprovalProcessType")
         }
     }
 }

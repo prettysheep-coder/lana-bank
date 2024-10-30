@@ -22,7 +22,7 @@ pub use entity::*;
 use error::WithdrawError;
 pub use repo::{cursor::*, WithdrawRepo};
 
-const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
+pub const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
 #[derive(Clone)]
 pub struct Withdraws {

@@ -65,7 +65,7 @@ type ApprovalProcess {
 	id: ID!
 	approvalProcessId: UUID!
 	rules: ApprovalRules!
-	processType: String!
+	approvalProcessType: ApprovalProcessType!
 	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
 	policy: Policy!
@@ -121,6 +121,11 @@ enum ApprovalProcessStatus {
 	APPROVED
 	DENIED
 	IN_PROGRESS
+}
+
+enum ApprovalProcessType {
+	WITHDRAW_APPROVAL
+	CREDIT_FACILITY_APPROVAL
 }
 
 type ApprovalProcessVoter {

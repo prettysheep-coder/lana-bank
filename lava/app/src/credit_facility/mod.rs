@@ -38,7 +38,7 @@ pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
 
-const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
+pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
 
 #[derive(Clone)]
