@@ -7,7 +7,7 @@ use super::{committee::Committee, LavaDataLoader};
 
 pub use governance::policy_cursor::PolicyByCreatedAtCursor;
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct Policy {
     id: ID,
     policy_id: UUID,
@@ -15,7 +15,7 @@ pub struct Policy {
     rules: ApprovalRules,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub(super) struct CommitteeThreshold {
     threshold: usize,
@@ -30,17 +30,17 @@ impl CommitteeThreshold {
         let committee = loader
             .load_one(self.committee_id)
             .await?
-            .map(Committee::from);
-        Ok(committee.expect("committee not found"))
+            .expect("committee not found");
+        Ok(committee)
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub(super) struct SystemApproval {
     auto_approve: bool,
 }
 
-#[derive(async_graphql::Union)]
+#[derive(async_graphql::Union, Clone)]
 pub(super) enum ApprovalRules {
     CommitteeThreshold(CommitteeThreshold),
     System(SystemApproval),
@@ -93,7 +93,7 @@ impl From<governance::ApprovalRules> for ApprovalRules {
                 threshold,
                 committee_id,
             }),
-            governance::ApprovalRules::System => {
+            governance::ApprovalRules::SystemAutoApprove => {
                 ApprovalRules::System(SystemApproval { auto_approve: true })
             }
         }

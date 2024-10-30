@@ -2,7 +2,10 @@ use async_graphql::dataloader::Loader;
 
 use std::{collections::HashMap, sync::Arc};
 
-use super::{audit::AuditEntry, committee::Committee, user::User};
+use super::{
+    approval_process::ApprovalProcess, audit::AuditEntry, committee::Committee, policy::Policy,
+    user::User,
+};
 use crate::shared_graphql::customer::Customer;
 use lava_app::{
     app::LavaApp,
@@ -60,6 +63,38 @@ impl Loader<governance::CommitteeId> for LavaDataLoader {
         self.app
             .governance()
             .find_all_committees(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<governance::ApprovalProcessId> for LavaDataLoader {
+    type Value = ApprovalProcess;
+    type Error = Arc<governance::approval_process_error::ApprovalProcessError>;
+
+    async fn load(
+        &self,
+        keys: &[governance::ApprovalProcessId],
+    ) -> Result<HashMap<governance::ApprovalProcessId, ApprovalProcess>, Self::Error> {
+        self.app
+            .governance()
+            .find_all_approval_processes(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<governance::PolicyId> for LavaDataLoader {
+    type Value = Policy;
+    type Error = Arc<governance::policy_error::PolicyError>;
+
+    async fn load(
+        &self,
+        keys: &[governance::PolicyId],
+    ) -> Result<HashMap<governance::PolicyId, Policy>, Self::Error> {
+        self.app
+            .governance()
+            .find_all_policies(keys)
             .await
             .map_err(Arc::new)
     }

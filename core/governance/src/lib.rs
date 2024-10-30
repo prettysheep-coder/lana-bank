@@ -17,13 +17,11 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub use approval_process::*;
-pub use committee::error as committee_error;
-pub use committee::*;
+pub use approval_process::{error as approval_process_error, *};
+pub use committee::{error as committee_error, *};
 use error::*;
 pub use event::*;
-pub use policy::error as policy_error;
-pub use policy::*;
+pub use policy::{error as policy_error, *};
 pub use primitives::*;
 
 pub struct Governance<Perms, E>
@@ -96,7 +94,7 @@ where
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .rules(ApprovalRules::System)
+            .rules(ApprovalRules::SystemAutoApprove)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new policy");
@@ -182,6 +180,14 @@ where
         db_tx.commit().await?;
 
         Ok(policy)
+    }
+
+    #[instrument(name = "governance.find_all_policies", skip(self), err)]
+    pub async fn find_all_policies<T: From<Policy>>(
+        &self,
+        ids: &[PolicyId],
+    ) -> Result<HashMap<PolicyId, T>, PolicyError> {
+        self.policy_repo.find_all(ids).await
     }
 
     #[instrument(name = "governance.start_process", skip(self), err)]
@@ -506,6 +512,14 @@ where
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await?;
         Ok(approval_processes)
+    }
+
+    #[instrument(name = "governance.find_all_committees", skip(self), err)]
+    pub async fn find_all_approval_processes<T: From<ApprovalProcess>>(
+        &self,
+        ids: &[ApprovalProcessId],
+    ) -> Result<HashMap<ApprovalProcessId, T>, ApprovalProcessError> {
+        self.process_repo.find_all(ids).await
     }
 
     async fn eligible_voters_for_process(
