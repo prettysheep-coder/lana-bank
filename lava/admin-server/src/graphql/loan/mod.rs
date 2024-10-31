@@ -134,3 +134,37 @@ impl Loan {
     //         .is_ok())
     // }
 }
+
+#[derive(InputObject)]
+pub struct LoanCreateInput {
+    pub customer_id: UUID,
+    pub desired_principal: UsdCents,
+    pub loan_terms: TermsInput,
+}
+crate::mutation_payload!(LoanCreatePayload, loan: Loan);
+
+#[derive(InputObject)]
+pub struct LoanApproveInput {
+    pub loan_id: UUID,
+}
+crate::mutation_payload!(LoanApprovePayload, loan: Loan);
+
+#[derive(InputObject)]
+pub struct LoanPartialPaymentInput {
+    pub loan_id: UUID,
+    pub amount: UsdCents,
+}
+crate::mutation_payload!(LoanPartialPaymentPayload, loan: Loan);
+
+#[derive(InputObject)]
+pub struct LoanCollateralUpdateInput {
+    pub loan_id: UUID,
+    pub collateral: Satoshis,
+}
+crate::mutation_payload!(LoanCollateralUpdatePayload, loan: Loan);
+
+#[derive(InputObject)]
+pub struct LoanCollateralizationStateTriggerRefreshInput {
+    pub loan_id: UUID,
+}
+crate::mutation_payload!(LoanCollateralizationStateTriggerRefreshPayload, loan: Loan);

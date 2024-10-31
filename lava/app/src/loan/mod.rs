@@ -251,7 +251,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_update_collateralization_state(
+    pub async fn subject_can_update_collateralization_state(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -268,14 +268,15 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "loan.update_collateral", skip(self), err)]
-    pub async fn update_collateralization_state(
+    #[instrument(name = "loan.trigger_collateralization_state_refresh", skip(self), err)]
+    pub async fn trigger_collateralization_state_refresh(
         &self,
         sub: &Subject,
-        loan_id: LoanId,
+        loan_id: impl Into<LoanId> + std::fmt::Debug,
     ) -> Result<Loan, LoanError> {
+        let loan_id = loan_id.into();
         let audit_info = self
-            .user_can_update_collateralization_state(sub, loan_id, true)
+            .subject_can_update_collateralization_state(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -314,12 +315,15 @@ impl Loans {
             .await?)
     }
 
+    #[instrument(name = "loan.record_payment_or_complete_loan", skip(self), err)]
     pub async fn record_payment_or_complete_loan(
         &self,
         sub: &Subject,
-        loan_id: LoanId,
+        loan_id: impl Into<LoanId> + std::fmt::Debug,
         amount: UsdCents,
     ) -> Result<Loan, LoanError> {
+        let loan_id = loan_id.into();
+
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self

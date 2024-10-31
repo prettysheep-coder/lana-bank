@@ -776,6 +776,98 @@ impl Mutation {
         )
     }
 
+    async fn loan_create(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanCreateInput,
+    ) -> async_graphql::Result<LoanCreatePayload> {
+        let LoanCreateInput {
+            customer_id,
+            desired_principal,
+            loan_terms,
+        } = input;
+        let term_values = lava_app::terms::TermValues::builder()
+            .annual_rate(loan_terms.annual_rate)
+            .accrual_interval(loan_terms.accrual_interval)
+            .incurrence_interval(loan_terms.incurrence_interval)
+            .duration(loan_terms.duration)
+            .liquidation_cvl(loan_terms.liquidation_cvl)
+            .margin_call_cvl(loan_terms.margin_call_cvl)
+            .initial_cvl(loan_terms.initial_cvl)
+            .build()?;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LoanCreatePayload,
+            Loan,
+            ctx,
+            app.loans()
+                .create_loan_for_customer(sub, customer_id, desired_principal, term_values)
+        )
+    }
+
+    async fn loan_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanApproveInput,
+    ) -> async_graphql::Result<LoanApprovePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LoanApprovePayload,
+            Loan,
+            ctx,
+            app.loans().add_approval(sub, input.loan_id)
+        )
+    }
+
+    pub async fn loan_partial_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanPartialPaymentInput,
+    ) -> async_graphql::Result<LoanPartialPaymentPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LoanPartialPaymentPayload,
+            Loan,
+            ctx,
+            app.loans()
+                .record_payment_or_complete_loan(sub, input.loan_id, input.amount)
+        )
+    }
+
+    pub async fn loan_collateral_update(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanCollateralUpdateInput,
+    ) -> async_graphql::Result<LoanCollateralUpdatePayload> {
+        let LoanCollateralUpdateInput {
+            loan_id,
+            collateral,
+        } = input;
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LoanCollateralUpdatePayload,
+            Loan,
+            ctx,
+            app.loans()
+                .update_collateral(sub, loan_id.into(), collateral)
+        )
+    }
+
+    pub async fn loan_collateralization_state_trigger_refresh(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanCollateralizationStateTriggerRefreshInput,
+    ) -> async_graphql::Result<LoanCollateralizationStateTriggerRefreshPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            LoanCollateralizationStateTriggerRefreshPayload,
+            Loan,
+            ctx,
+            app.loans()
+                .trigger_collateralization_state_refresh(sub, input.loan_id)
+        )
+    }
+
     async fn committee_create(
         &self,
         ctx: &Context<'_>,
