@@ -135,17 +135,17 @@ impl CreditFacility {
             .is_ok())
     }
 
-    async fn user_can_approve_disbursement(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit_facilities()
-            .subject_can_approve_disbursement(sub, false)
-            .await
-            .is_ok())
-    }
+    //     async fn user_can_approve_disbursement(
+    //         &self,
+    //         ctx: &Context<'_>,
+    //     ) -> async_graphql::Result<bool> {
+    //         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+    //         Ok(app
+    //             .credit_facilities()
+    //             .subject_can_approve_disbursement(sub, false)
+    //             .await
+    //             .is_ok())
+    //     }
 
     async fn user_can_record_payment(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);

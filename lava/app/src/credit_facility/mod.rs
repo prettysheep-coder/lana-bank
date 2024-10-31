@@ -25,8 +25,8 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CustomerId, DisbursementId, DisbursementIdx, Satoshis, Subject, UsdCents,
-        UserId,
+        CreditFacilityId, CustomerId, DisbursementId, DisbursementIdx, PriceOfOneBTC, Satoshis,
+        Subject, UsdCents,
     },
     terms::TermValues,
 };

@@ -1,9 +1,6 @@
 use async_graphql::*;
 
-use crate::{
-    graphql::{loader::LavaDataLoader, user::*},
-    primitives::*,
-};
+use crate::primitives::*;
 pub use lava_app::credit_facility::Disbursement as DomainDisbursement;
 
 #[derive(SimpleObject, Clone)]
@@ -34,42 +31,13 @@ impl From<DomainDisbursement> for CreditFacilityDisbursement {
 
 #[ComplexObject]
 impl CreditFacilityDisbursement {
-    async fn approvals(&self) -> Vec<DisbursementApproval> {
-        self.entity
-            .approvals()
-            .into_iter()
-            .map(DisbursementApproval::from)
-            .collect()
-    }
-}
-
-#[derive(SimpleObject)]
-#[graphql(complex)]
-pub struct DisbursementApproval {
-    approved_at: Timestamp,
-    #[graphql(skip)]
-    user_id: lava_app::primitives::UserId,
-}
-
-impl From<lava_app::credit_facility::DisbursementApproval> for DisbursementApproval {
-    fn from(disbursement_approval: lava_app::credit_facility::DisbursementApproval) -> Self {
-        Self {
-            user_id: disbursement_approval.user_id,
-            approved_at: disbursement_approval.approved_at.into(),
-        }
-    }
-}
-
-#[ComplexObject]
-impl DisbursementApproval {
-    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
-        let user = loader
-            .load_one(self.user_id)
-            .await?
-            .expect("committee not found");
-        Ok(user)
-    }
+    // async fn approvals(&self) -> Vec<DisbursementApproval> {
+    //     self.entity
+    //         .approvals()
+    //         .into_iter()
+    //         .map(DisbursementApproval::from)
+    //         .collect()
+    // }
 }
 
 #[derive(InputObject)]

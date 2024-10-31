@@ -324,7 +324,6 @@ type CreditFacility {
 	approvalProcess: ApprovalProcess!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursement: Boolean!
-	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
 	userCanComplete: Boolean!
 	customer: Customer!
@@ -403,7 +402,6 @@ type CreditFacilityDisbursement {
 	amount: UsdCents!
 	status: DisbursementStatus!
 	createdAt: Timestamp!
-	approvals: [DisbursementApproval!]!
 }
 
 type CreditFacilityDisbursementExecuted {
@@ -580,16 +578,13 @@ type Disbursed {
 	outstanding: Outstanding!
 }
 
-type DisbursementApproval {
-	approvedAt: Timestamp!
-	user: User!
-}
-
 scalar DisbursementIdx
 
 enum DisbursementStatus {
 	NEW
 	APPROVED
+	DENIED
+	CONFIRMED
 }
 
 type Document {
@@ -658,6 +653,12 @@ type FacilityRemaining {
 	usdBalance: UsdCents!
 }
 
+
+type GovernanceNavigationItems {
+	committee: Boolean!
+	policy: Boolean!
+	approvalProcess: Boolean!
+}
 
 
 
@@ -1175,6 +1176,7 @@ type VisibleNavigationItems {
 	withdraw: Boolean!
 	audit: Boolean!
 	financials: Boolean!
+	governance: GovernanceNavigationItems!
 	creditFacilities: Boolean!
 }
 
