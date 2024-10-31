@@ -4,7 +4,7 @@ mod repayment_plan;
 
 use async_graphql::*;
 
-use super::{customer::*, loader::LavaDataLoader, terms::*};
+use super::{customer::*, loader::LavaDataLoader, terms::*, user::*};
 use crate::primitives::*;
 pub use lava_app::{
     loan::{Loan as DomainLoan, LoanByCollateralizationRatioCursor, LoanCollaterizationState},
@@ -98,6 +98,17 @@ impl Loan {
             .collect()
     }
 
+    async fn approvals(&self) -> Vec<LoanApproval> {
+        self.entity
+            .approvals()
+            .into_iter()
+            .map(|a| LoanApproval {
+                user_id: a.user_id,
+                approved_at: a.approved_at.into(),
+            })
+            .collect()
+    }
+
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let app = ctx.data_unchecked::<LavaApp>();
         let price = app.price().usd_cents_per_btc().await?;
@@ -144,6 +155,26 @@ impl Loan {
             .subject_can_record_payment_or_complete_loan(sub, self.entity.id, false)
             .await
             .is_ok())
+    }
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct LoanApproval {
+    #[graphql(skip)]
+    user_id: UserId,
+    approved_at: Timestamp,
+}
+
+#[ComplexObject]
+impl LoanApproval {
+    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let user = loader
+            .load_one(self.user_id)
+            .await?
+            .expect("user not found");
+        Ok(user)
     }
 }
 
