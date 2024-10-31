@@ -4,7 +4,10 @@ use lava_app::app::LavaApp;
 
 use crate::primitives::*;
 
-use super::{approval_rules::*, loader::LavaDataLoader, policy::*, user::User};
+use super::{
+    approval_rules::*, credit_facility::*, loader::LavaDataLoader, policy::*, user::User,
+    withdrawal::*,
+};
 
 pub use governance::{
     approval_process_cursor::ApprovalProcessByCreatedAtCursor,
@@ -120,51 +123,55 @@ impl ApprovalProcess {
         }
     }
 
-    // async fn target(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcessTarget> {
-    //     let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
-    //     match self.approval_process_type {
-    //         ApprovalProcessType::WithdrawApproval => {
-    //             let withdrawal = loader
-    //                 .load_one(
-    //                     self.entity
-    //                         .target_ref()
-    //                         .parse::<WithdrawId>()
-    //                         .expect("invalid target ref"),
-    //                 )
-    //                 .await?
-    //                 .expect("withdrawal not found");
-    //             Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
-    //         }
-    //         ApprovalProcessType::CreditFacilityApproval => {
-    //             let credit_facility = loader
-    //                 .load_one(
-    //                     self.entity
-    //                         .target_ref()
-    //                         .parse::<CreditFacilityId>()
-    //                         .expect("invalid target ref"),
-    //                 )
-    //                 .await?
-    //                 .expect("credit facility not found");
-    //             Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
-    //         }
-    //     }
-    // }
+    async fn target(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcessTarget> {
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        match self.approval_process_type {
+            ApprovalProcessType::WithdrawalApproval => {
+                let withdrawal = loader
+                    .load_one(
+                        self.entity
+                            .target_ref()
+                            .parse::<WithdrawId>()
+                            .expect("invalid target ref"),
+                    )
+                    .await?
+                    .expect("withdrawal not found");
+                Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
+            }
+            ApprovalProcessType::CreditFacilityApproval => {
+                let credit_facility = loader
+                    .load_one(
+                        self.entity
+                            .target_ref()
+                            .parse::<CreditFacilityId>()
+                            .expect("invalid target ref"),
+                    )
+                    .await?
+                    .expect("credit facility not found");
+                Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
+            }
+            ApprovalProcessType::DisbursementApproval => todo!(),
+        }
+    }
 }
 
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum ApprovalProcessType {
-    WithdrawApproval,
+    WithdrawalApproval,
     CreditFacilityApproval,
+    DisbursementApproval,
 }
 
 impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
     fn from(process_type: &governance::ApprovalProcessType) -> Self {
         if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
-            Self::WithdrawApproval
+            Self::WithdrawalApproval
         } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
             Self::CreditFacilityApproval
+        } else if process_type == &lava_app::governance::APPROVE_DISBURSEMENT_PROCESS {
+            Self::DisbursementApproval
         } else {
-            panic!("Unknown ApprovalProcessType")
+            panic!("Unknown approval process type: {:?}", process_type);
         }
     }
 }
@@ -194,12 +201,12 @@ impl ApprovalProcessVoter {
     }
 }
 
-// #[allow(clippy::large_enum_variant)]
-// #[derive(async_graphql::Union, Clone)]
-// pub(super) enum ApprovalProcessTarget {
-//     Withdrawal(u32),
-//     CreditFacility(String),
-// }
+#[allow(clippy::large_enum_variant)]
+#[derive(async_graphql::Union)]
+pub(super) enum ApprovalProcessTarget {
+    Withdrawal(Withdrawal),
+    CreditFacility(CreditFacility),
+}
 
 #[derive(InputObject)]
 pub struct ApprovalProcessApproveInput {
