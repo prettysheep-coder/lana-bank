@@ -6,7 +6,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
-    customer::*, deposit::*, document::*, financials::*, loader::*, policy::*, report::*,
+    customer::*, deposit::*, document::*, financials::*, loader::*, loan::*, policy::*, report::*,
     sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
@@ -184,6 +184,30 @@ impl Query {
             after,
             first,
             |query| app.credit_facilities().list(sub, query)
+        )
+    }
+
+    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Loan, ctx, app.loans().find_by_id(sub, id))
+    }
+
+    async fn loans(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<LoanByCollateralizationRatioCursor, Loan, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            LoanByCollateralizationRatioCursor,
+            Loan,
+            ctx,
+            after,
+            first,
+            |query| app.loans().list_by_collateralization_ratio(sub, query)
         )
     }
 

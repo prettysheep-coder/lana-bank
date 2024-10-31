@@ -9,6 +9,8 @@ mod repo;
 use sqlx::PgPool;
 use tracing::instrument;
 
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
 
 use crate::{
@@ -99,7 +101,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
+    #[instrument(name = "loan.create_loan_for_customer", skip(self), err)]
     pub async fn create_loan_for_customer(
         &self,
         sub: &Subject,
@@ -160,7 +162,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.add_approval", skip(self), err)]
+    #[instrument(name = "loan.add_approval", skip(self), err)]
     pub async fn add_approval(
         &self,
         sub: &Subject,
@@ -213,7 +215,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
+    #[instrument(name = "loan.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
         sub: &Subject,
@@ -266,7 +268,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
+    #[instrument(name = "loan.update_collateral", skip(self), err)]
     pub async fn update_collateralization_state(
         &self,
         sub: &Subject,
@@ -357,16 +359,16 @@ impl Loans {
         Ok(loan)
     }
 
+    #[instrument(name = "loan.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
-        id: LoanId,
+        sub: &Subject,
+        id: impl Into<LoanId> + std::fmt::Debug,
     ) -> Result<Option<Loan>, LoanError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(sub, Object::Loan(LoanAllOrOne::ById(id)), LoanAction::Read)
-                .await?;
-        }
+        let id = id.into();
+        self.authz
+            .enforce_permission(sub, Object::Loan(LoanAllOrOne::ById(id)), LoanAction::Read)
+            .await?;
 
         match self.loan_repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
@@ -375,7 +377,7 @@ impl Loans {
         }
     }
 
-    #[instrument(name = "lava.loan.list_for_customer", skip(self), err)]
+    #[instrument(name = "loan.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
         sub: Option<&Subject>,
@@ -402,7 +404,7 @@ impl Loans {
             .entities)
     }
 
-    #[instrument(name = "lava.loan.list", skip(self), err)]
+    #[instrument(name = "loan.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &Subject,
@@ -416,7 +418,7 @@ impl Loans {
             .await
     }
 
-    #[instrument(name = "lava.loan.list_by_collateralization_ratio", skip(self), err)]
+    #[instrument(name = "loan.list_by_collateralization_ratio", skip(self), err)]
     pub async fn list_by_collateralization_ratio(
         &self,
         sub: &Subject,
@@ -429,5 +431,12 @@ impl Loans {
         self.loan_repo
             .list_by_collateralization_ratio(query, es_entity::ListDirection::Ascending)
             .await
+    }
+
+    pub async fn find_all<T: From<Loan>>(
+        &self,
+        ids: &[LoanId],
+    ) -> Result<HashMap<LoanId, T>, LoanError> {
+        self.loan_repo.find_all(ids).await
     }
 }

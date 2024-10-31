@@ -651,6 +651,62 @@ type LayeredUsdAccountAmounts {
 	encumbrance: UsdAccountAmounts!
 }
 
+type Loan {
+	id: ID!
+	loanId: UUID!
+	createdAt: Timestamp!
+	approvedAt: Timestamp
+	expiresAt: Timestamp
+	status: LoanStatus!
+	collateral: Satoshis!
+	principal: UsdCents!
+	collateralizationState: LoanCollaterizationState!
+	loanTerms: TermValues!
+	customer: Customer!
+}
+
+enum LoanCollaterizationState {
+	FULLY_COLLATERALIZED
+	UNDER_MARGIN_CALL_THRESHOLD
+	UNDER_LIQUIDATION_THRESHOLD
+	NO_COLLATERAL
+}
+
+type LoanConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LoanEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Loan!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LoanEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Loan!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+enum LoanStatus {
+	NEW
+	ACTIVE
+	CLOSED
+}
+
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -776,6 +832,8 @@ type Query {
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
+	loan(id: UUID!): Loan
+	loans(first: Int!, after: String): LoanConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy

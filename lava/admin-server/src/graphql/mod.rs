@@ -10,6 +10,7 @@ mod deposit;
 mod document;
 mod financials;
 mod loader;
+mod loan;
 mod report;
 mod sumsub;
 mod terms;
