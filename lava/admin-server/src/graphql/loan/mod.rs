@@ -1,5 +1,6 @@
 mod balance;
 mod history;
+mod repayment_plan;
 
 use async_graphql::*;
 
@@ -12,6 +13,7 @@ pub use lava_app::{
 
 pub use balance::*;
 pub use history::*;
+pub use repayment_plan::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -88,11 +90,19 @@ impl Loan {
             .collect()
     }
 
-    //     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
-    //         let app = ctx.data_unchecked::<LavaApp>();
-    //         let price = app.price().usd_cents_per_btc().await?;
-    //         Ok(self.cvl_data.cvl(price))
-    //     }
+    async fn repayment_plan(&self) -> Vec<LoanRepaymentInPlan> {
+        self.entity
+            .repayment_plan()
+            .into_iter()
+            .map(LoanRepaymentInPlan::from)
+            .collect()
+    }
+
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let price = app.price().usd_cents_per_btc().await?;
+        Ok(CVLPct::from(self.entity.cvl_data().cvl(price)))
+    }
 
     async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
