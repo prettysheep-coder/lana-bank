@@ -1,3 +1,5 @@
+mod balance;
+
 use async_graphql::*;
 
 use crate::primitives::*;
@@ -7,6 +9,8 @@ use super::{document::Document, withdrawal::Withdrawal};
 pub use lava_app::{
     app::LavaApp, customer::Customer as DomainCustomer, customer::CustomerByEmailCursor,
 };
+
+pub use balance::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -46,11 +50,14 @@ impl Customer {
         self.entity.applicant_id.as_deref()
     }
 
-    // async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerBalance> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let balance = app.ledger().get_customer_balance(self.account_ids).await?;
-    //     Ok(CustomerBalance::from(balance))
-    // }
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerBalance> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let balance = app
+            .ledger()
+            .get_customer_balance(self.entity.account_ids)
+            .await?;
+        Ok(CustomerBalance::from(balance))
+    }
 
     // async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
     //     let app = ctx.data_unchecked::<LavaApp>();
