@@ -1,4 +1,5 @@
 mod balance;
+mod history;
 
 use async_graphql::*;
 
@@ -10,6 +11,7 @@ pub use lava_app::{
 };
 
 pub use balance::*;
+pub use history::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -23,14 +25,7 @@ pub struct Loan {
     collateral: Satoshis,
     principal: UsdCents,
     collateralization_state: LoanCollaterizationState,
-    // transactions: Vec<LoanHistoryEntry>,
-    // approvals: Vec<LoanApproval>,
-    // repayment_plan: Vec<LoanRepaymentInPlan>,
 
-    // #[graphql(skip)]
-    // account_ids: lava_app::ledger::loan::LoanAccountIds,
-    // #[graphql(skip)]
-    // cvl_data: CVLData,
     #[graphql(skip)]
     pub(super) entity: Arc<DomainLoan>,
 }
@@ -83,6 +78,14 @@ impl Loan {
             .get_loan_balance(self.entity.account_ids)
             .await?;
         Ok(LoanBalance::from(balance))
+    }
+
+    async fn transactions(&self) -> Vec<LoanHistoryEntry> {
+        self.entity
+            .history()
+            .into_iter()
+            .map(LoanHistoryEntry::from)
+            .collect()
     }
 
     //     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
