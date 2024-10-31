@@ -6,8 +6,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
-    customer::*, deposit::*, document::*, financials::*, loader::*, policy::*, sumsub::*,
-    terms_template::*, user::*, withdrawal::*,
+    customer::*, deposit::*, document::*, financials::*, loader::*, policy::*, report::*,
+    sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -431,6 +431,18 @@ impl Query {
             },
         )
         .await
+    }
+
+    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let report = app.reports().find_by_id(sub, id).await?;
+        Ok(report.map(Report::from))
+    }
+
+    async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let users = app.reports().list_reports(sub).await?;
+        Ok(users.into_iter().map(Report::from).collect())
     }
 }
 
@@ -872,5 +884,11 @@ impl Mutation {
             ctx,
             app.documents().archive(sub, input.document_id)
         )
+    }
+
+    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<ReportCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let report = app.reports().create(sub).await?;
+        Ok(ReportCreatePayload::from(report))
     }
 }

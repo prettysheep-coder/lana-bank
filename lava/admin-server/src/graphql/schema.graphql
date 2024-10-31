@@ -678,6 +678,7 @@ type Mutation {
 	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
 	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
+	reportCreate: ReportCreatePayload!
 }
 
 """
@@ -789,6 +790,24 @@ type Query {
 	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement
 	accountSet(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccounts
 	audit(first: Int!, after: String): AuditEntryConnection!
+	report(id: UUID!): Report
+	reports: [Report!]!
+}
+
+type Report {
+	reportId: UUID!
+	createdAt: Timestamp!
+	lastError: String
+	progress: ReportProgress!
+}
+
+type ReportCreatePayload {
+	report: Report!
+}
+
+enum ReportProgress {
+	RUNNING
+	COMPLETE
 }
 
 enum Role {

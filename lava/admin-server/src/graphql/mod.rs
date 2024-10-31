@@ -10,6 +10,7 @@ mod deposit;
 mod document;
 mod financials;
 mod loader;
+mod report;
 mod sumsub;
 mod terms;
 mod terms_template;
