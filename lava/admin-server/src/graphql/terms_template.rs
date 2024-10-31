@@ -35,6 +35,18 @@ impl TermsTemplate {
     async fn name(&self) -> &str {
         &self.entity.name
     }
+
+    async fn user_can_update_terms_template(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .terms_templates()
+            .user_can_update_terms_template(sub, false)
+            .await
+            .is_ok())
+    }
 }
 
 #[derive(InputObject)]

@@ -1,7 +1,5 @@
 use async_graphql::*;
 
-use lava_app::app::LavaApp;
-
 use crate::primitives::*;
 
 use super::{

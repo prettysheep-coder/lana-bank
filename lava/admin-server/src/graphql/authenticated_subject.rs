@@ -49,36 +49,6 @@ impl AuthenticatedSubject {
             .await
             .is_ok())
     }
-
-    async fn can_update_terms_template(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        Ok(app
-            .terms_templates()
-            .user_can_update_terms_template(sub, false)
-            .await
-            .is_ok())
-    }
-
-    async fn can_assign_role_to_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        Ok(app
-            .users()
-            .can_assign_role_to_user(sub, None, false)
-            .await
-            .is_ok())
-    }
-
-    async fn can_revoke_role_from_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        Ok(app
-            .users()
-            .can_revoke_role_from_user(sub, None, false)
-            .await
-            .is_ok())
-    }
 }
 
 impl From<Arc<DomainUser>> for AuthenticatedSubject {

@@ -13,7 +13,7 @@
 #[macro_export]
 macro_rules! app_and_sub_from_ctx {
     ($ctx:expr) => {{
-        let app = $ctx.data_unchecked::<LavaApp>();
+        let app = $ctx.data_unchecked::<lava_app::app::LavaApp>();
         let AdminAuthContext { sub } = $ctx.data()?;
         (app, sub)
     }};
