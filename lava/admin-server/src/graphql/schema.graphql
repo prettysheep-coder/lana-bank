@@ -364,6 +364,14 @@ type CreditFacilityCollateralizationUpdated {
 	price: UsdCents!
 }
 
+input CreditFacilityCompleteInput {
+	creditFacilityId: UUID!
+}
+
+type CreditFacilityCompletePayload {
+	creditFacility: CreditFacility!
+}
+
 type CreditFacilityConnection {
 	"""
 	Information to aid in pagination.
@@ -816,6 +824,7 @@ type Mutation {
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursementInitiate(input: CreditFacilityDisbursementInitiateInput!): CreditFacilityDisbursementInitiatePayload!
+	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
