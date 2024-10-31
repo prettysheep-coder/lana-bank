@@ -115,7 +115,7 @@ impl Loan {
         Ok(CVLPct::from(self.entity.cvl_data().cvl(price)))
     }
 
-    async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .loans()
@@ -124,7 +124,10 @@ impl Loan {
             .is_ok())
     }
 
-    async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_update_collateral(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .loans()
@@ -133,7 +136,7 @@ impl Loan {
             .is_ok())
     }
 
-    async fn user_can_update_collateralization_state(
+    async fn subject_can_update_collateralization_state(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -145,7 +148,7 @@ impl Loan {
             .is_ok())
     }
 
-    async fn user_can_record_payment_or_complete_loan(
+    async fn subject_can_record_payment_or_complete_loan(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {

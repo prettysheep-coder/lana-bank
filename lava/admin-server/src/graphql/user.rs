@@ -47,16 +47,22 @@ impl User {
         &self.entity.email
     }
 
-    async fn can_assign_role_to_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_assign_role_to_user(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .users()
-            .can_assign_role_to_user(sub, None, false)
+            .subject_can_assign_role_to_user(sub, None, false)
             .await
             .is_ok())
     }
 
-    async fn can_revoke_role_from_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_revoke_role_from_user(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .users()

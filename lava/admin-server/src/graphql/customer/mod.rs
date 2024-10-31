@@ -122,7 +122,7 @@ impl Customer {
         Ok(documents.into_iter().map(Document::from).collect())
     }
 
-    async fn user_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .loans()
@@ -131,7 +131,7 @@ impl Customer {
             .is_ok())
     }
 
-    async fn user_can_create_credit_facility(
+    async fn subject_can_create_credit_facility(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -143,12 +143,15 @@ impl Customer {
             .is_ok())
     }
 
-    async fn user_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.deposits().subject_can_record(sub, false).await.is_ok())
     }
 
-    async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_initiate_withdrawal(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .withdraws()

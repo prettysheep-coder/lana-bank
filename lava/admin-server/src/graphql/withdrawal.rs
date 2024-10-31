@@ -62,7 +62,7 @@ impl Withdrawal {
         Ok(process)
     }
 
-    async fn user_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .withdraws()
@@ -71,7 +71,7 @@ impl Withdrawal {
             .is_ok())
     }
 
-    async fn user_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.withdraws().subject_can_cancel(sub, false).await.is_ok())
     }

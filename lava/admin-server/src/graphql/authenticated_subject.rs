@@ -9,6 +9,7 @@ pub struct AuthenticatedSubject {
 }
 
 #[Object]
+#[graphql(name = "Subject")]
 impl AuthenticatedSubject {
     async fn user(&self) -> super::user::User {
         Arc::clone(&self.entity).into()
@@ -24,7 +25,7 @@ impl AuthenticatedSubject {
         Ok(permissions)
     }
 
-    async fn can_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
@@ -34,18 +35,21 @@ impl AuthenticatedSubject {
             .is_ok())
     }
 
-    async fn can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
-        Ok(app.users().can_create_user(sub, false).await.is_ok())
+        Ok(app.users().subject_create_user(sub, false).await.is_ok())
     }
 
-    async fn can_create_terms_template(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn subject_can_create_terms_template(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         Ok(app
             .terms_templates()
-            .user_can_create_terms_template(sub, false)
+            .subject_can_create_terms_template(sub, false)
             .await
             .is_ok())
     }

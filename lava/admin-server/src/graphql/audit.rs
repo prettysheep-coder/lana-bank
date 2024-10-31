@@ -12,7 +12,7 @@ pub struct System {
 }
 
 #[derive(Union)]
-enum Subject {
+enum AuditSubject {
     User(User),
     System(System),
 }
@@ -32,7 +32,7 @@ pub struct AuditEntry {
 
 #[ComplexObject]
 impl AuditEntry {
-    async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<Subject> {
+    async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<AuditSubject> {
         let loader = ctx.data_unchecked::<LavaDataLoader>();
 
         match self.subject {
@@ -40,12 +40,12 @@ impl AuditEntry {
                 let user = loader.load_one(id).await?;
                 match user {
                     None => Err("User not found".into()),
-                    Some(user) => Ok(Subject::User(user)),
+                    Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
             DomainSubject::System => {
                 let system = System { name: "lava" };
-                Ok(Subject::System(system))
+                Ok(AuditSubject::System(system))
             }
             DomainSubject::Customer(_) => {
                 panic!("Whoops - have we gone live yet?");
