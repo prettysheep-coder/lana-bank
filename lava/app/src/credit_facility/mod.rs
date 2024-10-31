@@ -15,7 +15,7 @@ use governance::ApprovalProcessType;
 
 use crate::{
     audit::{Audit, AuditInfo, AuditSvc},
-    authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
+    authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -506,11 +506,7 @@ impl CreditFacilities {
         customer_id: CustomerId,
     ) -> Result<Vec<CreditFacility>, CreditFacilityError> {
         self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                CreditFacilityAction::List,
-            )
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
 
         Ok(self

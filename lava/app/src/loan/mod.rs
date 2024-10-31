@@ -389,11 +389,7 @@ impl Loans {
     ) -> Result<Vec<Loan>, LoanError> {
         let customer_id = customer_id.into();
         self.authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                LoanAction::List,
-            )
+            .enforce_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
 
         Ok(self
