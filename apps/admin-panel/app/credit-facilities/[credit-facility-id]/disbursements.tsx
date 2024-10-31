@@ -32,17 +32,17 @@ type CreditFacilityDisbursementsProps = {
 export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsProps> = ({
   creditFacility,
 }) => {
-  const [selectedApprovalDisbursement, setSelectedApprovalDisbursement] =
+  const [selectedConfirmDisbursement, setSelectedConfirmDisbursement] =
     useState<Disbursement | null>(null)
   const [selectedDetailsDisbursement, setSelectedDetailsDisbursement] =
     useState<Disbursement | null>(null)
 
-  const handleOpenApproveDialog = (disbursement: Disbursement) => {
-    setSelectedApprovalDisbursement(disbursement)
+  const handleOpenConfirmDialog = (disbursement: Disbursement) => {
+    setSelectedConfirmDisbursement(disbursement)
   }
 
-  const handleCloseApproveDialog = () => {
-    setSelectedApprovalDisbursement(null)
+  const handleCloseConfirmDialog = () => {
+    setSelectedConfirmDisbursement(null)
   }
 
   const handleOpenDetailsDialog = (disbursement: Disbursement) => {
@@ -82,9 +82,9 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
                       <Button
                         className="px-2 py-1 text-primary"
                         variant="ghost"
-                        onClick={() => handleOpenApproveDialog(disbursement)}
+                        onClick={() => handleOpenConfirmDialog(disbursement)}
                       >
-                        Approval Required
+                        Confirmation Required
                       </Button>
                     ) : (
                       <Button
@@ -103,13 +103,13 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
         </CardContent>
       </Card>
 
-      {selectedApprovalDisbursement && (
+      {selectedConfirmDisbursement && (
         <CreditFacilityDisbursementConfirmDialog
-          setOpenDialog={handleCloseApproveDialog}
+          setOpenDialog={handleCloseConfirmDialog}
           openDialog={true}
           creditFacilityId={creditFacility.creditFacilityId}
-          disbursementIdx={selectedApprovalDisbursement.index}
-          disbursement={selectedApprovalDisbursement}
+          disbursementIdx={selectedConfirmDisbursement.index}
+          disbursement={selectedConfirmDisbursement}
         />
       )}
 

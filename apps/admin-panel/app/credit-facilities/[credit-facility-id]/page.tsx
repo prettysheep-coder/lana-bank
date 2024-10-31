@@ -121,6 +121,39 @@ gql`
         amount
         status
         createdAt
+        approvalProcess {
+          approvalProcessId
+          approvalProcessType
+          createdAt
+          canVote
+          status
+          rules {
+            ... on CommitteeThreshold {
+              threshold
+              committee {
+                name
+                currentMembers {
+                  email
+                  roles
+                }
+              }
+            }
+            ... on SystemApproval {
+              autoApprove
+            }
+          }
+          voters {
+            stillEligible
+            didVote
+            didApprove
+            didDeny
+            user {
+              userId
+              email
+              roles
+            }
+          }
+        }
       }
       transactions {
         ... on CreditFacilityIncrementalPayment {
