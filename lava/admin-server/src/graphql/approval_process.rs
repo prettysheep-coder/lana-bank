@@ -152,6 +152,24 @@ impl ApprovalProcess {
     // }
 }
 
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum ApprovalProcessType {
+    WithdrawApproval,
+    CreditFacilityApproval,
+}
+
+impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
+    fn from(process_type: &governance::ApprovalProcessType) -> Self {
+        if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
+            Self::WithdrawApproval
+        } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
+            Self::CreditFacilityApproval
+        } else {
+            panic!("Unknown ApprovalProcessType")
+        }
+    }
+}
+
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct ApprovalProcessVoter {

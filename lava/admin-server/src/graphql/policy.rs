@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::approval_rules::*;
+use super::{approval_process::*, approval_rules::*};
 
 pub use governance::{policy_cursor::PolicyByCreatedAtCursor, Policy as DomainPolicy};
 

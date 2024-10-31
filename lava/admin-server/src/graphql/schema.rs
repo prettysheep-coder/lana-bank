@@ -891,4 +891,30 @@ impl Mutation {
         let report = app.reports().create(sub).await?;
         Ok(ReportCreatePayload::from(report))
     }
+
+    async fn report_download_links_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: ReportDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<ReportDownloadLinksGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let links = app
+            .reports()
+            .generate_download_links(sub, input.report_id.into())
+            .await?;
+        Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    pub async fn shareholder_equity_add(
+        &self,
+        ctx: &Context<'_>,
+        input: ShareholderEquityAddInput,
+    ) -> async_graphql::Result<SuccessPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(SuccessPayload::from(
+            app.ledger()
+                .add_equity(input.amount, input.reference)
+                .await?,
+        ))
+    }
 }

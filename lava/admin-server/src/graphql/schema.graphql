@@ -679,6 +679,8 @@ type Mutation {
 	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	reportCreate: ReportCreatePayload!
+	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
+	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
 """
@@ -805,6 +807,20 @@ type ReportCreatePayload {
 	report: Report!
 }
 
+type ReportDownloadLink {
+	reportName: String!
+	url: String!
+}
+
+input ReportDownloadLinksGenerateInput {
+	reportId: UUID!
+}
+
+type ReportDownloadLinksGeneratePayload {
+	reportId: UUID!
+	links: [ReportDownloadLink!]!
+}
+
 enum ReportProgress {
 	RUNNING
 	COMPLETE
@@ -819,6 +835,11 @@ enum Role {
 
 scalar Satoshis
 
+input ShareholderEquityAddInput {
+	amount: UsdCents!
+	reference: String!
+}
+
 scalar SignedSatoshis
 
 scalar SignedUsdCents
@@ -831,6 +852,10 @@ type StatementCategory {
 
 
 union Subject = User | System
+
+type SuccessPayload {
+	success: Boolean!
+}
 
 input SumsubPermalinkCreateInput {
 	customerId: UUID!
