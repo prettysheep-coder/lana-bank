@@ -7,7 +7,8 @@ pub use lava_app::{
     primitives::{
         AccountStatus, ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositId,
         DisbursementId, DisbursementIdx, DisbursementStatus, DocumentId, KycLevel, LavaRole,
-        PolicyId, Satoshis, Subject, TermsTemplateId, UsdCents, UserId, WithdrawId,
+        PolicyId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents,
+        UserId, WithdrawId,
     },
     terms::CollateralizationState,
 };

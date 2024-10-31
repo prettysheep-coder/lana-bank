@@ -1,3 +1,4 @@
+mod account;
 mod approval_process;
 mod approval_rules;
 mod audit;
@@ -7,6 +8,7 @@ mod credit_facility;
 mod customer;
 mod deposit;
 mod document;
+mod financials;
 mod loader;
 mod sumsub;
 mod terms;
