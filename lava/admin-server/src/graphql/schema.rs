@@ -6,8 +6,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
-    customer::*, deposit::*, document::*, loader::*, policy::*, sumsub::*, terms_template::*,
-    user::*, withdrawal::*,
+    customer::*, deposit::*, document::*, financials::*, loader::*, policy::*, sumsub::*,
+    terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -281,6 +281,118 @@ impl Query {
     ) -> async_graphql::Result<Option<Document>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
+    }
+
+    async fn trial_balance(
+        &self,
+        ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
+    ) -> async_graphql::Result<Option<TrialBalance>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let account_summary = app
+            .ledger()
+            .trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
+        Ok(account_summary.map(TrialBalance::from))
+    }
+
+    async fn off_balance_sheet_trial_balance(
+        &self,
+        ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
+    ) -> async_graphql::Result<Option<TrialBalance>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let account_summary = app
+            .ledger()
+            .obs_trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
+        Ok(account_summary.map(TrialBalance::from))
+    }
+
+    async fn chart_of_accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ChartOfAccounts>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let chart_of_accounts = app.ledger().chart_of_accounts(sub).await?;
+        Ok(chart_of_accounts.map(ChartOfAccounts::from))
+    }
+
+    async fn off_balance_sheet_chart_of_accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ChartOfAccounts>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let chart_of_accounts = app.ledger().obs_chart_of_accounts(sub).await?;
+        Ok(chart_of_accounts.map(ChartOfAccounts::from))
+    }
+
+    async fn balance_sheet(
+        &self,
+        ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
+    ) -> async_graphql::Result<Option<BalanceSheet>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let balance_sheet = app
+            .ledger()
+            .balance_sheet(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
+        Ok(balance_sheet.map(BalanceSheet::from))
+    }
+
+    async fn profit_and_loss_statement(
+        &self,
+        ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
+    ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let profit_and_loss = app
+            .ledger()
+            .profit_and_loss(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
+        Ok(profit_and_loss.map(ProfitAndLossStatement::from))
+    }
+
+    async fn cash_flow_statement(
+        &self,
+        ctx: &Context<'_>,
+        from: Timestamp,
+        until: Option<Timestamp>,
+    ) -> async_graphql::Result<Option<CashFlowStatement>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let cash_flow = app
+            .ledger()
+            .cash_flow(sub, from.into_inner(), until.map(|t| t.into_inner()))
+            .await?;
+        Ok(cash_flow.map(CashFlowStatement::from))
+    }
+
+    async fn account_set(
+        &self,
+        ctx: &Context<'_>,
+        account_set_id: UUID,
+        from: Timestamp,
+        until: Option<Timestamp>,
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let account_set = app
+            .ledger()
+            .account_set_and_sub_accounts_with_balance(
+                sub,
+                uuid::Uuid::from(&account_set_id).into(),
+                0,
+                None,
+                from.into_inner(),
+                until.map(|t| t.into_inner()),
+            )
+            .await?;
+        Ok(account_set.map(|a| {
+            AccountSetAndSubAccounts::from((from.into_inner(), until.map(|t| t.into_inner()), a))
+        }))
     }
 
     async fn audit(

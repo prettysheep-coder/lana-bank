@@ -77,7 +77,7 @@ admin-sdl:
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
 sdl:
-	SQLX_OFFLINE=true cargo run --bin write_sdl > lava/admin-server/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_sdl > lava/admin-server/src/graphql/schema.graphql
 	# cd apps/admin-panel && pnpm install && pnpm codegen
 
 bump-cala-schema:

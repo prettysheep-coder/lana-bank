@@ -1,3 +1,59 @@
+type Account {
+	id: UUID!
+	name: String!
+	amounts: AccountAmountsByCurrency!
+}
+
+type AccountAmountsByCurrency {
+	btc: BtcAccountAmountsInPeriod!
+	usd: UsdAccountAmountsInPeriod!
+}
+
+type AccountSet {
+	id: UUID!
+	name: String!
+	amounts: AccountAmountsByCurrency!
+	hasSubAccounts: Boolean!
+}
+
+type AccountSetAndSubAccounts {
+	id: UUID!
+	name: String!
+	amounts: AccountAmountsByCurrency!
+	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
+}
+
+union AccountSetSubAccount = Account | AccountSet
+
+type AccountSetSubAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetSubAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSetSubAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetSubAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSetSubAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 enum AccountStatus {
 	ACTIVE
 	INACTIVE
@@ -133,8 +189,38 @@ type AuthenticatedSubject {
 	canRevokeRoleFromUser: Boolean!
 }
 
+type BalanceSheet {
+	name: String!
+	balance: AccountAmountsByCurrency!
+	categories: [StatementCategory!]!
+}
+
+
+type BtcAccountAmounts {
+	debit: Satoshis!
+	credit: Satoshis!
+	netDebit: SignedSatoshis!
+	netCredit: SignedSatoshis!
+}
+
+type BtcAccountAmountsInPeriod {
+	openingBalance: LayeredBtcAccountAmounts!
+	closingBalance: LayeredBtcAccountAmounts!
+	amount: LayeredBtcAccountAmounts!
+}
 
 scalar CVLPct
+
+type CashFlowStatement {
+	name: String!
+	total: AccountAmountsByCurrency!
+	categories: [StatementCategory!]!
+}
+
+type ChartOfAccounts {
+	name: String!
+	categories: [StatementCategory!]!
+}
 
 enum CollateralAction {
 	ADD
@@ -551,6 +637,20 @@ enum KycLevel {
 	ADVANCED
 }
 
+type LayeredBtcAccountAmounts {
+	all: BtcAccountAmounts!
+	settled: BtcAccountAmounts!
+	pending: BtcAccountAmounts!
+	encumbrance: BtcAccountAmounts!
+}
+
+type LayeredUsdAccountAmounts {
+	all: UsdAccountAmounts!
+	settled: UsdAccountAmounts!
+	pending: UsdAccountAmounts!
+	encumbrance: UsdAccountAmounts!
+}
+
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -652,6 +752,12 @@ type PolicyEdge {
 	cursor: String!
 }
 
+type ProfitAndLossStatement {
+	name: String!
+	net: AccountAmountsByCurrency!
+	categories: [StatementCategory!]!
+}
+
 type Query {
 	me: AuthenticatedSubject!
 	user(id: UUID!): User
@@ -674,6 +780,14 @@ type Query {
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
+	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
+	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
+	chartOfAccounts: ChartOfAccounts
+	offBalanceSheetChartOfAccounts: ChartOfAccounts
+	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet
+	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement
+	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement
+	accountSet(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccounts
 	audit(first: Int!, after: String): AuditEntryConnection!
 }
 
@@ -685,6 +799,16 @@ enum Role {
 }
 
 scalar Satoshis
+
+scalar SignedSatoshis
+
+scalar SignedUsdCents
+
+type StatementCategory {
+	name: String!
+	amounts: AccountAmountsByCurrency!
+	accounts: [AccountSetSubAccount!]!
+}
 
 
 union Subject = User | System
@@ -765,9 +889,28 @@ type TermsTemplateUpdatePayload {
 
 scalar Timestamp
 
+type TrialBalance {
+	name: String!
+	total: AccountAmountsByCurrency!
+	subAccounts: [AccountSetSubAccount!]!
+}
+
 scalar UUID
 
 scalar Upload
+
+type UsdAccountAmounts {
+	debit: UsdCents!
+	credit: UsdCents!
+	netDebit: SignedUsdCents!
+	netCredit: SignedUsdCents!
+}
+
+type UsdAccountAmountsInPeriod {
+	openingBalance: LayeredUsdAccountAmounts!
+	closingBalance: LayeredUsdAccountAmounts!
+	amount: LayeredUsdAccountAmounts!
+}
 
 scalar UsdCents
 
