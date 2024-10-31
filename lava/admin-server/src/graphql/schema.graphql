@@ -69,7 +69,7 @@ type ApprovalProcess {
 	createdAt: Timestamp!
 	rules: ApprovalRules!
 	policy: Policy!
-	userCanVote: Boolean!
+	subjectCanVote: Boolean!
 	voters: [ApprovalProcessVoter!]!
 	target: ApprovalProcessTarget!
 }
@@ -150,7 +150,7 @@ type AuditEntry {
 	action: String!
 	authorized: Boolean!
 	recordedAt: Timestamp!
-	subject: Subject!
+	subject: AuditSubject!
 }
 
 type AuditEntryConnection {
@@ -182,13 +182,7 @@ type AuditEntryEdge {
 	cursor: String!
 }
 
-type AuthenticatedSubject {
-	user: User!
-	visibleNavigationItems: VisibleNavigationItems!
-	canCreateCustomer: Boolean!
-	canCreateUser: Boolean!
-	canCreateTermsTemplate: Boolean!
-}
+union AuditSubject = User | System
 
 type BalanceSheet {
 	name: String!
@@ -345,10 +339,10 @@ type CreditFacility {
 	transactions: [CreditFacilityHistoryEntry!]!
 	disbursements: [CreditFacilityDisbursement!]!
 	approvalProcess: ApprovalProcess!
-	userCanUpdateCollateral: Boolean!
-	userCanInitiateDisbursement: Boolean!
-	userCanRecordPayment: Boolean!
-	userCanComplete: Boolean!
+	subjectCanUpdateCollateral: Boolean!
+	subjectCanInitiateDisbursement: Boolean!
+	subjectCanRecordPayment: Boolean!
+	subjectCanComplete: Boolean!
 	customer: Customer!
 	balance: CreditFacilityBalance!
 }
@@ -425,6 +419,7 @@ type CreditFacilityDisbursement {
 	amount: UsdCents!
 	status: DisbursementStatus!
 	createdAt: Timestamp!
+	approvalProcess: ApprovalProcess!
 }
 
 input CreditFacilityDisbursementConfirmInput {
@@ -510,10 +505,10 @@ type Customer {
 	withdrawals: [Withdrawal!]!
 	creditFacilities: [CreditFacility!]!
 	documents: [Document!]!
-	userCanCreateLoan: Boolean!
-	userCanCreateCreditFacility: Boolean!
-	userCanRecordDeposit: Boolean!
-	userCanInitiateWithdrawal: Boolean!
+	subjectCanCreateLoan: Boolean!
+	subjectCanCreateCreditFacility: Boolean!
+	subjectCanRecordDeposit: Boolean!
+	subjectCanInitiateWithdrawal: Boolean!
 }
 
 type CustomerBalance {
@@ -768,10 +763,10 @@ type Loan {
 	repaymentPlan: [LoanRepaymentInPlan!]!
 	approvals: [LoanApproval!]!
 	currentCvl: CVLPct!
-	userCanApprove: Boolean!
-	userCanUpdateCollateral: Boolean!
-	userCanUpdateCollateralizationState: Boolean!
-	userCanRecordPaymentOrCompleteLoan: Boolean!
+	subjectCanApprove: Boolean!
+	subjectCanUpdateCollateral: Boolean!
+	subjectCanUpdateCollateralizationState: Boolean!
+	subjectCanRecordPaymentOrCompleteLoan: Boolean!
 }
 
 type LoanApproval {
@@ -1022,7 +1017,7 @@ type ProfitAndLossStatement {
 }
 
 type Query {
-	me: AuthenticatedSubject!
+	me: Subject!
 	user(id: UUID!): User
 	users: [User!]!
 	customer(id: UUID!): Customer
@@ -1118,7 +1113,13 @@ type StatementCategory {
 }
 
 
-union Subject = User | System
+type Subject {
+	user: User!
+	visibleNavigationItems: VisibleNavigationItems!
+	subjectCanCreateCustomer: Boolean!
+	subjectCanCreateUser: Boolean!
+	subjectCanCreateTermsTemplate: Boolean!
+}
 
 type SuccessPayload {
 	success: Boolean!
@@ -1166,7 +1167,7 @@ type TermsTemplate {
 	values: TermValues!
 	createdAt: Timestamp!
 	name: String!
-	userCanUpdateTermsTemplate: Boolean!
+	subjectCanUpdateTermsTemplate: Boolean!
 }
 
 input TermsTemplateCreateInput {
@@ -1235,8 +1236,8 @@ type User {
 	userId: UUID!
 	roles: [Role!]!
 	email: String!
-	canAssignRoleToUser: Boolean!
-	canRevokeRoleFromUser: Boolean!
+	subjectCanAssignRoleToUser: Boolean!
+	subjectCanRevokeRoleFromUser: Boolean!
 }
 
 input UserAssignRoleInput {
@@ -1289,8 +1290,8 @@ type Withdrawal {
 	reference: String!
 	customer: Customer!
 	approvalProcess: ApprovalProcess!
-	userCanConfirm: Boolean!
-	userCanCancel: Boolean!
+	subjectCanConfirm: Boolean!
+	subjectCanCancel: Boolean!
 }
 
 input WithdrawalCancelInput {
