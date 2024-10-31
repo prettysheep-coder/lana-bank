@@ -142,7 +142,7 @@ impl CreditFacilities {
         })
     }
 
-    pub async fn user_can_create(
+    pub async fn subject_can_create(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -169,7 +169,7 @@ impl CreditFacilities {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .user_can_create(sub, true)
+            .subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -230,7 +230,7 @@ impl CreditFacilities {
         }
     }
 
-    pub async fn user_can_initiate_disbursement(
+    pub async fn subject_can_initiate_disbursement(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -254,7 +254,7 @@ impl CreditFacilities {
         amount: UsdCents,
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
-            .user_can_initiate_disbursement(sub, true)
+            .subject_can_initiate_disbursement(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -347,7 +347,7 @@ impl CreditFacilities {
         Ok(disbursement)
     }
 
-    pub async fn user_can_update_collateral(
+    pub async fn subject_can_update_collateral(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -371,7 +371,7 @@ impl CreditFacilities {
         updated_collateral: Satoshis,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let audit_info = self
-            .user_can_update_collateral(sub, true)
+            .subject_can_update_collateral(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -416,7 +416,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    pub async fn user_can_record_payment(
+    pub async fn subject_can_record_payment(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -442,7 +442,7 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self
-            .user_can_record_payment(sub, true)
+            .subject_can_record_payment(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -542,7 +542,7 @@ impl CreditFacilities {
             .await
     }
 
-    pub async fn user_can_complete(
+    pub async fn subject_can_complete(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -567,7 +567,7 @@ impl CreditFacilities {
         let credit_facility_id = credit_facility_id.into();
 
         let audit_info = self
-            .user_can_complete(sub, true)
+            .subject_can_complete(sub, true)
             .await?
             .expect("audit info missing");
 

@@ -6,8 +6,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
-    customer::*, deposit::*, document::*, financials::*, loader::*, loan::*, policy::*, report::*,
-    sumsub::*, terms_template::*, user::*, withdrawal::*,
+    customer::*, deposit::*, document::*, financials::*, loader::*, loan::*, policy::*, price::*,
+    report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -419,6 +419,24 @@ impl Query {
         }))
     }
 
+    async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
+        Ok(usd_cents_per_btc.into())
+    }
+
+    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let report = app.reports().find_by_id(sub, id).await?;
+        Ok(report.map(Report::from))
+    }
+
+    async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let users = app.reports().list_reports(sub).await?;
+        Ok(users.into_iter().map(Report::from).collect())
+    }
+
     async fn audit(
         &self,
         ctx: &Context<'_>,
@@ -455,18 +473,6 @@ impl Query {
             },
         )
         .await
-    }
-
-    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let report = app.reports().find_by_id(sub, id).await?;
-        Ok(report.map(Report::from))
-    }
-
-    async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let users = app.reports().list_reports(sub).await?;
-        Ok(users.into_iter().map(Report::from).collect())
     }
 }
 

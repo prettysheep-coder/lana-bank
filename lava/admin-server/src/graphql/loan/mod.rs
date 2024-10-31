@@ -1,3 +1,5 @@
+mod balance;
+
 use async_graphql::*;
 
 use super::{customer::*, loader::LavaDataLoader, terms::*};
@@ -6,6 +8,8 @@ pub use lava_app::{
     loan::{Loan as DomainLoan, LoanByCollateralizationRatioCursor, LoanCollaterizationState},
     primitives::LoanStatus,
 };
+
+pub use balance::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -72,67 +76,62 @@ impl Loan {
         Ok(customer)
     }
 
-    // async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<LoanBalance> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let balance = app.ledger().get_loan_balance(self.account_ids).await?;
-    //     Ok(LoanBalance::from(balance))
-    // }
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<LoanBalance> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let balance = app
+            .ledger()
+            .get_loan_balance(self.entity.account_ids)
+            .await?;
+        Ok(LoanBalance::from(balance))
+    }
 
-    // async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let price = app.price().usd_cents_per_btc().await?;
-    //     Ok(self.cvl_data.cvl(price))
-    // }
+    //     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
+    //         let app = ctx.data_unchecked::<LavaApp>();
+    //         let price = app.price().usd_cents_per_btc().await?;
+    //         Ok(self.cvl_data.cvl(price))
+    //     }
 
-    // async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let loan_id = LoanId::from(&self.loan_id);
-    //     Ok(app
-    //         .loans()
-    //         .user_can_approve(sub, loan_id, false)
-    //         .await
-    //         .is_ok())
-    // }
+    async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .loans()
+            .subject_can_approve(sub, self.entity.id, false)
+            .await
+            .is_ok())
+    }
 
-    // async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let loan_id = LoanId::from(&self.loan_id);
-    //     Ok(app
-    //         .loans()
-    //         .user_can_update_collateral(sub, loan_id, false)
-    //         .await
-    //         .is_ok())
-    // }
+    async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .loans()
+            .subject_can_update_collateral(sub, self.entity.id, false)
+            .await
+            .is_ok())
+    }
 
-    // async fn user_can_update_collateralization_state(
-    //     &self,
-    //     ctx: &Context<'_>,
-    // ) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let loan_id = LoanId::from(&self.loan_id);
-    //     Ok(app
-    //         .loans()
-    //         .user_can_update_collateralization_state(sub, loan_id, false)
-    //         .await
-    //         .is_ok())
-    // }
+    async fn user_can_update_collateralization_state(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .loans()
+            .subject_can_update_collateralization_state(sub, self.entity.id, false)
+            .await
+            .is_ok())
+    }
 
-    // async fn user_can_record_payment_or_complete_loan(
-    //     &self,
-    //     ctx: &Context<'_>,
-    // ) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let loan_id = LoanId::from(&self.loan_id);
-    //     Ok(app
-    //         .loans()
-    //         .user_can_record_payment_or_complete_loan(sub, loan_id, false)
-    //         .await
-    //         .is_ok())
-    // }
+    async fn user_can_record_payment_or_complete_loan(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .loans()
+            .subject_can_record_payment_or_complete_loan(sub, self.entity.id, false)
+            .await
+            .is_ok())
+    }
 }
 
 #[derive(InputObject)]

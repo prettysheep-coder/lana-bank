@@ -84,7 +84,7 @@ impl Loans {
         })
     }
 
-    pub async fn user_can_create_loan_for_customer(
+    pub async fn subject_can_create_loan_for_customer(
         &self,
         sub: &Subject,
         customer_id: CustomerId,
@@ -112,7 +112,7 @@ impl Loans {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .user_can_create_loan_for_customer(sub, customer_id, true)
+            .subject_can_create_loan_for_customer(sub, customer_id, true)
             .await?
             .expect("audit info missing");
 
@@ -145,7 +145,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_approve(
+    pub async fn subject_can_approve(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -171,7 +171,7 @@ impl Loans {
         let loan_id = loan_id.into();
 
         let audit_info = self
-            .user_can_approve(sub, loan_id, true)
+            .subject_can_approve(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -198,7 +198,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_update_collateral(
+    pub async fn subject_can_update_collateral(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -223,7 +223,7 @@ impl Loans {
         updated_collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
         let audit_info = self
-            .user_can_update_collateral(sub, loan_id, true)
+            .subject_can_update_collateral(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -298,7 +298,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_record_payment_or_complete_loan(
+    pub async fn subject_can_record_payment_or_complete_loan(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -327,7 +327,7 @@ impl Loans {
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self
-            .user_can_record_payment_or_complete_loan(sub, loan_id, true)
+            .subject_can_record_payment_or_complete_loan(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 

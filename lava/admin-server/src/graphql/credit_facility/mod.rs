@@ -1,3 +1,4 @@
+mod balance;
 mod disbursal;
 mod history;
 
@@ -11,6 +12,7 @@ pub use lava_app::{
     primitives::CreditFacilityStatus,
 };
 
+pub use balance::*;
 pub use disbursal::*;
 pub use history::*;
 
@@ -112,6 +114,57 @@ impl CreditFacility {
         Ok(process)
     }
 
+    async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .subject_can_update_collateral(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_initiate_disbursement(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .subject_can_initiate_disbursement(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_approve_disbursement(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .subject_can_approve_disbursement(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_record_payment(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .subject_can_record_payment(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_complete(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .subject_can_complete(sub, false)
+            .await
+            .is_ok())
+    }
+
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         let customer = loader
@@ -121,14 +174,14 @@ impl CreditFacility {
         Ok(customer)
     }
 
-    // async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let balance = app
-    //         .ledger()
-    //         .get_credit_facility_balance(self.account_ids)
-    //         .await?;
-    //     Ok(CreditFacilityBalance::from(balance))
-    // }
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let balance = app
+            .ledger()
+            .get_credit_facility_balance(self.entity.account_ids)
+            .await?;
+        Ok(CreditFacilityBalance::from(balance))
+    }
 }
 
 #[derive(SimpleObject)]
@@ -167,3 +220,9 @@ pub struct CreditFacilityPartialPaymentInput {
     pub amount: UsdCents,
 }
 crate::mutation_payload! { CreditFacilityPartialPaymentPayload, credit_facility: CreditFacility }
+
+#[derive(InputObject)]
+pub struct CreditFacilityCompleteInput {
+    pub credit_facility_id: UUID,
+}
+crate::mutation_payload! { CreditFacilityCompletePayload, credit_facility: CreditFacility }
