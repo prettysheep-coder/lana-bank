@@ -1,3 +1,6 @@
+mod disbursal;
+mod history;
+
 use async_graphql::*;
 
 use crate::primitives::*;
@@ -6,8 +9,10 @@ use super::{approval_process::*, customer::*, loader::LavaDataLoader, terms::*};
 pub use lava_app::{
     credit_facility::{CreditFacility as DomainCreditFacility, CreditFacilityByCreatedAtCursor},
     primitives::CreditFacilityStatus,
-    terms::CollateralizationState,
 };
+
+pub use disbursal::*;
+pub use history::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -65,6 +70,39 @@ impl CreditFacility {
         self.entity.terms.into()
     }
 
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let price = app.price().usd_cents_per_btc().await?;
+        Ok(FacilityCVL::from(
+            self.entity.facility_cvl_data().cvl(price),
+        ))
+    }
+
+    async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
+        self.entity
+            .history()
+            .into_iter()
+            .map(CreditFacilityHistoryEntry::from)
+            .collect()
+    }
+
+    async fn disbursements(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityDisbursement>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let disbursements = app
+            .credit_facilities()
+            .list_disbursements(sub, self.entity.id)
+            .await?;
+
+        Ok(disbursements
+            .into_iter()
+            .map(CreditFacilityDisbursement::from)
+            .collect())
+    }
+
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         let process = loader
@@ -91,6 +129,21 @@ impl CreditFacility {
     //         .await?;
     //     Ok(CreditFacilityBalance::from(balance))
     // }
+}
+
+#[derive(SimpleObject)]
+pub struct FacilityCVL {
+    total: CVLPct,
+    disbursed: CVLPct,
+}
+
+impl From<lava_app::credit_facility::FacilityCVL> for FacilityCVL {
+    fn from(value: lava_app::credit_facility::FacilityCVL) -> Self {
+        Self {
+            total: value.total,
+            disbursed: value.disbursed,
+        }
+    }
 }
 
 #[derive(InputObject)]

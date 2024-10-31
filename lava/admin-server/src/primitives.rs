@@ -3,10 +3,13 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-pub use lava_app::primitives::{
-    AccountStatus, ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositId,
-    DocumentId, KycLevel, LavaRole, PolicyId, Satoshis, Subject, TermsTemplateId, UsdCents, UserId,
-    WithdrawId,
+pub use lava_app::{
+    primitives::{
+        AccountStatus, ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositId,
+        DisbursementId, DisbursementIdx, DisbursementStatus, DocumentId, KycLevel, LavaRole,
+        PolicyId, Satoshis, Subject, TermsTemplateId, UsdCents, UserId, WithdrawId,
+    },
+    terms::CollateralizationState,
 };
 
 pub use std::sync::Arc;
@@ -75,6 +78,7 @@ impl_to_global_id! {
     CustomerId,
     TermsTemplateId,
     CreditFacilityId,
+    DisbursementId,
     audit::AuditEntryId,
     DocumentId,
     PolicyId,

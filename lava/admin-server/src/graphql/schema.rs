@@ -610,6 +610,24 @@ impl Mutation {
         )
     }
 
+    pub async fn credit_facility_disbursement_initiate(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityDisbursementInitiateInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursementInitiatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CreditFacilityDisbursementInitiatePayload,
+            CreditFacilityDisbursement,
+            ctx,
+            app.credit_facilities().initiate_disbursement(
+                sub,
+                input.credit_facility_id.into(),
+                input.amount
+            )
+        )
+    }
+
     async fn committee_create(
         &self,
         ctx: &Context<'_>,

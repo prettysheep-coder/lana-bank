@@ -25,7 +25,8 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CustomerId, DisbursementIdx, PriceOfOneBTC, Satoshis, Subject, UsdCents,
+        CreditFacilityId, CustomerId, DisbursementId, DisbursementIdx, Satoshis, Subject, UsdCents,
+        UserId,
     },
     terms::TermValues,
 };
@@ -630,5 +631,12 @@ impl CreditFacilities {
         ids: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, T>, CreditFacilityError> {
         self.credit_facility_repo.find_all(ids).await
+    }
+
+    pub async fn find_all_disbursements<T: From<Disbursement>>(
+        &self,
+        ids: &[DisbursementId],
+    ) -> Result<HashMap<DisbursementId, T>, CreditFacilityError> {
+        Ok(self.disbursement_repo.find_all(ids).await?)
     }
 }
