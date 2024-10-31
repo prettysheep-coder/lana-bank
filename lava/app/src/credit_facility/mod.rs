@@ -502,18 +502,16 @@ impl CreditFacilities {
     #[instrument(name = "lava.credit_facility.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
-        sub: Option<&Subject>,
+        sub: &Subject,
         customer_id: CustomerId,
     ) -> Result<Vec<CreditFacility>, CreditFacilityError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(
-                    sub,
-                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                    CreditFacilityAction::List,
-                )
-                .await?;
-        }
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                CreditFacilityAction::List,
+            )
+            .await?;
 
         Ok(self
             .credit_facility_repo

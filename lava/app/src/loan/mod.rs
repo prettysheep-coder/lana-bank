@@ -384,18 +384,17 @@ impl Loans {
     #[instrument(name = "loan.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
-        sub: Option<&Subject>,
-        customer_id: CustomerId,
+        sub: &Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Vec<Loan>, LoanError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(
-                    sub,
-                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                    LoanAction::List,
-                )
-                .await?;
-        }
+        let customer_id = customer_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                LoanAction::List,
+            )
+            .await?;
 
         Ok(self
             .loan_repo

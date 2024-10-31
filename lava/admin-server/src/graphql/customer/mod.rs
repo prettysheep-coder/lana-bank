@@ -4,7 +4,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{document::Document, withdrawal::Withdrawal};
+use super::{credit_facility::*, deposit::*, document::Document, loan::*, withdrawal::Withdrawal};
 
 pub use lava_app::{
     app::LavaApp, customer::Customer as DomainCustomer, customer::CustomerByEmailCursor,
@@ -59,32 +59,30 @@ impl Customer {
         Ok(CustomerBalance::from(balance))
     }
 
-    // async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
+    async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let loans: Vec<Loan> = app
+            .loans()
+            .list_for_customer(sub, self.entity.id)
+            .await?
+            .into_iter()
+            .map(Loan::from)
+            .collect();
 
-    //     let loans: Vec<Loan> = app
-    //         .loans()
-    //         .list_for_customer(None, primitives::CustomerId::from(&self.customer_id))
-    //         .await?
-    //         .into_iter()
-    //         .map(Loan::from)
-    //         .collect();
+        Ok(loans)
+    }
 
-    //     Ok(loans)
-    // }
-
-    // async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let deposits = app
-    //         .deposits()
-    //         .list_for_customer(sub, primitives::CustomerId::from(&self.customer_id))
-    //         .await?
-    //         .into_iter()
-    //         .map(Deposit::from)
-    //         .collect();
-    //     Ok(deposits)
-    // }
+    async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let deposits = app
+            .deposits()
+            .list_for_customer(sub, self.entity.id)
+            .await?
+            .into_iter()
+            .map(Deposit::from)
+            .collect();
+        Ok(deposits)
+    }
 
     async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
@@ -98,61 +96,22 @@ impl Customer {
         Ok(withdraws)
     }
 
-    // async fn user_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     let customer_id = CustomerId::from(&self.customer_id);
-    //     Ok(app
-    //         .loans()
-    //         .user_can_create_loan_for_customer(sub, customer_id, false)
-    //         .await
-    //         .is_ok())
-    // }
-
-    // async fn user_can_create_credit_facility(
-    //     &self,
-    //     ctx: &Context<'_>,
-    // ) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     Ok(app
-    //         .credit_facilities()
-    //         .user_can_create(sub, false)
-    //         .await
-    //         .is_ok())
-    // }
-
-    // async fn user_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-    //     let AdminAuthContext { sub } = ctx.data()?;
-    //     Ok(app.deposits().user_can_record(sub, false).await.is_ok())
-    // }
-
-    async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn credit_facilities(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacility>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .withdraws()
-            .subject_can_initiate(sub, false)
-            .await
-            .is_ok())
+
+        let credit_facilities: Vec<CreditFacility> = app
+            .credit_facilities()
+            .list_for_customer(sub, self.entity.id)
+            .await?
+            .into_iter()
+            .map(CreditFacility::from)
+            .collect();
+
+        Ok(credit_facilities)
     }
-
-    // async fn credit_facilities(
-    //     &self,
-    //     ctx: &Context<'_>,
-    // ) -> async_graphql::Result<Vec<CreditFacility>> {
-    //     let app = ctx.data_unchecked::<LavaApp>();
-
-    //     let credit_facilities: Vec<CreditFacility> = app
-    //         .credit_facilities()
-    //         .list_for_customer(None, primitives::CustomerId::from(&self.customer_id))
-    //         .await?
-    //         .into_iter()
-    //         .map(CreditFacility::from)
-    //         .collect();
-
-    //     Ok(credit_facilities)
-    // }
 
     async fn documents(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Document>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
@@ -161,6 +120,41 @@ impl Customer {
             .list_for_customer_id(sub, self.entity.id)
             .await?;
         Ok(documents.into_iter().map(Document::from).collect())
+    }
+
+    async fn user_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .loans()
+            .subject_can_create_loan_for_customer(sub, self.entity.id, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_create_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .subject_can_create(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app.deposits().subject_can_record(sub, false).await.is_ok())
+    }
+
+    async fn user_can_initiate_withdrawal(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .withdraws()
+            .subject_can_initiate(sub, false)
+            .await
+            .is_ok())
     }
 }
 

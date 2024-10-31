@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use tracing::instrument;
+
 use std::collections::HashMap;
 
 use authz::PermissionCheck;
@@ -50,7 +52,7 @@ impl Deposits {
         &self.repo
     }
 
-    pub async fn user_can_record(
+    pub async fn subject_can_record(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -69,7 +71,7 @@ impl Deposits {
         reference: Option<String>,
     ) -> Result<Deposit, DepositError> {
         let audit_info = self
-            .user_can_record(sub, true)
+            .subject_can_record(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -118,11 +120,13 @@ impl Deposits {
         }
     }
 
+    #[instrument(name = "deposit.list_for_customer", skip(self))]
     pub async fn list_for_customer(
         &self,
         sub: &Subject,
-        customer_id: CustomerId,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Vec<Deposit>, DepositError> {
+        let customer_id = customer_id.into();
         self.authz
             .enforce_permission(sub, Object::Deposit, DepositAction::List)
             .await?;
