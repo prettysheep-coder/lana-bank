@@ -36,7 +36,7 @@ impl TermsTemplates {
         }
     }
 
-    pub async fn user_can_create_terms_template(
+    pub async fn subject_can_create_terms_template(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -59,7 +59,7 @@ impl TermsTemplates {
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
-            .user_can_create_terms_template(sub, true)
+            .subject_can_create_terms_template(sub, true)
             .await?
             .expect("audit info missing");
         let new_terms_template = NewTermsTemplate::builder()

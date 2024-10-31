@@ -1,6 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{
+    graphql::{approval_process::*, loader::LavaDataLoader},
+    primitives::*,
+};
 pub use lava_app::credit_facility::Disbursement as DomainDisbursement;
 
 #[derive(SimpleObject, Clone)]
@@ -31,13 +34,14 @@ impl From<DomainDisbursement> for CreditFacilityDisbursement {
 
 #[ComplexObject]
 impl CreditFacilityDisbursement {
-    // async fn approvals(&self) -> Vec<DisbursementApproval> {
-    //     self.entity
-    //         .approvals()
-    //         .into_iter()
-    //         .map(DisbursementApproval::from)
-    //         .collect()
-    // }
+    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let process = loader
+            .load_one(self.entity.approval_process_id)
+            .await?
+            .expect("process not found");
+        Ok(process)
+    }
 }
 
 #[derive(InputObject)]

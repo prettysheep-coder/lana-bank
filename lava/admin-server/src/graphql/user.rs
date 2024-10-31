@@ -66,7 +66,7 @@ impl User {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .users()
-            .can_revoke_role_from_user(sub, None, false)
+            .subject_can_revoke_role_from_user(sub, None, false)
             .await
             .is_ok())
     }
