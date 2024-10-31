@@ -46,3 +46,10 @@ pub struct CreditFacilityDisbursementInitiateInput {
     pub amount: UsdCents,
 }
 crate::mutation_payload! { CreditFacilityDisbursementInitiatePayload, disbursement: CreditFacilityDisbursement }
+
+#[derive(InputObject)]
+pub struct CreditFacilityDisbursementConfirmInput {
+    pub credit_facility_id: UUID,
+    pub disbursement_idx: DisbursementIdx,
+}
+crate::mutation_payload! { CreditFacilityDisbursementConfirmPayload, disbursement: CreditFacilityDisbursement }

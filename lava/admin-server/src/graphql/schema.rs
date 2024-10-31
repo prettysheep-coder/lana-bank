@@ -782,6 +782,24 @@ impl Mutation {
         )
     }
 
+    async fn credit_facility_disbursement_confirm(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityDisbursementConfirmInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursementConfirmPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CreditFacilityDisbursementConfirmPayload,
+            CreditFacilityDisbursement,
+            ctx,
+            app.credit_facilities().confirm_disbursement(
+                sub,
+                input.credit_facility_id,
+                input.disbursement_idx
+            )
+        )
+    }
+
     async fn credit_facility_complete(
         &self,
         ctx: &Context<'_>,

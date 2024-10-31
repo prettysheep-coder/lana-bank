@@ -295,9 +295,10 @@ impl CreditFacilities {
     pub async fn confirm_disbursement(
         &self,
         sub: &Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
         disbursement_idx: DisbursementIdx,
     ) -> Result<Disbursement, CreditFacilityError> {
+        let credit_facility_id = credit_facility_id.into();
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)

@@ -29,17 +29,8 @@ pub struct CreditFacility {
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
     collateral: Satoshis,
-    // can_be_completed: bool,
-    // transactions: Vec<CreditFacilityHistoryEntry>,
-    // #[graphql(skip)]
-    // account_ids: lava_app::ledger::credit_facility::CreditFacilityAccountIds,
-    // #[graphql(skip)]
-    // cvl_data: FacilityCVLData,
-    // #[graphql(skip)]
-    // domain_approval_process_id: governance::ApprovalProcessId,
-    // #[graphql(skip)]
-    // domain_customer_id: CustomerId,
-    //
+    can_be_completed: bool,
+
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCreditFacility>,
 }
@@ -55,6 +46,7 @@ impl From<DomainCreditFacility> for CreditFacility {
             approval_process_id: UUID::from(credit_facility.approval_process_id),
             activated_at,
             expires_at,
+            can_be_completed: credit_facility.can_be_completed(),
             created_at: credit_facility.created_at().into(),
             status: credit_facility.status(),
             facility_amount: credit_facility.initial_facility(),
