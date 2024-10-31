@@ -112,7 +112,7 @@ impl Loan {
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let app = ctx.data_unchecked::<LavaApp>();
         let price = app.price().usd_cents_per_btc().await?;
-        Ok(CVLPct::from(self.entity.cvl_data().cvl(price)))
+        Ok(self.entity.cvl_data().cvl(price))
     }
 
     async fn subject_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {

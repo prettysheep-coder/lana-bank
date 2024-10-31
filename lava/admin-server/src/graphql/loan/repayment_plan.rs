@@ -19,7 +19,7 @@ impl From<lava_app::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
         match repayment {
             lava_app::loan::LoanRepaymentInPlan::Interest(interest) => LoanRepaymentInPlan {
                 repayment_type: LoanRepaymentType::Interest,
-                status: interest.status.into(),
+                status: interest.status,
                 initial: interest.initial,
                 outstanding: interest.outstanding,
                 accrual_at: interest.accrual_at.into(),
@@ -27,7 +27,7 @@ impl From<lava_app::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
             },
             lava_app::loan::LoanRepaymentInPlan::Principal(interest) => LoanRepaymentInPlan {
                 repayment_type: LoanRepaymentType::Principal,
-                status: interest.status.into(),
+                status: interest.status,
                 initial: interest.initial,
                 outstanding: interest.outstanding,
                 accrual_at: interest.accrual_at.into(),

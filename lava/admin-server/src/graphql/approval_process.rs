@@ -154,6 +154,7 @@ impl ApprovalProcess {
 }
 
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+#[allow(clippy::enum_variant_names)]
 pub enum ApprovalProcessType {
     WithdrawalApproval,
     CreditFacilityApproval,
