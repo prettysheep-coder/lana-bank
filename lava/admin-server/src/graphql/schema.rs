@@ -5,8 +5,9 @@ use lava_app::app::LavaApp;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, committee::*, customer::*, deposit::*,
-    document::*, loader::*, policy::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
+    customer::*, deposit::*, document::*, loader::*, policy::*, sumsub::*, terms_template::*,
+    user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -152,6 +153,38 @@ impl Query {
             .into_iter()
             .map(TermsTemplate::from)
             .collect())
+    }
+
+    async fn credit_facility(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacility>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            CreditFacility,
+            ctx,
+            app.credit_facilities().find_by_id(sub, id)
+        )
+    }
+
+    async fn credit_facilities(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CreditFacilityByCreatedAtCursor, CreditFacility, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CreditFacilityByCreatedAtCursor,
+            CreditFacility,
+            ctx,
+            after,
+            first,
+            |query| app.credit_facilities().list(sub, query)
+        )
     }
 
     async fn committee(
@@ -501,6 +534,78 @@ impl Mutation {
                 sub,
                 TermsTemplateId::from(input.id),
                 term_values
+            )
+        )
+    }
+
+    pub async fn credit_facility_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityCreateInput,
+    ) -> async_graphql::Result<CreditFacilityCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let CreditFacilityCreateInput {
+            facility,
+            customer_id,
+            terms,
+        } = input;
+
+        let credit_facility_term_values = lava_app::terms::TermValues::builder()
+            .annual_rate(terms.annual_rate)
+            .accrual_interval(terms.accrual_interval)
+            .incurrence_interval(terms.incurrence_interval)
+            .duration(terms.duration)
+            .liquidation_cvl(terms.liquidation_cvl)
+            .margin_call_cvl(terms.margin_call_cvl)
+            .initial_cvl(terms.initial_cvl)
+            .build()?;
+
+        exec_mutation!(
+            CreditFacilityCreatePayload,
+            CreditFacility,
+            ctx,
+            app.credit_facilities().initiate(
+                sub,
+                customer_id,
+                facility,
+                credit_facility_term_values
+            )
+        )
+    }
+
+    pub async fn credit_facility_collateral_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityCollateralUpdateInput,
+    ) -> async_graphql::Result<CreditFacilityCollateralUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let CreditFacilityCollateralUpdateInput {
+            credit_facility_id,
+            collateral,
+        } = input;
+        exec_mutation!(
+            CreditFacilityCollateralUpdatePayload,
+            CreditFacility,
+            ctx,
+            app.credit_facilities()
+                .update_collateral(sub, credit_facility_id.into(), collateral)
+        )
+    }
+
+    pub async fn credit_facility_partial_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityPartialPaymentInput,
+    ) -> async_graphql::Result<CreditFacilityPartialPaymentPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CreditFacilityPartialPaymentPayload,
+            CreditFacility,
+            ctx,
+            app.credit_facilities().record_payment(
+                sub,
+                input.credit_facility_id.into(),
+                input.amount
             )
         )
     }

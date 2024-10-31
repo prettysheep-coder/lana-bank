@@ -136,6 +136,13 @@ type AuthenticatedSubject {
 
 scalar CVLPct
 
+enum CollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_MARGIN_CALL_THRESHOLD
+	UNDER_LIQUIDATION_THRESHOLD
+	NO_COLLATERAL
+}
+
 type Committee {
 	id: ID!
 	committeeId: UUID!
@@ -202,6 +209,87 @@ type CommitteeRemoveUserPayload {
 type CommitteeThreshold {
 	threshold: Int!
 	committee: Committee!
+}
+
+type CreditFacility {
+	id: ID!
+	creditFacilityId: UUID!
+	approvalProcessId: UUID!
+	activatedAt: Timestamp
+	expiresAt: Timestamp
+	createdAt: Timestamp!
+	status: CreditFacilityStatus!
+	collateralizationState: CollateralizationState!
+	facilityAmount: UsdCents!
+	collateral: Satoshis!
+	creditFacilityTerms: TermValues!
+	approvalProcess: ApprovalProcess!
+	customer: Customer!
+}
+
+input CreditFacilityCollateralUpdateInput {
+	creditFacilityId: UUID!
+	collateral: Satoshis!
+}
+
+type CreditFacilityCollateralUpdatePayload {
+	creditFacility: CreditFacility!
+}
+
+type CreditFacilityConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CreditFacilityEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CreditFacility!]!
+}
+
+input CreditFacilityCreateInput {
+	customerId: UUID!
+	facility: UsdCents!
+	terms: TermsInput!
+}
+
+type CreditFacilityCreatePayload {
+	creditFacility: CreditFacility!
+}
+
+"""
+An edge in a connection.
+"""
+type CreditFacilityEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacility!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input CreditFacilityPartialPaymentInput {
+	creditFacilityId: UUID!
+	amount: UsdCents!
+}
+
+type CreditFacilityPartialPaymentPayload {
+	creditFacility: CreditFacility!
+}
+
+enum CreditFacilityStatus {
+	PENDING_COLLATERALIZATION
+	PENDING_APPROVAL
+	ACTIVE
+	EXPIRED
+	CLOSED
 }
 
 type Customer {
@@ -398,6 +486,9 @@ type Mutation {
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
+	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
+	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -494,6 +585,8 @@ type Query {
 	deposits(first: Int!, after: String): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
+	creditFacility(id: UUID!): CreditFacility
+	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
@@ -510,6 +603,8 @@ enum Role {
 	BANK_MANAGER
 	ACCOUNTANT
 }
+
+scalar Satoshis
 
 
 union Subject = User | System
@@ -536,6 +631,16 @@ type TermValues {
 	incurrenceInterval: InterestInterval!
 	duration: Duration!
 	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+input TermsInput {
+	annualRate: AnnualRatePct!
+	accrualInterval: InterestInterval!
+	incurrenceInterval: InterestInterval!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }

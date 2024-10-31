@@ -8,8 +8,8 @@ use lava_app::{app::LavaApp, user::error::UserError};
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, committee::Committee, customer::*, deposit::*, document::Document,
-    policy::Policy, terms_template::*, user::User, withdrawal::*,
+    approval_process::*, committee::Committee, credit_facility::*, customer::*, deposit::*,
+    document::Document, policy::Policy, terms_template::*, user::User, withdrawal::*,
 };
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
@@ -134,6 +134,22 @@ impl Loader<TermsTemplateId> for LavaLoader {
     ) -> Result<HashMap<TermsTemplateId, TermsTemplate>, Self::Error> {
         self.app
             .terms_templates()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<CreditFacilityId> for LavaLoader {
+    type Value = CreditFacility;
+    type Error = Arc<lava_app::credit_facility::error::CreditFacilityError>;
+
+    async fn load(
+        &self,
+        keys: &[CreditFacilityId],
+    ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
+        self.app
+            .credit_facilities()
             .find_all(keys)
             .await
             .map_err(Arc::new)

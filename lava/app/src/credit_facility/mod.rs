@@ -215,16 +215,14 @@ impl CreditFacilities {
     #[instrument(name = "lava.credit_facility.find", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
-        id: CreditFacilityId,
+        sub: &Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
-                .await?;
-        }
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
 
-        match self.credit_facility_repo.find_by_id(id).await {
+        match self.credit_facility_repo.find_by_id(id.into()).await {
             Ok(loan) => Ok(Some(loan)),
             Err(CreditFacilityError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
             Err(e) => Err(e),
