@@ -10,6 +10,8 @@ pub enum EsEntityError {
     NotFound,
     #[error("EntityError - ConcurrentModification")]
     ConcurrentModification,
+    #[error("EntityError - InconsistentIdempotency")]
+    InconsistenmtIdempotency,
 }
 
 #[derive(Error, Debug)]
@@ -17,5 +19,6 @@ pub enum EsRepoError {
     #[error("EsRepoError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("{0}")]
-    EntityError(#[from] EsEntityError),
+    EsEntityError(EsEntityError),
 }
+crate::from_es_entity_error!(EsRepoError);

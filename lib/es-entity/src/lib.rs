@@ -69,8 +69,8 @@ macro_rules! from_es_entity_error {
                 )
             }
         }
-        impl From<es_entity::EsEntityError> for $name {
-            fn from(e: es_entity::EsEntityError) -> Self {
+        impl From<$crate::EsEntityError> for $name {
+            fn from(e: $crate::EsEntityError) -> Self {
                 $name::EsEntityError(e)
             }
         }
