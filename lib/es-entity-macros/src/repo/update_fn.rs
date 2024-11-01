@@ -53,7 +53,7 @@ impl<'a> ToTokens for UpdateFn<'a> {
             #[inline(always)]
             fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
             where
-                T: es_entity::EsEntity<Event = E>,
+                T: es_entity::EsEntity<E>,
                 E: es_entity::EsEvent,
             {
                 entity.events_mut()
@@ -124,7 +124,7 @@ mod tests {
             #[inline(always)]
             fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
             where
-                T: es_entity::EsEntity<Event = E>,
+                T: es_entity::EsEntity<E>,
                 E: es_entity::EsEvent,
             {
                 entity.events_mut()
@@ -194,7 +194,7 @@ mod tests {
             #[inline(always)]
             fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
             where
-                T: es_entity::EsEntity<Event = E>,
+                T: es_entity::EsEntity<E>,
                 E: es_entity::EsEvent,
             {
                 entity.events_mut()

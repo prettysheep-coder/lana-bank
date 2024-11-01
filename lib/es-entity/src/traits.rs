@@ -16,25 +16,24 @@ pub trait TryFromEvents<E: EsEvent> {
         Self: Sized;
 }
 
-pub trait EsEntity: TryFromEvents<Self::Event> {
-    type Event: EsEvent;
-    fn events_mut(&mut self) -> &mut EntityEvents<Self::Event>;
-    fn events(&self) -> &EntityEvents<Self::Event>;
+pub trait EsEntity<E: EsEvent>: TryFromEvents<E> {
+    fn events_mut(&mut self) -> &mut EntityEvents<E>;
+    fn events(&self) -> &EntityEvents<E>;
 }
 
-pub trait AsMutableEntity {
-    type Entity: EsEntity;
-    fn mutable(&self) -> Self::Entity;
+pub trait IntoMutableEntity<E: EsEvent> {
+    type Entity: EsEntity<E>;
+    fn to_mutable(self) -> Self::Entity;
 }
 
-impl<T, E> AsMutableEntity for T
+impl<'a, T, E> IntoMutableEntity<E> for &'a T
 where
-    T: EsEntity<Event = E>,
     E: EsEvent + Clone,
+    T: EsEntity<E>,
 {
     type Entity = T;
 
-    fn mutable(&self) -> Self::Entity {
+    fn to_mutable(self) -> Self::Entity {
         <T as TryFromEvents<E>>::try_from_events(self.events().clone())
             .expect("Could not convert events to entity")
     }
