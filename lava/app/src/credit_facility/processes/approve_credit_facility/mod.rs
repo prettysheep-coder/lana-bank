@@ -4,7 +4,7 @@ use es_entity::IntoMutableEntity;
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
-    audit::Audit,
+    audit::{Audit, AuditSvc},
     credit_facility::{
         activate, error::CreditFacilityError, CreditFacility, CreditFacilityRepo,
         InterestAccrualRepo,
@@ -15,6 +15,7 @@ use crate::{
     price::Price,
     primitives::CreditFacilityId,
 };
+use rbac_types::{AppObject, CreditFacilityAction};
 
 pub use job::*;
 
@@ -70,9 +71,8 @@ impl ApproveCreditFacility {
             .expect("approval process not found");
 
         match process.status() {
-            ApprovalProcessStatus::Approved | ApprovalProcessStatus::Denied => {
-                self.execute(credit_facility).await
-            }
+            ApprovalProcessStatus::Approved => self.execute(credit_facility, true).await,
+            ApprovalProcessStatus::Denied => self.execute(credit_facility, false).await,
             _ => Ok(credit_facility),
         }
     }
@@ -80,14 +80,16 @@ impl ApproveCreditFacility {
     pub async fn execute_from_job(
         &self,
         id: impl Into<CreditFacilityId>,
+        approved: bool,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let credit_facility = self.repo.find_by_id(id.into()).await?;
-        self.execute(credit_facility).await
+        self.execute(credit_facility, approved).await
     }
 
     async fn execute(
         &self,
         mut credit_facility: CreditFacility,
+        approved: bool,
     ) -> Result<CreditFacility, CreditFacilityError> {
         if credit_facility.is_approval_process_concluded() {
             return Ok(credit_facility);
@@ -96,7 +98,7 @@ impl ApproveCreditFacility {
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                &mut db_tx,
+                &mut db,
                 AppObject::CreditFacility,
                 CreditFacilityAction::ConcludeApprovalProcess,
             )

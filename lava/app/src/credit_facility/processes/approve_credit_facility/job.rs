@@ -77,10 +77,11 @@ impl JobRunner for CreditFacilityApprovalJobRunner {
             match message.payload {
                 Some(LavaEvent::Governance(GovernanceEvent::ApprovalProcessConcluded {
                     id,
+                    approved,
                     ref process_type,
                     ..
                 })) if process_type == &super::APPROVE_CREDIT_FACILITY_PROCESS => {
-                    self.process.execute_from_job(id).await?;
+                    self.process.execute_from_job(id, approved).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }
