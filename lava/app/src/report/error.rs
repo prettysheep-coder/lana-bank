@@ -28,8 +28,6 @@ pub enum ReportError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("ReportError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("ReportError - NotFound")]
-    NotFound,
     #[error("ReportError - StorageError: {0}")]
     StorageError(#[from] crate::storage::StorageError),
 }
