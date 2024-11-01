@@ -293,7 +293,6 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => {
           setOpenApprovalDialog(false)
-          setTimeout(refetchWithdrawal, 500)
         }}
         refetch={refetchWithdrawal}
       />
@@ -304,7 +303,6 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => {
           setOpenDenialDialog(false)
-          setTimeout(refetchWithdrawal, 500)
         }}
         refetch={refetchWithdrawal}
       />

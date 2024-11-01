@@ -170,7 +170,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => {
           setOpenApprovalDialog(false)
-          setTimeout(refetch, 500)
         }}
         refetch={refetch}
       />
@@ -179,7 +178,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => {
           setOpenDenialDialog(false)
-          setTimeout(refetch, 500)
         }}
         refetch={refetch}
       />
