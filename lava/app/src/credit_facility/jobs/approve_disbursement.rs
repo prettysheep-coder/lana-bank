@@ -120,7 +120,7 @@ impl JobRunner for DisbursementApprovalJobRunner {
                         .await?;
                     state.sequence = message.sequence;
                     current_job
-                        .update_execution_state(&mut db_tx, state)
+                        .update_execution_state_in_tx(&mut db_tx, state)
                         .await?;
                     db_tx.commit().await?;
                 }

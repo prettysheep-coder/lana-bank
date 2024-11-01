@@ -162,6 +162,11 @@ macro_rules! entity_id {
                     <$to>::from($crate::prelude::uuid::Uuid::from(id))
                 }
             }
+            impl From<$to> for $from {
+                fn from(id: $to) -> Self {
+                    <$from>::from($crate::prelude::uuid::Uuid::from(id))
+                }
+            }
         )*
     };
 }

@@ -47,7 +47,7 @@ impl ToTokens for IntoMutableEntity {
                 fn to_mutable(self) -> Self::Entity {
                     <#ident as es_entity::TryFromEvents<#events>>::try_from_events(
                         #ident::clone_events(self)
-                    ).expect("Issue making enity mutable")
+                    ).expect("Issue making entity mutable")
                 }
             }
         });

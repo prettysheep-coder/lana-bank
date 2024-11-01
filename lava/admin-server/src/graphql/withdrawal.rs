@@ -42,8 +42,13 @@ impl Withdrawal {
         &self.entity.reference
     }
 
-    async fn status(&self) -> WithdrawalStatus {
-        self.entity.status()
+    async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<WithdrawalStatus> {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .withdraws()
+            .ensure_up_to_date_status(&self.entity)
+            .await?
+            .status())
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
