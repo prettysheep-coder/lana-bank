@@ -384,7 +384,8 @@ impl CreditFacilities {
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.update_collateral", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification]
+    #[instrument(name = "credit_facility.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
         sub: &Subject,
