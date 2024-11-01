@@ -61,6 +61,7 @@ macro_rules! from_es_entity_error {
             fn from(e: $crate::EsEntityError) -> Self {
                 match e {
                     $crate::EsEntityError::NotFound => $name::NotFound,
+                    $crate::EsEntityError::ConcurrentModification => panic!("{} - ConcurrentModification error. This should not happen", stringify!($name)),
                     $crate::EsEntityError::UninitializedFieldError(e) => {
                         panic!(
                             "{} - Inconsistent data when during entity hydration. Missing builder.<field>(<arg>) in TryFromEvents?: {:?}",
