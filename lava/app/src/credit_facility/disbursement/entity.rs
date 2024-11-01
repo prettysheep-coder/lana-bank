@@ -39,7 +39,7 @@ pub enum DisbursementEvent {
     },
 }
 
-#[derive(EsEntity, IntoMutableEntity, Builder)]
+#[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Disbursement {
     pub id: DisbursementId,

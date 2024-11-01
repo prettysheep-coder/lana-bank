@@ -1,6 +1,5 @@
 mod job;
 
-use es_entity::IntoMutableEntity;
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
@@ -37,11 +36,10 @@ impl ApproveDisbursement {
 
     pub async fn execute_from_svc(
         &self,
-        disbursement: impl IntoMutableEntity<Entity = Disbursement>,
-    ) -> Result<Disbursement, CreditFacilityError> {
-        let disbursement = disbursement.to_mutable();
+        disbursement: &Disbursement,
+    ) -> Result<Option<Disbursement>, CreditFacilityError> {
         if disbursement.is_approval_process_concluded() {
-            return Ok(disbursement);
+            return Ok(None);
         }
 
         let process: ApprovalProcess = self
@@ -51,27 +49,21 @@ impl ApproveDisbursement {
             .remove(&disbursement.approval_process_id)
             .expect("approval process not found");
 
-        match process.status() {
-            ApprovalProcessStatus::Approved => self.execute(disbursement, true).await,
-            ApprovalProcessStatus::Denied => self.execute(disbursement, false).await,
-            _ => Ok(disbursement),
-        }
+        let res = match process.status() {
+            ApprovalProcessStatus::Approved => Some(self.execute(disbursement.id, true).await?),
+            ApprovalProcessStatus::Denied => Some(self.execute(disbursement.id, false).await?),
+            _ => None,
+        };
+        Ok(res)
     }
 
-    pub async fn execute_from_job(
+    #[es_entity::retry_on_concurrent_modification]
+    pub async fn execute(
         &self,
-        id: impl Into<DisbursementId>,
+        id: impl es_entity::RetryableInto<DisbursementId>,
         approved: bool,
     ) -> Result<Disbursement, CreditFacilityError> {
-        let disbursement = self.repo.find_by_id(id.into()).await?;
-        self.execute(disbursement, approved).await
-    }
-
-    async fn execute(
-        &self,
-        mut disbursement: Disbursement,
-        approved: bool,
-    ) -> Result<Disbursement, CreditFacilityError> {
+        let mut disbursement = self.repo.find_by_id(id.into()).await?;
         if disbursement.is_approval_process_concluded() {
             return Ok(disbursement);
         }

@@ -352,7 +352,7 @@ impl CreditFacilities {
     pub async fn ensure_up_to_date_disbursement_status(
         &self,
         disbursement: &Disbursement,
-    ) -> Result<Disbursement, CreditFacilityError> {
+    ) -> Result<Option<Disbursement>, CreditFacilityError> {
         self.approve_disbursement
             .execute_from_svc(disbursement)
             .await
@@ -361,7 +361,7 @@ impl CreditFacilities {
     pub async fn ensure_up_to_date_status(
         &self,
         credit_facility: &CreditFacility,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
         self.approve_credit_facility
             .execute_from_svc(credit_facility)
             .await

@@ -46,17 +46,15 @@ impl ApproveWithdraw {
             .expect("approval process not found");
 
         let res = match process.status() {
-            ApprovalProcessStatus::Approved => {
-                Some(self.execute_from_job(withdraw.id, true).await?)
-            }
-            ApprovalProcessStatus::Denied => Some(self.execute_from_job(withdraw.id, false).await?),
+            ApprovalProcessStatus::Approved => Some(self.execute(withdraw.id, true).await?),
+            ApprovalProcessStatus::Denied => Some(self.execute(withdraw.id, false).await?),
             _ => None,
         };
         Ok(res)
     }
 
     #[es_entity::retry_on_concurrent_modification]
-    pub async fn execute_from_job(
+    pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<WithdrawId>,
         approved: bool,

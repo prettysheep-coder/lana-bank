@@ -81,7 +81,7 @@ impl JobRunner for CreditFacilityApprovalJobRunner {
                     ref process_type,
                     ..
                 })) if process_type == &super::APPROVE_CREDIT_FACILITY_PROCESS => {
-                    self.process.execute_from_job(id, approved).await?;
+                    self.process.execute(id, approved).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }

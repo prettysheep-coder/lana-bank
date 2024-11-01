@@ -38,7 +38,8 @@ impl CreditFacilityDisbursement {
             .credit_facilities()
             .ensure_up_to_date_disbursement_status(&self.entity)
             .await?
-            .status())
+            .map(|d| d.status())
+            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {

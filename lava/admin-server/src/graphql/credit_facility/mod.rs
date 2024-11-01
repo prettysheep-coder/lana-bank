@@ -68,7 +68,8 @@ impl CreditFacility {
             .credit_facilities()
             .ensure_up_to_date_status(&self.entity)
             .await?
-            .status())
+            .map(|cf| cf.status())
+            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {

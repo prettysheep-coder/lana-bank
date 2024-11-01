@@ -1,6 +1,5 @@
 mod job;
 
-use es_entity::IntoMutableEntity;
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
@@ -56,11 +55,10 @@ impl ApproveCreditFacility {
 
     pub async fn execute_from_svc(
         &self,
-        credit_facility: impl IntoMutableEntity<Entity = CreditFacility>,
-    ) -> Result<CreditFacility, CreditFacilityError> {
-        let credit_facility = credit_facility.to_mutable();
+        credit_facility: &CreditFacility,
+    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
         if credit_facility.is_approval_process_concluded() {
-            return Ok(credit_facility);
+            return Ok(None);
         }
 
         let process: ApprovalProcess = self
@@ -70,27 +68,21 @@ impl ApproveCreditFacility {
             .remove(&credit_facility.approval_process_id)
             .expect("approval process not found");
 
-        match process.status() {
-            ApprovalProcessStatus::Approved => self.execute(credit_facility, true).await,
-            ApprovalProcessStatus::Denied => self.execute(credit_facility, false).await,
-            _ => Ok(credit_facility),
-        }
+        let res = match process.status() {
+            ApprovalProcessStatus::Approved => Some(self.execute(credit_facility.id, true).await?),
+            ApprovalProcessStatus::Denied => Some(self.execute(credit_facility.id, false).await?),
+            _ => None,
+        };
+        Ok(res)
     }
 
-    pub async fn execute_from_job(
+    #[es_entity::retry_on_concurrent_modification]
+    pub async fn execute(
         &self,
-        id: impl Into<CreditFacilityId>,
+        id: impl es_entity::RetryableInto<CreditFacilityId>,
         approved: bool,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let credit_facility = self.repo.find_by_id(id.into()).await?;
-        self.execute(credit_facility, approved).await
-    }
-
-    async fn execute(
-        &self,
-        mut credit_facility: CreditFacility,
-        approved: bool,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+        let mut credit_facility = self.repo.find_by_id(id.into()).await?;
         if credit_facility.is_approval_process_concluded() {
             return Ok(credit_facility);
         }

@@ -52,7 +52,7 @@ pub enum WithdrawEvent {
     },
 }
 
-#[derive(EsEntity, IntoMutableEntity, Builder)]
+#[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Withdraw {
     pub id: WithdrawId,
