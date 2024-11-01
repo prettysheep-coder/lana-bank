@@ -244,6 +244,7 @@ impl CreditFacilities {
     }
 
     #[instrument(name = "lava.credit_facility.initiate_disbursement", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification]
     pub async fn initiate_disbursement(
         &self,
         sub: &Subject,
