@@ -109,7 +109,7 @@ where
             .chain(self.new_events.iter())
     }
 
-    pub fn load_first<E: EsEntity<T>>(
+    pub fn load_first<E: EsEntity<Event = T>>(
         events: impl IntoIterator<Item = GenericEvent<<T as EsEvent>::EntityId>>,
     ) -> Result<E, EsEntityError> {
         let mut current_id = None;
@@ -141,7 +141,7 @@ where
         }
     }
 
-    pub fn load_n<E: EsEntity<T>>(
+    pub fn load_n<E: EsEntity<Event = T>>(
         events: impl IntoIterator<Item = GenericEvent<<T as EsEvent>::EntityId>>,
         n: usize,
     ) -> Result<(Vec<E>, bool), EsEntityError> {
@@ -199,7 +199,9 @@ mod tests {
         events: EntityEvents<DummyEntityEvent>,
     }
 
-    impl EsEntity<DummyEntityEvent> for DummyEntity {
+    impl EsEntity for DummyEntity {
+        type Event = DummyEntityEvent;
+
         fn events_mut(&mut self) -> &mut EntityEvents<DummyEntityEvent> {
             &mut self.events
         }

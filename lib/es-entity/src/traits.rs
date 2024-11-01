@@ -16,7 +16,8 @@ pub trait TryFromEvents<E: EsEvent> {
         Self: Sized;
 }
 
-pub trait EsEntity<E: EsEvent>: TryFromEvents<E> {
-    fn events_mut(&mut self) -> &mut EntityEvents<E>;
-    fn events(&self) -> &EntityEvents<E>;
+pub trait EsEntity: TryFromEvents<Self::Event> {
+    type Event: EsEvent;
+    fn events_mut(&mut self) -> &mut EntityEvents<Self::Event>;
+    fn events(&self) -> &EntityEvents<Self::Event>;
 }
