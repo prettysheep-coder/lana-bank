@@ -200,6 +200,7 @@ impl Withdraws {
             .await?)
     }
 
+    #[instrument(name = "withdraw.cancel", skip(self), err)]
     #[es_entity::retry_on_concurrent_modification]
     pub async fn cancel(
         &self,
