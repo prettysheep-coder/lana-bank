@@ -50,6 +50,12 @@ impl ToTokens for IntoMutableEntity {
                     ).expect("Issue making entity mutable")
                 }
             }
+
+            impl std::convert::AsRef<#ident> for #ident {
+                fn as_ref(&self) -> &Self {
+                    self
+                }
+            }
         });
     }
 }

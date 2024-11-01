@@ -21,7 +21,7 @@ pub trait EsEntity<E: EsEvent>: TryFromEvents<E> {
     fn events(&self) -> &EntityEvents<E>;
 }
 
-pub trait IntoMutableEntity {
+pub trait IntoMutableEntity: std::convert::AsRef<Self::Entity> {
     type Entity;
     fn to_mutable(self) -> Self::Entity;
 }

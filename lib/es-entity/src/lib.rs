@@ -55,6 +55,10 @@ pub mod graphql {
     }
 }
 
+// macro_rules! assert_idempotent {
+//     ($pattern:pat $(if $guard:expr)? $(,)?
+// }
+
 #[macro_export]
 macro_rules! from_es_entity_error {
     ($name:ident) => {
