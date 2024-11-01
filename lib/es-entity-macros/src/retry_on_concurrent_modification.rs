@@ -1,16 +1,45 @@
-pub fn make(input: syn::ItemFn) -> darling::Result<proc_macro2::TokenStream> {
+use syn::{ItemFn, ReturnType, Type, TypePath};
+
+pub fn make(input: ItemFn) -> darling::Result<proc_macro2::TokenStream> {
+    let mut inner_fn = input.clone();
+    let inner_ident = syn::Ident::new(
+        &format!("{}_exec_one", &input.sig.ident),
+        input.sig.ident.span(),
+    );
+    inner_fn.sig.ident = inner_ident.clone();
+    inner_fn.vis = syn::Visibility::Inherited;
+    inner_fn.attrs = vec![];
+
+    let attrs = &input.attrs;
+    let vis = &input.vis;
     let sig = &input.sig;
-    let body = &input.block;
+
+    let inputs: Vec<_> = input
+        .sig
+        .inputs
+        .iter()
+        .filter_map(|input| match input {
+            syn::FnArg::Receiver(_) => None,
+            syn::FnArg::Typed(pat_type) => Some(&pat_type.pat),
+        })
+        .collect();
+
+    let outer_fn = quote::quote! {
+        #( #attrs )*
+        #vis #sig {
+            let result = self.#inner_ident(#(#inputs),*).await;
+            if let Err(e) = result.as_ref() {
+                if e.was_concurrent_modification() {
+                    return self.#inner_ident(#(#inputs),*).await;
+                }
+            }
+            result
+        }
+    };
 
     let output = quote::quote! {
-        #sig {
-            let result = #body;
-            if result.was_concurrent_modification()
-                #body
-            else {
-                result
-            }
-        }
+        #inner_fn
+        #outer_fn
     };
     Ok(output)
 }
@@ -24,7 +53,8 @@ mod tests {
     fn retry_on_concurrent_modification() {
         let input = parse_quote! {
             #[retry_on_concurrent_modification]
-            async fn test(&self) -> Result<(), es_entity::EsRepoError> {
+            #[instrument(name = "test")]
+            pub async fn test(&self, a: u32) -> Result<(), es_entity::EsRepoError> {
                 self.repo.update().await?;
                 Ok(())
             }
@@ -32,17 +62,21 @@ mod tests {
 
         let output = make(input).unwrap();
         let expected = quote::quote! {
-            async fn test(&self) -> Result<(), es_entity::EsRepoError> {
-                let result = {
-                    self.repo.update().await?;
-                    Ok(())
-                };
-                if result.was_concurrent_modification() {
-                    self.repo.update().await?;
-                    Ok(())
-                } else {
-                    result
+            pub async fn test_exec_one(&self, a: u32) -> Result<(), es_entity::EsRepoError> {
+                self.repo.update().await?;
+                Ok(())
+            }
+
+            #[retry_on_concurrent_modification]
+            #[instrument(name = "test")]
+            pub async fn test(&self, a: u32) -> Result<(), es_entity::EsRepoError> {
+                let result = self.test_exec_one(a).await;
+                if let Err(e) = result.as_ref() {
+                    if e.was_concurrent_modification() {
+                        return self.test_exec_one(a).await;
+                    }
                 }
+                result
             }
         };
         assert_eq!(output.to_string(), expected.to_string());

@@ -16,5 +16,5 @@ pub fn check_compile() {
 }
 
 fn accepts_mutable_entity(user: impl IntoMutableEntity<Entity = User>) -> bool {
-    user.as_ref().email().len() > 0
+    !user.as_ref().email().is_empty()
 }

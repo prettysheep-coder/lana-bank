@@ -48,7 +48,8 @@ impl Withdrawal {
             .withdraws()
             .ensure_up_to_date_status(&self.entity)
             .await?
-            .status())
+            .map(|w| w.status())
+            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {

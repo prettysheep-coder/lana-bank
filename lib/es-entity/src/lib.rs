@@ -15,6 +15,7 @@ pub mod prelude {
 
 pub use error::*;
 pub use es_entity_macros::expand_es_query;
+pub use es_entity_macros::retry_on_concurrent_modification;
 pub use es_entity_macros::EsEntity;
 pub use es_entity_macros::EsEvent;
 pub use es_entity_macros::EsRepo;
@@ -38,7 +39,7 @@ pub mod graphql {
     pub use async_graphql;
     pub use base64;
 
-    #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
+    #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Copy)]
     #[serde(transparent)]
     pub struct UUID(crate::prelude::uuid::Uuid);
     async_graphql::scalar!(UUID);

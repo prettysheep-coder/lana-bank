@@ -21,4 +21,5 @@ pub enum EsRepoError {
     #[error("{0}")]
     EsEntityError(EsEntityError),
 }
+
 crate::from_es_entity_error!(EsRepoError);

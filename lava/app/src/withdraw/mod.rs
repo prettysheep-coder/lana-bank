@@ -200,10 +200,11 @@ impl Withdraws {
             .await?)
     }
 
+    #[es_entity::retry_on_concurrent_modification]
     pub async fn cancel(
         &self,
         sub: &Subject,
-        withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
+        withdrawal_id: impl es_entity::RetryableInto<WithdrawId>,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
             .subject_can_cancel(sub, true)
@@ -251,7 +252,7 @@ impl Withdraws {
     pub async fn ensure_up_to_date_status(
         &self,
         withdraw: &Withdraw,
-    ) -> Result<Withdraw, WithdrawError> {
+    ) -> Result<Option<Withdraw>, WithdrawError> {
         self.approval_withdraw.execute_from_svc(withdraw).await
     }
 

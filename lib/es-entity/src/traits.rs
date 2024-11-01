@@ -25,3 +25,6 @@ pub trait IntoMutableEntity: std::convert::AsRef<Self::Entity> {
     type Entity;
     fn to_mutable(self) -> Self::Entity;
 }
+
+pub trait RetryableInto<T>: Into<T> + Copy + std::fmt::Debug {}
+impl<T, O> RetryableInto<O> for T where T: Into<O> + Copy + std::fmt::Debug {}

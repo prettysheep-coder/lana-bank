@@ -1,6 +1,5 @@
 mod job;
 
-use es_entity::IntoMutableEntity;
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
@@ -33,11 +32,10 @@ impl ApproveWithdraw {
 
     pub async fn execute_from_svc(
         &self,
-        withdraw: impl IntoMutableEntity<Entity = Withdraw>,
-    ) -> Result<Withdraw, WithdrawError> {
-        let withdraw = withdraw.to_mutable();
+        withdraw: &Withdraw,
+    ) -> Result<Option<Withdraw>, WithdrawError> {
         if withdraw.is_approved_or_denied().is_some() {
-            return Ok(withdraw);
+            return Ok(None);
         }
 
         let process: ApprovalProcess = self
@@ -47,27 +45,23 @@ impl ApproveWithdraw {
             .remove(&withdraw.approval_process_id)
             .expect("approval process not found");
 
-        match process.status() {
-            ApprovalProcessStatus::Approved => self.execute(withdraw, true).await,
-            ApprovalProcessStatus::Denied => self.execute(withdraw, false).await,
-            _ => Ok(withdraw),
-        }
+        let res = match process.status() {
+            ApprovalProcessStatus::Approved => {
+                Some(self.execute_from_job(withdraw.id, true).await?)
+            }
+            ApprovalProcessStatus::Denied => Some(self.execute_from_job(withdraw.id, false).await?),
+            _ => None,
+        };
+        Ok(res)
     }
 
+    #[es_entity::retry_on_concurrent_modification]
     pub async fn execute_from_job(
         &self,
-        id: impl Into<WithdrawId>,
+        id: impl es_entity::RetryableInto<WithdrawId>,
         approved: bool,
     ) -> Result<Withdraw, WithdrawError> {
-        let withdraw = self.repo.find_by_id(id.into()).await?;
-        self.execute(withdraw, approved).await
-    }
-
-    async fn execute(
-        &self,
-        mut withdraw: Withdraw,
-        approved: bool,
-    ) -> Result<Withdraw, WithdrawError> {
+        let mut withdraw = self.repo.find_by_id(id.into()).await?;
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
