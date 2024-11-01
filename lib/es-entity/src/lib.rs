@@ -59,8 +59,9 @@ macro_rules! from_es_entity_error {
         impl From<es_entity::EsEntityError> for $name {
             fn from(e: es_entity::EsEntityError) -> Self {
                 match e {
-                    es_entity::EsEntityError::NotFound => $name::NotFound,
-                    es_entity::EsEntityError::UninitializedFieldError(e) => {
+                    $crate::EsEntityError::NotFound => $name::NotFound,
+                    $crate::EsEntityError::ConcurrentModification => panic!("{} - ConcurrentModification error. This should not happen", stringify!($name)),
+                    $crate::EsEntityError::UninitializedFieldError(e) => {
                         panic!(
                             "{} - Inconsistent data when during entity hydration. Missing builder.<field>(<arg>) in TryFromEvents?: {:?}",
                             stringify!($name),
