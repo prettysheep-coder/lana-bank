@@ -32,8 +32,13 @@ impl From<DomainDisbursement> for CreditFacilityDisbursement {
 
 #[ComplexObject]
 impl CreditFacilityDisbursement {
-    async fn status(&self) -> DisbursementStatus {
-        self.entity.status()
+    async fn status(&self, ctx: &Context<'_>) -> DisbursementStatus {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .ensure_up_to_date_disbursement_status(&self.entity)
+            .await?
+            .status())
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {

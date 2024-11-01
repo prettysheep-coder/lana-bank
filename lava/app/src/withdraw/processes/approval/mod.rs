@@ -14,7 +14,6 @@ use rbac_types::{AppObject, WithdrawAction};
 pub use job::*;
 
 pub const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
-pub async fn execute() {}
 
 #[derive(Clone)]
 pub struct ApproveWithdraw {

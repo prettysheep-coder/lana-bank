@@ -6,6 +6,7 @@ pub mod error;
 mod history;
 mod interest_accrual;
 mod jobs;
+mod processes;
 mod repo;
 
 use std::collections::HashMap;
@@ -37,14 +38,13 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
+pub use processes::approve_disbursement::*;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
 
 pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
-pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType =
-    ApprovalProcessType::new("disbursement");
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -59,6 +59,7 @@ pub struct CreditFacilities {
     ledger: Ledger,
     price: Price,
     config: CreditFacilityConfig,
+    approve_disbursement: ApproveDisbursement,
 }
 
 impl CreditFacilities {
@@ -79,6 +80,8 @@ impl CreditFacilities {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
+        let approve_disbursement =
+            ApproveDisbursement::new(&disbursement_repo, authz.audit(), governance);
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
@@ -112,13 +115,8 @@ impl CreditFacilities {
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            approve_disbursement::DisbursementApprovalJobInitializer::new(
-                pool,
-                &disbursement_repo,
-                authz.audit(),
-                outbox,
-            ),
-            approve_disbursement::DisbursementApprovalJobConfig,
+            DisbursementApprovalJobInitializer::new(outbox, &approve_disbursement),
+            DisbursementApprovalJobConfig,
         )
         .await?;
         let _ = governance
@@ -138,6 +136,7 @@ impl CreditFacilities {
             ledger: ledger.clone(),
             price: price.clone(),
             config,
+            approve_disbursement,
         })
     }
 
@@ -349,6 +348,15 @@ impl CreditFacilities {
         db_tx.commit().await?;
 
         Ok(disbursement)
+    }
+
+    pub async fn ensure_up_to_date_disbursement_status(
+        &self,
+        disbursement: &Disbursement,
+    ) -> Result<Disbursement, CreditFacilityError> {
+        self.approve_disbursement
+            .execute_from_svc(disbursement)
+            .await
     }
 
     pub async fn subject_can_update_collateral(
