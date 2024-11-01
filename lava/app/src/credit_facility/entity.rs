@@ -191,7 +191,7 @@ impl FacilityCVL {
     }
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, IntoMutableEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,

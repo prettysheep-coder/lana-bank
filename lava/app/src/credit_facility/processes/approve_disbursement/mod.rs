@@ -13,8 +13,7 @@ use rbac_types::{AppObject, CreditFacilityAction};
 
 pub use job::*;
 
-pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType =
-    ApprovalProcessType::new("disburseal");
+pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
 #[derive(Clone)]
 pub struct ApproveDisbursement {
@@ -24,7 +23,11 @@ pub struct ApproveDisbursement {
 }
 
 impl ApproveDisbursement {
-    pub fn new(repo: &DisbursementRepo, audit: &Audit, governance: &Governance) -> Self {
+    pub(in crate::credit_facility) fn new(
+        repo: &DisbursementRepo,
+        audit: &Audit,
+        governance: &Governance,
+    ) -> Self {
         Self {
             repo: repo.clone(),
             audit: audit.clone(),

@@ -62,8 +62,13 @@ impl CreditFacility {
         self.entity.terms.into()
     }
 
-    async fn status(&self) -> CreditFacilityStatus {
-        self.entity.status()
+    async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityStatus> {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .ensure_up_to_date_status(&self.entity)
+            .await?
+            .status())
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {

@@ -12,7 +12,6 @@ mod repo;
 use std::collections::HashMap;
 
 use authz::PermissionCheck;
-use governance::ApprovalProcessType;
 
 use crate::{
     audit::{Audit, AuditInfo, AuditSvc},
@@ -38,13 +37,11 @@ use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
+pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursement::*;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
-
-pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
-    ApprovalProcessType::new("credit-facility");
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -60,6 +57,7 @@ pub struct CreditFacilities {
     price: Price,
     config: CreditFacilityConfig,
     approve_disbursement: ApproveDisbursement,
+    approve_credit_facility: ApproveCreditFacility,
 }
 
 impl CreditFacilities {
@@ -82,6 +80,15 @@ impl CreditFacilities {
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
         let approve_disbursement =
             ApproveDisbursement::new(&disbursement_repo, authz.audit(), governance);
+        let approve_credit_facility = ApproveCreditFacility::new(
+            &credit_facility_repo,
+            &interest_accrual_repo,
+            ledger,
+            price,
+            jobs,
+            authz.audit(),
+            governance,
+        );
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
@@ -101,17 +108,8 @@ impl CreditFacilities {
             audit,
         ));
         jobs.add_initializer_and_spawn_unique(
-            approve_credit_facility::CreditFacilityApprovalJobInitializer::new(
-                pool,
-                &credit_facility_repo,
-                &interest_accrual_repo,
-                price,
-                ledger,
-                jobs,
-                authz.audit(),
-                outbox,
-            ),
-            approve_credit_facility::CreditFacilityApprovalJobConfig,
+            CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
+            CreditFacilityApprovalJobConfig,
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
@@ -137,6 +135,7 @@ impl CreditFacilities {
             price: price.clone(),
             config,
             approve_disbursement,
+            approve_credit_facility,
         })
     }
 
@@ -356,6 +355,15 @@ impl CreditFacilities {
     ) -> Result<Disbursement, CreditFacilityError> {
         self.approve_disbursement
             .execute_from_svc(disbursement)
+            .await
+    }
+
+    pub async fn ensure_up_to_date_status(
+        &self,
+        credit_facility: &CreditFacility,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        self.approve_credit_facility
+            .execute_from_svc(credit_facility)
             .await
     }
 
