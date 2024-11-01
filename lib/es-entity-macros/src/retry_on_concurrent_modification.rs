@@ -1,4 +1,4 @@
-use syn::{ItemFn, ReturnType, Type, TypePath};
+use syn::ItemFn;
 
 pub fn make(input: ItemFn) -> darling::Result<proc_macro2::TokenStream> {
     let mut inner_fn = input.clone();
@@ -62,7 +62,7 @@ mod tests {
 
         let output = make(input).unwrap();
         let expected = quote::quote! {
-            pub async fn test_exec_one(&self, a: u32) -> Result<(), es_entity::EsRepoError> {
+            async fn test_exec_one(&self, a: u32) -> Result<(), es_entity::EsRepoError> {
                 self.repo.update().await?;
                 Ok(())
             }
