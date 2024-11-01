@@ -32,7 +32,7 @@ impl IntoEvents<UserEvent> for NewUser {
     }
 }
 
-#[derive(EsEntity, IntoMutableEntity, Builder)]
+#[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct User {
     pub id: UserId,
