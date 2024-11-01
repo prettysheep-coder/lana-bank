@@ -3,6 +3,8 @@ pub mod error;
 mod processes;
 mod repo;
 
+use tracing::instrument;
+
 use std::collections::HashMap;
 
 use authz::PermissionCheck;
