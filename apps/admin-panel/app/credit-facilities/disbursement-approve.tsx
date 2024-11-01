@@ -145,6 +145,7 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
         setOpenApprovalDialog={() => {
           setOpenApprovalDialog(false)
           handleCloseDialog()
+          setTimeout(refetch, 500)
         }}
         refetch={refetch}
       />
@@ -154,6 +155,7 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
         setOpenDenialDialog={() => {
           setOpenDenialDialog(false)
           handleCloseDialog()
+          setTimeout(refetch, 500)
         }}
         refetch={refetch}
       />
