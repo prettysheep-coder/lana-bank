@@ -27,13 +27,20 @@ pub fn make(input: ItemFn) -> darling::Result<proc_macro2::TokenStream> {
     let outer_fn = quote::quote! {
         #( #attrs )*
         #vis #sig {
-            let result = self.#inner_ident(#(#inputs),*).await;
-            if let Err(e) = result.as_ref() {
-                if e.was_concurrent_modification() {
-                    return self.#inner_ident(#(#inputs),*).await;
+            let max_retries = 3;
+            for n in 1..=max_retries {
+                let result = self.#inner_ident(#(#inputs),*).await;
+                if n == max_retries {
+                    return result;
                 }
+                if let Err(e) = result.as_ref() {
+                    if e.was_concurrent_modification() {
+                        continue;
+                    }
+                }
+                return result;
             }
-            result
+            unreachable!();
         }
     };
 
@@ -70,13 +77,20 @@ mod tests {
             #[retry_on_concurrent_modification]
             #[instrument(name = "test")]
             pub async fn test(&self, a: u32) -> Result<(), es_entity::EsRepoError> {
-                let result = self.test_exec_one(a).await;
-                if let Err(e) = result.as_ref() {
-                    if e.was_concurrent_modification() {
-                        return self.test_exec_one(a).await;
+                let max_retries = 3;
+                for n in 1..=max_retries {
+                    let result = self.test_exec_one(a).await;
+                    if n == max_retries {
+                        return result;
                     }
+                    if let Err(e) = result.as_ref() {
+                        if e.was_concurrent_modification() {
+                            continue;
+                        }
+                    }
+                    return result;
                 }
-                result
+                unreachable!();
             }
         };
         assert_eq!(output.to_string(), expected.to_string());
