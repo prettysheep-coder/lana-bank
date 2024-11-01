@@ -11,7 +11,7 @@ pub enum EsEntityError {
     #[error("EntityError - ConcurrentModification")]
     ConcurrentModification,
     #[error("EntityError - InconsistentIdempotency")]
-    InconsistenmtIdempotency,
+    InconsistentIdempotency,
 }
 
 #[derive(Error, Debug)]
