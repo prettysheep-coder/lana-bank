@@ -16,7 +16,6 @@ pub struct Withdrawal {
     customer_id: UUID,
     approval_process_id: UUID,
     amount: UsdCents,
-    status: WithdrawalStatus,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -32,7 +31,6 @@ impl From<lava_app::withdraw::Withdraw> for Withdrawal {
             customer_id: UUID::from(withdraw.customer_id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
             amount: withdraw.amount,
-            status: withdraw.status(),
             entity: Arc::new(withdraw),
         }
     }
@@ -42,6 +40,10 @@ impl From<lava_app::withdraw::Withdraw> for Withdrawal {
 impl Withdrawal {
     async fn reference(&self) -> &str {
         &self.entity.reference
+    }
+
+    async fn status(&self) -> WithdrawalStatus {
+        self.entity.status()
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
