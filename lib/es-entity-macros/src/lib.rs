@@ -3,6 +3,7 @@
 
 mod entity;
 mod event;
+mod into_mutable_entity;
 mod query;
 mod repo;
 
@@ -22,6 +23,15 @@ pub fn es_event_derive(input: TokenStream) -> TokenStream {
 pub fn es_entity_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
     match entity::derive(ast) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.write_errors().into(),
+    }
+}
+
+#[proc_macro_derive(IntoMutableEntity, attributes(events))]
+pub fn into_mutable_entity_derive(input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as syn::DeriveInput);
+    match into_mutable_entity::derive(ast) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.write_errors().into(),
     }

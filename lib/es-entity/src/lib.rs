@@ -18,6 +18,7 @@ pub use es_entity_macros::expand_es_query;
 pub use es_entity_macros::EsEntity;
 pub use es_entity_macros::EsEvent;
 pub use es_entity_macros::EsRepo;
+pub use es_entity_macros::IntoMutableEntity;
 pub use events::*;
 pub use query::*;
 pub use traits::*;

@@ -40,14 +40,6 @@ impl ToTokens for EsEntity {
                     &self.#events_field
                 }
             }
-
-            impl es_entity::IntoMutableEntity<#events> for #ident {
-                type Entity = #ident;
-
-                fn to_mutable(self) -> Self::Entity {
-                    self
-                }
-            }
         });
     }
 }

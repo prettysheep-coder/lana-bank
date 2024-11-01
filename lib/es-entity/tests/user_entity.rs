@@ -5,7 +5,7 @@ use es_entity::*;
 
 es_entity::entity_id! { UserId }
 
-#[derive(EsEvent, Deserialize, Serialize)]
+#[derive(EsEvent, Clone, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
 pub enum UserEvent {
@@ -32,7 +32,7 @@ impl IntoEvents<UserEvent> for NewUser {
     }
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, IntoMutableEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct User {
     pub id: UserId,
