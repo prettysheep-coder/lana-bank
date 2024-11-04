@@ -13,8 +13,7 @@ use crate::{
 };
 
 use super::{
-    disbursement::*, history, CreditFacilityCollateralUpdate, CreditFacilityError,
-    NewInterestAccrual,
+    disbursal::*, history, CreditFacilityCollateralUpdate, CreditFacilityError, NewInterestAccrual,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -455,18 +454,18 @@ impl CreditFacility {
             })
             .unwrap_or(DisbursalIdx::FIRST);
 
-        let disbursement_id = DisbursalId::new();
+        let disbursal_id = DisbursalId::new();
         self.events.push(CreditFacilityEvent::DisbursalInitiated {
-            disbursal_id: disbursement_id,
-            approval_process_id: disbursement_id.into(),
+            disbursal_id,
+            approval_process_id: disbursal_id.into(),
             idx,
             amount,
             audit_info: audit_info.clone(),
         });
 
         Ok(NewDisbursal::builder()
-            .id(disbursement_id)
-            .approval_process_id(disbursement_id)
+            .id(disbursal_id)
+            .approval_process_id(disbursal_id)
             .credit_facility_id(self.id)
             .idx(idx)
             .amount(amount)
@@ -474,7 +473,7 @@ impl CreditFacility {
             .customer_account_ids(self.customer_account_ids)
             .audit_info(audit_info)
             .build()
-            .expect("could not build new disbursement"))
+            .expect("could not build new disbursal"))
     }
 
     pub(super) fn confirm_disbursal(
@@ -1546,7 +1545,9 @@ mod test {
             )
             .unwrap();
 
-        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        credit_facility
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
         let first_approval = credit_facility.activation_data(default_price());
         assert!(matches!(
             first_approval,
@@ -1578,7 +1579,9 @@ mod test {
             credit_facility.status(),
             CreditFacilityStatus::PendingApproval
         );
-        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        credit_facility
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
         let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
         credit_facility.activate(credit_facility_approval, Utc::now(), dummy_audit_info());
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
@@ -1747,7 +1750,9 @@ mod test {
                 )
                 .unwrap();
 
-            credit_facility.approval_process_concluded(true, dummy_audit_info());
+            credit_facility
+                .approval_process_concluded(true, dummy_audit_info())
+                .unwrap();
             let credit_facility_approval =
                 credit_facility.activation_data(default_price()).unwrap();
             credit_facility.activate(
@@ -1756,14 +1761,14 @@ mod test {
                 dummy_audit_info(),
             );
 
-            let new_disbursement = credit_facility
+            let new_disbursal = credit_facility
                 .initiate_disbursal(
                     UsdCents::from(600_000_00),
                     facility_activated_at,
                     dummy_audit_info(),
                 )
                 .unwrap();
-            let mut disbursal = Disbursal::try_from_events(new_disbursement.into_events()).unwrap();
+            let mut disbursal = Disbursal::try_from_events(new_disbursal.into_events()).unwrap();
             disbursal
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();

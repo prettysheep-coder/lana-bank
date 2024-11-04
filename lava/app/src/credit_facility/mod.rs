@@ -1,6 +1,6 @@
 mod activate;
 mod config;
-mod disbursement;
+mod disbursal;
 mod entity;
 pub mod error;
 mod history;
@@ -31,14 +31,14 @@ use crate::{
 };
 
 pub use config::*;
-pub use disbursement::*;
+pub use disbursal::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
 pub use processes::approve_credit_facility::*;
-pub use processes::approve_disbursement::*;
+pub use processes::approve_disbursal::*;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
@@ -298,15 +298,13 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let disbursement_id = credit_facility
+        let disbursal_id = credit_facility
             .disbursal_id_from_idx(disbursal_idx)
             .ok_or_else(|| {
-                disbursement::error::DisbursalError::EsEntityError(
-                    es_entity::EsEntityError::NotFound,
-                )
+                disbursal::error::DisbursalError::EsEntityError(es_entity::EsEntityError::NotFound)
             })?;
 
-        let mut disbursal = self.disbursal_repo.find_by_id(disbursement_id).await?;
+        let mut disbursal = self.disbursal_repo.find_by_id(disbursal_id).await?;
 
         let mut db_tx = self.credit_facility_repo.begin().await?;
 
@@ -345,9 +343,9 @@ impl CreditFacilities {
 
     pub async fn ensure_up_to_date_disbursal_status(
         &self,
-        disbursement: &Disbursal,
+        disbursal: &Disbursal,
     ) -> Result<Option<Disbursal>, CreditFacilityError> {
-        self.approve_disbursal.execute_from_svc(disbursement).await
+        self.approve_disbursal.execute_from_svc(disbursal).await
     }
 
     pub async fn ensure_up_to_date_status(
@@ -621,7 +619,7 @@ impl CreditFacilities {
             )
             .await?;
 
-        let disbursements = self
+        let disbursals = self
             .disbursal_repo
             .list_for_credit_facility_id_by_created_at(
                 credit_facility_id,
@@ -630,7 +628,7 @@ impl CreditFacilities {
             )
             .await?
             .entities;
-        Ok(disbursements)
+        Ok(disbursals)
     }
 
     pub async fn find_all<T: From<CreditFacility>>(

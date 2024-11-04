@@ -88,18 +88,18 @@ impl CreditFacility {
             .collect()
     }
 
-    async fn disbursements(
+    async fn disbursals(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityDisbursal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
-        let disbursements = app
+        let disbursals = app
             .credit_facilities()
             .list_disbursals(sub, self.entity.id)
             .await?;
 
-        Ok(disbursements
+        Ok(disbursals
             .into_iter()
             .map(CreditFacilityDisbursal::from)
             .collect())
@@ -126,7 +126,7 @@ impl CreditFacility {
             .is_ok())
     }
 
-    async fn subject_can_initiate_disbursement(
+    async fn subject_can_initiate_disbursal(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {

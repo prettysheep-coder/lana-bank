@@ -6,14 +6,14 @@ mod config;
 mod constants;
 pub mod credit_facility;
 pub mod customer;
-pub mod disbursement;
+pub mod disbursal;
 pub mod error;
 pub mod primitives;
 
 use authz::PermissionCheck;
 
 use chrono::{DateTime, Utc};
-use disbursement::DisbursalData;
+use disbursal::DisbursalData;
 use tracing::instrument;
 
 use crate::{

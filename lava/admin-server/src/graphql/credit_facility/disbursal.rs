@@ -19,13 +19,13 @@ pub struct CreditFacilityDisbursal {
 }
 
 impl From<DomainDisbursal> for CreditFacilityDisbursal {
-    fn from(disbursement: DomainDisbursal) -> Self {
+    fn from(disbursal: DomainDisbursal) -> Self {
         Self {
-            id: disbursement.id.to_global_id(),
-            index: disbursement.idx,
-            amount: disbursement.amount,
-            created_at: disbursement.created_at().into(),
-            entity: Arc::new(disbursement),
+            id: disbursal.id.to_global_id(),
+            index: disbursal.idx,
+            amount: disbursal.amount,
+            created_at: disbursal.created_at().into(),
+            entity: Arc::new(disbursal),
         }
     }
 }
@@ -57,11 +57,11 @@ pub struct CreditFacilityDisbursalInitiateInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
 }
-crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursement: CreditFacilityDisbursal }
+crate::mutation_payload! { CreditFacilityDisbursalInitiatePayload, disbursal: CreditFacilityDisbursal }
 
 #[derive(InputObject)]
 pub struct CreditFacilityDisbursalConfirmInput {
     pub credit_facility_id: UUID,
     pub disbursal_idx: DisbursalIdx,
 }
-crate::mutation_payload! { CreditFacilityDisbursalConfirmPayload, disbursement: CreditFacilityDisbursal }
+crate::mutation_payload! { CreditFacilityDisbursalConfirmPayload, disbursal: CreditFacilityDisbursal }

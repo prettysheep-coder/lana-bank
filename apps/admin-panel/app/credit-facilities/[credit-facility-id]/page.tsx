@@ -9,7 +9,7 @@ import { CreditFacilityOverview } from "./overview"
 
 import { CreditFacilityTerms } from "./terms"
 
-import { CreditFacilityDisbursements } from "./disbursements"
+import { CreditFacilityDisbursals } from "./disbursals"
 
 import { CreditFacilityTransactions } from "./transactions"
 
@@ -115,7 +115,7 @@ gql`
           units
         }
       }
-      disbursements {
+      disbursals {
         id
         index
         amount
@@ -176,7 +176,7 @@ gql`
           state
           collateral
           outstandingInterest
-          outstandingDisbursement
+          outstandingDisbursal
           recordedAt
           price
         }
@@ -187,7 +187,7 @@ gql`
         }
       }
       subjectCanUpdateCollateral
-      subjectCanInitiateDisbursement
+      subjectCanInitiateDisbursal
       subjectCanRecordPayment
       subjectCanComplete
     }
@@ -223,8 +223,8 @@ function CreditFacilityPage({
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="terms">Terms</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          {data.creditFacility.disbursements.length > 0 && (
-            <TabsTrigger value="disbursements">Disbursements</TabsTrigger>
+          {data.creditFacility.disbursals.length > 0 && (
+            <TabsTrigger value="disbursals">disbursals</TabsTrigger>
           )}
         </TabsList>
         <TabsContent value="overview">
@@ -236,9 +236,9 @@ function CreditFacilityPage({
         <TabsContent value="transactions">
           <CreditFacilityTransactions creditFacility={data.creditFacility} />
         </TabsContent>
-        {data.creditFacility.disbursements.length > 0 && (
-          <TabsContent value="disbursements">
-            <CreditFacilityDisbursements
+        {data.creditFacility.disbursals.length > 0 && (
+          <TabsContent value="disbursals">
+            <CreditFacilityDisbursals
               creditFacility={data.creditFacility}
               refetch={refetch}
             />

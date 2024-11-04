@@ -23,7 +23,7 @@ pub enum CreditFacilityError {
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - DisbursalError: {0}")]
-    DisbursalError(#[from] super::disbursement::error::DisbursalError),
+    DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]

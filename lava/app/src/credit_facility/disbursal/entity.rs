@@ -7,7 +7,7 @@ use es_entity::*;
 use crate::{
     audit::AuditInfo,
     credit_facility::CreditFacilityAccountIds,
-    ledger::{customer::CustomerLedgerAccountIds, disbursement::DisbursalData},
+    ledger::{customer::CustomerLedgerAccountIds, disbursal::DisbursalData},
     primitives::*,
 };
 

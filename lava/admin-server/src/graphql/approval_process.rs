@@ -149,7 +149,7 @@ impl ApprovalProcess {
                 Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
             }
             ApprovalProcessType::DisbursalApproval => {
-                let disbursement = loader
+                let disbursal = loader
                     .load_one(
                         self.entity
                             .target_ref()
@@ -157,8 +157,8 @@ impl ApprovalProcess {
                             .expect("invalid target ref"),
                     )
                     .await?
-                    .expect("disbursement not found");
-                Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursement))
+                    .expect("disbursal not found");
+                Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursal))
             }
         }
     }

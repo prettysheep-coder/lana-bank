@@ -10,21 +10,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
-import { Label } from "@/components/primitive/label"
 import {
   GetCreditFacilityDetailsDocument,
-  useCreditFacilityDisbursalInitiateMutation,
+  useCreditFacilityDisbursalConfirmMutation,
 } from "@/lib/graphql/generated"
-import { currencyConverter } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
+import { formatDate } from "@/lib/utils"
+import { DetailItem, DetailsGroup } from "@/components/details"
 
 gql`
-  mutation CreditFacilityDisbursalInitiate(
-    $input: CreditFacilityDisbursalInitiateInput!
-  ) {
-    creditFacilityDisbursalInitiate(input: $input) {
-      disbursement {
+  mutation CreditFacilityDisbursalConfirm($input: CreditFacilityDisbursalConfirmInput!) {
+    creditFacilityDisbursalConfirm(input: $input) {
+      disbursal {
         id
         index
       }
@@ -32,44 +30,58 @@ gql`
   }
 `
 
-type CreditFacilityDisbursalInitiateDialogProps = {
+type CreditFacilityDisbursalConfirmDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
+  disbursalIdx: number
+  disbursal: {
+    id: string
+    index: number
+    amount: number
+    status: string
+    createdAt: string
+  }
   onSuccess?: () => void
 }
 
-export const CreditFacilityDisbursalInitiateDialog: React.FC<
-  CreditFacilityDisbursalInitiateDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
-  const [initiateDisbursal, { loading, reset }] =
-    useCreditFacilityDisbursalInitiateMutation({
+export const CreditFacilityDisbursalConfirmDialog: React.FC<
+  CreditFacilityDisbursalConfirmDialogProps
+> = ({
+  setOpenDialog,
+  openDialog,
+  creditFacilityId,
+  disbursalIdx,
+  disbursal,
+  onSuccess,
+}) => {
+  const [confirmDisbursal, { loading, reset }] =
+    useCreditFacilityDisbursalConfirmMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
     })
-  const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
     try {
-      await initiateDisbursal({
+      await confirmDisbursal({
         variables: {
           input: {
             creditFacilityId,
-            amount: currencyConverter.usdToCents(parseFloat(amount)),
+            disbursalIdx,
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityDisbursalInitiate) {
-            toast.success("Disbursal initiated successfully")
+          if (data.creditFacilityDisbursalConfirm) {
+            toast.success("Disbursal confirmed successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },
       })
     } catch (error) {
-      console.error("Error initiating disbursement:", error)
+      console.error("Error confirming disbursal:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
@@ -80,7 +92,6 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
 
   const handleCloseDialog = () => {
     setOpenDialog(false)
-    setAmount("")
     setError(null)
     reset()
   }
@@ -89,33 +100,36 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Initiate Credit Facility Disbursal</DialogTitle>
+          <DialogTitle>Confirm Credit Facility Disbursal</DialogTitle>
           <DialogDescription>
-            Enter the amount you want to disburse from this credit facility.
+            Review the disbursal details before confirming.
           </DialogDescription>
         </DialogHeader>
+        <DetailsGroup>
+          <DetailItem
+            className="px-0"
+            label="ID"
+            value={disbursal.id.split("disbursal:")[1]}
+          />
+          <DetailItem
+            className="px-0"
+            label="Amount"
+            value={<Balance amount={disbursal.amount} currency="usd" />}
+          />
+          <DetailItem
+            className="px-0"
+            label="Created"
+            value={formatDate(disbursal.createdAt)}
+          />
+        </DetailsGroup>
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <Label htmlFor="amount">Amount (USD)</Label>
-            <div className="flex items-center gap-1">
-              <Input
-                id="amount"
-                type="number"
-                required
-                placeholder="Enter amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
-            </div>
-          </div>
           {error && <p className="text-destructive mb-4">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={handleCloseDialog}>
               Cancel
             </Button>
-            <Button type="submit" loading={loading}>
-              Initiate Disbursal
+            <Button type="submit" disabled={loading}>
+              {loading ? "Confirming..." : "Confirm Disbursal"}
             </Button>
           </DialogFooter>
         </form>

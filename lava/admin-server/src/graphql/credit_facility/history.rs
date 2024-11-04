@@ -39,7 +39,7 @@ pub struct CreditFacilityCollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
-    pub outstanding_disbursement: UsdCents,
+    pub outstanding_disbursal: UsdCents,
     pub recorded_at: Timestamp,
     pub price: UsdCents,
 }
@@ -66,8 +66,8 @@ impl From<lava_app::credit_facility::CreditFacilityHistoryEntry> for CreditFacil
             lava_app::credit_facility::CreditFacilityHistoryEntry::Collateralization(
                 collateralization,
             ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
-            lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursal(disbursement) => {
-                CreditFacilityHistoryEntry::Disburssal(disbursement.into())
+            lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursal(disbursal) => {
+                CreditFacilityHistoryEntry::Disburssal(disbursal.into())
             }
         }
     }
@@ -112,7 +112,7 @@ impl From<lava_app::credit_facility::CollateralizationUpdated>
             state: collateralization.state,
             collateral: collateralization.collateral,
             outstanding_interest: collateralization.outstanding_interest,
-            outstanding_disbursement: collateralization.outstanding_disbursal,
+            outstanding_disbursal: collateralization.outstanding_disbursal,
             recorded_at: collateralization.recorded_at.into(),
             price: collateralization.price.into_inner(),
         }
@@ -120,11 +120,11 @@ impl From<lava_app::credit_facility::CollateralizationUpdated>
 }
 
 impl From<lava_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbursalExecuted {
-    fn from(disbursement: lava_app::credit_facility::DisbursalExecuted) -> Self {
+    fn from(disbursal: lava_app::credit_facility::DisbursalExecuted) -> Self {
         Self {
-            cents: disbursement.cents,
-            recorded_at: disbursement.recorded_at.into(),
-            tx_id: UUID::from(disbursement.tx_id),
+            cents: disbursal.cents,
+            recorded_at: disbursal.recorded_at.into(),
+            tx_id: UUID::from(disbursal.tx_id),
         }
     }
 }

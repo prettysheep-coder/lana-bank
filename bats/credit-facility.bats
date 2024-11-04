@@ -104,9 +104,10 @@ teardown_file() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-confirm' "$variables"
-  disbursal_id=$(graphql_output '.data.creditFacilitydisbursalConfirm.disbursal.id')
+  echo $(graphql_output)
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.id')
   [[ "$disbursal_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.creditFacilitydisbursalConfirm.disbursal.status')
+  status=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
 
   assert_accounts_balanced

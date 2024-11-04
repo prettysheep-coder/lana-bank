@@ -23,20 +23,20 @@ import { formatDate, formatRole } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
-type CreditFacilityDisbursementApproveDialogProps = {
+type CreditFacilityDisbursalApproveDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
-  disbursementIdx: number
-  disbursement: NonNullable<
+  disbursalIdx: number
+  disbursal: NonNullable<
     GetCreditFacilityDetailsQuery["creditFacility"]
-  >["disbursements"][number]
+  >["disbursals"][number]
   refetch: () => void
 }
 
-export const CreditFacilityDisbursementApproveDialog: React.FC<
-  CreditFacilityDisbursementApproveDialogProps
-> = ({ setOpenDialog, openDialog, disbursement, refetch }) => {
+export const CreditFacilityDisbursalApproveDialog: React.FC<
+  CreditFacilityDisbursalApproveDialogProps
+> = ({ setOpenDialog, openDialog, disbursal, refetch }) => {
   const handleCloseDialog = () => {
     setOpenDialog(false)
   }
@@ -48,43 +48,43 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Credit Facility Disbursement Approval Process</DialogTitle>
+          <DialogTitle>Credit Facility Disbursal Approval Process</DialogTitle>
           <DialogDescription>
-            Review the disbursement details before approving
+            Review the disbursal details before approving
           </DialogDescription>
         </DialogHeader>
         <DetailsGroup>
           <DetailItem
             className="px-0"
             label="Amount"
-            value={<Balance amount={disbursement.amount} currency="usd" />}
+            value={<Balance amount={disbursal.amount} currency="usd" />}
           />
           <DetailItem
             className="px-0"
             label="Created"
-            value={formatDate(disbursement.createdAt)}
+            value={formatDate(disbursal.createdAt)}
           />
         </DetailsGroup>
         <>
-          {disbursement.approvalProcess.rules.__typename === "CommitteeThreshold" && (
+          {disbursal.approvalProcess.rules.__typename === "CommitteeThreshold" && (
             <Card className="mt-4">
               <CardHeader>
                 <CardTitle className="text-primary font-normal">
                   Approval process decision from the{" "}
-                  {disbursement.approvalProcess.rules.committee.name} Committee
+                  {disbursal.approvalProcess.rules.committee.name} Committee
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {disbursement.approvalProcess.voters
+                {disbursal.approvalProcess.voters
                   .filter((voter) => {
                     if (
-                      disbursement?.approvalProcess.status ===
+                      disbursal?.approvalProcess.status ===
                         ApprovalProcessStatus.InProgress ||
                       ([
                         ApprovalProcessStatus.Approved,
                         ApprovalProcessStatus.Denied,
                       ].includes(
-                        disbursement?.approvalProcess.status as ApprovalProcessStatus,
+                        disbursal?.approvalProcess.status as ApprovalProcessStatus,
                       ) &&
                         voter.didVote)
                     ) {
@@ -126,8 +126,8 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
           )}
         </>
         <DialogFooter>
-          {disbursement.approvalProcess.status === ApprovalProcessStatus.InProgress &&
-            disbursement.approvalProcess.subjectCanSubmitDecision && (
+          {disbursal.approvalProcess.status === ApprovalProcessStatus.InProgress &&
+            disbursal.approvalProcess.subjectCanSubmitDecision && (
               <>
                 <Button onClick={() => setOpenApprovalDialog(true)} className="ml-2">
                   Approve
@@ -140,7 +140,7 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
         </DialogFooter>
       </DialogContent>
       <ApprovalDialog
-        approvalProcess={disbursement.approvalProcess as ApprovalProcess}
+        approvalProcess={disbursal.approvalProcess as ApprovalProcess}
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => {
           setOpenApprovalDialog(false)
@@ -149,7 +149,7 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
         refetch={refetch}
       />
       <DenialDialog
-        approvalProcess={disbursement.approvalProcess as ApprovalProcess}
+        approvalProcess={disbursal.approvalProcess as ApprovalProcess}
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => {
           setOpenDenialDialog(false)

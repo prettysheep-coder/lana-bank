@@ -321,10 +321,10 @@ type CreditFacility {
 	status: CreditFacilityStatus!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
-	disbursements: [CreditFacilityDisbursal!]!
+	disbursals: [CreditFacilityDisbursal!]!
 	approvalProcess: ApprovalProcess!
 	subjectCanUpdateCollateral: Boolean!
-	subjectCanInitiateDisbursement: Boolean!
+	subjectCanInitiateDisbursal: Boolean!
 	subjectCanRecordPayment: Boolean!
 	subjectCanComplete: Boolean!
 	customer: Customer!
@@ -359,7 +359,7 @@ type CreditFacilityCollateralizationUpdated {
 	state: CollateralizationState!
 	collateral: Satoshis!
 	outstandingInterest: UsdCents!
-	outstandingDisbursement: UsdCents!
+	outstandingDisbursal: UsdCents!
 	recordedAt: Timestamp!
 	price: UsdCents!
 }
@@ -412,7 +412,7 @@ input CreditFacilityDisbursalConfirmInput {
 }
 
 type CreditFacilityDisbursalConfirmPayload {
-	disbursement: CreditFacilityDisbursal!
+	disbursal: CreditFacilityDisbursal!
 }
 
 type CreditFacilityDisbursalExecuted {
@@ -427,7 +427,7 @@ input CreditFacilityDisbursalInitiateInput {
 }
 
 type CreditFacilityDisbursalInitiatePayload {
-	disbursement: CreditFacilityDisbursal!
+	disbursal: CreditFacilityDisbursal!
 }
 
 """

@@ -17,18 +17,18 @@ import {
 } from "@/lib/graphql/generated"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
-type DisbursementDetailsDialogProps = {
+type DisbursalDetailsDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
-  disbursement: NonNullable<
+  disbursal: NonNullable<
     GetCreditFacilityDetailsQuery["creditFacility"]
-  >["disbursements"][number]
+  >["disbursals"][number]
 }
 
-export const DisbursementDetailsDialog: React.FC<DisbursementDetailsDialogProps> = ({
+export const DisbursalDetailsDialog: React.FC<DisbursalDetailsDialogProps> = ({
   setOpenDialog,
   openDialog,
-  disbursement,
+  disbursal,
 }) => {
   const handleCloseDialog = () => {
     setOpenDialog(false)
@@ -38,46 +38,46 @@ export const DisbursementDetailsDialog: React.FC<DisbursementDetailsDialogProps>
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Disbursement Details</DialogTitle>
-          <DialogDescription>View the details of this disbursement.</DialogDescription>
+          <DialogTitle>Disbursal Details</DialogTitle>
+          <DialogDescription>View the details of this disbursal.</DialogDescription>
         </DialogHeader>
         <DetailsGroup>
           <DetailItem
             className="px-0"
             label="ID"
-            value={disbursement.id.split("disbursement:")[1]}
+            value={disbursal.id.split("disbursal:")[1]}
           />
           <DetailItem
             className="px-0"
             label="Amount"
-            value={<Balance amount={disbursement.amount} currency="usd" />}
+            value={<Balance amount={disbursal.amount} currency="usd" />}
           />
           <DetailItem
             className="px-0"
             label="Created"
-            value={formatDate(disbursement.createdAt)}
+            value={formatDate(disbursal.createdAt)}
           />
         </DetailsGroup>
         <>
-          {disbursement.approvalProcess.rules.__typename === "CommitteeThreshold" && (
+          {disbursal.approvalProcess.rules.__typename === "CommitteeThreshold" && (
             <Card className="mt-4">
               <CardHeader>
                 <CardTitle className="text-primary font-normal">
                   Approval process decision from the{" "}
-                  {disbursement.approvalProcess.rules.committee.name} Committee
+                  {disbursal.approvalProcess.rules.committee.name} Committee
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {disbursement.approvalProcess.voters
+                {disbursal.approvalProcess.voters
                   .filter((voter) => {
                     if (
-                      disbursement?.approvalProcess.status ===
+                      disbursal?.approvalProcess.status ===
                         ApprovalProcessStatus.InProgress ||
                       ([
                         ApprovalProcessStatus.Approved,
                         ApprovalProcessStatus.Denied,
                       ].includes(
-                        disbursement?.approvalProcess.status as ApprovalProcessStatus,
+                        disbursal?.approvalProcess.status as ApprovalProcessStatus,
                       ) &&
                         voter.didVote)
                     ) {
