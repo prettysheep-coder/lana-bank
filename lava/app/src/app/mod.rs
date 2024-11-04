@@ -63,7 +63,7 @@ impl LavaApp {
         let outbox = Outbox::init(&pool).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
+        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
         let withdrawals = Withdrawals::init(
             &pool,
@@ -80,16 +80,7 @@ impl LavaApp {
         let price = Price::init(&pool, &jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
-        let report = Reports::init(
-            &pool,
-            &config.report,
-            &authz,
-            &audit,
-            &jobs,
-            &storage,
-            &export,
-        )
-        .await?;
+        let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
         let credit_facilities = CreditFacilities::init(
             &pool,
@@ -98,7 +89,6 @@ impl LavaApp {
             &jobs,
             &export,
             &authz,
-            &audit,
             &customers,
             &ledger,
             &price,
