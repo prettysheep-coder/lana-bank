@@ -12,7 +12,7 @@ use rbac_types::{AppObject, CreditFacilityAction};
 
 pub use job::*;
 
-pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
+pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
 #[derive(Clone)]
 pub struct ApproveDisbursal {
@@ -36,22 +36,22 @@ impl ApproveDisbursal {
 
     pub async fn execute_from_svc(
         &self,
-        disbursement: &Disbursal,
+        disbursal: &Disbursal,
     ) -> Result<Option<Disbursal>, CreditFacilityError> {
-        if disbursement.is_approval_process_concluded() {
+        if disbursal.is_approval_process_concluded() {
             return Ok(None);
         }
 
         let process: ApprovalProcess = self
             .governance
-            .find_all_approval_processes(&[disbursement.approval_process_id])
+            .find_all_approval_processes(&[disbursal.approval_process_id])
             .await?
-            .remove(&disbursement.approval_process_id)
+            .remove(&disbursal.approval_process_id)
             .expect("approval process not found");
 
         let res = match process.status() {
-            ApprovalProcessStatus::Approved => Some(self.execute(disbursement.id, true).await?),
-            ApprovalProcessStatus::Denied => Some(self.execute(disbursement.id, false).await?),
+            ApprovalProcessStatus::Approved => Some(self.execute(disbursal.id, true).await?),
+            ApprovalProcessStatus::Denied => Some(self.execute(disbursal.id, false).await?),
             _ => None,
         };
         Ok(res)
@@ -63,9 +63,9 @@ impl ApproveDisbursal {
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
     ) -> Result<Disbursal, CreditFacilityError> {
-        let mut disbursement = self.repo.find_by_id(id.into()).await?;
-        if disbursement.is_approval_process_concluded() {
-            return Ok(disbursement);
+        let mut disbursal = self.repo.find_by_id(id.into()).await?;
+        if disbursal.is_approval_process_concluded() {
+            return Ok(disbursal);
         }
         let mut db = self.repo.pool().begin().await?;
         let audit_info = self
@@ -76,13 +76,13 @@ impl ApproveDisbursal {
                 CreditFacilityAction::ConcludeDisbursalApprovalProcess,
             )
             .await?;
-        if disbursement
+        if disbursal
             .approval_process_concluded(approved, audit_info)
             .did_execute()
         {
-            self.repo.update_in_tx(&mut db, &mut disbursement).await?;
+            self.repo.update_in_tx(&mut db, &mut disbursal).await?;
             db.commit().await?;
         }
-        Ok(disbursement)
+        Ok(disbursal)
     }
 }

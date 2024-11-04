@@ -356,11 +356,11 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_facility_disbursement_tx_template",
+        name = "lava.ledger.cala.create_facility_disbursal_tx_template",
         skip(self),
         err
     )]
-    pub async fn create_facility_disbursement_tx_template(
+    pub async fn create_facility_disbursal_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
@@ -394,11 +394,11 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.execute_credit_facility_disbursement_tx",
+        name = "lava.ledger.cala.execute_credit_facility_disbursal_tx",
         skip(self),
         err
     )]
-    pub async fn execute_credit_facility_disbursement_tx(
+    pub async fn execute_credit_facility_disbursal_tx(
         &self,
         transaction_id: LedgerTxId,
         facility_account_ids: CreditFacilityAccountIds,
@@ -1237,7 +1237,7 @@ impl CalaClient {
         credit_facility_account_ids: CreditFacilityAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
-        disbursement_payment_amount: Decimal,
+        disbursal_payment_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_credit_facility_payment_transaction::Variables {
@@ -1250,7 +1250,7 @@ impl CalaClient {
                 .disbursed_receivable_account_id
                 .into(),
             interest_payment_amount,
-            disbursement_payment_amount,
+            disbursement_payment_amount: disbursal_payment_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordCreditFacilityPaymentTransaction, _>(

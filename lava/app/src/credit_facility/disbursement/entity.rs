@@ -143,7 +143,7 @@ impl Disbursal {
         false
     }
 
-    pub fn disbursement_data(&self) -> Result<DisbursalData, DisbursalError> {
+    pub fn disbursal_data(&self) -> Result<DisbursalData, DisbursalError> {
         if self.is_confirmed() {
             return Err(DisbursalError::AlreadyConfirmed);
         }
@@ -155,7 +155,7 @@ impl Disbursal {
         }
 
         Ok(DisbursalData {
-            tx_ref: format!("disbursement-{}", self.id),
+            tx_ref: format!("disbursal-{}", self.id),
             tx_id: LedgerTxId::new(),
             amount: self.amount,
             account_ids: self.account_ids,
@@ -230,7 +230,7 @@ mod test {
         }
     }
 
-    fn disbursement_from(events: Vec<DisbursalEvent>) -> Disbursal {
+    fn disbursal_from(events: Vec<DisbursalEvent>) -> Disbursal {
         Disbursal::try_from_events(EntityEvents::init(DisbursalId::new(), events)).unwrap()
     }
 
@@ -250,9 +250,9 @@ mod test {
 
     #[test]
     fn errors_when_not_confirmed_yet() {
-        let disbursement = disbursement_from(initial_events());
+        let disbursal = disbursal_from(initial_events());
         assert!(matches!(
-            disbursement.disbursement_data(),
+            disbursal.disbursal_data(),
             Err(DisbursalError::ApprovalInProgress)
         ));
     }
@@ -265,10 +265,10 @@ mod test {
             approved: false,
             audit_info: dummy_audit_info(),
         });
-        let disbursement = disbursement_from(events);
+        let disbursal = disbursal_from(events);
 
         assert!(matches!(
-            disbursement.disbursement_data(),
+            disbursal.disbursal_data(),
             Err(DisbursalError::Denied)
         ));
     }
@@ -288,10 +288,10 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        let disbursement = disbursement_from(events);
+        let disbursal = disbursal_from(events);
 
         assert!(matches!(
-            disbursement.disbursement_data(),
+            disbursal.disbursal_data(),
             Err(DisbursalError::AlreadyConfirmed)
         ));
     }
@@ -304,8 +304,8 @@ mod test {
             approved: true,
             audit_info: dummy_audit_info(),
         }]);
-        let disbursement = disbursement_from(events);
+        let disbursal = disbursal_from(events);
 
-        assert!(disbursement.disbursement_data().is_ok(),);
+        assert!(disbursal.disbursal_data().is_ok(),);
     }
 }

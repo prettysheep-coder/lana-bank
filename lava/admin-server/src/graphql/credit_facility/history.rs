@@ -112,7 +112,7 @@ impl From<lava_app::credit_facility::CollateralizationUpdated>
             state: collateralization.state,
             collateral: collateralization.collateral,
             outstanding_interest: collateralization.outstanding_interest,
-            outstanding_disbursement: collateralization.outstanding_disbursement,
+            outstanding_disbursement: collateralization.outstanding_disbursal,
             recorded_at: collateralization.recorded_at.into(),
             price: collateralization.price.into_inner(),
         }

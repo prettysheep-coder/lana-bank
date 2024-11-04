@@ -750,7 +750,7 @@ impl Mutation {
             CreditFacilityDisbursalInitiatePayload,
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().initiate_disbursement(
+            app.credit_facilities().initiate_disbursal(
                 sub,
                 input.credit_facility_id.into(),
                 input.amount
@@ -768,7 +768,7 @@ impl Mutation {
             CreditFacilityDisbursalConfirmPayload,
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().confirm_disbursement(
+            app.credit_facilities().confirm_disbursal(
                 sub,
                 input.credit_facility_id,
                 input.disbursal_idx

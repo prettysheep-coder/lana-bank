@@ -96,7 +96,7 @@ impl CreditFacility {
 
         let disbursements = app
             .credit_facilities()
-            .list_disbursements(sub, self.entity.id)
+            .list_disbursals(sub, self.entity.id)
             .await?;
 
         Ok(disbursements
@@ -133,7 +133,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .credit_facilities()
-            .subject_can_initiate_disbursement(sub, false)
+            .subject_can_initiate_disbursal(sub, false)
             .await
             .is_ok())
     }

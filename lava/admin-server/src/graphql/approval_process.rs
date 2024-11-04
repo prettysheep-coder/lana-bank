@@ -178,7 +178,7 @@ impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
             Self::WithdrawalApproval
         } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
             Self::CreditFacilityApproval
-        } else if process_type == &lava_app::governance::APPROVE_DISBURSEMENT_PROCESS {
+        } else if process_type == &lava_app::governance::APPROVE_DISBURSAL_PROCESS {
             Self::DisbursalApproval
         } else {
             panic!("Unknown approval process type: {:?}", process_type);

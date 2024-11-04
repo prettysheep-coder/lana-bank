@@ -36,7 +36,7 @@ impl CreditFacilityDisbursal {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .credit_facilities()
-            .ensure_up_to_date_disbursement_status(&self.entity)
+            .ensure_up_to_date_disbursal_status(&self.entity)
             .await?
             .map(|d| d.status())
             .unwrap_or_else(|| self.entity.status()))

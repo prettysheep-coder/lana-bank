@@ -28,13 +28,13 @@ impl DisbursalApprovalJobInitializer {
     }
 }
 
-const DISBURSEMENT_APPROVE_JOB: JobType = JobType::new("disbursement");
+const DISBURSAL_APPROVE_JOB: JobType = JobType::new("disbursal");
 impl JobInitializer for DisbursalApprovalJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        DISBURSEMENT_APPROVE_JOB
+        DISBURSAL_APPROVE_JOB
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -80,7 +80,7 @@ impl JobRunner for DisbursalApprovalJobRunner {
                     approved,
                     ref process_type,
                     ..
-                })) if process_type == &super::APPROVE_DISBURSEMENT_PROCESS => {
+                })) if process_type == &super::APPROVE_DISBURSAL_PROCESS => {
                     self.process.execute(id, approved).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;

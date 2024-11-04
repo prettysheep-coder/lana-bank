@@ -169,7 +169,7 @@ impl Loader<DisbursalId> for LavaLoader {
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
             .credit_facilities()
-            .find_all_disbursements(keys)
+            .find_all_disbursals(keys)
             .await
             .map_err(Arc::new)
     }
