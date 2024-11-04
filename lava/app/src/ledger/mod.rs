@@ -13,7 +13,7 @@ pub mod primitives;
 use authz::PermissionCheck;
 
 use chrono::{DateTime, Utc};
-use disbursement::DisbursementData;
+use disbursement::DisbursalData;
 use tracing::instrument;
 
 use crate::{
@@ -271,13 +271,13 @@ impl Ledger {
     #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
     pub async fn record_disbursement(
         &self,
-        DisbursementData {
+        DisbursalData {
             amount,
             tx_ref,
             tx_id,
             account_ids,
             customer_account_ids,
-        }: DisbursementData,
+        }: DisbursalData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala

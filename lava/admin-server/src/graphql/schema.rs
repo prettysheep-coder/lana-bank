@@ -743,12 +743,12 @@ impl Mutation {
     pub async fn credit_facility_disbursement_initiate(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityDisbursementInitiateInput,
-    ) -> async_graphql::Result<CreditFacilityDisbursementInitiatePayload> {
+        input: CreditFacilityDisbursalInitiateInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursalInitiatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CreditFacilityDisbursementInitiatePayload,
-            CreditFacilityDisbursement,
+            CreditFacilityDisbursalInitiatePayload,
+            CreditFacilityDisbursal,
             ctx,
             app.credit_facilities().initiate_disbursement(
                 sub,
@@ -761,12 +761,12 @@ impl Mutation {
     async fn credit_facility_disbursement_confirm(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityDisbursementConfirmInput,
-    ) -> async_graphql::Result<CreditFacilityDisbursementConfirmPayload> {
+        input: CreditFacilityDisbursalConfirmInput,
+    ) -> async_graphql::Result<CreditFacilityDisbursalConfirmPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CreditFacilityDisbursementConfirmPayload,
-            CreditFacilityDisbursement,
+            CreditFacilityDisbursalConfirmPayload,
+            CreditFacilityDisbursal,
             ctx,
             app.credit_facilities().confirm_disbursement(
                 sub,

@@ -91,7 +91,7 @@ impl CreditFacility {
     async fn disbursements(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<CreditFacilityDisbursement>> {
+    ) -> async_graphql::Result<Vec<CreditFacilityDisbursal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursements = app
@@ -101,7 +101,7 @@ impl CreditFacility {
 
         Ok(disbursements
             .into_iter()
-            .map(CreditFacilityDisbursement::from)
+            .map(CreditFacilityDisbursal::from)
             .collect())
     }
 

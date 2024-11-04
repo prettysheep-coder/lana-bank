@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT credit_facility_id, id FROM disbursements WHERE ((credit_facility_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: DisbursementId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN disbursement_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT idx, id FROM disbursals WHERE (COALESCE((idx, id) > ($3, $2), $2 IS NULL)) ORDER BY idx ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: DisbursalId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN disbursal_events e ON i.id = e.id ORDER BY i.idx asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: DisbursementId",
+        "name": "entity_id: DisbursalId",
         "type_info": "Uuid"
       },
       {
@@ -26,9 +26,9 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
         "Int8",
-        "Uuid"
+        "Uuid",
+        "Int4"
       ]
     },
     "nullable": [
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "8ac8726c40177cdd71dcb1e6e071a49ead9642c9b4bd957ce82bc96749426651"
+  "hash": "c2369dca33d6e1694f442fc5b807744196069d725aa9d594032f560ae95f56b3"
 }

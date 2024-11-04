@@ -148,19 +148,17 @@ impl ApprovalProcess {
                     .expect("credit facility not found");
                 Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
             }
-            ApprovalProcessType::DisbursementApproval => {
+            ApprovalProcessType::DisbursalApproval => {
                 let disbursement = loader
                     .load_one(
                         self.entity
                             .target_ref()
-                            .parse::<DisbursementId>()
+                            .parse::<DisbursalId>()
                             .expect("invalid target ref"),
                     )
                     .await?
                     .expect("disbursement not found");
-                Ok(ApprovalProcessTarget::CreditFacilityDisbursement(
-                    disbursement,
-                ))
+                Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursement))
             }
         }
     }
@@ -171,7 +169,7 @@ impl ApprovalProcess {
 pub enum ApprovalProcessType {
     WithdrawalApproval,
     CreditFacilityApproval,
-    DisbursementApproval,
+    DisbursalApproval,
 }
 
 impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
@@ -181,7 +179,7 @@ impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
         } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
             Self::CreditFacilityApproval
         } else if process_type == &lava_app::governance::APPROVE_DISBURSEMENT_PROCESS {
-            Self::DisbursementApproval
+            Self::DisbursalApproval
         } else {
             panic!("Unknown approval process type: {:?}", process_type);
         }
@@ -218,7 +216,7 @@ impl ApprovalProcessVoter {
 pub(super) enum ApprovalProcessTarget {
     Withdrawal(Withdrawal),
     CreditFacility(CreditFacility),
-    CreditFacilityDisbursement(CreditFacilityDisbursement),
+    CreditFacilityDisbursal(CreditFacilityDisbursal),
 }
 
 #[derive(InputObject)]

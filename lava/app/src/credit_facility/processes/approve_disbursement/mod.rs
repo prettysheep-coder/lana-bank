@@ -4,9 +4,9 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
     audit::{Audit, AuditSvc},
-    credit_facility::{error::CreditFacilityError, Disbursement, DisbursementRepo},
+    credit_facility::{error::CreditFacilityError, Disbursal, DisbursalRepo},
     governance::Governance,
-    primitives::DisbursementId,
+    primitives::DisbursalId,
 };
 use rbac_types::{AppObject, CreditFacilityAction};
 
@@ -15,15 +15,15 @@ pub use job::*;
 pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType = ApprovalProcessType::new("disbursal");
 
 #[derive(Clone)]
-pub struct ApproveDisbursement {
-    repo: DisbursementRepo,
+pub struct ApproveDisbursal {
+    repo: DisbursalRepo,
     audit: Audit,
     governance: Governance,
 }
 
-impl ApproveDisbursement {
+impl ApproveDisbursal {
     pub(in crate::credit_facility) fn new(
-        repo: &DisbursementRepo,
+        repo: &DisbursalRepo,
         audit: &Audit,
         governance: &Governance,
     ) -> Self {
@@ -36,8 +36,8 @@ impl ApproveDisbursement {
 
     pub async fn execute_from_svc(
         &self,
-        disbursement: &Disbursement,
-    ) -> Result<Option<Disbursement>, CreditFacilityError> {
+        disbursement: &Disbursal,
+    ) -> Result<Option<Disbursal>, CreditFacilityError> {
         if disbursement.is_approval_process_concluded() {
             return Ok(None);
         }
@@ -60,9 +60,9 @@ impl ApproveDisbursement {
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn execute(
         &self,
-        id: impl es_entity::RetryableInto<DisbursementId>,
+        id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
-    ) -> Result<Disbursement, CreditFacilityError> {
+    ) -> Result<Disbursal, CreditFacilityError> {
         let mut disbursement = self.repo.find_by_id(id.into()).await?;
         if disbursement.is_approval_process_concluded() {
             return Ok(disbursement);
@@ -73,7 +73,7 @@ impl ApproveDisbursement {
             .record_system_entry_in_tx(
                 &mut db,
                 AppObject::CreditFacility,
-                CreditFacilityAction::ConcludeDisbursementApprovalProcess,
+                CreditFacilityAction::ConcludeDisbursalApprovalProcess,
             )
             .await?;
         if disbursement

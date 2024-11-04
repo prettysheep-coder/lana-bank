@@ -1,19 +1,19 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum DisbursementError {
-    #[error("DisbursementError - Sqlx: {0}")]
+pub enum DisbursalError {
+    #[error("DisbursalError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("DisbursementError - EsEntityError: {0}")]
+    #[error("DisbursalError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
-    #[error("DisbursementError - JobError: {0}")]
+    #[error("DisbursalError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("DisbursementError - AlreadyConfirmed")]
+    #[error("DisbursalError - AlreadyConfirmed")]
     AlreadyConfirmed,
-    #[error("DisbursementError - ApprovalInProgress")]
+    #[error("DisbursalError - ApprovalInProgress")]
     ApprovalInProgress,
-    #[error("DisbursementError - Denied")]
+    #[error("DisbursalError - Denied")]
     Denied,
 }
 
-es_entity::from_es_entity_error!(DisbursementError);
+es_entity::from_es_entity_error!(DisbursalError);

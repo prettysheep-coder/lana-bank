@@ -7,21 +7,21 @@ use es_entity::*;
 use crate::{
     audit::AuditInfo,
     credit_facility::CreditFacilityAccountIds,
-    ledger::{customer::CustomerLedgerAccountIds, disbursement::DisbursementData},
+    ledger::{customer::CustomerLedgerAccountIds, disbursement::DisbursalData},
     primitives::*,
 };
 
-use super::DisbursementError;
+use super::DisbursalError;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "DisbursementId")]
-pub enum DisbursementEvent {
+#[es_event(id = "DisbursalId")]
+pub enum DisbursalEvent {
     Initialized {
-        id: DisbursementId,
+        id: DisbursalId,
         approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
-        idx: DisbursementIdx,
+        idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
@@ -41,23 +41,23 @@ pub enum DisbursementEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct Disbursement {
-    pub id: DisbursementId,
+pub struct Disbursal {
+    pub id: DisbursalId,
     pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
-    pub idx: DisbursementIdx,
+    pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
-    pub(super) events: EntityEvents<DisbursementEvent>,
+    pub(super) events: EntityEvents<DisbursalEvent>,
 }
 
-impl TryFromEvents<DisbursementEvent> for Disbursement {
-    fn try_from_events(events: EntityEvents<DisbursementEvent>) -> Result<Self, EsEntityError> {
-        let mut builder = DisbursementBuilder::default();
+impl TryFromEvents<DisbursalEvent> for Disbursal {
+    fn try_from_events(events: EntityEvents<DisbursalEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = DisbursalBuilder::default();
         for event in events.iter_all() {
             match event {
-                DisbursementEvent::Initialized {
+                DisbursalEvent::Initialized {
                     id,
                     approval_process_id,
                     facility_id,
@@ -76,15 +76,15 @@ impl TryFromEvents<DisbursementEvent> for Disbursement {
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
-                DisbursementEvent::ApprovalProcessConcluded { .. } => (),
-                DisbursementEvent::Confirmed { .. } => (),
+                DisbursalEvent::ApprovalProcessConcluded { .. } => (),
+                DisbursalEvent::Confirmed { .. } => (),
             }
         }
         builder.events(events).build()
     }
 }
 
-impl Disbursement {
+impl Disbursal {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
@@ -94,16 +94,16 @@ impl Disbursement {
     pub fn is_approval_process_concluded(&self) -> bool {
         self.events
             .iter_all()
-            .any(|e| matches!(e, DisbursementEvent::ApprovalProcessConcluded { .. }))
+            .any(|e| matches!(e, DisbursalEvent::ApprovalProcessConcluded { .. }))
     }
-    pub fn status(&self) -> DisbursementStatus {
+    pub fn status(&self) -> DisbursalStatus {
         if self.is_confirmed() {
-            DisbursementStatus::Confirmed
+            DisbursalStatus::Confirmed
         } else {
             match self.is_approved() {
-                Some(true) => DisbursementStatus::Approved,
-                Some(false) => DisbursementStatus::Denied,
-                None => DisbursementStatus::New,
+                Some(true) => DisbursalStatus::Approved,
+                Some(false) => DisbursalStatus::Denied,
+                None => DisbursalStatus::New,
             }
         }
     }
@@ -115,20 +115,19 @@ impl Disbursement {
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
-            DisbursementEvent::ApprovalProcessConcluded { .. }
+            DisbursalEvent::ApprovalProcessConcluded { .. }
         );
-        self.events
-            .push(DisbursementEvent::ApprovalProcessConcluded {
-                approval_process_id: self.approval_process_id,
-                approved,
-                audit_info,
-            });
+        self.events.push(DisbursalEvent::ApprovalProcessConcluded {
+            approval_process_id: self.approval_process_id,
+            approved,
+            audit_info,
+        });
         Idempotent::Executed(())
     }
 
     pub(super) fn is_approved(&self) -> Option<bool> {
         for event in self.events.iter_all() {
-            if let DisbursementEvent::ApprovalProcessConcluded { approved, .. } = event {
+            if let DisbursalEvent::ApprovalProcessConcluded { approved, .. } = event {
                 return Some(*approved);
             }
         }
@@ -137,25 +136,25 @@ impl Disbursement {
     pub(super) fn is_confirmed(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
-                DisbursementEvent::Confirmed { .. } => return true,
+                DisbursalEvent::Confirmed { .. } => return true,
                 _ => continue,
             }
         }
         false
     }
 
-    pub fn disbursement_data(&self) -> Result<DisbursementData, DisbursementError> {
+    pub fn disbursement_data(&self) -> Result<DisbursalData, DisbursalError> {
         if self.is_confirmed() {
-            return Err(DisbursementError::AlreadyConfirmed);
+            return Err(DisbursalError::AlreadyConfirmed);
         }
 
         match self.is_approved() {
-            None => return Err(DisbursementError::ApprovalInProgress),
-            Some(false) => return Err(DisbursementError::Denied),
+            None => return Err(DisbursalError::ApprovalInProgress),
+            Some(false) => return Err(DisbursalError::Denied),
             _ => (),
         }
 
-        Ok(DisbursementData {
+        Ok(DisbursalData {
             tx_ref: format!("disbursement-{}", self.id),
             tx_id: LedgerTxId::new(),
             amount: self.amount,
@@ -166,11 +165,11 @@ impl Disbursement {
 
     pub fn confirm(
         &mut self,
-        &DisbursementData { tx_id, .. }: &DisbursementData,
+        &DisbursalData { tx_id, .. }: &DisbursalData,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
-        self.events.push(DisbursementEvent::Confirmed {
+        self.events.push(DisbursalEvent::Confirmed {
             ledger_tx_id: tx_id,
             confirmed_at: executed_at,
             audit_info,
@@ -179,14 +178,14 @@ impl Disbursement {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewDisbursement {
+pub struct NewDisbursal {
     #[builder(setter(into))]
-    pub(super) id: DisbursementId,
+    pub(super) id: DisbursalId,
     #[builder(setter(into))]
     pub(crate) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
-    pub(super) idx: DisbursementIdx,
+    pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
     pub(super) customer_account_ids: CustomerLedgerAccountIds,
@@ -194,17 +193,17 @@ pub struct NewDisbursement {
     pub(super) audit_info: AuditInfo,
 }
 
-impl NewDisbursement {
-    pub fn builder() -> NewDisbursementBuilder {
-        NewDisbursementBuilder::default()
+impl NewDisbursal {
+    pub fn builder() -> NewDisbursalBuilder {
+        NewDisbursalBuilder::default()
     }
 }
 
-impl IntoEvents<DisbursementEvent> for NewDisbursement {
-    fn into_events(self) -> EntityEvents<DisbursementEvent> {
+impl IntoEvents<DisbursalEvent> for NewDisbursal {
+    fn into_events(self) -> EntityEvents<DisbursalEvent> {
         EntityEvents::init(
             self.id,
-            [DisbursementEvent::Initialized {
+            [DisbursalEvent::Initialized {
                 id: self.id,
                 approval_process_id: self.approval_process_id,
                 facility_id: self.credit_facility_id,
@@ -231,17 +230,17 @@ mod test {
         }
     }
 
-    fn disbursement_from(events: Vec<DisbursementEvent>) -> Disbursement {
-        Disbursement::try_from_events(EntityEvents::init(DisbursementId::new(), events)).unwrap()
+    fn disbursement_from(events: Vec<DisbursalEvent>) -> Disbursal {
+        Disbursal::try_from_events(EntityEvents::init(DisbursalId::new(), events)).unwrap()
     }
 
-    fn initial_events() -> Vec<DisbursementEvent> {
-        let id = DisbursementId::new();
-        vec![DisbursementEvent::Initialized {
+    fn initial_events() -> Vec<DisbursalEvent> {
+        let id = DisbursalId::new();
+        vec![DisbursalEvent::Initialized {
             id,
             approval_process_id: id.into(),
             facility_id: CreditFacilityId::new(),
-            idx: DisbursementIdx::FIRST,
+            idx: DisbursalIdx::FIRST,
             amount: UsdCents::from(100_000),
             account_ids: CreditFacilityAccountIds::new(),
             customer_account_ids: CustomerLedgerAccountIds::new(),
@@ -254,14 +253,14 @@ mod test {
         let disbursement = disbursement_from(initial_events());
         assert!(matches!(
             disbursement.disbursement_data(),
-            Err(DisbursementError::ApprovalInProgress)
+            Err(DisbursalError::ApprovalInProgress)
         ));
     }
 
     #[test]
     fn errors_if_denied() {
         let mut events = initial_events();
-        events.push(DisbursementEvent::ApprovalProcessConcluded {
+        events.push(DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: ApprovalProcessId::new(),
             approved: false,
             audit_info: dummy_audit_info(),
@@ -270,7 +269,7 @@ mod test {
 
         assert!(matches!(
             disbursement.disbursement_data(),
-            Err(DisbursementError::Denied)
+            Err(DisbursalError::Denied)
         ));
     }
 
@@ -278,12 +277,12 @@ mod test {
     fn errors_if_already_confirmed() {
         let mut events = initial_events();
         events.extend([
-            DisbursementEvent::ApprovalProcessConcluded {
+            DisbursalEvent::ApprovalProcessConcluded {
                 approval_process_id: ApprovalProcessId::new(),
                 approved: true,
                 audit_info: dummy_audit_info(),
             },
-            DisbursementEvent::Confirmed {
+            DisbursalEvent::Confirmed {
                 ledger_tx_id: LedgerTxId::new(),
                 confirmed_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -293,14 +292,14 @@ mod test {
 
         assert!(matches!(
             disbursement.disbursement_data(),
-            Err(DisbursementError::AlreadyConfirmed)
+            Err(DisbursalError::AlreadyConfirmed)
         ));
     }
 
     #[test]
     fn can_confirm() {
         let mut events = initial_events();
-        events.extend([DisbursementEvent::ApprovalProcessConcluded {
+        events.extend([DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: ApprovalProcessId::new(),
             approved: true,
             audit_info: dummy_audit_info(),

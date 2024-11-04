@@ -9,7 +9,7 @@ pub enum CreditFacilityHistoryEntry {
     Collateral(CreditFacilityCollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CreditFacilityCollateralizationUpdated),
-    Disbursement(CreditFacilityDisbursementExecuted),
+    Disburssal(CreditFacilityDisbursalExecuted),
 }
 
 #[derive(SimpleObject)]
@@ -45,7 +45,7 @@ pub struct CreditFacilityCollateralizationUpdated {
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityDisbursementExecuted {
+pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
@@ -66,8 +66,8 @@ impl From<lava_app::credit_facility::CreditFacilityHistoryEntry> for CreditFacil
             lava_app::credit_facility::CreditFacilityHistoryEntry::Collateralization(
                 collateralization,
             ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
-            lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursement(disbursement) => {
-                CreditFacilityHistoryEntry::Disbursement(disbursement.into())
+            lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursal(disbursement) => {
+                CreditFacilityHistoryEntry::Disburssal(disbursement.into())
             }
         }
     }
@@ -119,8 +119,8 @@ impl From<lava_app::credit_facility::CollateralizationUpdated>
     }
 }
 
-impl From<lava_app::credit_facility::DisbursementExecuted> for CreditFacilityDisbursementExecuted {
-    fn from(disbursement: lava_app::credit_facility::DisbursementExecuted) -> Self {
+impl From<lava_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbursalExecuted {
+    fn from(disbursement: lava_app::credit_facility::DisbursalExecuted) -> Self {
         Self {
             cents: disbursement.cents,
             recorded_at: disbursement.recorded_at.into(),

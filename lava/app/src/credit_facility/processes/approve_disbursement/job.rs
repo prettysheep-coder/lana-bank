@@ -5,22 +5,22 @@ use governance::GovernanceEvent;
 use job::*;
 use lava_events::LavaEvent;
 
-use super::ApproveDisbursement;
+use super::ApproveDisbursal;
 use crate::outbox::Outbox;
 
 #[derive(serde::Serialize)]
-pub(in crate::credit_facility) struct DisbursementApprovalJobConfig;
-impl JobConfig for DisbursementApprovalJobConfig {
-    type Initializer = DisbursementApprovalJobInitializer;
+pub(in crate::credit_facility) struct DisbursalApprovalJobConfig;
+impl JobConfig for DisbursalApprovalJobConfig {
+    type Initializer = DisbursalApprovalJobInitializer;
 }
 
-pub(in crate::credit_facility) struct DisbursementApprovalJobInitializer {
+pub(in crate::credit_facility) struct DisbursalApprovalJobInitializer {
     outbox: Outbox,
-    process: ApproveDisbursement,
+    process: ApproveDisbursal,
 }
 
-impl DisbursementApprovalJobInitializer {
-    pub fn new(outbox: &Outbox, process: &ApproveDisbursement) -> Self {
+impl DisbursalApprovalJobInitializer {
+    pub fn new(outbox: &Outbox, process: &ApproveDisbursal) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),
@@ -29,7 +29,7 @@ impl DisbursementApprovalJobInitializer {
 }
 
 const DISBURSEMENT_APPROVE_JOB: JobType = JobType::new("disbursement");
-impl JobInitializer for DisbursementApprovalJobInitializer {
+impl JobInitializer for DisbursalApprovalJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
@@ -38,7 +38,7 @@ impl JobInitializer for DisbursementApprovalJobInitializer {
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(DisbursementApprovalJobRunner {
+        Ok(Box::new(DisbursalApprovalJobRunner {
             outbox: self.outbox.clone(),
             process: self.process.clone(),
         }))
@@ -53,23 +53,23 @@ impl JobInitializer for DisbursementApprovalJobInitializer {
 }
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct DisbursementApprovalJobData {
+struct DisbursalApprovalJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct DisbursementApprovalJobRunner {
+pub struct DisbursalApprovalJobRunner {
     outbox: Outbox,
-    process: ApproveDisbursement,
+    process: ApproveDisbursal,
 }
 #[async_trait]
-impl JobRunner for DisbursementApprovalJobRunner {
+impl JobRunner for DisbursalApprovalJobRunner {
     #[allow(clippy::single_match)]
     async fn run(
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<DisbursementApprovalJobData>()?
+            .execution_state::<DisbursalApprovalJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 

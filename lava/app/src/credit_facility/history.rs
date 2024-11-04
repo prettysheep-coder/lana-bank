@@ -32,7 +32,7 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
-pub struct DisbursementExecuted {
+pub struct DisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub tx_id: LedgerTxId,
@@ -43,7 +43,7 @@ pub enum CreditFacilityHistoryEntry {
     Collateral(CollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CollateralizationUpdated),
-    Disbursement(DisbursementExecuted),
+    Disbursal(DisbursalExecuted),
 }
 
 pub(super) fn project<'a>(
@@ -129,24 +129,22 @@ pub(super) fn project<'a>(
                     },
                 ));
             }
-            CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
+            CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
                 disbursements.insert(*idx, *amount);
             }
-            CreditFacilityEvent::DisbursementConcluded {
+            CreditFacilityEvent::DisbursalConcluded {
                 idx,
                 recorded_at,
                 tx_id,
                 ..
             } => {
-                history.push(CreditFacilityHistoryEntry::Disbursement(
-                    DisbursementExecuted {
-                        cents: disbursements
-                            .remove(idx)
-                            .expect("Disbursement must have been initiated"),
-                        recorded_at: *recorded_at,
-                        tx_id: *tx_id,
-                    },
-                ));
+                history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
+                    cents: disbursements
+                        .remove(idx)
+                        .expect("Disbursal must have been initiated"),
+                    recorded_at: *recorded_at,
+                    tx_id: *tx_id,
+                }));
             }
             _ => {}
         }
