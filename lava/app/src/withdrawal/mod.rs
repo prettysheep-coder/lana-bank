@@ -11,34 +11,34 @@ use authz::PermissionCheck;
 
 use crate::{
     audit::AuditInfo,
-    authorization::{Authorization, Object, WithdrawAction},
+    authorization::{Authorization, Object, WithdrawalAction},
     customer::Customers,
     data_export::Export,
     governance::Governance,
     job::Jobs,
     ledger::Ledger,
     outbox::Outbox,
-    primitives::{CustomerId, Subject, UsdCents, WithdrawId},
+    primitives::{CustomerId, Subject, UsdCents, WithdrawalId},
 };
 
 pub use entity::*;
-use error::WithdrawError;
+use error::WithdrawalError;
 pub use processes::approval::*;
-pub use repo::{cursor::*, WithdrawRepo};
+pub use repo::{cursor::*, WithdrawalRepo};
 
 #[derive(Clone)]
-pub struct Withdraws {
+pub struct Withdrawals {
     pool: sqlx::PgPool,
-    repo: WithdrawRepo,
+    repo: WithdrawalRepo,
     customers: Customers,
     ledger: Ledger,
     authz: Authorization,
     governance: Governance,
-    approval_withdraw: ApproveWithdraw,
+    approval_withdraw: ApproveWithdrawal,
     _jobs: Jobs,
 }
 
-impl Withdraws {
+impl Withdrawals {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -49,16 +49,16 @@ impl Withdraws {
         governance: &Governance,
         jobs: &Jobs,
         outbox: &Outbox,
-    ) -> Result<Self, WithdrawError> {
-        let repo = WithdrawRepo::new(pool, export);
-        let approval_withdraw = ApproveWithdraw::new(&repo, authz.audit(), governance);
+    ) -> Result<Self, WithdrawalError> {
+        let repo = WithdrawalRepo::new(pool, export);
+        let approval_withdraw = ApproveWithdrawal::new(&repo, authz.audit(), governance);
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalJobInitializer::new(outbox, &approval_withdraw),
             WithdrawApprovalJobConfig,
         )
         .await?;
 
-        match governance.init_policy(APPROVE_WITHDRAW_PROCESS).await {
+        match governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await {
             Err(governance::error::GovernanceError::PolicyError(
                 governance::policy_error::PolicyError::DuplicateApprovalProcessType,
             )) => (),
@@ -78,7 +78,7 @@ impl Withdraws {
         })
     }
 
-    pub fn repo(&self) -> &WithdrawRepo {
+    pub fn repo(&self) -> &WithdrawalRepo {
         &self.repo
     }
 
@@ -86,10 +86,10 @@ impl Withdraws {
         &self,
         sub: &Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, WithdrawError> {
+    ) -> Result<Option<AuditInfo>, WithdrawalError> {
         Ok(self
             .authz
-            .evaluate_permission(sub, Object::Withdraw, WithdrawAction::Initiate, enforce)
+            .evaluate_permission(sub, Object::Withdrawal, WithdrawalAction::Initiate, enforce)
             .await?)
     }
 
@@ -99,15 +99,15 @@ impl Withdraws {
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         amount: UsdCents,
         reference: Option<String>,
-    ) -> Result<Withdraw, WithdrawError> {
+    ) -> Result<Withdrawal, WithdrawalError> {
         let audit_info = self
             .subject_can_initiate(sub, true)
             .await?
             .expect("audit info missing");
         let customer_id = customer_id.into();
         let customer = self.customers.repo().find_by_id(customer_id).await?;
-        let id = WithdrawId::new();
-        let new_withdraw = NewWithdraw::builder()
+        let id = WithdrawalId::new();
+        let new_withdrawal = NewWithdrawal::builder()
             .id(id)
             .approval_process_id(id)
             .customer_id(customer_id)
@@ -120,16 +120,16 @@ impl Withdraws {
 
         let mut db_tx = self.pool.begin().await?;
         self.governance
-            .start_process(&mut db_tx, id, id.to_string(), APPROVE_WITHDRAW_PROCESS)
+            .start_process(&mut db_tx, id, id.to_string(), APPROVE_WITHDRAWAL_PROCESS)
             .await?;
-        let withdraw = self.repo.create_in_tx(&mut db_tx, new_withdraw).await?;
+        let withdrawal = self.repo.create_in_tx(&mut db_tx, new_withdrawal).await?;
 
         let customer_balances = self
             .ledger
             .get_customer_balance(customer.account_ids)
             .await?;
         if customer_balances.usd_balance.settled < amount {
-            return Err(WithdrawError::InsufficientBalance(
+            return Err(WithdrawalError::InsufficientBalance(
                 amount,
                 customer_balances.usd_balance.settled,
             ));
@@ -137,34 +137,34 @@ impl Withdraws {
 
         self.ledger
             .initiate_withdrawal_for_customer(
-                withdraw.id,
+                withdrawal.id,
                 customer.account_ids,
-                withdraw.amount,
-                format!("lava:withdraw:{}:initiate", withdraw.id),
+                withdrawal.amount,
+                format!("lava:withdraw:{}:initiate", withdrawal.id),
             )
             .await?;
 
         db_tx.commit().await?;
 
-        Ok(withdraw)
+        Ok(withdrawal)
     }
 
     pub async fn subject_can_confirm(
         &self,
         sub: &Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, WithdrawError> {
+    ) -> Result<Option<AuditInfo>, WithdrawalError> {
         Ok(self
             .authz
-            .evaluate_permission(sub, Object::Withdraw, WithdrawAction::Confirm, enforce)
+            .evaluate_permission(sub, Object::Withdrawal, WithdrawalAction::Confirm, enforce)
             .await?)
     }
 
     pub async fn confirm(
         &self,
         sub: &Subject,
-        withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
-    ) -> Result<Withdraw, WithdrawError> {
+        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, WithdrawalError> {
         let audit_info = self
             .subject_can_confirm(sub, true)
             .await?
@@ -195,10 +195,10 @@ impl Withdraws {
         &self,
         sub: &Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, WithdrawError> {
+    ) -> Result<Option<AuditInfo>, WithdrawalError> {
         Ok(self
             .authz
-            .evaluate_permission(sub, Object::Withdraw, WithdrawAction::Cancel, enforce)
+            .evaluate_permission(sub, Object::Withdrawal, WithdrawalAction::Cancel, enforce)
             .await?)
     }
 
@@ -207,8 +207,8 @@ impl Withdraws {
     pub async fn cancel(
         &self,
         sub: &Subject,
-        withdrawal_id: impl es_entity::RetryableInto<WithdrawId>,
-    ) -> Result<Withdraw, WithdrawError> {
+        withdrawal_id: impl es_entity::RetryableInto<WithdrawalId>,
+    ) -> Result<Withdrawal, WithdrawalError> {
         let audit_info = self
             .subject_can_cancel(sub, true)
             .await?
@@ -239,10 +239,10 @@ impl Withdraws {
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: impl Into<WithdrawId> + std::fmt::Debug,
-    ) -> Result<Option<Withdraw>, WithdrawError> {
+        id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Option<Withdrawal>, WithdrawalError> {
         self.authz
-            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Read)
+            .enforce_permission(sub, Object::Withdrawal, WithdrawalAction::Read)
             .await?;
 
         match self.repo.find_by_id(id.into()).await {
@@ -254,8 +254,8 @@ impl Withdraws {
 
     pub async fn ensure_up_to_date_status(
         &self,
-        withdraw: &Withdraw,
-    ) -> Result<Option<Withdraw>, WithdrawError> {
+        withdraw: &Withdrawal,
+    ) -> Result<Option<Withdrawal>, WithdrawalError> {
         self.approval_withdraw.execute_from_svc(withdraw).await
     }
 
@@ -263,9 +263,9 @@ impl Withdraws {
         &self,
         sub: &Subject,
         customer_id: CustomerId,
-    ) -> Result<Vec<Withdraw>, WithdrawError> {
+    ) -> Result<Vec<Withdrawal>, WithdrawalError> {
         self.authz
-            .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
+            .enforce_permission(sub, Object::Withdrawal, WithdrawalAction::List)
             .await?;
 
         Ok(self
@@ -282,21 +282,23 @@ impl Withdraws {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<WithdrawByCreatedAtCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Withdraw, WithdrawByCreatedAtCursor>, WithdrawError>
-    {
+        query: es_entity::PaginatedQueryArgs<WithdrawalByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Withdrawal, WithdrawalByCreatedAtCursor>,
+        WithdrawalError,
+    > {
         self.authz
-            .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
+            .enforce_permission(sub, Object::Withdrawal, WithdrawalAction::List)
             .await?;
         self.repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await
     }
 
-    pub async fn find_all<T: From<Withdraw>>(
+    pub async fn find_all<T: From<Withdrawal>>(
         &self,
-        ids: &[WithdrawId],
-    ) -> Result<HashMap<WithdrawId, T>, WithdrawError> {
+        ids: &[WithdrawalId],
+    ) -> Result<HashMap<WithdrawalId, T>, WithdrawalError> {
         self.repo.find_all(ids).await
     }
 }

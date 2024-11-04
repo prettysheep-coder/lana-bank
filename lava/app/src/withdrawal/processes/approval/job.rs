@@ -5,22 +5,22 @@ use governance::GovernanceEvent;
 use job::*;
 use lava_events::LavaEvent;
 
-use super::ApproveWithdraw;
+use super::ApproveWithdrawal;
 use crate::outbox::Outbox;
 
 #[derive(serde::Serialize)]
-pub(in crate::withdraw) struct WithdrawApprovalJobConfig;
+pub(in crate::withdrawal) struct WithdrawApprovalJobConfig;
 impl JobConfig for WithdrawApprovalJobConfig {
     type Initializer = WithdrawApprovalJobInitializer;
 }
 
-pub(in crate::withdraw) struct WithdrawApprovalJobInitializer {
+pub(in crate::withdrawal) struct WithdrawApprovalJobInitializer {
     outbox: Outbox,
-    process: ApproveWithdraw,
+    process: ApproveWithdrawal,
 }
 
 impl WithdrawApprovalJobInitializer {
-    pub fn new(outbox: &Outbox, process: &ApproveWithdraw) -> Self {
+    pub fn new(outbox: &Outbox, process: &ApproveWithdrawal) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),
@@ -59,7 +59,7 @@ struct WithdrawApprovalJobData {
 
 pub struct WithdrawApprovalJobRunner {
     outbox: Outbox,
-    process: ApproveWithdraw,
+    process: ApproveWithdrawal,
 }
 #[async_trait]
 impl JobRunner for WithdrawApprovalJobRunner {
@@ -80,7 +80,7 @@ impl JobRunner for WithdrawApprovalJobRunner {
                     approved,
                     ref process_type,
                     ..
-                })) if process_type == &super::APPROVE_WITHDRAW_PROCESS => {
+                })) if process_type == &super::APPROVE_WITHDRAWAL_PROCESS => {
                     self.process.execute(id, approved).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;

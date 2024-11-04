@@ -25,7 +25,7 @@ use crate::{
     storage::Storage,
     terms_template::TermsTemplates,
     user::Users,
-    withdraw::Withdraws,
+    withdrawal::Withdrawals,
 };
 
 pub use config::*;
@@ -38,7 +38,7 @@ pub struct LavaApp {
     audit: Audit,
     authz: Authorization,
     customers: Customers,
-    withdraws: Withdraws,
+    withdrawals: Withdrawals,
     deposits: Deposits,
     ledger: Ledger,
     applicants: Applicants,
@@ -65,7 +65,7 @@ impl LavaApp {
         let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
-        let withdraws = Withdraws::init(
+        let withdrawals = Withdrawals::init(
             &pool,
             &customers,
             &ledger,
@@ -114,7 +114,7 @@ impl LavaApp {
             audit,
             authz,
             customers,
-            withdraws,
+            withdrawals,
             deposits,
             ledger,
             applicants,
@@ -164,8 +164,8 @@ impl LavaApp {
         self.audit.list(query).await.map_err(ApplicationError::from)
     }
 
-    pub fn withdraws(&self) -> &Withdraws {
-        &self.withdraws
+    pub fn withdrawals(&self) -> &Withdrawals {
+        &self.withdrawals
     }
 
     pub fn deposits(&self) -> &Deposits {

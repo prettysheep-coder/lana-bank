@@ -4,7 +4,7 @@ use es_entity::*;
 
 use crate::{
     data_export::Export,
-    primitives::{ApprovalProcessId, CustomerId, WithdrawId},
+    primitives::{ApprovalProcessId, CustomerId, WithdrawalId},
 };
 
 use super::{entity::*, error::*};
@@ -13,8 +13,8 @@ const BQ_TABLE_NAME: &str = "withdraw_events";
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
-    entity = "Withdraw",
-    err = "WithdrawError",
+    entity = "Withdrawal",
+    err = "WithdrawalError",
     columns(
         customer_id(ty = "CustomerId", list_for),
         approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
@@ -22,12 +22,12 @@ const BQ_TABLE_NAME: &str = "withdraw_events";
     ),
     post_persist_hook = "export"
 )]
-pub struct WithdrawRepo {
+pub struct WithdrawalRepo {
     pool: PgPool,
     export: Export,
 }
 
-impl WithdrawRepo {
+impl WithdrawalRepo {
     pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
         Self {
             pool: pool.clone(),
@@ -38,8 +38,8 @@ impl WithdrawRepo {
     async fn export(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        events: impl Iterator<Item = &PersistedEvent<WithdrawEvent>>,
-    ) -> Result<(), WithdrawError> {
+        events: impl Iterator<Item = &PersistedEvent<WithdrawalEvent>>,
+    ) -> Result<(), WithdrawalError> {
         self.export
             .es_entity_export(db, BQ_TABLE_NAME, events)
             .await?;

@@ -5,24 +5,24 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 use crate::{
     audit::{Audit, AuditSvc},
     governance::Governance,
-    primitives::WithdrawId,
-    withdraw::{error::WithdrawError, repo::WithdrawRepo, Withdraw},
+    primitives::WithdrawalId,
+    withdrawal::{error::WithdrawalError, repo::WithdrawalRepo, Withdrawal},
 };
-use rbac_types::{AppObject, WithdrawAction};
+use rbac_types::{AppObject, WithdrawalAction};
 
 pub use job::*;
 
-pub const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
+pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
 #[derive(Clone)]
-pub struct ApproveWithdraw {
-    repo: WithdrawRepo,
+pub struct ApproveWithdrawal {
+    repo: WithdrawalRepo,
     audit: Audit,
     governance: Governance,
 }
 
-impl ApproveWithdraw {
-    pub fn new(repo: &WithdrawRepo, audit: &Audit, governance: &Governance) -> Self {
+impl ApproveWithdrawal {
+    pub fn new(repo: &WithdrawalRepo, audit: &Audit, governance: &Governance) -> Self {
         Self {
             repo: repo.clone(),
             audit: audit.clone(),
@@ -32,8 +32,8 @@ impl ApproveWithdraw {
 
     pub async fn execute_from_svc(
         &self,
-        withdraw: &Withdraw,
-    ) -> Result<Option<Withdraw>, WithdrawError> {
+        withdraw: &Withdrawal,
+    ) -> Result<Option<Withdrawal>, WithdrawalError> {
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(None);
         }
@@ -56,9 +56,9 @@ impl ApproveWithdraw {
     #[es_entity::retry_on_concurrent_modification]
     pub async fn execute(
         &self,
-        id: impl es_entity::RetryableInto<WithdrawId>,
+        id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,
-    ) -> Result<Withdraw, WithdrawError> {
+    ) -> Result<Withdrawal, WithdrawalError> {
         let mut withdraw = self.repo.find_by_id(id.into()).await?;
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
@@ -68,8 +68,8 @@ impl ApproveWithdraw {
             .audit
             .record_system_entry_in_tx(
                 &mut db,
-                AppObject::Withdraw,
-                WithdrawAction::ConcludeApprovalProcess,
+                AppObject::Withdrawal,
+                WithdrawalAction::ConcludeApprovalProcess,
             )
             .await?;
         if withdraw

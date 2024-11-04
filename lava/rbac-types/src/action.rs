@@ -78,7 +78,7 @@ pub enum AppAction {
     TermsTemplate(TermsTemplateAction),
     Customer(CustomerAction),
     Deposit(DepositAction),
-    Withdraw(WithdrawAction),
+    Withdrawal(WithdrawalAction),
     Report(ReportAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
@@ -94,7 +94,7 @@ impl Display for AppAction {
             TermsTemplate(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
-            Withdraw(action) => action.fmt(f),
+            Withdrawal(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Ledger(action) => action.fmt(f),
@@ -116,7 +116,7 @@ impl FromStr for AppAction {
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Customer => AppAction::from(action.parse::<CustomerAction>()?),
             Deposit => AppAction::from(action.parse::<DepositAction>()?),
-            Withdraw => AppAction::from(action.parse::<WithdrawAction>()?),
+            Withdrawal => AppAction::from(action.parse::<WithdrawalAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Ledger => AppAction::from(action.parse::<LedgerAction>()?),
@@ -206,7 +206,7 @@ impl_trivial_action!(DocumentAction, Document);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum WithdrawAction {
+pub enum WithdrawalAction {
     Read,
     ConcludeApprovalProcess,
     Initiate,
@@ -215,7 +215,7 @@ pub enum WithdrawAction {
     Cancel,
 }
 
-impl_trivial_action!(WithdrawAction, Withdraw);
+impl_trivial_action!(WithdrawalAction, Withdrawal);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
