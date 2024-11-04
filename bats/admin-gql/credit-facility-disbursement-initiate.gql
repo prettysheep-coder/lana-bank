@@ -1,8 +1,8 @@
-mutation CreditFacilityDisbursementInitiate(
-  $input: CreditFacilityDisbursementInitiateInput!
+mutation CreditFacilityDisbursalInitiate(
+  $input: CreditFacilityDisbursalInitiateInput!
 ) {
-  creditFacilityDisbursementInitiate(input: $input) {
-    disbursement {
+  creditFacilityDisbursalInitiate(input: $input) {
+    disbursal {
       id
       index
       status

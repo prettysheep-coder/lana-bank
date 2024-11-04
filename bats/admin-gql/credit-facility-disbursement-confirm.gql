@@ -1,8 +1,8 @@
-mutation CreditFacilityDisbursementConfirm(
-  $input: CreditFacilityDisbursementConfirmInput!
+mutation CreditFacilityDisbursalConfirm(
+  $input: CreditFacilityDisbursalConfirmInput!
 ) {
-  creditFacilityDisbursementConfirm(input: $input) {
-    disbursement {
+  creditFacilityDisbursalConfirm(input: $input) {
+    disbursal {
       id
       status
     }
