@@ -14,7 +14,7 @@ start-deps:
 	docker compose up --wait -d
 
 setup-db:
-	cd lava/app && cargo sqlx migrate run
+	cd lana/app && cargo sqlx migrate run
 
 sqlx-prepare:
 	cd lib/job && cargo sqlx prepare
@@ -22,7 +22,7 @@ sqlx-prepare:
 	cd lib/outbox && cargo sqlx prepare
 	cd core/governance && cargo sqlx prepare
 	cd core/user && cargo sqlx prepare
-	cd lava/app && cargo sqlx prepare
+	cd lana/app && cargo sqlx prepare
 
 reset-tf-state:
 	rm -rf tf/terraform.tfstate
@@ -47,10 +47,10 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lava-cli -- --config ./bats/lava.yml
+	cargo run --bin lana-cli -- --config ./bats/lana.yml
 
 check-code: sdl
-	git diff --exit-code lava/admin-server/src/graphql/schema.graphql
+	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
@@ -70,11 +70,11 @@ e2e-in-ci: bump-cala-docker-image clean-deps start-deps build run-tf
 
 
 sdl:
-	SQLX_OFFLINE=true cargo run --bin write_sdl > lava/admin-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
 bump-cala-schema:
-	curl -H "Authorization: token ${GITHUB_TOKEN}" https://raw.githubusercontent.com/GaloyMoney/cala-enterprise/main/schema.graphql > lava/app/src/ledger/cala/graphql/schema.graphql
+	curl -H "Authorization: token ${GITHUB_TOKEN}" https://raw.githubusercontent.com/GaloyMoney/cala-enterprise/main/schema.graphql > lana/app/src/ledger/cala/graphql/schema.graphql
 
 bump-cala-docker-image:
 	docker compose pull cala
@@ -85,7 +85,7 @@ test-in-ci: start-deps setup-db run-tf
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --locked --bin lava-cli --target x86_64-unknown-linux-musl
+	SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
 
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh

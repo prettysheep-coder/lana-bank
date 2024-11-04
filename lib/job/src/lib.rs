@@ -84,7 +84,7 @@ impl Jobs {
         Ok(())
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, config))]
+    #[instrument(name = "jobs.create_and_spawn", skip(self, db, config))]
     pub async fn create_and_spawn_in_tx<C: JobConfig>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -104,7 +104,7 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, config))]
+    #[instrument(name = "jobs.create_and_spawn_at", skip(self, db, config))]
     pub async fn create_and_spawn_at_in_tx<C: JobConfig>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,

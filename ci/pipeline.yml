@@ -69,7 +69,7 @@ plan:
 #@ end
 
 groups:
-- name: lava-bank
+- name: lana-bank
   jobs:
   - check-code
   - integration-tests
@@ -302,7 +302,7 @@ jobs:
           - name: charts-repo
         params:
           BRANCH: #@ data.values.git_charts_branch
-          CHARTS_SUBDIR: lava-bank
+          CHARTS_SUBDIR: lana-bank
         run:
           path: pipeline-tasks/ci/tasks/bump-image-digest.sh
     - put: charts-repo-bot-branch
@@ -323,7 +323,7 @@ jobs:
           GH_APP_PRIVATE_KEY: #@ data.values.github_app_private_key
           BRANCH: #@ data.values.git_charts_branch
           BOT_BRANCH: #@ data.values.git_charts_bot_branch
-          CHARTS_SUBDIR: lava-bank
+          CHARTS_SUBDIR: lana-bank
         run:
           path: pipeline-tasks/ci/tasks/chart-open-charts-pr.sh
 

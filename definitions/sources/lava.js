@@ -6,7 +6,7 @@ envs.all.forEach((env) => {
       database: env.database,
       schema: env.importSchema,
       name: table,
-      tags: ["lava"]
+      tags: ["lana"]
     })
   })
 })
