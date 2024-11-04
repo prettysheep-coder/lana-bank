@@ -15,15 +15,15 @@ import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import {
   GetCreditFacilityDetailsDocument,
-  useCreditFacilityDisbursementInitiateMutation,
+  useCreditFacilityDisbursalInitiateMutation,
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation CreditFacilityDisbursementInitiate(
-    $input: CreditFacilityDisbursementInitiateInput!
+  mutation CreditFacilityDisbursalInitiate(
+    $input: CreditFacilityDisbursalInitiateInput!
   ) {
-    creditFacilityDisbursementInitiate(input: $input) {
+    creditFacilityDisbursalInitiate(input: $input) {
       disbursement {
         id
         index
@@ -32,18 +32,18 @@ gql`
   }
 `
 
-type CreditFacilityDisbursementInitiateDialogProps = {
+type CreditFacilityDisbursalInitiateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
   onSuccess?: () => void
 }
 
-export const CreditFacilityDisbursementInitiateDialog: React.FC<
-  CreditFacilityDisbursementInitiateDialogProps
+export const CreditFacilityDisbursalInitiateDialog: React.FC<
+  CreditFacilityDisbursalInitiateDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
-  const [initiateDisbursement, { loading, reset }] =
-    useCreditFacilityDisbursementInitiateMutation({
+  const [initiateDisbursal, { loading, reset }] =
+    useCreditFacilityDisbursalInitiateMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
     })
   const [amount, setAmount] = useState<string>("")
@@ -53,7 +53,7 @@ export const CreditFacilityDisbursementInitiateDialog: React.FC<
     e.preventDefault()
     setError(null)
     try {
-      await initiateDisbursement({
+      await initiateDisbursal({
         variables: {
           input: {
             creditFacilityId,
@@ -61,8 +61,8 @@ export const CreditFacilityDisbursementInitiateDialog: React.FC<
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityDisbursementInitiate) {
-            toast.success("Disbursement initiated successfully")
+          if (data.creditFacilityDisbursalInitiate) {
+            toast.success("Disbursal initiated successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
           }
@@ -89,7 +89,7 @@ export const CreditFacilityDisbursementInitiateDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Initiate Credit Facility Disbursement</DialogTitle>
+          <DialogTitle>Initiate Credit Facility Disbursal</DialogTitle>
           <DialogDescription>
             Enter the amount you want to disburse from this credit facility.
           </DialogDescription>
@@ -115,7 +115,7 @@ export const CreditFacilityDisbursementInitiateDialog: React.FC<
               Cancel
             </Button>
             <Button type="submit" loading={loading}>
-              Initiate Disbursement
+              Initiate Disbursal
             </Button>
           </DialogFooter>
         </form>

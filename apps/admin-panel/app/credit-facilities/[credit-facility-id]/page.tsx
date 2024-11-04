@@ -180,7 +180,7 @@ gql`
           recordedAt
           price
         }
-        ... on CreditFacilityDisbursementExecuted {
+        ... on CreditFacilityDisbursalExecuted {
           cents
           recordedAt
           txId

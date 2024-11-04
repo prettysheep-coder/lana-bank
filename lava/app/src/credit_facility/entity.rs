@@ -1770,7 +1770,11 @@ mod test {
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();
             let disbursement_data = disbursement.disbursement_data().unwrap();
-            disbursement.confirm(disbursement_data, facility_activated_at, dummy_audit_info());
+            disbursement.confirm(
+                &disbursement_data,
+                facility_activated_at,
+                dummy_audit_info(),
+            );
             credit_facility.confirm_disbursement(
                 &disbursement,
                 disbursement_data.tx_id,

@@ -13,17 +13,17 @@ import {
 import { Button } from "@/components/primitive/button"
 import {
   GetCreditFacilityDetailsDocument,
-  useCreditFacilityDisbursementConfirmMutation,
+  useCreditFacilityDisbursalConfirmMutation,
 } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 
 gql`
-  mutation CreditFacilityDisbursementConfirm(
-    $input: CreditFacilityDisbursementConfirmInput!
+  mutation CreditFacilityDisbursalConfirm(
+    $input: CreditFacilityDisbursalConfirmInput!
   ) {
-    creditFacilityDisbursementConfirm(input: $input) {
+    creditFacilityDisbursalConfirm(input: $input) {
       disbursement {
         id
         index
@@ -32,7 +32,7 @@ gql`
   }
 `
 
-type CreditFacilityDisbursementConfirmDialogProps = {
+type CreditFacilityDisbursalConfirmDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
@@ -47,8 +47,8 @@ type CreditFacilityDisbursementConfirmDialogProps = {
   onSuccess?: () => void
 }
 
-export const CreditFacilityDisbursementConfirmDialog: React.FC<
-  CreditFacilityDisbursementConfirmDialogProps
+export const CreditFacilityDisbursalConfirmDialog: React.FC<
+  CreditFacilityDisbursalConfirmDialogProps
 > = ({
   setOpenDialog,
   openDialog,
@@ -57,8 +57,8 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
   disbursement,
   onSuccess,
 }) => {
-  const [confirmDisbursement, { loading, reset }] =
-    useCreditFacilityDisbursementConfirmMutation({
+  const [confirmDisbursal, { loading, reset }] =
+    useCreditFacilityDisbursalConfirmMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
     })
   const [error, setError] = useState<string | null>(null)
@@ -67,7 +67,7 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
     e.preventDefault()
     setError(null)
     try {
-      await confirmDisbursement({
+      await confirmDisbursal({
         variables: {
           input: {
             creditFacilityId,
@@ -75,8 +75,8 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityDisbursementConfirm) {
-            toast.success("Disbursement confirmed successfully")
+          if (data.creditFacilityDisbursalConfirm) {
+            toast.success("Disbursal confirmed successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
           }
@@ -102,7 +102,7 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirm Credit Facility Disbursement</DialogTitle>
+          <DialogTitle>Confirm Credit Facility Disbursal</DialogTitle>
           <DialogDescription>
             Review the disbursement details before confirming.
           </DialogDescription>
@@ -131,7 +131,7 @@ export const CreditFacilityDisbursementConfirmDialog: React.FC<
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Confirming..." : "Confirm Disbursement"}
+              {loading ? "Confirming..." : "Confirm Disbursal"}
             </Button>
           </DialogFooter>
         </form>

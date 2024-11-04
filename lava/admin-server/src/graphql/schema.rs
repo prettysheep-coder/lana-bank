@@ -740,7 +740,7 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_disbursement_initiate(
+    pub async fn credit_facility_disbursal_initiate(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityDisbursalInitiateInput,
@@ -758,7 +758,7 @@ impl Mutation {
         )
     }
 
-    async fn credit_facility_disbursement_confirm(
+    async fn credit_facility_disbursal_confirm(
         &self,
         ctx: &Context<'_>,
         input: CreditFacilityDisbursalConfirmInput,
@@ -771,7 +771,7 @@ impl Mutation {
             app.credit_facilities().confirm_disbursement(
                 sub,
                 input.credit_facility_id,
-                input.disbursement_idx
+                input.disbursal_idx
             )
         )
     }
