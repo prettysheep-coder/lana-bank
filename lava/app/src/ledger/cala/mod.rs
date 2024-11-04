@@ -375,12 +375,12 @@ impl CalaClient {
                 super::constants::OBS_CREDIT_FACILITY_ACCOUNT_CODE.to_string(),
             )),
         }?;
-        let variables = credit_facility_disbursement_template_create::Variables {
+        let variables = credit_facility_disbursal_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             omnibus_credit_facility_account: format!("uuid(\"{}\")", obs_credit_facility_id),
         };
-        let response = Self::traced_gql_request::<CreditFacilityDisbursementTemplateCreate, _>(
+        let response = Self::traced_gql_request::<CreditFacilityDisbursalTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -406,7 +406,7 @@ impl CalaClient {
         disbursed_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_credit_facility_disbursement_transaction::Variables {
+        let variables = post_credit_facility_disbursal_transaction::Variables {
             transaction_id: transaction_id.into(),
             facility_account: facility_account_ids.facility_account_id.into(),
             facility_disbursed_receivable_account: facility_account_ids
@@ -416,7 +416,7 @@ impl CalaClient {
             disbursed_amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostCreditFacilityDisbursementTransaction, _>(
+        let response = Self::traced_gql_request::<PostCreditFacilityDisbursalTransaction, _>(
             &self.client,
             &self.url,
             variables,
@@ -1250,7 +1250,7 @@ impl CalaClient {
                 .disbursed_receivable_account_id
                 .into(),
             interest_payment_amount,
-            disbursement_payment_amount: disbursal_payment_amount,
+            disbursal_payment_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordCreditFacilityPaymentTransaction, _>(
