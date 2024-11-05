@@ -11,9 +11,12 @@ fail-on-warnings = []
 lava-events = { path = "../events" }
 
 es-entity = { path = "../../lib/es-entity", features = ["graphql"] }
+authz = { path = "../../lib/authz" }
+audit = { path = "../../lib/audit" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 
+strum = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
