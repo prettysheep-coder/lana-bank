@@ -1,0 +1,11 @@
+[package]
+name = "dashboard"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lava-events = { path = "../events" }
+
+es-entity = { path = "../../lib/es-entity", features = ["graphql"] }
+outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
