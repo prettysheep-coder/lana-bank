@@ -1,6 +1,6 @@
 const BQ_TABLE_NAME: &str = "credit_facility_events";
 
-use es_entity::PersistedEvent;
+use lava_events::CreditEvent;
 
 use crate::{data_export::Export, outbox::Outbox};
 
@@ -24,7 +24,7 @@ impl CreditFacilityPublisher {
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         _entity: &CreditFacility,
-        new_events: impl Iterator<Item = &PersistedEvent<CreditFacilityEvent>> + Clone,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
         self.export
             .es_entity_export(db, BQ_TABLE_NAME, new_events.clone())

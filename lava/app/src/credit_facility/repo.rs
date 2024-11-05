@@ -39,7 +39,7 @@ impl CreditFacilityRepo {
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         entity: &CreditFacility,
-        new_events: impl Iterator<Item = &PersistedEvent<CreditFacilityEvent>> + Clone,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
         self.publisher.publish(db, entity, new_events).await
     }

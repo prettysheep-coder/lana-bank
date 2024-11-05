@@ -44,7 +44,7 @@ impl<'a> ToTokens for PostPersistHook<'a> {
             async fn execute_post_persist_hook(&self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &#entity,
-                new_events: impl Iterator<Item = &es_entity::PersistedEvent<#event>> + Clone
+                new_events: es_entity::LastPersisted<'_, #event>
             ) -> Result<(), #error> {
                 #hook
             }
