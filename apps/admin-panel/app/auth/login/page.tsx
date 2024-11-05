@@ -21,7 +21,7 @@ const Login: React.FC = () => {
       </div>
       <form
         className="space-y-[20px] w-full"
-        action={`${env.NEXT_PUBLIC_BASE_PATH}/api/auth/signin/email`}
+        action={`${env.NEXT_PUBLIC_BASE_PATH === "/" ? "" : env.NEXT_PUBLIC_BASE_PATH}/api/auth/signin/email`}
         method="POST"
       >
         <input name="csrfToken" type="hidden" defaultValue={csrfToken || ""} />

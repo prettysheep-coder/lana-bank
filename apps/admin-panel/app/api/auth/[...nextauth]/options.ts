@@ -21,6 +21,8 @@ async function checkUserEmail(email: string): Promise<boolean> {
   }
 }
 
+const basePath = env.NEXT_PUBLIC_BASE_PATH === "/" ? "" : env.NEXT_PUBLIC_BASE_PATH
+
 export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
@@ -33,7 +35,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async redirect() {
-      return `${env.NEXT_PUBLIC_BASE_PATH}/app/dashboard`
+      return `${basePath}/app/dashboard`
     },
     async signIn({ account }) {
       const email = account?.providerAccountId
@@ -53,8 +55,8 @@ export const authOptions: NextAuthOptions = {
   adapter: customPostgresAdapter(pool),
   secret: env.NEXTAUTH_SECRET,
   pages: {
-    signIn: `${env.NEXT_PUBLIC_BASE_PATH}/auth/login`,
-    error: `${env.NEXT_PUBLIC_BASE_PATH}/auth/error`,
-    verifyRequest: `${env.NEXT_PUBLIC_BASE_PATH}/auth/verify`,
+    signIn: `${basePath}/auth/login`,
+    error: `${basePath}/auth/error`,
+    verifyRequest: `${basePath}/auth/verify`,
   },
 }
