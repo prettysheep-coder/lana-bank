@@ -2,11 +2,9 @@ use async_trait::async_trait;
 use chrono::Utc;
 use futures::StreamExt;
 
-use std::collections::HashMap;
-
 use job::*;
 
-use crate::{primitives::*, repo::DashboardRepo, values::*, Outbox};
+use crate::{repo::DashboardRepo, values::*, Outbox};
 
 #[derive(serde::Serialize)]
 pub struct DashboardProjectionJobConfig;
@@ -55,7 +53,7 @@ impl JobInitializer for DashboardProjectionJobInitializer {
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct DashboardProjectionJobData {
     sequence: outbox::EventSequence,
-    dashboards: HashMap<TimeRange, DashboardValues>,
+    dashboard: DashboardValues,
 }
 
 pub struct DashboardProjectionJobRunner {
@@ -76,17 +74,9 @@ impl JobRunner for DashboardProjectionJobRunner {
 
         while let Some(message) = stream.next().await {
             if let Some(payload) = &message.payload {
-                let mut db = self.repo.begin().await?;
-                let mut any_persisted = false;
-                for range in TimeRange::all() {
-                    let dashboard = get_current_dashboard(*range, &mut state.dashboards);
-                    let processed = dashboard.process_event(message.recorded_at, payload);
-                    if processed {
-                        any_persisted = true;
-                        self.repo.persist_in_tx(&mut db, *range, dashboard).await?;
-                    }
-                }
-                if any_persisted {
+                if state.dashboard.process_event(message.recorded_at, payload) {
+                    let mut db = self.repo.begin().await?;
+                    self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
                     state.sequence = message.sequence;
                     current_job
                         .update_execution_state_in_tx(&mut db, &state)
@@ -97,27 +87,5 @@ impl JobRunner for DashboardProjectionJobRunner {
         }
 
         Ok(JobCompletion::RescheduleAt(Utc::now()))
-    }
-}
-
-fn get_current_dashboard(
-    range: TimeRange,
-    values: &mut HashMap<TimeRange, DashboardValues>,
-) -> &mut DashboardValues {
-    values
-        .entry(range)
-        .or_insert_with(|| DashboardValues::new(range))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn returns_defaults_when_empty() {
-        let mut values = HashMap::new();
-        let range = TimeRange::ThisQuarter;
-        let dashboard = get_current_dashboard(range, &mut values);
-        assert_eq!(dashboard.pending_facilities, 0);
     }
 }

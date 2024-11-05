@@ -58,7 +58,6 @@ where
     pub async fn load_for_time_range(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        range: TimeRange,
     ) -> Result<DashboardValues, DashboardError> {
         self.authz
             .enforce_permission(
@@ -67,7 +66,7 @@ where
                 DashboardModuleAction::DASHBOARD_READ,
             )
             .await?;
-        let res = self.repo.load_for_time_range(range).await?;
+        let res = self.repo.load().await?;
         Ok(res)
     }
 }

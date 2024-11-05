@@ -1,6 +1,8 @@
 use sqlx::PgPool;
 
-use crate::{error::*, primitives::TimeRange, values::*};
+use crate::{error::*, values::*};
+
+const DASHBOARD_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000000");
 
 #[derive(Clone)]
 pub struct DashboardRepo {
@@ -19,18 +21,17 @@ impl DashboardRepo {
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        range: TimeRange,
         values: &DashboardValues,
     ) -> Result<(), DashboardError> {
         let values = serde_json::to_value(values).expect("Could not serialize dashboard");
         sqlx::query!(
             r#"
-            INSERT INTO dashboards (time_range, dashboard_json)
+            INSERT INTO dashboards (id, dashboard_json)
             VALUES ($1, $2)
-            ON CONFLICT (time_range) DO UPDATE
-            SET dashboard_json = $2
+            ON CONFLICT (id) DO UPDATE
+            SET dashboard_json = $2, modified_at = NOW()
             "#,
-            range as TimeRange,
+            DASHBOARD_ID,
             values
         )
         .execute(&mut **tx)
@@ -38,27 +39,24 @@ impl DashboardRepo {
         Ok(())
     }
 
-    pub async fn load_for_time_range(
-        &self,
-        range: TimeRange,
-    ) -> Result<DashboardValues, DashboardError> {
+    pub async fn load(&self) -> Result<DashboardValues, DashboardError> {
         let row = sqlx::query!(
             r#" 
             SELECT dashboard_json
             FROM dashboards
-            WHERE time_range = $1
+            WHERE id = $1
             "#,
-            range as TimeRange
+            DASHBOARD_ID
         )
         .fetch_optional(&self.pool)
         .await?;
-        if let Some(row) = row {
+        let res = if let Some(row) = row {
             let values: DashboardValues = serde_json::from_value(row.dashboard_json)
                 .expect("Could not de-serialize dashboard");
-            if range.in_same_range(values.last_updated, chrono::Utc::now()) {
-                return Ok(values);
-            }
-        }
-        Ok(DashboardValues::new(range))
+            values
+        } else {
+            DashboardValues::default()
+        };
+        Ok(res)
     }
 }
