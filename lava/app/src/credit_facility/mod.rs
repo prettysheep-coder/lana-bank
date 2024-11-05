@@ -75,7 +75,7 @@ impl CreditFacilities {
         price: &Price,
         outbox: &Outbox,
     ) -> Result<Self, CreditFacilityError> {
-        let publisher = CreditFacilityPublisher::new(pool, export);
+        let publisher = CreditFacilityPublisher::new(export, outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);

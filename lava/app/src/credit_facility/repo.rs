@@ -41,6 +41,6 @@ impl CreditFacilityRepo {
         entity: &CreditFacility,
         new_events: impl Iterator<Item = &PersistedEvent<CreditFacilityEvent>> + Clone,
     ) -> Result<(), CreditFacilityError> {
-        self.publisher.publish(db, entity, new_events).await?;
+        self.publisher.publish(db, entity, new_events).await
     }
 }
