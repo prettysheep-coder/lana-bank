@@ -22,7 +22,7 @@ impl DashboardRepo {
         range: TimeRange,
         values: &DashboardValues,
     ) -> Result<(), DashboardError> {
-        let values = serde_json::to_value(values).expect("Could not seralize dashboard");
+        let values = serde_json::to_value(values).expect("Could not serialize dashboard");
         sqlx::query!(
             r#"
             INSERT INTO dashboards (time_range, dashboard_json)
@@ -54,7 +54,7 @@ impl DashboardRepo {
         .await?;
         if let Some(row) = row {
             let values = serde_json::from_value(row.dashboard_json)
-                .expect("Could not de-seralize dashboard");
+                .expect("Could not de-serialize dashboard");
             Ok(values)
         } else {
             Ok(DashboardValues::default())

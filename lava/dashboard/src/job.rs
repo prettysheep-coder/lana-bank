@@ -1,6 +1,8 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 
+use std::collections::HashMap;
+
 use job::*;
 
 use crate::{primitives::*, repo::DashboardRepo, values::*, Outbox};
@@ -49,9 +51,10 @@ impl JobInitializer for DashboardProjectionJobInitializer {
     }
 }
 
-#[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
+#[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
 struct DashboardProjectionJobData {
     sequence: outbox::EventSequence,
+    dashboards: HashMap<TimeRange, DashboardValues>,
 }
 
 pub struct DashboardProjectionJobRunner {
@@ -69,18 +72,23 @@ impl JobRunner for DashboardProjectionJobRunner {
             .execution_state::<DashboardProjectionJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
-        let mut dashboard = DashboardValues::default();
 
         while let Some(message) = stream.next().await {
             if let Some(payload) = &message.payload {
-                if dashboard.process_event(payload) {
-                    let mut db = self.repo.begin().await?;
-                    self.repo
-                        .persist_in_tx(&mut db, TimeRange::ThisQuarter, &dashboard)
-                        .await?;
+                let mut db = self.repo.begin().await?;
+                let mut any_persisted = false;
+                for range in TimeRange::all() {
+                    let dashboard = get_current_dashboard(*range, &mut state.dashboards);
+                    let processed = dashboard.process_event(payload);
+                    if processed {
+                        any_persisted = true;
+                        self.repo.persist_in_tx(&mut db, *range, dashboard).await?;
+                    }
+                }
+                if any_persisted {
                     state.sequence = message.sequence;
                     current_job
-                        .update_execution_state_in_tx(&mut db, state)
+                        .update_execution_state_in_tx(&mut db, &state)
                         .await?;
                     db.commit().await?;
                 }
@@ -89,4 +97,32 @@ impl JobRunner for DashboardProjectionJobRunner {
 
         Ok(JobCompletion::RescheduleAt(chrono::Utc::now()))
     }
+}
+
+fn get_current_dashboard(
+    range: TimeRange,
+    values: &mut HashMap<TimeRange, DashboardValues>,
+) -> &mut DashboardValues {
+    values.entry(range).or_default()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn returns_defaults_when_empty() {
+        let mut values = HashMap::new();
+        let range = TimeRange::ThisQuarter;
+        let dashboard = get_current_dashboard(range, &mut values);
+        assert_eq!(dashboard.pending_facilities, 0);
+    }
+
+    //     #[test]
+    //     fn returns_empty_when_last_update_was_old() {
+    //         let mut values = HashMap::new();
+    //         let range = TimeRange::ThisQuarter;
+    //         let dashboard = get_current_dashboard(range, &mut values);
+    //         assert_eq!(dashboard.pending_facilities, 0);
+    //     }
 }
