@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": " \n            SELECT dashboard_json\n            FROM dashboards\n            WHERE time_range = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "dashboard_json",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "timerange",
+            "kind": {
+              "Enum": [
+                "this_quarter",
+                "this_year"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4c501d51596547a3e2eac2dd5e8b80e1dbd522eb8406976845f59e26ad50b720"
+}

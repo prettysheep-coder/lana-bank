@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO dashboards (time_range, dashboard_json)\n            VALUES ($1, $2)\n            ON CONFLICT (time_range) DO UPDATE\n            SET dashboard_json = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "timerange",
+            "kind": {
+              "Enum": [
+                "this_quarter",
+                "this_year"
+              ]
+            }
+          }
+        },
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e1e73a5c64d5ad94b8115bd50c3a54ccde692f4c9a8f1a51cd1a325c6ed78eaf"
+}
