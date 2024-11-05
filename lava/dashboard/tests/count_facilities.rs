@@ -16,6 +16,9 @@ async fn count_facilities() -> anyhow::Result<()> {
     sqlx::query!("DELETE FROM dashboards")
         .execute(&pool)
         .await?;
+    sqlx::query!("DELETE FROM persistent_outbox_events")
+        .execute(&pool)
+        .await?;
     let outbox = Outbox::init(&pool).await.unwrap();
     let mut jobs = ::job::Jobs::new(&pool, Default::default());
     let dashboard = Dashboard::init(&pool, &jobs, &outbox).await?;
@@ -32,7 +35,7 @@ async fn count_facilities() -> anyhow::Result<()> {
         .await?;
     tx.commit().await?;
 
-    for _ in 0..10 {
+    for _ in 0..20 {
         let row = sqlx::query!("SELECT COUNT(*) FROM dashboards")
             .fetch_one(&pool)
             .await?;

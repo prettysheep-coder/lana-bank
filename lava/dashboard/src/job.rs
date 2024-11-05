@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use futures::StreamExt;
 
 use job::*;
-use lava_events::*;
 
 use crate::{primitives::*, repo::DashboardRepo, values::*, Outbox};
 
@@ -73,12 +72,9 @@ impl JobRunner for DashboardProjectionJobRunner {
         let mut dashboard = DashboardValues::default();
 
         while let Some(message) = stream.next().await {
-            dbg!("DashboardProjectionJobRunner");
-            dbg!(&message);
-            match message.payload {
-                Some(LavaEvent::Credit(CreditEvent::CreditFacilityCreated { .. })) => {
+            if let Some(payload) = &message.payload {
+                if dashboard.process_event(payload) {
                     let mut db = self.repo.begin().await?;
-                    dashboard.pending_facilities += 1;
                     self.repo
                         .persist_in_tx(&mut db, TimeRange::ThisQuarter, &dashboard)
                         .await?;
@@ -88,7 +84,6 @@ impl JobRunner for DashboardProjectionJobRunner {
                         .await?;
                     db.commit().await?;
                 }
-                _ => {}
             }
         }
 
