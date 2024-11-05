@@ -257,6 +257,12 @@ CREATE TABLE audit_entries (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE dashboards (
+  dashboard_json: JSONB
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE sumsub_callbacks (
   id BIGSERIAL PRIMARY KEY,
   customer_id UUID NOT NULL, -- REFERENCES customers(id) -- not enforced to get all callbacks

@@ -14,7 +14,7 @@ type Outbox = outbox::Outbox<LavaEvent>;
 async fn count_facilities() -> anyhow::Result<()> {
     let pool = init_pool().await.unwrap();
     let outbox = Outbox::init(&pool).await.unwrap();
-    let dashboard = Dashboard::new(&outbox);
+    let dashboard = Dashboard::new(&pool, &outbox);
 
     let mut tx = pool.begin().await?;
     outbox
@@ -22,10 +22,21 @@ async fn count_facilities() -> anyhow::Result<()> {
         .await?;
     tx.commit().await?;
 
-    let dashboard = dashboard
+    let values = dashboard
         .load_for_time_range(TimeRange::LastQuarter)
         .await?;
-    assert_eq!(dashboard.active_facilities, 1);
+    assert_eq!(values.active_facilities, 1);
+
+    //     let mut tx = pool.begin().await?;
+    //     outbox
+    //         .persist(&mut tx, CreditEvent::CreditFacilityCreated)
+    //         .await?;
+    //     tx.commit().await?;
+
+    //     let values = dashboard
+    //         .load_for_time_range(TimeRange::LastQuarter)
+    //         .await?;
+    //     assert_eq!(values.active_facilities, 2);
 
     Ok(())
 }
