@@ -81,7 +81,7 @@ source:
   - pnpm-lock.yaml
   fetch_tags: true
   uri: #@ data.values.git_uri
-  branch: #@ data.values.branch
+  branch: #@ branch
   private_key: #@ data.values.github_private_key
 #@ end
 
