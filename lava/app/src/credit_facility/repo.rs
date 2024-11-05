@@ -40,6 +40,7 @@ impl CreditFacilityRepo {
     async fn export(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _: &CreditFacility,
         events: impl Iterator<Item = &PersistedEvent<CreditFacilityEvent>>,
     ) -> Result<(), CreditFacilityError> {
         self.export
