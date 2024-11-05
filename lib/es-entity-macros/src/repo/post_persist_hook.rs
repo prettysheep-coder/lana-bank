@@ -78,7 +78,7 @@ mod tests {
             async fn execute_post_persist_hook(&self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &Entity,
-                new_events: impl Iterator<Item = &es_entity::PersistedEvent<EntityEvent>> + Clone
+                new_events: es_entity::LastPersisted<'_, #event>
             ) -> Result<(), es_entity::EsRepoError> {
                 Ok(())
             }
