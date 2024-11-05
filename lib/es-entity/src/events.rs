@@ -107,7 +107,7 @@ where
         self.persisted_events.iter()
     }
 
-    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &PersistedEvent<T>> {
+    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &PersistedEvent<T>> + Clone {
         let start = self.persisted_events.len() - n;
         self.persisted_events[start..].iter()
     }
