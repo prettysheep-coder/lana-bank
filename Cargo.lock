@@ -1042,6 +1042,7 @@ dependencies = [
  "strum",
  "thiserror",
  "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -2144,6 +2145,7 @@ dependencies = [
  "clap",
  "cloud-storage",
  "core-user",
+ "dashboard",
  "derive_builder",
  "es-entity",
  "futures",
@@ -3092,6 +3094,7 @@ dependencies = [
  "audit",
  "authz",
  "core-user",
+ "dashboard",
  "governance",
  "lava-ids",
  "serde",
