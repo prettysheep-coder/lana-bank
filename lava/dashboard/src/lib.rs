@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod error;
+pub mod error;
 mod job;
 mod primitives;
 mod repo;
@@ -30,6 +30,16 @@ where
     repo: DashboardRepo,
 }
 
+impl<Perms: PermissionCheck> Clone for Dashboard<Perms> {
+    fn clone(&self) -> Self {
+        Self {
+            _outbox: self._outbox.clone(),
+            authz: self.authz.clone(),
+            repo: self.repo.clone(),
+        }
+    }
+}
+
 impl<Perms> Dashboard<Perms>
 where
     Perms: PermissionCheck,
@@ -55,7 +65,7 @@ where
         })
     }
 
-    pub async fn load_for_time_range(
+    pub async fn load(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<DashboardValues, DashboardError> {

@@ -28,7 +28,7 @@ impl FromStr for DashboardModuleAction {
         let (entity, action) = s.split_once(':').expect("missing colon");
         use DashboardModuleActionDiscriminants::*;
         let res = match entity.parse()? {
-            Dashboard => DashboardAction::from(action.parse::<DashboardAction>()?),
+            Dashboard => action.parse::<DashboardAction>()?,
         };
         Ok(res.into())
     }
