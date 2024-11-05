@@ -53,11 +53,12 @@ impl DashboardRepo {
         .fetch_optional(&self.pool)
         .await?;
         if let Some(row) = row {
-            let values = serde_json::from_value(row.dashboard_json)
+            let values: DashboardValues = serde_json::from_value(row.dashboard_json)
                 .expect("Could not de-serialize dashboard");
-            Ok(values)
-        } else {
-            Ok(DashboardValues::default())
+            if range.in_same_range(values.last_updated, chrono::Utc::now()) {
+                return Ok(values);
+            }
         }
+        Ok(DashboardValues::new(range))
     }
 }
