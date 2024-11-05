@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::Utc;
 use futures::StreamExt;
 
 use std::collections::HashMap;
@@ -79,7 +80,7 @@ impl JobRunner for DashboardProjectionJobRunner {
                 let mut any_persisted = false;
                 for range in TimeRange::all() {
                     let dashboard = get_current_dashboard(*range, &mut state.dashboards);
-                    let processed = dashboard.process_event(payload);
+                    let processed = dashboard.process_event(message.recorded_at, payload);
                     if processed {
                         any_persisted = true;
                         self.repo.persist_in_tx(&mut db, *range, dashboard).await?;
@@ -95,7 +96,7 @@ impl JobRunner for DashboardProjectionJobRunner {
             }
         }
 
-        Ok(JobCompletion::RescheduleAt(chrono::Utc::now()))
+        Ok(JobCompletion::RescheduleAt(Utc::now()))
     }
 }
 
@@ -103,7 +104,9 @@ fn get_current_dashboard(
     range: TimeRange,
     values: &mut HashMap<TimeRange, DashboardValues>,
 ) -> &mut DashboardValues {
-    values.entry(range).or_default()
+    values
+        .entry(range)
+        .or_insert_with(|| DashboardValues::new(range))
 }
 
 #[cfg(test)]
@@ -117,12 +120,4 @@ mod tests {
         let dashboard = get_current_dashboard(range, &mut values);
         assert_eq!(dashboard.pending_facilities, 0);
     }
-
-    //     #[test]
-    //     fn returns_empty_when_last_update_was_old() {
-    //         let mut values = HashMap::new();
-    //         let range = TimeRange::ThisQuarter;
-    //         let dashboard = get_current_dashboard(range, &mut values);
-    //         assert_eq!(dashboard.pending_facilities, 0);
-    //     }
 }

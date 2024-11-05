@@ -26,12 +26,7 @@ async fn count_facilities() -> anyhow::Result<()> {
 
     let mut tx = pool.begin().await?;
     outbox
-        .persist(
-            &mut tx,
-            CreditEvent::CreditFacilityCreated {
-                created_at: chrono::Utc::now(),
-            },
-        )
+        .persist(&mut tx, CreditEvent::CreditFacilityCreated)
         .await?;
     tx.commit().await?;
 
