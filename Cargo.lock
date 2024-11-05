@@ -1025,10 +1025,16 @@ dependencies = [
 name = "dashboard"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "async-graphql",
  "es-entity",
  "job",
  "lava-events",
  "outbox",
+ "serde",
+ "sqlx",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

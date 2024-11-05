@@ -3,9 +3,22 @@ name = "dashboard"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+
+fail-on-warnings = []
+
 [dependencies]
 lava-events = { path = "../events" }
 
 es-entity = { path = "../../lib/es-entity", features = ["graphql"] }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
+
+sqlx = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+async-graphql = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+anyhow = { workspace = true }
