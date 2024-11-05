@@ -6,10 +6,12 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { getServerSession } from "next-auth"
 
+import { AuthSessionProvider } from "./session-provider"
 import { authOptions } from "./api/auth/[...nextauth]/options"
 
 import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
 import { Toast } from "@/components/toast"
+import GQLClient from "@/lib/graphql/client"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
@@ -38,8 +40,12 @@ const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
       <body
         className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} antialiased w-screen h-screen select-none`}
       >
-        <Toast />
-        {children}
+        <AuthSessionProvider session={session}>
+          <GQLClient>
+            <Toast />
+            {children}
+          </GQLClient>
+        </AuthSessionProvider>
       </body>
     </html>
   )
