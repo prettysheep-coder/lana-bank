@@ -2,6 +2,7 @@ use sqlx::PgPool;
 
 use crate::{error::*, primitives::TimeRange, values::*};
 
+#[derive(Clone)]
 pub struct DashboardRepo {
     pool: PgPool,
 }
@@ -9,6 +10,32 @@ pub struct DashboardRepo {
 impl DashboardRepo {
     pub fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
+    }
+
+    pub async fn begin(&self) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, DashboardError> {
+        Ok(self.pool.begin().await?)
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        range: TimeRange,
+        values: &DashboardValues,
+    ) -> Result<(), DashboardError> {
+        let values = serde_json::to_value(values).expect("Could not seralize dashboard");
+        sqlx::query!(
+            r#"
+            INSERT INTO dashboards (time_range, dashboard_json)
+            VALUES ($1, $2)
+            ON CONFLICT (time_range) DO UPDATE
+            SET dashboard_json = $2
+            "#,
+            range as TimeRange,
+            values
+        )
+        .execute(&mut **tx)
+        .await?;
+        Ok(())
     }
 
     pub async fn load_for_time_range(

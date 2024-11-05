@@ -5,6 +5,6 @@ use serde::{Deserialize, Serialize};
 )]
 #[sqlx(type_name = "TimeRange", rename_all = "snake_case")]
 pub enum TimeRange {
-    LastQuarter,
-    LastYear,
+    ThisQuarter,
+    ThisYear,
 }

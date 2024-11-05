@@ -1027,7 +1027,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-graphql",
+ "async-trait",
+ "chrono",
  "es-entity",
+ "futures",
  "job",
  "lava-events",
  "outbox",
@@ -2193,6 +2196,7 @@ dependencies = [
 name = "lava-events"
 version = "0.2.11-dev"
 dependencies = [
+ "chrono",
  "core-user",
  "governance",
  "outbox",

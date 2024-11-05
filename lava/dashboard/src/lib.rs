@@ -1,8 +1,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-// mod job;
 mod error;
+mod job;
 mod primitives;
 mod repo;
 mod values;
@@ -12,11 +12,12 @@ use sqlx::PgPool;
 use lava_events::LavaEvent;
 
 use error::*;
+use job::*;
 pub use primitives::*;
 use repo::*;
 pub use values::*;
 
-type Outbox = outbox::Outbox<LavaEvent>;
+pub type Outbox = outbox::Outbox<LavaEvent>;
 
 pub struct Dashboard {
     _outbox: Outbox,
@@ -24,11 +25,21 @@ pub struct Dashboard {
 }
 
 impl Dashboard {
-    pub fn new(pool: &PgPool, outbox: &Outbox) -> Self {
-        Self {
+    pub async fn init(
+        pool: &PgPool,
+        jobs: &::job::Jobs,
+        outbox: &Outbox,
+    ) -> Result<Self, DashboardError> {
+        let repo = DashboardRepo::new(pool);
+        jobs.add_initializer_and_spawn_unique(
+            DashboardProjectionJobInitializer::new(outbox, &repo),
+            DashboardProjectionJobConfig,
+        )
+        .await?;
+        Ok(Self {
             _outbox: outbox.clone(),
-            repo: DashboardRepo::new(pool),
-        }
+            repo,
+        })
     }
 
     pub async fn load_for_time_range(

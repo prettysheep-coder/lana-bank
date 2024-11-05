@@ -13,30 +13,37 @@ type Outbox = outbox::Outbox<LavaEvent>;
 #[tokio::test]
 async fn count_facilities() -> anyhow::Result<()> {
     let pool = init_pool().await.unwrap();
+    sqlx::query!("DELETE FROM dashboards")
+        .execute(&pool)
+        .await?;
     let outbox = Outbox::init(&pool).await.unwrap();
-    let dashboard = Dashboard::new(&pool, &outbox);
+    let mut jobs = ::job::Jobs::new(&pool, Default::default());
+    let dashboard = Dashboard::init(&pool, &jobs, &outbox).await?;
+    jobs.start_poll().await?;
 
     let mut tx = pool.begin().await?;
     outbox
-        .persist(&mut tx, CreditEvent::CreditFacilityCreated)
+        .persist(
+            &mut tx,
+            CreditEvent::CreditFacilityCreated {
+                created_at: chrono::Utc::now(),
+            },
+        )
         .await?;
     tx.commit().await?;
 
+    for _ in 0..10 {
+        let row = sqlx::query!("SELECT COUNT(*) FROM dashboards")
+            .fetch_one(&pool)
+            .await?;
+        if row.count.unwrap_or_default() > 0 {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
     let values = dashboard
-        .load_for_time_range(TimeRange::LastQuarter)
+        .load_for_time_range(TimeRange::ThisQuarter)
         .await?;
-    assert_eq!(values.active_facilities, 1);
-
-    //     let mut tx = pool.begin().await?;
-    //     outbox
-    //         .persist(&mut tx, CreditEvent::CreditFacilityCreated)
-    //         .await?;
-    //     tx.commit().await?;
-
-    //     let values = dashboard
-    //         .load_for_time_range(TimeRange::LastQuarter)
-    //         .await?;
-    //     assert_eq!(values.active_facilities, 2);
-
+    assert_eq!(values.pending_facilities, 1);
     Ok(())
 }

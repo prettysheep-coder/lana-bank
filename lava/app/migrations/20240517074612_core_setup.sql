@@ -257,7 +257,7 @@ CREATE TABLE audit_entries (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TYPE TimeRange AS ENUM ('last_quarter', 'last_year');
+CREATE TYPE TimeRange AS ENUM ('this_quarter', 'this_year');
 
 CREATE TABLE dashboards (
   time_range TimeRange UNIQUE NOT NULL,
