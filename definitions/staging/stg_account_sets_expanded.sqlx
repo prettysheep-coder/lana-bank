@@ -15,7 +15,7 @@ WITH RECURSIVE account_set_members AS (
 		schema: envs.currentImportSchema
 	})}
 
-), balance_sheet_members AS (
+), account_set_members_expanded AS (
 
 	SELECT set_id, member_id, member_type,
 		[set_id] AS set_hierarchy,
@@ -25,15 +25,18 @@ WITH RECURSIVE account_set_members AS (
 
 	SELECT l.set_id, r.member_id, r.member_type,
 		ARRAY_CONCAT(l.set_hierarchy, [r.set_id]) AS set_hierarchy,
-	FROM balance_sheet_members l
+	FROM account_set_members_expanded l
 		LEFT JOIN	account_set_members r
 			ON l.member_id = r.set_id
 	WHERE l.member_type = 'AccountSet'
 
 )
 
-SELECT DISTINCT *
+SELECT set_id, member_id, member_type,
+	ANY_VALUE(set_hierarchy HAVING MAX ARRAY_LENGTH(set_hierarchy)) AS set_hierarchy,
 
-FROM balance_sheet_members
+FROM account_set_members_expanded
 
 WHERE member_id IS NOT NULL
+
+GROUP BY set_id, member_id, member_type
