@@ -49,7 +49,7 @@ gql`
 const Customers = () => {
   const router = useRouter()
 
-  const { data, error, fetchMore } = useCustomersQuery({
+  const { data, loading, error, fetchMore } = useCustomersQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
     },
@@ -57,18 +57,17 @@ const Customers = () => {
 
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{error}</p>}
-      {data && (
-        <PaginatedTable<Customer>
-          columns={columns}
-          data={data?.customersByEmail as PaginatedData<Customer>}
-          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
-          pageSize={DEFAULT_PAGESIZE}
-          onClick={(customer) => {
-            router.push(`/customers/${customer.customerId}`)
-          }}
-        />
-      )}
+      {error && <p className="text-destructive text-sm">{error?.message}</p>}
+      <PaginatedTable<Customer>
+        columns={columns}
+        data={data?.customersByEmail as PaginatedData<Customer>}
+        loading={loading}
+        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        pageSize={DEFAULT_PAGESIZE}
+        onClick={(customer) => {
+          router.push(`/customers/${customer.customerId}`)
+        }}
+      />
     </div>
   )
 }

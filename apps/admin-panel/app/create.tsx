@@ -4,14 +4,6 @@
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
-import { Button } from "@/components/primitive/button"
-import { CreditFacility, Customer } from "@/lib/graphql/generated"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
@@ -21,6 +13,15 @@ import { CreateUserDialog } from "./users/create"
 import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import CustomerSelector from "./customers/selector"
+
+import { CreditFacility, Customer } from "@/lib/graphql/generated"
+import { Button } from "@/components/primitive/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/primitive/dropdown-menu"
 
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
@@ -38,7 +39,7 @@ const CreateButton = () => {
   const pathName = usePathname()
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
   const setCustomerToNullIfNotInCustomerDetails = () => {
-    if (userIsInCustomerDetailsPage) setCustomer(null)
+    if (!userIsInCustomerDetailsPage) setCustomer(null)
   }
 
   const menuItems = [
@@ -82,6 +83,7 @@ const CreateButton = () => {
   let creationType = ""
   if (createDeposit) creationType = "Deposit"
   if (createWithdrawal) creationType = "Withdrawal"
+  if (createFacility) creationType = "Credit Facility"
 
   return (
     <>
@@ -93,9 +95,9 @@ const CreateButton = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-36">
-          {menuItems.map((item, index) => (
+          {menuItems.map((item) => (
             <DropdownMenuItem
-              key={index}
+              key={item.label}
               onClick={item.onClick}
               className="cursor-pointer"
             >
