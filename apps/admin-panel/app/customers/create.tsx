@@ -33,13 +33,11 @@ gql`
 type CreateCustomerDialogProps = {
   setOpenCreateCustomerDialog: (isOpen: boolean) => void
   openCreateCustomerDialog: boolean
-  refetch?: () => void
 }
 
 export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   setOpenCreateCustomerDialog,
   openCreateCustomerDialog,
-  refetch,
 }) => {
   const router = useRouter()
 
@@ -70,7 +68,6 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
       })
       if (data?.customerCreate.customer) {
         toast.success("Customer created successfully")
-        if (refetch) refetch()
         setOpenCreateCustomerDialog(false)
         router.push(`/customers/${data.customerCreate.customer.customerId}`)
       } else {
