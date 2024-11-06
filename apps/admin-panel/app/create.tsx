@@ -88,7 +88,7 @@ const CreateButton = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button>
-            <HiPlus className="mr-2 h-4 w-4" />
+            <HiPlus className="h-4 w-4" />
             Create
           </Button>
         </DropdownMenuTrigger>

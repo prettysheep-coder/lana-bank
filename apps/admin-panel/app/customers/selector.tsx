@@ -52,7 +52,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
         </DialogHeader>
         <PaginatedTable<Customer>
           columns={columns}
-          data={data?.customers as PaginatedData<Customer>}
+          data={data?.customersByEmail as PaginatedData<Customer>}
           fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
           pageSize={DEFAULT_PAGESIZE}
           onClick={(customer) => {
