@@ -4,7 +4,7 @@ import axios from "axios"
 
 import { customPostgresAdapter } from "@/lib/auth/db/auth-adapter"
 import { pool } from "@/lib/auth/db"
-import { env } from "@/env"
+import { basePath, env } from "@/env"
 
 async function checkUserEmail(email: string): Promise<boolean> {
   try {
@@ -32,6 +32,9 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
+    async redirect() {
+      return `${basePath}/dashboard`
+    },
     async signIn({ account }) {
       const email = account?.providerAccountId
       if (account?.provider === "email" && email) {
@@ -49,4 +52,9 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: customPostgresAdapter(pool),
   secret: env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: `${basePath}/auth/login`,
+    error: `${basePath}/auth/error`,
+    verifyRequest: `${basePath}/auth/verify`,
+  },
 }
