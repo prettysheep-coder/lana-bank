@@ -1940,14 +1940,7 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } }> } };
-
-export type WithdrawalQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } } | null };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } } }> } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4856,17 +4849,20 @@ export const WithdrawalsDocument = gql`
       startCursor
       endCursor
     }
-    nodes {
-      customerId
-      withdrawalId
-      amount
-      status
-      reference
-      subjectCanConfirm
-      subjectCanCancel
-      customer {
+    edges {
+      cursor
+      node {
         customerId
-        email
+        withdrawalId
+        amount
+        status
+        reference
+        subjectCanConfirm
+        subjectCanCancel
+        customer {
+          customerId
+          email
+        }
       }
     }
   }
@@ -4901,50 +4897,6 @@ export function useWithdrawalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type WithdrawalsQueryHookResult = ReturnType<typeof useWithdrawalsQuery>;
 export type WithdrawalsLazyQueryHookResult = ReturnType<typeof useWithdrawalsLazyQuery>;
 export type WithdrawalsQueryResult = Apollo.QueryResult<WithdrawalsQuery, WithdrawalsQueryVariables>;
-export const WithdrawalDocument = gql`
-    query Withdrawal($id: UUID!) {
-  withdrawal(id: $id) {
-    customerId
-    withdrawalId
-    amount
-    status
-    reference
-    customer {
-      customerId
-      email
-      applicantId
-    }
-  }
-}
-    `;
-
-/**
- * __useWithdrawalQuery__
- *
- * To run a query within a React component, call `useWithdrawalQuery` and pass it any options that fit your needs.
- * When your component renders, `useWithdrawalQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWithdrawalQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useWithdrawalQuery(baseOptions: Apollo.QueryHookOptions<WithdrawalQuery, WithdrawalQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WithdrawalQuery, WithdrawalQueryVariables>(WithdrawalDocument, options);
-      }
-export function useWithdrawalLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WithdrawalQuery, WithdrawalQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WithdrawalQuery, WithdrawalQueryVariables>(WithdrawalDocument, options);
-        }
-export type WithdrawalQueryHookResult = ReturnType<typeof useWithdrawalQuery>;
-export type WithdrawalLazyQueryHookResult = ReturnType<typeof useWithdrawalLazyQuery>;
-export type WithdrawalQueryResult = Apollo.QueryResult<WithdrawalQuery, WithdrawalQueryVariables>;
 export const GetRealtimePriceUpdatesDocument = gql`
     query GetRealtimePriceUpdates {
   realtimePrice {
