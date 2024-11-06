@@ -10,6 +10,7 @@ import { authOptions } from "./api/auth/[...nextauth]/options"
 
 import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
 import { Toast } from "@/components/toast"
+import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
@@ -38,8 +39,10 @@ const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
       <body
         className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} antialiased w-screen h-screen select-none`}
       >
-        <Toast />
-        {children}
+        <ApolloServerWrapper>
+          <Toast />
+          {children}
+        </ApolloServerWrapper>
       </body>
     </html>
   )
