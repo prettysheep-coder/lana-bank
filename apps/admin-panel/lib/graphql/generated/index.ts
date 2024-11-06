@@ -1673,7 +1673,7 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilitiesByCreatedAt: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilitiesByCreatedAt: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CreditFacilityPartialPaymentMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentInput;
@@ -1760,14 +1760,15 @@ export type DepositsQueryVariables = Exact<{
 }>;
 
 
-export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string } }> } };
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', email: string } } }> } };
 
-export type DepositQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+export type DisbursalsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } } | null };
+export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, amount: any, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -3133,6 +3134,10 @@ export const CreditFacilitiesDocument = gql`
         status
         facilityAmount
         collateral
+        currentCvl {
+          disbursed
+          total
+        }
         customer {
           customerId
           email
@@ -3693,14 +3698,15 @@ export const DepositsDocument = gql`
       startCursor
       endCursor
     }
-    nodes {
-      customerId
-      depositId
-      amount
-      reference
-      customer {
-        customerId
-        email
+    edges {
+      cursor
+      node {
+        depositId
+        amount
+        reference
+        customer {
+          email
+        }
       }
     }
   }
@@ -3735,49 +3741,56 @@ export function useDepositsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<D
 export type DepositsQueryHookResult = ReturnType<typeof useDepositsQuery>;
 export type DepositsLazyQueryHookResult = ReturnType<typeof useDepositsLazyQuery>;
 export type DepositsQueryResult = Apollo.QueryResult<DepositsQuery, DepositsQueryVariables>;
-export const DepositDocument = gql`
-    query Deposit($id: UUID!) {
-  deposit(id: $id) {
-    customerId
-    depositId
-    amount
-    reference
-    customer {
-      customerId
-      email
-      applicantId
+export const DisbursalsDocument = gql`
+    query Disbursals($first: Int!, $after: String) {
+  disbursals(first: $first, after: $after) {
+    edges {
+      node {
+        id
+        amount
+        createdAt
+        status
+      }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
     }
   }
 }
     `;
 
 /**
- * __useDepositQuery__
+ * __useDisbursalsQuery__
  *
- * To run a query within a React component, call `useDepositQuery` and pass it any options that fit your needs.
- * When your component renders, `useDepositQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useDisbursalsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDisbursalsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useDepositQuery({
+ * const { data, loading, error } = useDisbursalsQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useDepositQuery(baseOptions: Apollo.QueryHookOptions<DepositQuery, DepositQueryVariables>) {
+export function useDisbursalsQuery(baseOptions: Apollo.QueryHookOptions<DisbursalsQuery, DisbursalsQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<DepositQuery, DepositQueryVariables>(DepositDocument, options);
+        return Apollo.useQuery<DisbursalsQuery, DisbursalsQueryVariables>(DisbursalsDocument, options);
       }
-export function useDepositLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositQuery, DepositQueryVariables>) {
+export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DisbursalsQuery, DisbursalsQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<DepositQuery, DepositQueryVariables>(DepositDocument, options);
+          return Apollo.useLazyQuery<DisbursalsQuery, DisbursalsQueryVariables>(DisbursalsDocument, options);
         }
-export type DepositQueryHookResult = ReturnType<typeof useDepositQuery>;
-export type DepositLazyQueryHookResult = ReturnType<typeof useDepositLazyQuery>;
-export type DepositQueryResult = Apollo.QueryResult<DepositQuery, DepositQueryVariables>;
+export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
+export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
+export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {
