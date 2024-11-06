@@ -44,7 +44,7 @@ teardown_file() {
 
   exec_admin_graphql 'dashboard'
   new_pending_facilities=$(graphql_output '.data.dashboard.pendingFacilities')
-  [[ "$new_pending_facilities" != "pending_facilities" ]] || exit 1
+  [[ "$new_pending_facilities" != "$pending_facilities" ]] || exit 1
 
   active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
   [[ "$active_facilities" != "null" ]] || exit 1
