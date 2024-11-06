@@ -1,7 +1,6 @@
 config {
 	type: "operations",
 	hasOutput: true,
-	tags: ["current"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
