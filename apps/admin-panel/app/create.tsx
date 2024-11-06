@@ -4,8 +4,6 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-import { HiPlus } from "react-icons/hi"
-
 import { CreateCustomerDialog } from "./customers/create"
 
 import { Button } from "@/components/primitive/button"

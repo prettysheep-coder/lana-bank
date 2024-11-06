@@ -1,9 +1,15 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { useRouter } from "next/navigation"
 
-import PaginatedTable, { Column, PaginatedData } from "@/components/new/paginated-table"
 import { AccountStatus, Customer, useCustomersQuery } from "@/lib/graphql/generated"
+
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "@/components/new/paginated-table"
 
 gql`
   query Customers($first: Int!, $after: String) {
@@ -41,9 +47,11 @@ gql`
 `
 
 const Customers = () => {
+  const router = useRouter()
+
   const { data, fetchMore } = useCustomersQuery({
     variables: {
-      first: 2,
+      first: DEFAULT_PAGESIZE,
     },
   })
 
@@ -58,8 +66,11 @@ const Customers = () => {
         <PaginatedTable<Customer>
           columns={columns}
           data={data?.customers as PaginatedData<Customer>}
-          fetchMore={(cursor) => fetchMore({ variables: { after: cursor } })}
-          pageSize={2}
+          fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+          pageSize={DEFAULT_PAGESIZE}
+          onClick={(customer) => {
+            router.push(`/customers/${customer.customerId}`)
+          }}
         />
       )}
     </div>
@@ -88,5 +99,6 @@ const columns: Column<Customer>[] = [
     key: "balance",
     label: "USD Balance",
     render: (balance) => <div>${balance.checking.settled}</div>,
+    sortable: true,
   },
 ]

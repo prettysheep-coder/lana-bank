@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
-import { useCustomerCreateMutation } from "@/lib/graphql/generated"
+import { CustomersDocument, useCustomerCreateMutation } from "@/lib/graphql/generated"
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
@@ -42,7 +42,10 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   const router = useRouter()
 
   const [createCustomer, { loading, reset, error: createCustomerError }] =
-    useCustomerCreateMutation()
+    useCustomerCreateMutation({
+      refetchQueries: [CustomersDocument],
+    })
+
   const [email, setEmail] = useState<string>("")
   const [telegramId, setTelegramId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -83,6 +86,8 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         setError("An unexpected error occurred. Please try again.")
       }
       toast.error("Failed to create customer")
+    } finally {
+      resetStates()
     }
   }
 
@@ -91,7 +96,6 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
     setTelegramId("")
     setError(null)
     setIsConfirmationStep(false)
-    reset()
   }
 
   return (
@@ -101,6 +105,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         setOpenCreateCustomerDialog(isOpen)
         if (!isOpen) {
           resetStates()
+          reset()
         }
       }}
     >
