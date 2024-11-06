@@ -1,0 +1,77 @@
+config {
+	type: "table",
+}
+
+WITH line_of_credit_terms AS (
+
+	SELECT *
+	-- FROM ${ref("stg_approved_credit_facilities_terms")}
+	FROM dataform_sv.stg_approved_credit_facilities_terms
+
+), interest_payment_data AS (
+
+	SELECT
+		  *
+		, 'projected_interest_payment' AS event_type
+		, SAFE_DIVIDE(
+			loc_annual_interest_rate / 100.0,
+			CASE
+				WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
+				WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
+				ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
+			END
+		  ) AS loc_daily_interest_rate
+		, CASE
+			WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
+			WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
+			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
+		  END AS days_per_year
+		, initiated_disbursement_at AS disbursement_start_date
+		, CASE WHEN loc_interest_accrual_interval = 'end_of_month' THEN
+			GENERATE_DATE_ARRAY(DATE(concluded_disbursement_at), DATE(loc_end_date), INTERVAL 1 MONTH)
+		  END AS interest_schedule_months
+	-- FROM ${ref("stg_approved_credit_facilities_disbursement")}
+	FROM dataform_sv.stg_approved_credit_facilities_disbursement
+
+), projected_interest_payment_data AS (
+
+	SELECT
+		  * except(interest_schedule_months)
+		, DATE_TRUNC(projected_month, month) AS period_start_date
+		, CASE WHEN LAST_DAY(projected_month) > loc_end_date THEN
+			loc_end_date
+		  ELSE
+		  	LAST_DAY(projected_month)
+		  END AS period_end_date
+	FROM interest_payment_data,
+	     UNNEST(interest_schedule_months) AS projected_month
+
+), projected_interest_payment AS (
+
+	SELECT
+		  *
+		, TIMESTAMP(period_end_date) AS recorded_at
+		, SAFE_MULTIPLY(
+			disbursement_amount_in_cents,
+			SAFE_MULTIPLY(
+				loc_daily_interest_rate,
+				TIMESTAMP_DIFF(period_end_date, period_start_date, DAY)
+			)
+		  ) AS amount_in_cents
+		, disbursement_amount_in_cents AS principal
+		, SAFE_DIVIDE(
+			SAFE_MULTIPLY(disbursement_amount_in_cents,
+				SAFE_MULTIPLY(
+					loc_daily_interest_rate,
+					TIMESTAMP_DIFF(period_end_date, period_start_date, DAY))),
+			POWER((1.0 + bench_mark_interest_rate),
+				SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year))
+		  ) AS present_value
+		, TIMESTAMP_DIFF(period_end_date, period_start_date, DAY) AS days_in_the_period
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year) AS period_duration_in_years
+		, POWER((1.0 + bench_mark_interest_rate), SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year)) AS pv_discount_factor
+	FROM projected_interest_payment_data
+
+)
+
+SELECT * FROM projected_interest_payment

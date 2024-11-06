@@ -1,0 +1,50 @@
+config {
+	type: "table",
+}
+
+WITH line_of_credit_terms AS (
+
+	SELECT *
+	-- FROM ${ref("stg_approved_credit_facilities_terms")}
+	FROM dataform_sv.stg_approved_credit_facilities_terms
+
+), interest_payment_data AS (
+
+	SELECT
+		  *
+		, SAFE_DIVIDE(
+			loc_annual_interest_rate / 100.0,
+			CASE
+				WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
+				WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
+				ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
+			END
+		  ) AS loc_daily_interest_rate
+		, CASE
+			WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
+			WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
+			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
+		  END AS days_per_year
+		, initiated_disbursement_at AS disbursement_start_date
+	-- FROM ${ref("stg_approved_credit_facilities_disbursement")}
+	FROM dataform_sv.stg_approved_credit_facilities_disbursement
+
+), projected_principal_payment AS (
+
+	SELECT
+		  *
+		, TIMESTAMP(loc_end_date) AS recorded_at
+		, 'projected_principal_payment' AS event_type
+		, disbursement_amount_in_cents AS amount_in_cents
+		, SAFE_DIVIDE(disbursement_amount_in_cents,
+			POWER((1.0 + bench_mark_interest_rate),
+				SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year))
+		  ) AS present_value
+		, TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY) AS days_in_the_period
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year) AS period_duration_in_years
+		, POWER((1.0 + bench_mark_interest_rate), SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year)) AS pv_discount_factor
+	FROM interest_payment_data
+
+)
+
+SELECT * FROM projected_principal_payment

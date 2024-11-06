@@ -1,0 +1,26 @@
+config {
+	type: "table",
+}
+
+WITH line_of_credit_terms AS (
+
+	SELECT *
+	-- FROM ${ref("stg_approved_credit_facilities_terms")}
+	FROM dataform_sv.stg_approved_credit_facilities_terms
+
+), collateral_posted AS (
+
+	SELECT
+		  terms.*
+		, recorded_at AS collateral_posted_at
+		, LOWER(CONCAT(event_type, '_', JSON_VALUE(event, "$.action"))) AS collateral_posted_event_type
+		, CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC) AS collateral_posted_amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "collateral_updated"
+	AND JSON_VALUE(event, "$.action") = "Add"
+
+)
+
+SELECT * FROM collateral_posted
