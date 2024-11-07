@@ -4,6 +4,7 @@
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
+import { toast } from "sonner"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
@@ -104,6 +105,8 @@ const CreateButton = () => {
     } else if (pathName === "/credit-facilities") {
       if (!customer) setOpenCustomerSelector(true)
       setCreateFacility(true)
+    } else if (pathName === "/disbursals") {
+      toast.message("Disbursals can be initiated from credit facility page")
     } else {
       setShowMenu(true)
     }
