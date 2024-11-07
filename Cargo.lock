@@ -1035,6 +1035,7 @@ dependencies = [
  "futures",
  "job",
  "lava-events",
+ "lava-money",
  "outbox",
  "serde",
  "serde_json",
@@ -2158,6 +2159,7 @@ dependencies = [
  "job",
  "lava-events",
  "lava-ids",
+ "lava-money",
  "ory-kratos-client",
  "outbox",
  "rand",
@@ -2204,6 +2206,8 @@ dependencies = [
  "chrono",
  "core-user",
  "governance",
+ "lava-ids",
+ "lava-money",
  "outbox",
  "serde",
 ]
@@ -2217,6 +2221,17 @@ dependencies = [
  "job",
  "serde",
  "sqlx",
+]
+
+[[package]]
+name = "lava-money"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "thiserror",
 ]
 
 [[package]]
