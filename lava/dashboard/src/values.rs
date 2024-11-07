@@ -41,16 +41,19 @@ impl DashboardValues {
                 true
             }
             LavaEvent::Credit(CreditEvent::FacilityCollateralUpdated {
-                abs_diff, action, ..
+                abs_diff,
+                action: FacilityCollateralUpdateAction::Add,
+                ..
             }) => {
-                match action {
-                    FacilityCollateralUpdateAction::Add => {
-                        self.total_collateral += *abs_diff;
-                    }
-                    FacilityCollateralUpdateAction::Remove => {
-                        self.total_collateral -= *abs_diff;
-                    }
-                }
+                self.total_collateral += *abs_diff;
+                true
+            }
+            LavaEvent::Credit(CreditEvent::FacilityCollateralUpdated {
+                abs_diff,
+                action: FacilityCollateralUpdateAction::Remove,
+                ..
+            }) => {
+                self.total_collateral -= *abs_diff;
                 true
             }
             _ => false,
