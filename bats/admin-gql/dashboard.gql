@@ -3,5 +3,6 @@ query Dashboard() {
     activeFacilities
     pendingFacilities
     totalDisbursed
+    totalCollateral
   }
 }

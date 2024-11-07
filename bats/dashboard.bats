@@ -47,6 +47,7 @@ teardown_file() {
   [[ "$new_pending_facilities" != "$pending_facilities" ]] || exit 1
 
   active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
+  total_collateral=$(graphql_output '.data.dashboard.totalCollateral')
   [[ "$active_facilities" != "null" ]] || exit 1
 
   variables=$(
@@ -65,6 +66,8 @@ teardown_file() {
   exec_admin_graphql 'dashboard'
   new_active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
   [[ "$new_active_facilities" != "$active_facilities" ]] || exit 1
+  new_total_collateral=$(graphql_output '.data.dashboard.totalCollateral')
+  [[ "$new_total_collateral" != "$total_collateral" ]] || exit 1
   total_disbursed=$(graphql_output '.data.dashboard.totalDisbursed')
 
   amount=50000

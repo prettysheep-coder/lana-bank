@@ -580,6 +580,7 @@ export type Dashboard = {
   __typename?: 'Dashboard';
   activeFacilities: Scalars['Int']['output'];
   pendingFacilities: Scalars['Int']['output'];
+  totalCollateral: Scalars['Int']['output'];
   totalDisbursed: Scalars['Int']['output'];
 };
 

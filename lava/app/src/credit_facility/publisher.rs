@@ -47,6 +47,21 @@ impl CreditFacilityPublisher {
                 } => Some(CreditEvent::PaymentRecorded {
                     disbursal_amount: disbursal_amount.into_inner(),
                 }),
+                CollateralUpdated {
+                    abs_diff, action, ..
+                } => match action {
+                    crate::primitives::CollateralAction::Add => {
+                        Some(CreditEvent::CollateralAdded {
+                            amount: abs_diff.into_inner(),
+                        })
+                    }
+                    crate::primitives::CollateralAction::Remove => {
+                        Some(CreditEvent::CollateralRemoved {
+                            amount: abs_diff.into_inner(),
+                        })
+                    }
+                },
+
                 _ => None,
             })
             .collect::<Vec<_>>();

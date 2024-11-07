@@ -23,6 +23,8 @@ pub enum CreditEvent {
     CreditFacilityCompleted,
     DisbursalConcluded { amount: u64 },
     PaymentRecorded { disbursal_amount: u64 },
+    CollateralAdded { amount: u64 },
+    CollateralRemoved { amount: u64 },
 }
 
 macro_rules! impl_event_marker {

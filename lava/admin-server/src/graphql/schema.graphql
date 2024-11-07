@@ -577,6 +577,7 @@ type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
 	totalDisbursed: Int!
+	totalCollateral: Int!
 }
 
 type Deposit {
