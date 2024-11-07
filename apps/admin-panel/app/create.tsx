@@ -96,10 +96,13 @@ const CreateButton = () => {
     } else if (pathName === "/committees") {
       setOpenCreateCommitteeDialog(true)
     } else if (pathName === "/deposits") {
+      if (!customer) setOpenCustomerSelector(true)
       setCreateDeposit(true)
     } else if (pathName === "/withdrawals") {
+      if (!customer) setOpenCustomerSelector(true)
       setCreateWithdrawal(true)
     } else if (pathName === "/credit-facilities") {
+      if (!customer) setOpenCustomerSelector(true)
       setCreateFacility(true)
     } else {
       setShowMenu(true)
