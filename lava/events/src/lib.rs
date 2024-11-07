@@ -4,10 +4,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use core_money::{Satoshis, UsdCents};
 use core_user::CoreUserEvent;
 use governance::GovernanceEvent;
 use lava_ids::CreditFacilityId;
-use lava_money::{Satoshis, UsdCents};
 use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]

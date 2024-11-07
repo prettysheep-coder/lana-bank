@@ -905,6 +905,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "core-money"
+version = "0.1.0"
+dependencies = [
+ "async-graphql",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
 name = "core-user"
 version = "0.2.18-dev"
 dependencies = [
@@ -1031,11 +1042,11 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
+ "core-money",
  "es-entity",
  "futures",
  "job",
  "lava-events",
- "lava-money",
  "outbox",
  "serde",
  "serde_json",
@@ -2145,6 +2156,7 @@ dependencies = [
  "chrono",
  "clap",
  "cloud-storage",
+ "core-money",
  "core-user",
  "dashboard",
  "derive_builder",
@@ -2159,7 +2171,6 @@ dependencies = [
  "job",
  "lava-events",
  "lava-ids",
- "lava-money",
  "ory-kratos-client",
  "outbox",
  "rand",
@@ -2204,10 +2215,10 @@ name = "lava-events"
 version = "0.2.18-dev"
 dependencies = [
  "chrono",
+ "core-money",
  "core-user",
  "governance",
  "lava-ids",
- "lava-money",
  "outbox",
  "serde",
 ]
@@ -2221,17 +2232,6 @@ dependencies = [
  "job",
  "serde",
  "sqlx",
-]
-
-[[package]]
-name = "lava-money"
-version = "0.1.0"
-dependencies = [
- "async-graphql",
- "rust_decimal",
- "rust_decimal_macros",
- "serde",
- "thiserror",
 ]
 
 [[package]]

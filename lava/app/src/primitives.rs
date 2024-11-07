@@ -3,11 +3,11 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
+pub use core_money::*;
 pub use core_user::UserId;
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lava_ids::*;
-pub use lava_money::*;
 pub use rbac_types::{LavaRole, Role, Subject};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
