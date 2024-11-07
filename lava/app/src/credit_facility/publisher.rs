@@ -23,7 +23,7 @@ impl CreditFacilityPublisher {
     pub async fn publish(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        _entity: &CreditFacility,
+        entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
         self.export
@@ -36,6 +36,17 @@ impl CreditFacilityPublisher {
                 Initialized { .. } => Some(CreditEvent::CreditFacilityCreated),
                 Activated { .. } => Some(CreditEvent::CreditFacilityActivated),
                 Completed { .. } => Some(CreditEvent::CreditFacilityCompleted),
+                DisbursalConcluded { idx, .. } => {
+                    let amount = entity.disbursal_amount_from_idx(*idx);
+                    Some(CreditEvent::DisbursalConcluded {
+                        amount: amount.into_inner(),
+                    })
+                }
+                PaymentRecorded {
+                    disbursal_amount, ..
+                } => Some(CreditEvent::PaymentRecorded {
+                    disbursal_amount: disbursal_amount.into_inner(),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

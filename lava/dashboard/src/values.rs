@@ -7,6 +7,7 @@ use lava_events::*;
 pub struct DashboardValues {
     pub active_facilities: u32,
     pub pending_facilities: u32,
+    pub total_disbursed: u64,
     pub last_updated: DateTime<Utc>,
 }
 
@@ -25,6 +26,14 @@ impl DashboardValues {
             }
             LavaEvent::Credit(CreditEvent::CreditFacilityCompleted { .. }) => {
                 self.active_facilities -= 1;
+                true
+            }
+            LavaEvent::Credit(CreditEvent::DisbursalConcluded { amount }) => {
+                self.total_disbursed += amount;
+                true
+            }
+            LavaEvent::Credit(CreditEvent::PaymentRecorded { disbursal_amount }) => {
+                self.total_disbursed -= disbursal_amount;
                 true
             }
             _ => false,

@@ -576,6 +576,7 @@ type CustomerUpdatePayload {
 type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
+	totalDisbursed: Int!
 }
 
 type Deposit {
