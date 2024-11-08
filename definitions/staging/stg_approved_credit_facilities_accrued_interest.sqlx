@@ -32,10 +32,11 @@ WITH line_of_credit_terms AS (
 
 	SELECT
 		  ia.*
+
 		, CAST(JSON_VALUE(event, "$.incurred_at") AS TIMESTAMP) AS interest_incurred_at
 		, ii.event_type
 		, CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS amount_in_cents
-	FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})}
+	FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})} ii
 	LEFT JOIN interest_accrual ia ON ia.event_id = ii.id
 	WHERE event_type = "interest_incurred"
 

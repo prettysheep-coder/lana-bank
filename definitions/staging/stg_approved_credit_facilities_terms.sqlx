@@ -41,7 +41,7 @@ WITH line_of_credit_terms AS (
 	SELECT
 		  terms.*
 		, cfe.recorded_at AS loc_approved_at
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
 	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = cfe.id
 	WHERE event_type = "approval_process_concluded"
 	AND JSON_VALUE(event, "$.approved") = 'true'
