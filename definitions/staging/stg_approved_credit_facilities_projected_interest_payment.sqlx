@@ -11,7 +11,6 @@ WITH line_of_credit_terms AS (
 
 	SELECT
 		  *
-		, 'projected_interest_payment' AS event_type
 		, SAFE_DIVIDE(
 			loc_annual_interest_rate / 100.0,
 			CASE
@@ -37,7 +36,7 @@ WITH line_of_credit_terms AS (
 		  * except(interest_schedule_months)
 		, DATE_TRUNC(projected_month, month) AS period_start_date
 		, CASE WHEN LAST_DAY(projected_month) > loc_end_date THEN
-			loc_end_date
+			DATE(loc_end_date)
 		  ELSE
 		  	LAST_DAY(projected_month)
 		  END AS period_end_date
@@ -49,6 +48,7 @@ WITH line_of_credit_terms AS (
 	SELECT
 		  *
 		, TIMESTAMP(period_end_date) AS recorded_at
+		, 'projected_interest_payment' AS event_type
 		, SAFE_MULTIPLY(
 			disbursement_amount_in_cents,
 			SAFE_MULTIPLY(
