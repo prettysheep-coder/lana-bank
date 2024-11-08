@@ -5,8 +5,7 @@ config {
 WITH line_of_credit_terms AS (
 
 	SELECT *
-	-- FROM ${ref("stg_approved_credit_facilities_terms")}
-	FROM dataform_sv.stg_approved_credit_facilities_terms
+	FROM ${ref("stg_approved_credit_facilities_terms")}
 
 ), interest_payment_data AS (
 
@@ -26,8 +25,7 @@ WITH line_of_credit_terms AS (
 			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
 		  END AS days_per_year
 		, initiated_disbursement_at AS disbursement_start_date
-	-- FROM ${ref("stg_approved_credit_facilities_disbursement")}
-	FROM dataform_sv.stg_approved_credit_facilities_disbursement
+	FROM ${ref("stg_approved_credit_facilities_disbursement")}
 
 ), projected_principal_payment AS (
 

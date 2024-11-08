@@ -5,8 +5,7 @@ config {
 WITH line_of_credit_terms AS (
 
 	SELECT *
-	-- FROM ${ref("stg_approved_credit_facilities_terms")}
-	FROM dataform_sv.stg_approved_credit_facilities_terms
+	FROM ${ref("stg_approved_credit_facilities_terms")}
 
 ), interest_payment_data AS (
 
@@ -30,8 +29,7 @@ WITH line_of_credit_terms AS (
 		, CASE WHEN loc_interest_accrual_interval = 'end_of_month' THEN
 			GENERATE_DATE_ARRAY(DATE(concluded_disbursement_at), DATE(loc_end_date), INTERVAL 1 MONTH)
 		  END AS interest_schedule_months
-	-- FROM ${ref("stg_approved_credit_facilities_disbursement")}
-	FROM dataform_sv.stg_approved_credit_facilities_disbursement
+	FROM ${ref("stg_approved_credit_facilities_disbursement")}
 
 ), projected_interest_payment_data AS (
 

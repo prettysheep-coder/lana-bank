@@ -5,8 +5,7 @@ config {
 WITH line_of_credit_terms AS (
 
 	SELECT *
-	-- FROM ${ref("stg_approved_credit_facilities_terms")}
-	FROM dataform_sv.stg_approved_credit_facilities_terms
+	FROM ${ref("stg_approved_credit_facilities_terms")}
 
 ), initiated_disbursement AS (
 
@@ -16,8 +15,7 @@ WITH line_of_credit_terms AS (
 		, event_type AS initiated_disbursement_event_type
 		, CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS disbursement_amount_in_cents
 		, CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
-	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	FROM sv_dataset.credit_facility_events
+	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
 	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
 	WHERE event_type = "disbursement_initiated"
 
@@ -28,8 +26,7 @@ WITH line_of_credit_terms AS (
 		, recorded_at AS concluded_disbursement_at
 		, event_type AS concluded_disbursement_event_type
 		, CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
-	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	FROM sv_dataset.credit_facility_events
+	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
 	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
 	WHERE event_type = "disbursement_concluded"
 

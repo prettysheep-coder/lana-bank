@@ -11,8 +11,7 @@ WITH collateral_posted AS (
 		, collateral_posted_event_type AS event_type
 		, NULL AS amount_in_cents
 		, collateral_posted_amount_in_sats AS amount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_collateral_posted")}
-	FROM dataform_sv.stg_approved_credit_facilities_collateral_posted
+	FROM ${ref("stg_approved_credit_facilities_collateral_posted")}
 
 ), collateral_refunded AS (
 
@@ -23,8 +22,7 @@ WITH collateral_posted AS (
 		, collateral_refunded_event_type AS event_type
 		, NULL AS amount_in_cents
 		, collateral_refunded_amount_in_sats AS mount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_collateral_refunded")}
-	FROM dataform_sv.stg_approved_credit_facilities_collateral_refunded
+	FROM ${ref("stg_approved_credit_facilities_collateral_refunded")}
 
 ), disbursements AS (
 
@@ -35,8 +33,7 @@ WITH collateral_posted AS (
 		, concluded_disbursement_event_type AS event_type
 		, disbursement_amount_in_cents AS amount_in_cents
 		, NULL AS amount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_disbursement")}
-	FROM dataform_sv.stg_approved_credit_facilities_disbursement
+	FROM ${ref("stg_approved_credit_facilities_disbursement")}
 
 ), recorded_interest_payments AS (
 
@@ -47,8 +44,7 @@ WITH collateral_posted AS (
 		, event_type
 		, interest_payment_amount_in_cents AS amount_in_cents
 		, NULL AS amount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_recorded_interest_payment")}
-	FROM dataform_sv.stg_approved_credit_facilities_recorded_interest_payment
+	FROM ${ref("stg_approved_credit_facilities_recorded_interest_payment")}
 
 ), recorded_principal_payments AS (
 
@@ -59,8 +55,7 @@ WITH collateral_posted AS (
 		, event_type
 		, principal_payment_amount_in_cents AS amount_in_cents
 		, NULL AS amount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_recorded_principal_payment")}
-	FROM dataform_sv.stg_approved_credit_facilities_recorded_principal_payment
+	FROM ${ref("stg_approved_credit_facilities_recorded_principal_payment")}
 
 ), projected_interest_payment AS (
 
@@ -71,8 +66,7 @@ WITH collateral_posted AS (
 		, event_type
 		, amount_in_cents
 		, NULL AS amount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_projected_interest_payment")}
-	FROM dataform_sv.stg_approved_credit_facilities_projected_interest_payment
+	FROM ${ref("stg_approved_credit_facilities_projected_interest_payment")}
 
 ), projected_principal_payment AS (
 
@@ -83,8 +77,7 @@ WITH collateral_posted AS (
 		, event_type
 		, amount_in_cents
 		, NULL AS amount_in_sats
-	-- FROM ${ref("stg_approved_credit_facilities_projected_principal_payment")}
-	FROM dataform_sv.stg_approved_credit_facilities_projected_principal_payment
+	FROM ${ref("stg_approved_credit_facilities_projected_principal_payment")}
 
 ), unioned AS (
 

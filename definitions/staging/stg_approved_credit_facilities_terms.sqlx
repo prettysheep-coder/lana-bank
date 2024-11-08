@@ -33,8 +33,7 @@ WITH line_of_credit_terms AS (
 		, JSON_VALUE(event, "$.terms.initial_cvl") AS loc_initial_cvl
 		, JSON_VALUE(event, "$.terms.liquidation_cvl") AS loc_liquidation_cvl
 		, JSON_VALUE(event, "$.terms.margin_call_cvl") AS loc_margin_call_cvl
-	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	FROM sv_dataset.credit_facility_events
+	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
 	WHERE event_type = "initialized"
 
 ), approved_line_of_credit AS (
@@ -42,8 +41,7 @@ WITH line_of_credit_terms AS (
 	SELECT
 		  terms.*
 		, cfe.recorded_at AS loc_approved_at
-	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	FROM sv_dataset.credit_facility_events cfe
+	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
 	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = cfe.id
 	WHERE event_type = "approval_process_concluded"
 	AND JSON_VALUE(event, "$.approved") = 'true'

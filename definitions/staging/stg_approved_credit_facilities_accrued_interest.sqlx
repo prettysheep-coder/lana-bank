@@ -5,8 +5,7 @@ config {
 WITH line_of_credit_terms AS (
 
 	SELECT *
-	-- FROM ${ref("stg_approved_credit_facilities_terms")}
-	FROM dataform_sv.stg_approved_credit_facilities_terms
+	FROM ${ref("stg_approved_credit_facilities_terms")}
 
 ), interest_accrual AS (
 
@@ -25,8 +24,7 @@ WITH line_of_credit_terms AS (
 		, CAST(JSON_VALUE(event, "$.terms.initial_cvl") AS NUMERIC) AS terms_initial_cvl
 		, CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC) AS terms_liquidation_cvl
 		, CAST(JSON_VALUE(event, "$.terms.margin_call_cvl") AS NUMERIC) AS terms_margin_call_cvl
-	-- FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})}
-	FROM sv_dataset.interest_accrual_events
+	FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})}
 	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = JSON_VALUE(event, "$.facility_id")
 	WHERE event_type = "initialized"
 
@@ -37,8 +35,7 @@ WITH line_of_credit_terms AS (
 		, CAST(JSON_VALUE(event, "$.incurred_at") AS TIMESTAMP) AS interest_incurred_at
 		, ii.event_type
 		, CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS amount_in_cents
-	-- FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})}
-	FROM sv_dataset.interest_accrual_events ii
+	FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})}
 	LEFT JOIN interest_accrual ia ON ia.event_id = ii.id
 	WHERE event_type = "interest_incurred"
 
