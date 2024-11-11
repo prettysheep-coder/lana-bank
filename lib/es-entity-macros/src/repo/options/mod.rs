@@ -22,8 +22,6 @@ pub struct RepositoryOptions {
 
     #[darling(rename = "entity")]
     entity_ident: syn::Ident,
-    #[darling(default, rename = "new")]
-    new_entity_ident: Option<syn::Ident>,
     #[darling(default, rename = "event")]
     event_ident: Option<syn::Ident>,
     #[darling(default, rename = "id")]
@@ -39,12 +37,6 @@ pub struct RepositoryOptions {
 impl RepositoryOptions {
     fn update_defaults(mut self) -> Self {
         let entity_name = self.entity_ident.to_string();
-        if self.new_entity_ident.is_none() {
-            self.new_entity_ident = Some(syn::Ident::new(
-                &format!("New{}", entity_name),
-                proc_macro2::Span::call_site(),
-            ));
-        }
         if self.event_ident.is_none() {
             self.event_ident = Some(syn::Ident::new(
                 &format!("{}Event", entity_name),
@@ -97,12 +89,6 @@ impl RepositoryOptions {
         self.events_table_name
             .as_ref()
             .expect("Events table name is not set")
-    }
-
-    pub fn new_entity(&self) -> &syn::Ident {
-        self.new_entity_ident
-            .as_ref()
-            .expect("New entity identifier is not set")
     }
 
     pub fn err(&self) -> &syn::Type {

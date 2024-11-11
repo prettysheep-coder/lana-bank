@@ -5,7 +5,6 @@ use quote::{quote, TokenStreamExt};
 use super::options::*;
 
 pub struct CreateFn<'a> {
-    new_entity: &'a syn::Ident,
     entity: &'a syn::Ident,
     table_name: &'a str,
     columns: &'a Columns,
@@ -15,7 +14,6 @@ pub struct CreateFn<'a> {
 impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
-            new_entity: opts.new_entity(),
             table_name: opts.table_name(),
             entity: opts.entity(),
             error: opts.err(),
@@ -26,7 +24,6 @@ impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
 
 impl<'a> ToTokens for CreateFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let new_entity = self.new_entity;
         let entity = self.entity;
         let error = self.error;
 
@@ -70,7 +67,7 @@ impl<'a> ToTokens for CreateFn<'a> {
 
             pub async fn create(
                 &self,
-                new_entity: #new_entity
+                new_entity: <#entity as es_entity::EsEntity>::New
             ) -> Result<#entity, #error> {
                 let mut op = self.begin_op().await?;
                 let res = self.create_in_op(&mut op, new_entity).await?;
@@ -81,7 +78,7 @@ impl<'a> ToTokens for CreateFn<'a> {
             pub async fn create_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                new_entity: #new_entity
+                new_entity: <#entity as es_entity::EsEntity>::New
             ) -> Result<#entity, #error> {
                 #assignments
 
@@ -112,7 +109,6 @@ mod tests {
 
     #[test]
     fn create_fn() {
-        let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let id = Ident::new("EntityId", Span::call_site());
@@ -120,7 +116,6 @@ mod tests {
         columns.set_id_column(&id);
 
         let create_fn = CreateFn {
-            new_entity: &new_entity,
             table_name: "entities",
             entity: &entity,
             error: &error,
@@ -152,7 +147,7 @@ mod tests {
 
             pub async fn create(
                 &self,
-                new_entity: NewEntity
+                new_entity: <Entity as es_entity::EsEntity>::New
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
                 let res = self.create_in_op(&mut op, new_entity).await?;
@@ -163,7 +158,7 @@ mod tests {
             pub async fn create_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                new_entity: NewEntity
+                new_entity: <Entity as es_entity::EsEntity>::New
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = &new_entity.id;
 
@@ -188,7 +183,6 @@ mod tests {
 
     #[test]
     fn create_fn_with_columns() {
-        let new_entity = Ident::new("NewEntity", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
@@ -200,7 +194,6 @@ mod tests {
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
 
         let create_fn = CreateFn {
-            new_entity: &new_entity,
             table_name: "entities",
             entity: &entity,
             error: &error,
@@ -232,7 +225,7 @@ mod tests {
 
             pub async fn create(
                 &self,
-                new_entity: NewEntity
+                new_entity: <Entity as es_entity::EsEntity>::New
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
                 let res = self.create_in_op(&mut op, new_entity).await?;
@@ -243,7 +236,7 @@ mod tests {
             pub async fn create_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                new_entity: NewEntity
+                new_entity: <Entity as es_entity::EsEntity>::New
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = &new_entity.id;
                 let name = &new_entity.name();

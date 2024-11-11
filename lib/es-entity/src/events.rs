@@ -213,6 +213,7 @@ mod tests {
 
     impl EsEntity for DummyEntity {
         type Event = DummyEntityEvent;
+        type New = NewDummyEntity;
 
         fn events_mut(&mut self) -> &mut EntityEvents<DummyEntityEvent> {
             &mut self.events
@@ -232,6 +233,17 @@ mod tests {
                 .next()
                 .expect("Could not find name");
             Ok(Self { name, events })
+        }
+    }
+
+    struct NewDummyEntity {}
+
+    impl IntoEvents<DummyEntityEvent> for NewDummyEntity {
+        fn into_events(self) -> EntityEvents<DummyEntityEvent> {
+            EntityEvents::init(
+                Uuid::new_v4(),
+                vec![DummyEntityEvent::Created("".to_owned())],
+            )
         }
     }
 
