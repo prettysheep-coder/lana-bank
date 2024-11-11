@@ -27,9 +27,9 @@ pub trait JobConfig: serde::Serialize {
 
 pub enum JobCompletion {
     Complete,
-    CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
+    CompleteWithOp(es_entity::DbOp<'static>),
     RescheduleAt(DateTime<Utc>),
-    RescheduleAtWithTx(sqlx::Transaction<'static, sqlx::Postgres>, DateTime<Utc>),
+    RescheduleAtWithOp(es_entity::DbOp<'static>, DateTime<Utc>),
 }
 
 #[async_trait]

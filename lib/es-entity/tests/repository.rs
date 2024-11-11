@@ -49,10 +49,10 @@ async fn create() -> anyhow::Result<()> {
     let pool = init_pool().await?;
     let repo = Users { pool: pool.clone() };
 
-    let mut db = pool.begin().await?;
+    let mut db = repo.begin_op().await?;
     let id = UserId::from(uuid::Uuid::new_v4());
     let entity = repo
-        .create_in_tx(
+        .create_in_op(
             &mut db,
             NewUser {
                 id,

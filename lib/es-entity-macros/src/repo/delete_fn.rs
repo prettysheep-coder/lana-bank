@@ -47,7 +47,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
 
         tokens.append_all(quote! {
             pub async fn delete_in_op(&self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                db: &mut es_entity::DbOp<'_>,
                 mut entity: #entity
             ) -> Result<(), #error> {
                 #assignments
@@ -56,7 +56,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
                     #query,
                     #(#args),*
                 )
-                    .execute(&mut **db)
+                    .execute(&mut **db.tx())
                     .await?;
 
                 let new_events = {
