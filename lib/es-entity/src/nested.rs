@@ -27,6 +27,12 @@ impl<T: EsEntity> Nested<T> {
         &mut self.new_entities
     }
 
+    pub fn entities_mut(
+        &mut self,
+    ) -> &mut IndexMap<<<T as EsEntity>::Event as EsEvent>::EntityId, T> {
+        &mut self.entities
+    }
+
     pub fn extend_entities(&mut self, entities: impl IntoIterator<Item = T>) {
         self.entities.extend(
             entities

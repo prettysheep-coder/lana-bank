@@ -24,10 +24,11 @@ impl<'a> ToTokens for Nested<'a> {
         let repo_field = self.field.ident();
 
         let nested_repo_ty = &self.field.ty;
-        let fn_name = self.field.create_nested_fn_name();
+        let create_fn_name = self.field.create_nested_fn_name();
+        let update_fn_name = self.field.update_nested_fn_name();
 
         tokens.append_all(quote! {
-            async fn #fn_name<P>(&self, op: &mut es_entity::DbOp<'_>, entity: &mut P) -> Result<(), #error>
+            async fn #create_fn_name<P>(&self, op: &mut es_entity::DbOp<'_>, entity: &mut P) -> Result<(), #error>
                 where
                     P: es_entity::Parent<<#nested_repo_ty as EsRepo>::Entity>
             {
@@ -42,6 +43,18 @@ impl<'a> ToTokens for Nested<'a> {
                     entities.push(entity);
                 }
                 nested.extend_entities(entities);
+                Ok(())
+            }
+
+            async fn #update_fn_name<P>(&self, op: &mut es_entity::DbOp<'_>, entity: &mut P) -> Result<(), #error>
+                where
+                    P: es_entity::Parent<<#nested_repo_ty as EsRepo>::Entity>
+            {
+                let entities = entity.nested_mut().entities_mut();
+                for entity in entities.values_mut() {
+                    self.#repo_field.update_in_op(op, entity).await?;
+                }
+                self.#create_fn_name(op, entity).await?;
                 Ok(())
             }
         });
@@ -88,6 +101,18 @@ mod tests {
                     entities.push(entity);
                 }
                 nested.extend_entities(entities);
+                Ok(())
+            }
+
+            async fn update_nested_users<P>(&self, op: &mut es_entity::DbOp<'_>, entity: &mut P) -> Result<(), es_entity::EsRepoError>
+                where
+                    P: es_entity::Parent<<UserRepo as EsRepo>::Entity>
+            {
+                let entities = entity.nested_mut().entities_mut();
+                for entity in entities.values_mut() {
+                    self.users.update_in_op(op, entity).await?;
+                }
+                self.create_nested_users(op, entity).await?;
                 Ok(())
             }
         };

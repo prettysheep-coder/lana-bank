@@ -33,6 +33,13 @@ impl RepoField {
             proc_macro2::Span::call_site(),
         )
     }
+
+    pub fn update_nested_fn_name(&self) -> syn::Ident {
+        syn::Ident::new(
+            &format!("update_nested_{}", self.ident()),
+            proc_macro2::Span::call_site(),
+        )
+    }
 }
 
 #[derive(FromDeriveInput)]
