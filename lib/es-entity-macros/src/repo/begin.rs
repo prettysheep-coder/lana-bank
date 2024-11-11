@@ -28,7 +28,7 @@ impl<'a> ToTokens for Begin<'a> {
 
         tokens.append_all(quote! {
             #[inline(always)]
-            async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error>{
+            pub async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, sqlx::Error>{
                 #begin
             }
         });

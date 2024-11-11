@@ -30,7 +30,7 @@ impl<'a> ToTokens for CurrentTime<'a> {
 
         tokens.append_all(quote! {
             #[inline(always)]
-            fn current_time(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+            fn current_time(&self) -> Option<es_entity::prelude::chrono::DateTime<es_entity::prelude::chrono::Utc>> {
                 #current_time
             }
         });
@@ -54,7 +54,7 @@ mod tests {
 
         let expected = quote! {
             #[inline(always)]
-            fn current_time(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+            fn current_time(&self) -> Option<es_entity::prelude::chrono::DateTime<es_entity::prelude::chrono::Utc>> {
                 None
             }
         };

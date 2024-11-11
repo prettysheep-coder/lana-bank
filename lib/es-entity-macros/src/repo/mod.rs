@@ -171,12 +171,6 @@ impl<'a> ToTokens for EsRepo<'a> {
                     &self.pool
                 }
 
-                #[inline(always)]
-                pub async fn begin(&self) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, #error> {
-                    let tx = self.pool.begin().await?;
-                    Ok(tx)
-                }
-
                 #current_time
                 #begin
                 #post_persist_hook

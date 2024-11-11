@@ -73,12 +73,12 @@ impl<'a> ToTokens for CreateFn<'a> {
                 new_entity: #new_entity
             ) -> Result<#entity, #error> {
                 let mut op = self.begin_op().await?;
-                let res = self.create_in_tx(&mut op, new_entity).await?;
+                let res = self.create_in_op(&mut op, new_entity).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
                 new_entity: #new_entity
@@ -155,12 +155,12 @@ mod tests {
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
-                let res = self.create_in_tx(&mut op, new_entity).await?;
+                let res = self.create_in_op(&mut op, new_entity).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
                 new_entity: NewEntity
@@ -235,12 +235,12 @@ mod tests {
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
-                let res = self.create_in_tx(&mut op, new_entity).await?;
+                let res = self.create_in_op(&mut op, new_entity).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
                 new_entity: NewEntity

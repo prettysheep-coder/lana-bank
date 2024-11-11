@@ -64,12 +64,12 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 entity: &mut #entity
             ) -> Result<bool, #error> {
                 let mut op = self.begin_op().await?;
-                let res = self.update_in_tx(&mut op, entity).await?;
+                let res = self.update_in_op(&mut op, entity).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn update_in_tx(
+            pub async fn update_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
                 entity: &mut #entity
@@ -137,12 +137,12 @@ mod tests {
                 entity: &mut Entity
             ) -> Result<bool, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
-                let res = self.update_in_tx(&mut op, entity).await?;
+                let res = self.update_in_op(&mut op, entity).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn update_in_tx(
+            pub async fn update_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
                 entity: &mut Entity
@@ -209,12 +209,12 @@ mod tests {
                 entity: &mut Entity
             ) -> Result<bool, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
-                let res = self.update_in_tx(&mut op, entity).await?;
+                let res = self.update_in_op(&mut op, entity).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn update_in_tx(
+            pub async fn update_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
                 entity: &mut Entity

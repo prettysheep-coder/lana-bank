@@ -46,7 +46,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
         let args = self.columns.update_query_args();
 
         tokens.append_all(quote! {
-            pub async fn delete_in_tx(&self,
+            pub async fn delete_in_op(&self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 mut entity: #entity
             ) -> Result<(), #error> {
@@ -105,8 +105,9 @@ mod tests {
         delete_fn.to_tokens(&mut tokens);
 
         let expected = quote! {
-            pub async fn delete_in_tx(&self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+            pub async fn delete_in_op(
+                &self,
+                db: &mut es_entity::DbOp<'_>,
                 mut entity: Entity
             ) -> Result<(), es_entity::EsRepoError> {
                 let id = &entity.id;
@@ -115,7 +116,7 @@ mod tests {
                     "UPDATE entities SET deleted = TRUE WHERE id = $1",
                     id as &EntityId
                 )
-                    .execute(&mut **db)
+                    .execute(&mut **db.tx())
                     .await?;
 
                 let new_events = {
@@ -165,8 +166,9 @@ mod tests {
         delete_fn.to_tokens(&mut tokens);
 
         let expected = quote! {
-            pub async fn delete_in_tx(&self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+            pub async fn delete_in_op(
+                &self,
+                op: &mut es_entity::DbOp<'_>,
                 mut entity: Entity
             ) -> Result<(), es_entity::EsRepoError> {
                 let id = &entity.id;
@@ -177,7 +179,7 @@ mod tests {
                     id as &EntityId,
                     name as &String
                 )
-                    .execute(&mut **db)
+                    .execute(&mut **op.tx())
                     .await?;
 
                 let new_events = {
