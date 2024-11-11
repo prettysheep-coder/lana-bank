@@ -290,6 +290,24 @@ impl JobExecutor {
             JobCompletion::CompleteWithOp(op) => {
                 Self::complete_job(op, id, repo).await?;
             }
+            JobCompletion::RescheduleNow => {
+                let op = repo.begin_op().await?;
+                let t = op.now();
+                Self::reschedule_job(op, id, t).await?;
+            }
+            JobCompletion::RescheduleNowWithOp(op) => {
+                let t = op.now();
+                Self::reschedule_job(op, id, t).await?;
+            }
+            JobCompletion::RescheduleIn(d) => {
+                let op = repo.begin_op().await?;
+                let t = op.now() + d;
+                Self::reschedule_job(op, id, t).await?;
+            }
+            JobCompletion::RescheduleInWithOp(d, op) => {
+                let t = op.now() + d;
+                Self::reschedule_job(op, id, t).await?;
+            }
             JobCompletion::RescheduleAt(t) => {
                 let op = repo.begin_op().await?;
                 Self::reschedule_job(op, id, t).await?;

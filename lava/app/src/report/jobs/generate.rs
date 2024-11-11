@@ -108,7 +108,7 @@ impl JobRunner for GenerateReportJobRunner {
                 self.repo.update_in_op(&mut db, &mut report).await?;
                 db.commit().await?;
 
-                return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                return Ok(JobCompletion::RescheduleNow);
             }
 
             ReportGenerationProcessStep::Invocation => {
@@ -129,7 +129,7 @@ impl JobRunner for GenerateReportJobRunner {
                 self.repo.update_in_op(&mut db, &mut report).await?;
                 db.commit().await?;
 
-                return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                return Ok(JobCompletion::RescheduleNow);
             }
 
             ReportGenerationProcessStep::Upload => {
@@ -148,7 +148,7 @@ impl JobRunner for GenerateReportJobRunner {
                         self.repo.update_in_op(&mut db, &mut report).await?;
                         db.commit().await?;
 
-                        return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                        return Ok(JobCompletion::RescheduleNow);
                     }
                 }
 

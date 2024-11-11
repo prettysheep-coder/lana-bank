@@ -25,7 +25,7 @@ impl ApplicantRepo {
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, ApplicantError> {
-        Ok(es_entity::DbOp::init(&self.pool, None).await?)
+        Ok(es_entity::DbOp::init(&self.pool).await?)
     }
 
     pub async fn persist_webhook_data(

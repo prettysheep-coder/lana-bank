@@ -1226,6 +1226,7 @@ dependencies = [
  "es-entity-macros",
  "serde",
  "serde_json",
+ "sim-time",
  "sqlx",
  "thiserror",
  "tokio",
@@ -2191,6 +2192,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_with",
+ "sim-time",
  "sqlx",
  "thiserror",
  "tokio",
@@ -3926,6 +3928,16 @@ checksum = "77549399552de45a898a580c1b41d445bf730df867cc44e6c0233bbc4b8329de"
 dependencies = [
  "digest",
  "rand_core",
+]
+
+[[package]]
+name = "sim-time"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_with",
+ "tokio",
 ]
 
 [[package]]

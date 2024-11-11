@@ -47,7 +47,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
 
         tokens.append_all(quote! {
             pub async fn delete_in_op(&self,
-                db: &mut es_entity::DbOp<'_>,
+                op: &mut es_entity::DbOp<'_>,
                 mut entity: #entity
             ) -> Result<(), #error> {
                 #assignments
@@ -56,7 +56,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
                     #query,
                     #(#args),*
                 )
-                    .execute(&mut **db.tx())
+                    .execute(&mut **op.tx())
                     .await?;
 
                 let new_events = {
@@ -67,10 +67,10 @@ impl<'a> ToTokens for DeleteFn<'a> {
                 if new_events {
                     let n_events = {
                         let events = Self::extract_events(&mut entity);
-                        self.persist_events(db, events).await?
+                        self.persist_events(op, events).await?
                     };
 
-                    self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                    self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 }
 
                 Ok(())
@@ -107,7 +107,7 @@ mod tests {
         let expected = quote! {
             pub async fn delete_in_op(
                 &self,
-                db: &mut es_entity::DbOp<'_>,
+                op: &mut es_entity::DbOp<'_>,
                 mut entity: Entity
             ) -> Result<(), es_entity::EsRepoError> {
                 let id = &entity.id;
@@ -116,7 +116,7 @@ mod tests {
                     "UPDATE entities SET deleted = TRUE WHERE id = $1",
                     id as &EntityId
                 )
-                    .execute(&mut **db.tx())
+                    .execute(&mut **op.tx())
                     .await?;
 
                 let new_events = {
@@ -127,10 +127,10 @@ mod tests {
                 if new_events {
                     let n_events = {
                         let events = Self::extract_events(&mut entity);
-                        self.persist_events(db, events).await?
+                        self.persist_events(op, events).await?
                     };
 
-                    self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                    self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 }
 
                 Ok(())
@@ -190,10 +190,10 @@ mod tests {
                 if new_events {
                     let n_events = {
                         let events = Self::extract_events(&mut entity);
-                        self.persist_events(db, events).await?
+                        self.persist_events(op, events).await?
                     };
 
-                    self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                    self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 }
 
                 Ok(())

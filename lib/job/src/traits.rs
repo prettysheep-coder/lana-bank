@@ -28,6 +28,10 @@ pub trait JobConfig: serde::Serialize {
 pub enum JobCompletion {
     Complete,
     CompleteWithOp(es_entity::DbOp<'static>),
+    RescheduleNow,
+    RescheduleNowWithOp(es_entity::DbOp<'static>),
+    RescheduleIn(std::time::Duration),
+    RescheduleInWithOp(std::time::Duration, es_entity::DbOp<'static>),
     RescheduleAt(DateTime<Utc>),
     RescheduleAtWithOp(es_entity::DbOp<'static>, DateTime<Utc>),
 }
