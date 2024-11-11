@@ -8,6 +8,9 @@ pub struct DbOp<'t> {
 impl<'t> DbOp<'t> {
     pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
         let mut tx = pool.begin().await?;
+        #[cfg(feature = "sim-time")]
+        let now = sim_time::now();
+        #[cfg(not(feature = "sim-time"))]
         let now = sqlx::query!("SELECT NOW()")
             .fetch_one(&mut *tx)
             .await?
