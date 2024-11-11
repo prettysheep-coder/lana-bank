@@ -55,11 +55,12 @@ impl JobExecutor {
         }
         sqlx::query!(
             r#"
-          INSERT INTO job_executions (id, reschedule_after)
-          VALUES ($1, $2)
+          INSERT INTO job_executions (id, reschedule_after, created_at)
+          VALUES ($1, $2, $3)
         "#,
             job.id as JobId,
-            schedule_at.unwrap_or(db.now())
+            schedule_at.unwrap_or(db.now()),
+            db.now()
         )
         .execute(&mut **db.tx())
         .await?;

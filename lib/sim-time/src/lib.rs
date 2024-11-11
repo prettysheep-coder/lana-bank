@@ -53,7 +53,6 @@ impl Time {
                     elapsed_ms.fetch_add(tick_duration.as_millis() as u64, Ordering::Relaxed);
                 }
             });
-            ()
         });
     }
 
