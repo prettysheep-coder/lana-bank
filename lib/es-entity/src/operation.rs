@@ -7,16 +7,25 @@ pub struct DbOp<'t> {
 
 impl<'t> DbOp<'t> {
     pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
-        let mut tx = pool.begin().await?;
         #[cfg(feature = "sim-time")]
-        let now = sim_time::now();
+        let res = {
+            let tx = pool.begin().await?;
+            let now = sim_time::now();
+            Self { tx, now }
+        };
+
         #[cfg(not(feature = "sim-time"))]
-        let now = sqlx::query!("SELECT NOW()")
-            .fetch_one(&mut *tx)
-            .await?
-            .now
-            .expect("NOW() is not NULL");
-        Ok(Self { tx, now })
+        let res = {
+            let mut tx = pool.begin().await?;
+            let now = sqlx::query!("SELECT NOW()")
+                .fetch_one(&mut *tx)
+                .await?
+                .now
+                .expect("NOW() is not NULL");
+            Self { tx, now }
+        };
+
+        Ok(res)
     }
 
     pub fn now(&self) -> chrono::DateTime<chrono::Utc> {

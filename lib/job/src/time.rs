@@ -4,9 +4,12 @@ use std::time::Duration;
 #[inline(always)]
 pub(crate) fn now() -> DateTime<Utc> {
     #[cfg(feature = "sim-time")]
-    sim_time::now();
+    let res = { sim_time::now() };
+
     #[cfg(not(feature = "sim-time"))]
-    Utc::now()
+    let res = { Utc::now() };
+
+    res
 }
 
 pub(crate) async fn sleep(duration: Duration) {

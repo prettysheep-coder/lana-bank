@@ -287,7 +287,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                &mut db.tx(),
+                db.tx(),
                 UserObject::all_users(),
                 CoreUserAction::USER_CREATE,
             )
