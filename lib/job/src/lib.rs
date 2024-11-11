@@ -7,6 +7,7 @@ mod entity;
 mod executor;
 mod registry;
 mod repo;
+mod time;
 mod traits;
 
 pub mod error;

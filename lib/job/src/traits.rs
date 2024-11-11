@@ -66,7 +66,7 @@ impl RetrySettings {
         let jitter = rand::thread_rng().gen_range(-jitter_range..=jitter_range);
         let jittered_backoff = (base_backoff_ms as i128 + jitter).max(0) as u128;
         let final_backoff = std::cmp::min(jittered_backoff, self.max_backoff.as_millis());
-        Utc::now() + std::time::Duration::from_millis(final_backoff as u64)
+        crate::time::now() + std::time::Duration::from_millis(final_backoff as u64)
     }
 }
 

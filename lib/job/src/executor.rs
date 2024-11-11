@@ -119,10 +119,11 @@ impl JobExecutor {
                 sqlx::query!(
                     r#"
                     UPDATE job_executions
-                    SET reschedule_after = NOW() + $2::interval
+                    SET reschedule_after = $2::timestamptz + $3::interval
                     WHERE id = ANY($1)
                     "#,
                     &ids as &[JobId],
+                    crate::time::now(),
                     pg_interval
                 )
                 .fetch_all(jobs.pool())
@@ -132,8 +133,9 @@ impl JobExecutor {
                     r#"
                     UPDATE job_executions
                     SET state = 'pending', attempt_index = attempt_index + 1
-                    WHERE state = 'running' AND reschedule_after < NOW() + $1::interval
+                    WHERE state = 'running' AND reschedule_after < $1::timestamptz + $2::interval
                     "#,
+                    crate::time::now(),
                     pg_interval
                 )
                 .fetch_all(jobs.pool())
@@ -147,18 +149,19 @@ impl JobExecutor {
                   SELECT je.id, je.execution_state_json AS data_json
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
-                  WHERE reschedule_after < NOW()
+                  WHERE reschedule_after < $2::timestamptz
                   AND je.state = 'pending'
                   LIMIT $1
                   FOR UPDATE
               )
               UPDATE job_executions AS je
-              SET state = 'running', reschedule_after = NOW() + $2::interval
+              SET state = 'running', reschedule_after = $2::timestamptz + $3::interval
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
               RETURNING je.id AS "id!: JobId", selected_jobs.data_json, je.attempt_index
               "#,
             poll_limit as i32,
+            crate::time::now(),
             pg_interval
         )
         .fetch_all(jobs.pool())
