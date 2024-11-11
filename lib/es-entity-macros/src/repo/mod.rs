@@ -1,5 +1,6 @@
 mod combo_cursor;
 mod create_fn;
+mod current_time;
 mod delete_fn;
 mod find_all_fn;
 mod find_by_fn;
@@ -30,6 +31,7 @@ pub struct EsRepo<'a> {
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
     post_persist_hook: post_persist_hook::PostPersistHook<'a>,
+    current_time: current_time::CurrentTime<'a>,
     list_by_fns: Vec<list_by_fn::ListByFn<'a>>,
     list_for_fns: Vec<list_for_fn::ListForFn<'a>>,
     opts: &'a RepositoryOptions,
@@ -67,6 +69,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
             post_persist_hook: post_persist_hook::PostPersistHook::from(opts),
+            current_time: current_time::CurrentTime::from(opts),
             list_by_fns,
             list_for_fns,
             opts,
@@ -84,6 +87,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
         let post_persist_hook = &self.post_persist_hook;
+        let current_time = &self.current_time;
         let cursors = self.list_by_fns.iter().map(|l| l.cursor());
         let combo_cursor = combo_cursor::ComboCursor::new(
             self.opts,
@@ -169,6 +173,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                     Ok(tx)
                 }
 
+                #current_time
                 #post_persist_hook
                 #persist_events_fn
                 #create_fn
