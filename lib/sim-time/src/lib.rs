@@ -5,9 +5,12 @@ mod config;
 
 use chrono::{DateTime, Utc};
 use config::*;
-use std::sync::{
-    atomic::{AtomicU64, Ordering},
-    Arc, OnceLock,
+use std::{
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc, OnceLock,
+    },
+    time::Duration,
 };
 
 static INSTANCE: OnceLock<Time> = OnceLock::new();
@@ -67,6 +70,26 @@ impl Time {
             sim_config.start_at + chrono::Duration::milliseconds(elapsed_ms as i64)
         }
     }
+
+    async fn sleep(&self, duration: Duration) {
+        if self.config.realtime {
+            tokio::time::sleep(duration).await
+        } else {
+            let sim_config = self
+                .config
+                .sim_time
+                .as_ref()
+                .expect("sim_time required when realtime is false");
+
+            // Calculate how many real milliseconds we need to wait based on the simulation speed
+            let sim_ms_per_real_ms = sim_config.tick_duration_secs.as_millis() as f64
+                / sim_config.tick_interval_ms as f64;
+
+            let real_ms = (duration.as_millis() as f64 / sim_ms_per_real_ms).ceil() as u64;
+
+            tokio::time::sleep(Duration::from_millis(real_ms)).await
+        }
+    }
 }
 
 pub fn init(config: TimeConfig) {
@@ -77,6 +100,13 @@ pub fn now() -> DateTime<Utc> {
     INSTANCE
         .get_or_init(|| Time::new(TimeConfig::default()))
         .now()
+}
+
+pub async fn sleep(duration: Duration) {
+    INSTANCE
+        .get_or_init(|| Time::new(TimeConfig::default()))
+        .sleep(duration)
+        .await
 }
 
 #[cfg(test)]

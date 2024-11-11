@@ -86,7 +86,7 @@ impl JobExecutor {
                     &jobs,
                 )
                 .await;
-                tokio::time::sleep(poll_interval).await;
+                crate::time::sleep(poll_interval).await;
             }
         });
         self.poller_handle = Some(Arc::new(handle));
