@@ -9,6 +9,7 @@ pub struct CursorStruct<'a> {
     pub id: &'a syn::Ident,
     pub entity: &'a syn::Ident,
     pub column: &'a Column,
+    pub cursor_mod: &'a syn::Ident,
 }
 
 impl<'a> CursorStruct<'a> {
@@ -22,6 +23,10 @@ impl<'a> CursorStruct<'a> {
 
     pub fn ident(&self) -> syn::Ident {
         syn::Ident::new(&self.name(), Span::call_site())
+    }
+
+    pub fn cursor_mod(&self) -> &syn::Ident {
+        &self.cursor_mod
     }
 
     pub fn select_columns(&self) -> String {
@@ -204,6 +209,7 @@ pub struct ListByFn<'a> {
     table_name: &'a str,
     error: &'a syn::Type,
     delete: DeleteOption,
+    cursor_mod: syn::Ident,
 }
 
 impl<'a> ListByFn<'a> {
@@ -215,6 +221,7 @@ impl<'a> ListByFn<'a> {
             table_name: opts.table_name(),
             error: opts.err(),
             delete: opts.delete,
+            cursor_mod: opts.cursor_mod(),
         }
     }
 
@@ -223,6 +230,7 @@ impl<'a> ListByFn<'a> {
             column: self.column,
             id: self.id,
             entity: self.entity,
+            cursor_mod: &self.cursor_mod,
         }
     }
 }
@@ -233,6 +241,7 @@ impl<'a> ToTokens for ListByFn<'a> {
         let column_name = self.column.name();
         let cursor = self.cursor();
         let cursor_ident = cursor.ident();
+        let cursor_mod = cursor.cursor_mod();
         let error = self.error;
 
         let destructure_tokens = self.cursor().destructure_tokens();
@@ -276,9 +285,9 @@ impl<'a> ToTokens for ListByFn<'a> {
             tokens.append_all(quote! {
                 pub async fn #fn_name(
                     &self,
-                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+                    cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
                     direction: es_entity::ListDirection,
-                ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
+                ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
                     #destructure_tokens
 
                     let (entities, has_next_page) = match direction {
@@ -302,7 +311,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                         },
                     };
 
-                    let end_cursor = entities.last().map(cursor::#cursor_ident::from);
+                    let end_cursor = entities.last().map(#cursor_mod::#cursor_ident::from);
 
                     Ok(es_entity::PaginatedQueryRet {
                         entities,
@@ -330,11 +339,13 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let by_column = Column::for_id(syn::parse_str("EntityId").unwrap());
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let cursor = CursorStruct {
             column: &by_column,
             id: &id_type,
             entity: &entity,
+            cursor_mod: &cursor_mod,
         };
 
         let mut tokens = TokenStream::new();
@@ -363,11 +374,13 @@ mod tests {
         let id_type = Ident::new("EntityId", Span::call_site());
         let entity = Ident::new("Entity", Span::call_site());
         let by_column = Column::for_created_at();
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let cursor = CursorStruct {
             column: &by_column,
             id: &id_type,
             entity: &entity,
+            cursor_mod: &cursor_mod,
         };
 
         let mut tokens = TokenStream::new();
@@ -402,6 +415,7 @@ mod tests {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
         let column = Column::for_id(syn::parse_str("EntityId").unwrap());
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListByFn {
             column: &column,
@@ -410,6 +424,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::Soft,
+            cursor_mod,
         };
 
         let mut tokens = TokenStream::new();
@@ -418,9 +433,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_id(
                 &self,
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -451,7 +466,7 @@ mod tests {
                     },
                 };
 
-                let end_cursor = entities.last().map(cursor::EntityByIdCursor::from);
+                let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -461,9 +476,9 @@ mod tests {
 
             pub async fn list_by_id_include_deleted(
                 &self,
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -492,7 +507,7 @@ mod tests {
                             .await?
                     },
                 };
-                let end_cursor = entities.last().map(cursor::EntityByIdCursor::from);
+                let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -513,6 +528,7 @@ mod tests {
             syn::Ident::new("name", proc_macro2::Span::call_site()),
             syn::parse_str("String").unwrap(),
         );
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListByFn {
             column: &column,
@@ -521,6 +537,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::No,
+            cursor_mod,
         };
 
         let mut tokens = TokenStream::new();
@@ -529,9 +546,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_name(
                 &self,
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByNameCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByNameCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByNameCursor>, es_entity::EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByNameCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, name) = if let Some(after) = after {
                     (Some(after.id), Some(after.name))
@@ -564,7 +581,7 @@ mod tests {
                     },
                 };
 
-                let end_cursor = entities.last().map(cursor::EntityByNameCursor::from);
+                let end_cursor = entities.last().map(cursor_mod::EntityByNameCursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
@@ -586,6 +603,7 @@ mod tests {
             syn::Ident::new("value", proc_macro2::Span::call_site()),
             syn::parse_str("Option<rust_decimal::Decimal>").unwrap(),
         );
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListByFn {
             column: &column,
@@ -594,6 +612,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::No,
+            cursor_mod,
         };
 
         let mut tokens = TokenStream::new();
@@ -602,9 +621,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_value(
                 &self,
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByValueCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByValueCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByValueCursor>, es_entity::EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByValueCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, value) = if let Some(after) = after {
                     (Some(after.id), after.value)
@@ -637,7 +656,7 @@ mod tests {
                     },
                 };
 
-                let end_cursor = entities.last().map(cursor::EntityByValueCursor::from);
+                let end_cursor = entities.last().map(cursor_mod::EntityByValueCursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,

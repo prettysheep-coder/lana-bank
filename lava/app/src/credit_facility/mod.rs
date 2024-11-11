@@ -32,7 +32,7 @@ use crate::{
 };
 
 pub use config::*;
-pub use disbursal::{cursor::*, *};
+pub use disbursal::{disbursal_cursor::*, *};
 pub use entity::*;
 use error::*;
 pub use history::*;
@@ -41,7 +41,7 @@ use jobs::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
-pub use repo::cursor::*;
+pub use repo::credit_facility_cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
 

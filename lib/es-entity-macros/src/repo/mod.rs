@@ -113,8 +113,11 @@ impl<'a> ToTokens for EsRepo<'a> {
         let id = self.opts.id();
         let error = self.opts.err();
 
+        let cursor_mod = self.opts.cursor_mod();
+        let types_mod = self.opts.repo_types_mod();
+
         tokens.append_all(quote! {
-            pub mod cursor {
+            pub mod #cursor_mod {
                 use super::*;
 
                 #(#cursors)*
@@ -124,7 +127,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #gql_combo_cursor
             }
 
-            mod repo_types {
+            mod #types_mod {
 
                 use super::*;
 
