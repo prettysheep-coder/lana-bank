@@ -134,7 +134,7 @@ const PaginatedTable = <T,>({
               <TableRow>
                 {columns.map((col) => (
                   <TableHead key={col.key as string}>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 justify-between">
                       <span>{col.label}</span>
                       {col.sortable && (
                         <Button
@@ -145,9 +145,9 @@ const PaginatedTable = <T,>({
                         >
                           {sortState.column === col.key ? (
                             sortState.direction === "ASC" ? (
-                              <HiChevronUp className="h-4 w-4" />
+                              <HiChevronUp className="h-4 w-4 text-blue-500" />
                             ) : (
-                              <HiChevronDown className="h-4 w-4" />
+                              <HiChevronDown className="h-4 w-4 text-blue-500" />
                             )
                           ) : (
                             <HiSelector className="h-4 w-4" />
@@ -192,15 +192,17 @@ const PaginatedTable = <T,>({
           <TableBody>
             {loading
               ? // Render loading skeleton rows while keeping headers visible
-                Array.from({ length: pageSize }).map((_, rowIndex) => (
-                  <TableRow key={rowIndex}>
-                    {columns.map((_, colIndex) => (
-                      <TableCell key={colIndex}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                Array.from({ length: displayData.length || pageSize }).map(
+                  (_, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {columns.map((_, colIndex) => (
+                        <TableCell key={colIndex}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ),
+                )
               : displayData.map(({ node }, idx) => (
                   <TableRow
                     key={idx}
