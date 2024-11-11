@@ -11,7 +11,6 @@ graphql = ["es-entity-macros/graphql", "dep:async-graphql", "dep:base64"]
 [dependencies]
 es-entity-macros = { path = "../es-entity-macros" }
 
-async-trait = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono =  { workspace = true }

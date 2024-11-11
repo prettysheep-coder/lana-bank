@@ -20,17 +20,17 @@ impl<'a> ToTokens for CurrentTime<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let current_time = if let Some(current_time) = self.current_time {
             quote! {
-                self.#current_time()
+                Some(self.#current_time())
             }
         } else {
             quote! {
-                chrono::Utc::now()
+                None
             }
         };
 
         tokens.append_all(quote! {
             #[inline(always)]
-            fn current_time(&self) -> chrono::DateTime<chrono::Utc> {
+            fn current_time(&self) -> Option<chrono::DateTime<chrono::Utc>> {
                 #current_time
             }
         });
@@ -54,8 +54,8 @@ mod tests {
 
         let expected = quote! {
             #[inline(always)]
-            fn current_time(&self) -> chrono::DateTime<chrono::Utc> {
-                chrono::Utc::now()
+            fn current_time(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+                None
             }
         };
 
