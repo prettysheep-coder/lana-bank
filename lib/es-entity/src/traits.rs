@@ -1,6 +1,14 @@
+use async_trait::async_trait;
 use serde::{de::DeserializeOwned, Serialize};
 
 use super::{error::EsEntityError, events::EntityEvents};
+
+#[async_trait]
+pub trait DatabaseOperation<'t> {
+    fn now(&self) -> chrono::DateTime<chrono::Utc>;
+    fn tx(&'t mut self) -> &mut sqlx::Transaction<'t, sqlx::Postgres>;
+    async fn commit(self) -> Result<(), sqlx::Error>;
+}
 
 pub trait EsEvent: DeserializeOwned + Serialize + Send + Sync {
     type EntityId: Clone + PartialEq + sqlx::Type<sqlx::Postgres> + std::hash::Hash + Send + Sync;
