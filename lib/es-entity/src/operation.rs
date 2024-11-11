@@ -6,20 +6,13 @@ pub struct DbOp<'t> {
 }
 
 impl<'t> DbOp<'t> {
-    pub async fn init(
-        pool: &PgPool,
-        now: impl Into<Option<chrono::DateTime<chrono::Utc>>>,
-    ) -> Result<Self, sqlx::Error> {
+    pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
         let mut tx = pool.begin().await?;
-        let now = if let Some(now) = now.into() {
-            now
-        } else {
-            sqlx::query!("SELECT NOW()")
-                .fetch_one(&mut *tx)
-                .await?
-                .now
-                .expect("NOW() is not NULL")
-        };
+        let now = sqlx::query!("SELECT NOW()")
+            .fetch_one(&mut *tx)
+            .await?
+            .now
+            .expect("NOW() is not NULL");
         Ok(Self { tx, now })
     }
 

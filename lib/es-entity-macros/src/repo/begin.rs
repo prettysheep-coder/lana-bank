@@ -22,7 +22,7 @@ impl<'a> ToTokens for Begin<'a> {
             }
         } else {
             quote! {
-                es_entity::DbOp::init(self.pool(), self.current_time()).await
+                es_entity::DbOp::init(self.pool()).await
             }
         };
 
