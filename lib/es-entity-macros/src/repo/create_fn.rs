@@ -9,6 +9,7 @@ pub struct CreateFn<'a> {
     table_name: &'a str,
     columns: &'a Columns,
     error: &'a syn::Type,
+    nested_fn_names: Vec<syn::Ident>,
 }
 
 impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
@@ -17,6 +18,10 @@ impl<'a> From<&'a RepositoryOptions> for CreateFn<'a> {
             table_name: opts.table_name(),
             entity: opts.entity(),
             error: opts.err(),
+            nested_fn_names: opts
+                .all_nested()
+                .map(|f| f.create_nested_fn_name())
+                .collect(),
             columns: &opts.columns,
         }
     }
@@ -27,6 +32,16 @@ impl<'a> ToTokens for CreateFn<'a> {
         let entity = self.entity;
         let error = self.error;
 
+        let nested = self.nested_fn_names.iter().map(|f| {
+            quote! {
+                self.#f(op, &mut entity).await?;
+            }
+        });
+        let maybe_mut_entity = if self.nested_fn_names.is_empty() {
+            quote! { entity }
+        } else {
+            quote! { mut entity }
+        };
         let assignments = self
             .columns
             .variable_assignments_for_create(syn::parse_quote! { new_entity });
@@ -92,7 +107,9 @@ impl<'a> ToTokens for CreateFn<'a> {
 
                 let mut events = Self::convert_new(new_entity);
                 let n_events = self.persist_events(op, &mut events).await?;
-                let entity = Self::hydrate_entity(events)?;
+                let #maybe_mut_entity = Self::hydrate_entity(events)?;
+
+                #(#nested)*
 
                 self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 Ok(entity)
@@ -120,6 +137,7 @@ mod tests {
             entity: &entity,
             error: &error,
             columns: &columns,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -198,6 +216,7 @@ mod tests {
             entity: &entity,
             error: &error,
             columns: &columns,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();

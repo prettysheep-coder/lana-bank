@@ -1,9 +1,15 @@
 use serde::{de::DeserializeOwned, Serialize};
 
-use super::{error::EsEntityError, events::EntityEvents};
+use super::{error::EsEntityError, events::EntityEvents, nested::*};
 
 pub trait EsEvent: DeserializeOwned + Serialize + Send + Sync {
-    type EntityId: Clone + PartialEq + sqlx::Type<sqlx::Postgres> + std::hash::Hash + Send + Sync;
+    type EntityId: Clone
+        + PartialEq
+        + sqlx::Type<sqlx::Postgres>
+        + Eq
+        + std::hash::Hash
+        + Send
+        + Sync;
 }
 
 pub trait IntoEvents<E: EsEvent> {
@@ -22,6 +28,15 @@ pub trait EsEntity: TryFromEvents<Self::Event> {
 
     fn events_mut(&mut self) -> &mut EntityEvents<Self::Event>;
     fn events(&self) -> &EntityEvents<Self::Event>;
+}
+
+pub trait Parent<T: EsEntity> {
+    fn nested(&self) -> &Nested<T>;
+    fn nested_mut(&mut self) -> &mut Nested<T>;
+}
+
+pub trait EsRepo {
+    type Entity: EsEntity;
 }
 
 pub trait RetryableInto<T>: Into<T> + Copy + std::fmt::Debug {}

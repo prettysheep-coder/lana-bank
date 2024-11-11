@@ -5,6 +5,12 @@ use es_entity::*;
 use user_entity::*;
 
 #[derive(EsRepo)]
+#[es_repo(entity = "TermsTemplate", columns(name = "String"))]
+pub struct TermsTemplates {
+    pool: sqlx::PgPool,
+}
+
+#[derive(EsRepo)]
 #[es_repo(
     entity = "User",
     columns(email = "String"),
@@ -12,6 +18,9 @@ use user_entity::*;
 )]
 pub struct Users {
     pool: sqlx::PgPool,
+
+    #[es_repo(nested)]
+    terms: TermsTemplates,
 }
 
 impl Users {
@@ -47,7 +56,11 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 #[tokio::test]
 async fn create() -> anyhow::Result<()> {
     let pool = init_pool().await?;
-    let repo = Users { pool: pool.clone() };
+    let terms = TermsTemplates { pool: pool.clone() };
+    let repo = Users {
+        pool: pool.clone(),
+        terms,
+    };
 
     let mut db = repo.begin_op().await?;
     let id = UserId::from(uuid::Uuid::new_v4());
@@ -69,7 +82,11 @@ async fn create() -> anyhow::Result<()> {
 async fn find_by() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let repo = Users { pool: pool.clone() };
+    let terms = TermsTemplates { pool: pool.clone() };
+    let repo = Users {
+        pool: pool.clone(),
+        terms,
+    };
 
     let res = repo.find_by_email("email@test.com".to_string()).await;
 
@@ -85,7 +102,11 @@ async fn find_by() -> anyhow::Result<()> {
 async fn find_all() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let repo = Users { pool: pool.clone() };
+    let terms = TermsTemplates { pool: pool.clone() };
+    let repo = Users {
+        pool: pool.clone(),
+        terms,
+    };
 
     let res = repo
         .find_all::<User>(&[UserId::from(uuid::Uuid::new_v4())])
@@ -100,7 +121,11 @@ async fn find_all() -> anyhow::Result<()> {
 async fn list_by_created_at() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let repo = Users { pool: pool.clone() };
+    let terms = TermsTemplates { pool: pool.clone() };
+    let repo = Users {
+        pool: pool.clone(),
+        terms,
+    };
 
     let res = repo
         .list_by_created_at(Default::default(), es_entity::ListDirection::Descending)
@@ -115,7 +140,11 @@ async fn list_by_created_at() -> anyhow::Result<()> {
 async fn custom() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 
-    let repo = Users { pool: pool.clone() };
+    let terms = TermsTemplates { pool: pool.clone() };
+    let repo = Users {
+        pool: pool.clone(),
+        terms,
+    };
 
     let res = repo.custom_query().await;
     assert!(matches!(

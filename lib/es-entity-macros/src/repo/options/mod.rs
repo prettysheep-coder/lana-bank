@@ -2,10 +2,38 @@ mod columns;
 mod delete;
 
 use convert_case::{Case, Casing};
-use darling::FromDeriveInput;
+use darling::{FromDeriveInput, FromField};
 
 pub use columns::*;
 pub use delete::*;
+
+#[derive(FromField)]
+#[darling(attributes(es_repo))]
+pub struct RepoField {
+    pub ident: Option<syn::Ident>,
+    pub ty: syn::Type,
+    #[darling(default)]
+    pub pool: bool,
+    #[darling(default)]
+    pub nested: bool,
+}
+
+impl RepoField {
+    pub fn ident(&self) -> &syn::Ident {
+        self.ident.as_ref().expect("Field must have an identifier")
+    }
+
+    fn is_pool_field(&self) -> bool {
+        self.pool || self.ident.as_ref().map_or(false, |i| i == "pool")
+    }
+
+    pub fn create_nested_fn_name(&self) -> syn::Ident {
+        syn::Ident::new(
+            &format!("create_nested_{}", self.ident()),
+            proc_macro2::Span::call_site(),
+        )
+    }
+}
 
 #[derive(FromDeriveInput)]
 #[darling(attributes(es_repo), map = "Self::update_defaults")]
@@ -19,6 +47,8 @@ pub struct RepositoryOptions {
     pub begin: Option<syn::Ident>,
     #[darling(default)]
     pub delete: DeleteOption,
+
+    data: darling::ast::Data<(), RepoField>,
 
     #[darling(rename = "entity")]
     entity_ident: syn::Ident,
@@ -105,6 +135,28 @@ impl RepositoryOptions {
             pluralizer::pluralize(&self.table_name(), 1, false,)
         );
         syn::Ident::new(&name, proc_macro2::Span::call_site())
+    }
+
+    pub fn pool_field(&self) -> &syn::Ident {
+        let field = match &self.data {
+            darling::ast::Data::Struct(fields) => fields.iter().find_map(|field| {
+                if field.is_pool_field() {
+                    Some(field.ident.as_ref().unwrap())
+                } else {
+                    None
+                }
+            }),
+            _ => None,
+        };
+        field.expect("Repo must have a field named 'pool' or marked with #[es_repo(pool)]")
+    }
+
+    pub fn all_nested(&self) -> impl Iterator<Item = &RepoField> {
+        if let darling::ast::Data::Struct(fields) = &self.data {
+            fields.iter().filter(|f| f.nested)
+        } else {
+            panic!("Repository must be a struct")
+        }
     }
 
     pub fn err(&self) -> &syn::Type {
