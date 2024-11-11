@@ -42,7 +42,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn post_persist_hook() {
+    fn current_time() {
         let current_time = None;
 
         let current_time = CurrentTime {
