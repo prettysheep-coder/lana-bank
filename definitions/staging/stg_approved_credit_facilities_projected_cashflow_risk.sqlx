@@ -1,0 +1,169 @@
+config {
+	type: "table",
+}
+
+WITH projected_interest_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, loc_recorded_at
+		, loc_event_type
+		, loc_borrow_limit_in_cents
+		, loc_initialized_timestamp
+		, loc_annual_interest_rate
+		, loc_day_count_convention
+		, bench_mark_interest_rate
+		, now_ts
+		, loc_period_count
+		, loc_period
+		, loc_end_date
+		, loc_interest_accrual_interval
+		, loc_interest_incurrence_interval
+		, loc_initial_cvl
+		, loc_liquidation_cvl
+		, loc_margin_call_cvl
+		, loc_approved_at
+		, concluded_disbursement_at
+		, concluded_disbursement_event_type
+		, idx
+		, initiated_disbursement_at
+		, initiated_disbursement_event_type
+		, disbursement_amount_in_cents
+		, loc_daily_interest_rate
+		, days_per_year
+		, disbursement_start_date
+		, event_type
+		, period_start_date
+		, period_end_date
+		, days_in_the_period
+		, years_in_the_period
+		, days_from_now
+		, years_from_now
+		, recorded_at
+		, amount_in_cents
+	FROM ${ref("stg_approved_credit_facilities_projected_interest_payment")}
+
+), projected_principal_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, loc_recorded_at
+		, loc_event_type
+		, loc_borrow_limit_in_cents
+		, loc_initialized_timestamp
+		, loc_annual_interest_rate
+		, loc_day_count_convention
+		, bench_mark_interest_rate
+		, now_ts
+		, loc_period_count
+		, loc_period
+		, loc_end_date
+		, loc_interest_accrual_interval
+		, loc_interest_incurrence_interval
+		, loc_initial_cvl
+		, loc_liquidation_cvl
+		, loc_margin_call_cvl
+		, loc_approved_at
+		, concluded_disbursement_at
+		, concluded_disbursement_event_type
+		, idx
+		, initiated_disbursement_at
+		, initiated_disbursement_event_type
+		, disbursement_amount_in_cents
+		, loc_daily_interest_rate
+		, days_per_year
+		, disbursement_start_date
+		, event_type
+		, period_start_date
+		, period_end_date
+		, days_in_the_period
+		, years_in_the_period
+		, days_from_now
+		, years_from_now
+		, recorded_at
+		, amount_in_cents
+	FROM ${ref("stg_approved_credit_facilities_projected_principal_payment")}
+
+), unioned AS (
+
+	SELECT * FROM projected_interest_payment UNION ALL
+	SELECT * FROM projected_principal_payment
+
+), pv_discount_factor AS (
+
+	SELECT
+		  *
+		, POWER((1.0 + bench_mark_interest_rate), years_in_the_period) AS present_value_discount_factor
+	FROM unioned
+
+), pv AS (
+
+	SELECT
+		  *
+		, SAFE_DIVIDE(amount_in_cents, present_value_discount_factor) AS present_value
+	FROM pv_discount_factor
+
+), pv_total AS (
+
+	SELECT
+		  *
+		, SUM(present_value) OVER (PARTITION BY customer_id, loc_id) AS present_value_total
+	FROM pv
+
+), npv AS (
+
+	SELECT
+		  *
+		, SAFE_ADD(SAFE_NEGATE(disbursement_amount_in_cents), present_value_total) AS net_present_value
+	FROM pv_total
+
+), pv_percent AS (
+
+	SELECT
+		  *
+		, SAFE_DIVIDE(present_value, present_value_total) AS present_value_percent
+	FROM npv
+
+), dur_x_pv AS (
+
+	SELECT
+		  *
+		, SAFE_MULTIPLY(years_from_now, present_value_percent) AS duration_y_x_present_value_percent
+	FROM pv_percent
+
+), macd_y AS (
+
+	SELECT
+		  *
+		, SUM(duration_y_x_present_value_percent) OVER (PARTITION BY customer_id, loc_id) AS mac_duration_in_years
+	FROM dur_x_pv
+
+), macd_d AS (
+
+	SELECT
+		  *
+		, days_per_year * mac_duration_in_years AS mac_duration_in_days
+	FROM macd_y
+
+), modd AS (
+
+	SELECT
+		  *
+		, SAFE_DIVIDE(mac_duration_in_years, (1 + SAFE_DIVIDE(bench_mark_interest_rate, days_per_year))) AS mod_duration
+	FROM macd_d
+
+), dv01 AS (
+
+	SELECT
+		  *
+		, SAFE_MULTIPLY(SAFE_DIVIDE(mod_duration, 10000.0), net_present_value) AS dollar_duration_dv01
+		-- , AS elasticity
+		-- , AS convexity
+	FROM modd
+
+)
+
+
+SELECT * FROM dv01
