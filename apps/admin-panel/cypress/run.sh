@@ -2,7 +2,12 @@
 
 set -eu
 
-ADMIN_URL="https://admin.staging.lava.galoy.io"
+if [[ $NODE_ENV == "development" ]]; then
+  ADMIN_URL="http://localhost:4455/admin-panel"
+  MAILHOG_URL="http://localhost:8025"
+else
+  ADMIN_URL="https://admin.staging.lava.galoy.io"
+fi
 
 CACHE_DIR=/tmp/lava-cache
 mkdir -p $CACHE_DIR
@@ -38,9 +43,30 @@ curl -s "$ADMIN_URL/api/auth/signin/email" -H 'accept: text/html,application/xht
   --data-raw "csrfToken=$csrfToken&email=galoysuperuser%40mailinator.com" >> /dev/null
 curl -s "$ADMIN_URL/api/auth/verify-request?provider=email&type=email" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H "referer: $ADMIN_URL/api/auth/signin" -H 'sec-fetch-dest: document' -H 'sec-fetch-mode: navigate' -H 'sec-fetch-site: same-origin' -H 'sec-fetch-user: ?1' -H 'upgrade-insecure-requests: 1' >> /dev/null
 
-pushd cypress/mailinator-fetch-inbox
+sleep 2
+
+if [[ $NODE_ENV == "development" ]]; then
+  EMAILS_JSON=$(curl -s "${MAILHOG_URL}/api/v2/messages")
+  EMAIL_COUNT=$(echo "$EMAILS_JSON" | jq '.total')
+  if [[ "$EMAIL_COUNT" -eq 0 ]]; then
+    echo "Error: No emails found in MailHog"
+    exit 1
+  fi
+
+  LATEST_EMAIL=$(echo "$EMAILS_JSON" | jq '.items[0]')
+  EMAIL_BODY=$(echo "$LATEST_EMAIL" | jq -r '.Content.Body')
+  CLEAN_BODY=$(echo "$EMAIL_BODY" | sed 's/=\r\n//g; s/=3D/=/g; s/=2F/\//g; s/=3F/?/g; s/=26/&/g; s/=40/@/g')
+  MAGIC_LINK=$(echo "$CLEAN_BODY" | grep -o 'http://localhost[^" ]*')
+
+  if [[ -z "$MAGIC_LINK" ]]; then
+    echo "Error: Magic link not found in email content"
+    exit 1
+  fi
+
+  LINK="$MAGIC_LINK"
+else
   LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
-popd
+fi
 
 echo "==================== Running cypress on browserstack ===================="
 
