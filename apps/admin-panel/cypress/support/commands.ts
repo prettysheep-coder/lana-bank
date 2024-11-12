@@ -1,6 +1,5 @@
-// cypress/support/commands.ts
-
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       loginWithMagicLink(email?: string): Chainable<void>
@@ -16,7 +15,7 @@ const AUTH_CONFIG = {
   callbackUrl: "/admin-panel/profile",
 } as const
 
-Cypress.Commands.add("getMagicLink", () => {
+Cypress.Commands.add("getMagicLink", (): Cypress.Chainable<string> => {
   return cy.wait(1000).then(() => {
     return cy
       .request({
@@ -52,7 +51,11 @@ Cypress.Commands.add("getMagicLink", () => {
         const magicLink = urlMatch[0]
         cy.log("Magic link found:", magicLink)
 
-        return cy.wrap(magicLink)
+        // Return as a Chainable<string>
+        return cy
+          .wrap(magicLink)
+          .as("magicLink")
+          .then(() => magicLink)
       })
   })
 })
