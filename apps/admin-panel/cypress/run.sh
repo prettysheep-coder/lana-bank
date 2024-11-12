@@ -78,4 +78,9 @@ export MAGIC_LINK="$LINK"
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
 sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
-nix develop -c pnpm run browserstack:run
+
+if [[ $NODE_ENV == "development" ]]; then
+  nix develop -c pnpm run cypress:open-local
+else
+  nix develop -c pnpm run cypress:open-browserstack
+fi
