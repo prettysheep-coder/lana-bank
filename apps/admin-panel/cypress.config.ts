@@ -8,6 +8,6 @@ export default defineConfig({
         : "https://admin.staging.lava.galoy.io",
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
-    video: false,
+    video: true,
   },
 })

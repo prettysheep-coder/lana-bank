@@ -27,7 +27,7 @@ const DEV_AUTH_CONFIG = {
   callbackUrl: "/admin-panel/profile",
 } as const
 
-const AUTH_CONFIG = {
+const STAGING_AUTH_CONFIG = {
   nextAuthUrl: "http://admin.staging.lava.galoy.io/api/auth",
   mailhogUrl: "",
   defaultEmail: "galoysuperuser@mailinator.com",
@@ -35,4 +35,4 @@ const AUTH_CONFIG = {
 } as const
 
 export const E2E_CONFIG =
-  process.env.NODE_ENV === "development" ? DEV_AUTH_CONFIG : AUTH_CONFIG
+  process.env.NODE_ENV === "development" ? DEV_AUTH_CONFIG : STAGING_AUTH_CONFIG
