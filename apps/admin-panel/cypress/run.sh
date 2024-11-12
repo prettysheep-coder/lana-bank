@@ -45,4 +45,8 @@ popd
 echo "==================== Running cypress on browserstack ===================="
 
 export MAGIC_LINK="$LINK"
+
+cp tsconfig.json tsconfig.json.bak
+trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
+sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
 nix develop -c pnpm run browserstack:run
