@@ -48,27 +48,22 @@ curl -s "$ADMIN_URL/api/auth/verify-request?provider=email&type=email" -H 'accep
 
 sleep 2
 
+get_magiclink() { 
+    curl -s http://localhost:8025/api/v2/messages | \
+    jq -r '.items[0].MIME.Parts[0].Body' | \
+    perl -MMIME::QuotedPrint -pe '$_=MIME::QuotedPrint::decode($_);' | \
+    grep -o 'http://.*' | \
+    sed 's/=3D/=/g; s/%3A/:/g; s/%2F/\//g; s/%3F/?/g; s/%3D/=/g; s/%26/\&/g; s/%40/@/g'
+}
+
 if [[ $NODE_ENV == "development" ]]; then
-  EMAILS_JSON=$(curl -s "${MAILHOG_URL}/api/v2/messages")
-  EMAIL_COUNT=$(echo "$EMAILS_JSON" | jq '.total')
-  if [[ "$EMAIL_COUNT" -eq 0 ]]; then
-    echo "Error: No emails found in MailHog"
-    exit 1
-  fi
-
-  LATEST_EMAIL=$(echo "$EMAILS_JSON" | jq '.items[0]')
-  EMAIL_BODY=$(echo "$LATEST_EMAIL" | jq -r '.Content.Body')
-  CLEAN_BODY=$(echo "$EMAIL_BODY" | sed 's/=\r\n//g; s/=3D/=/g; s/=2F/\//g; s/=3F/?/g; s/=26/&/g; s/=40/@/g')
-  MAGIC_LINK=$(echo "$CLEAN_BODY" | grep -o 'http://localhost[^" ]*')
-
-  if [[ -z "$MAGIC_LINK" ]]; then
-    echo "Error: Magic link not found in email content"
-    exit 1
-  fi
-
-  LINK="$MAGIC_LINK"
+    LINK=$(get_magiclink)
+    if [[ -z "$LINK" ]]; then
+        echo "Error: Could not retrieve magic link"
+        exit 1
+    fi
 else
-  LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
+    LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
 fi
 
 echo "==================== Running cypress on browserstack ===================="
