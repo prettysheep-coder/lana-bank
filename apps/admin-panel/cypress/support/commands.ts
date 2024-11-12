@@ -1,3 +1,5 @@
+import { E2E_CONFIG } from "./e2e"
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -8,18 +10,11 @@ declare global {
   }
 }
 
-const AUTH_CONFIG = {
-  nextAuthUrl: "http://localhost:4455/admin-panel/api/auth",
-  mailhogUrl: "http://localhost:8025",
-  defaultEmail: "admin@galoy.io",
-  callbackUrl: "/admin-panel/profile",
-} as const
-
 Cypress.Commands.add("getMagicLink", (): Cypress.Chainable<string> => {
   return cy.wait(1000).then(() => {
     return cy
       .request({
-        url: `${AUTH_CONFIG.mailhogUrl}/api/v2/messages`,
+        url: `${E2E_CONFIG.mailhogUrl}/api/v2/messages`,
         method: "GET",
       })
       .then((response) => {
@@ -60,9 +55,9 @@ Cypress.Commands.add("getMagicLink", (): Cypress.Chainable<string> => {
   })
 })
 
-Cypress.Commands.add("loginWithMagicLink", (email = AUTH_CONFIG.defaultEmail) => {
+Cypress.Commands.add("loginWithMagicLink", (email = E2E_CONFIG.defaultEmail) => {
   cy.request({
-    url: `${AUTH_CONFIG.nextAuthUrl}/csrf`,
+    url: `${E2E_CONFIG.nextAuthUrl}/csrf`,
     method: "GET",
   }).then((csrfResponse) => {
     const csrfToken = csrfResponse.body.csrfToken
@@ -70,7 +65,7 @@ Cypress.Commands.add("loginWithMagicLink", (email = AUTH_CONFIG.defaultEmail) =>
 
     return cy
       .request({
-        url: `${AUTH_CONFIG.nextAuthUrl}/signin/email`,
+        url: `${E2E_CONFIG.nextAuthUrl}/signin/email`,
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,7 +73,7 @@ Cypress.Commands.add("loginWithMagicLink", (email = AUTH_CONFIG.defaultEmail) =>
         body: {
           email,
           csrfToken,
-          callbackUrl: AUTH_CONFIG.callbackUrl,
+          callbackUrl: E2E_CONFIG.callbackUrl,
           json: true,
         },
       })

@@ -1,7 +1,7 @@
 describe("Customer Creation", () => {
   beforeEach(() => {
+    cy.visit("/customers")
     cy.loginWithMagicLink()
-    cy.visit("/admin-panel/customers")
   })
 
   it("should successfully create a new customer", () => {
