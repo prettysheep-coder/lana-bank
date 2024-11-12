@@ -17,7 +17,6 @@
         "project_name": "Lana Bank Admin Panel",
         "build_name": "Lana Bank Admin Panel",
         "parallels": 1,
-        "spec_timeout": 5,
         "npm_dependencies": {
             "typescript": "^4",
             "browserstack-cypress-cli": "latest",

@@ -19,20 +19,3 @@ import "./commands"
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
-
-const DEV_AUTH_CONFIG = {
-  nextAuthUrl: "http://localhost:4455/admin-panel/api/auth",
-  mailhogUrl: "http://localhost:8025",
-  defaultEmail: "admin@galoy.io",
-  callbackUrl: "/admin-panel/profile",
-} as const
-
-const STAGING_AUTH_CONFIG = {
-  nextAuthUrl: "http://admin.staging.lava.galoy.io/api/auth",
-  mailhogUrl: "",
-  defaultEmail: "galoysuperuser@mailinator.com",
-  callbackUrl: "/profile",
-} as const
-
-export const E2E_CONFIG =
-  process.env.NODE_ENV === "development" ? DEV_AUTH_CONFIG : STAGING_AUTH_CONFIG

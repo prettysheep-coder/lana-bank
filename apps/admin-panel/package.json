@@ -15,8 +15,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
-    "cypress:open": "cypress open",
-    "browserstack:run": "browserstack-cypress run"
+    "cypress:run": "./cypress/run.sh",
+    "browserstack:run": "MAGIC_LINK=$MAGIC_LINK browserstack-cypress run --env MAGIC_LINK=$MAGIC_LINK"
   },
   "dependencies": {
     "@apollo/client": "^3.10.4",

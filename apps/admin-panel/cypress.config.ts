@@ -9,5 +9,8 @@ export default defineConfig({
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     video: true,
+    env: {
+      MAGIC_LINK: process.env.MAGIC_LINK,
+    },
   },
 })
