@@ -25,25 +25,28 @@ WITH line_of_credit_terms AS (
 			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
 		  END AS days_per_year
 		, initiated_disbursement_at AS disbursement_start_date
-		, DATE_TRUNC(DATE(loc_recorded_at), month) AS period_start_date
-		, DATE(loc_end_date) AS period_end_date
+		, TIMESTAMP(DATE_TRUNC(DATE(loc_recorded_at), month)) AS period_start_date
+		, loc_end_date AS period_end_date
 	FROM ${ref("stg_approved_credit_facilities_disbursement")}
+
+), projected_principal_time AS (
+
+	SELECT
+		  *
+		, TIMESTAMP_DIFF(period_end_date, period_start_date, DAY) AS days_in_the_period
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year) AS years_in_the_period
+		, TIMESTAMP_DIFF(period_end_date, now_ts, DAY) AS days_from_now
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, now_ts, DAY), days_per_year) AS years_from_now
+	FROM interest_payment_data
 
 ), projected_principal_payment AS (
 
 	SELECT
 		  *
-		, TIMESTAMP(loc_end_date) AS recorded_at
+		, loc_end_date AS recorded_at
 		, 'projected_principal_payment' AS event_type
-		, disbursement_amount_in_cents AS amount_in_cents
-		, SAFE_DIVIDE(disbursement_amount_in_cents,
-			POWER((1.0 + bench_mark_interest_rate),
-				SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year))
-		  ) AS present_value
-		, TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY) AS days_in_the_period
-		, SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year) AS period_duration_in_years
-		, POWER((1.0 + bench_mark_interest_rate), SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year)) AS pv_discount_factor
-	FROM interest_payment_data
+		, SAFE_NEGATE(disbursement_amount_in_cents) AS amount_in_cents
+	FROM projected_principal_time
 
 )
 

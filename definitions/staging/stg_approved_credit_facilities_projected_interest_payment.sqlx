@@ -34,41 +34,33 @@ WITH line_of_credit_terms AS (
 
 	SELECT
 		  * except(interest_schedule_months)
-		, DATE_TRUNC(projected_month, month) AS period_start_date
-		, CASE WHEN LAST_DAY(projected_month) > loc_end_date THEN
-			DATE(loc_end_date)
+		, TIMESTAMP(DATE_TRUNC(projected_month, month)) AS period_start_date
+		, CASE WHEN LAST_DAY(projected_month) > DATE(loc_end_date) THEN
+			loc_end_date
 		  ELSE
-		  	LAST_DAY(projected_month)
+			TIMESTAMP(LAST_DAY(projected_month))
 		  END AS period_end_date
 	FROM interest_payment_data,
 	     UNNEST(interest_schedule_months) AS projected_month
+
+), projected_interest_time AS (
+
+	SELECT
+		  *
+		, TIMESTAMP_DIFF(period_end_date, period_start_date, DAY) AS days_in_the_period
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year) AS years_in_the_period
+		, TIMESTAMP_DIFF(period_end_date, now_ts, DAY) AS days_from_now
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, now_ts, DAY), days_per_year) AS years_from_now
+	FROM projected_interest_payment_data
 
 ), projected_interest_payment AS (
 
 	SELECT
 		  *
-		, TIMESTAMP(period_end_date) AS recorded_at
+		, period_end_date AS recorded_at
 		, 'projected_interest_payment' AS event_type
-		, SAFE_MULTIPLY(
-			disbursement_amount_in_cents,
-			SAFE_MULTIPLY(
-				loc_daily_interest_rate,
-				TIMESTAMP_DIFF(period_end_date, period_start_date, DAY)
-			)
-		  ) AS amount_in_cents
-		, disbursement_amount_in_cents AS principal
-		, SAFE_DIVIDE(
-			SAFE_MULTIPLY(disbursement_amount_in_cents,
-				SAFE_MULTIPLY(
-					loc_daily_interest_rate,
-					TIMESTAMP_DIFF(period_end_date, period_start_date, DAY))),
-			POWER((1.0 + bench_mark_interest_rate),
-				SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year))
-		  ) AS present_value
-		, TIMESTAMP_DIFF(period_end_date, period_start_date, DAY) AS days_in_the_period
-		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year) AS period_duration_in_years
-		, POWER((1.0 + bench_mark_interest_rate), SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year)) AS pv_discount_factor
-	FROM projected_interest_payment_data
+		, SAFE_MULTIPLY(SAFE_NEGATE(disbursement_amount_in_cents), SAFE_MULTIPLY(loc_daily_interest_rate, days_in_the_period)) AS amount_in_cents
+	FROM projected_interest_time
 
 )
 
