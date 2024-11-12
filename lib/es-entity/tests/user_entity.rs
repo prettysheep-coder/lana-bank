@@ -121,6 +121,7 @@ pub struct NewTermsTemplate {
     pub id: TermsTemplateId,
     #[builder(setter(into))]
     pub name: String,
+    pub user_id: UserId,
 }
 
 impl NewTermsTemplate {

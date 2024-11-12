@@ -210,6 +210,7 @@ pub struct ListByFn<'a> {
     error: &'a syn::Type,
     delete: DeleteOption,
     cursor_mod: syn::Ident,
+    nested_fn_names: Vec<syn::Ident>,
 }
 
 impl<'a> ListByFn<'a> {
@@ -222,6 +223,7 @@ impl<'a> ListByFn<'a> {
             error: opts.err(),
             delete: opts.delete,
             cursor_mod: opts.cursor_mod(),
+            nested_fn_names: opts.all_nested().map(|f| f.find_nested_fn_name()).collect(),
         }
     }
 
@@ -243,6 +245,25 @@ impl<'a> ToTokens for ListByFn<'a> {
         let cursor_ident = cursor.ident();
         let cursor_mod = cursor.cursor_mod();
         let error = self.error;
+        let nested = self.nested_fn_names.iter().map(|f| {
+            quote! {
+                self.#f(&mut entities).await?;
+            }
+        });
+        let maybe_mut_entities = if self.nested_fn_names.is_empty() {
+            quote! { (entities, has_next_page) }
+        } else {
+            quote! { (mut entities, has_next_page) }
+        };
+        let maybe_lookup_nested = if self.nested_fn_names.is_empty() {
+            quote! {}
+        } else {
+            quote! {
+                {
+                    #(#nested)*
+                }
+            }
+        };
 
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
@@ -290,7 +311,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                 ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
                     #destructure_tokens
 
-                    let (entities, has_next_page) = match direction {
+                    let #maybe_mut_entities = match direction {
                         es_entity::ListDirection::Ascending => {
                             es_entity::es_query!(
                                 self.pool(),
@@ -310,6 +331,8 @@ impl<'a> ToTokens for ListByFn<'a> {
                                 .await?
                         },
                     };
+
+                    #maybe_lookup_nested
 
                     let end_cursor = entities.last().map(#cursor_mod::#cursor_ident::from);
 
@@ -425,6 +448,7 @@ mod tests {
             error: &error,
             delete: DeleteOption::Soft,
             cursor_mod,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -538,6 +562,7 @@ mod tests {
             error: &error,
             delete: DeleteOption::No,
             cursor_mod,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -613,6 +638,7 @@ mod tests {
             error: &error,
             delete: DeleteOption::No,
             cursor_mod,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();

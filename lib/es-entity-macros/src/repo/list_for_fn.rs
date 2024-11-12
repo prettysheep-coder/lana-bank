@@ -13,6 +13,7 @@ pub struct ListForFn<'a> {
     error: &'a syn::Type,
     delete: DeleteOption,
     cursor_mod: syn::Ident,
+    nested_fn_names: Vec<syn::Ident>,
 }
 
 impl<'a> ListForFn<'a> {
@@ -26,6 +27,7 @@ impl<'a> ListForFn<'a> {
             error: opts.err(),
             delete: opts.delete,
             cursor_mod: opts.cursor_mod(),
+            nested_fn_names: opts.all_nested().map(|f| f.find_nested_fn_name()).collect(),
         }
     }
 
@@ -46,6 +48,25 @@ impl<'a> ToTokens for ListForFn<'a> {
         let cursor_ident = cursor.ident();
         let cursor_mod = cursor.cursor_mod();
         let error = self.error;
+        let nested = self.nested_fn_names.iter().map(|f| {
+            quote! {
+                self.#f(&mut entities).await?;
+            }
+        });
+        let maybe_mut_entities = if self.nested_fn_names.is_empty() {
+            quote! { (entities, has_next_page) }
+        } else {
+            quote! { (mut entities, has_next_page) }
+        };
+        let maybe_lookup_nested = if self.nested_fn_names.is_empty() {
+            quote! {}
+        } else {
+            quote! {
+                {
+                    #(#nested)*
+                }
+            }
+        };
 
         let by_column_name = self.by_column.name();
 
@@ -66,9 +87,18 @@ impl<'a> ToTokens for ListForFn<'a> {
                 ),
                 Span::call_site(),
             );
+            let fn_via = syn::Ident::new(
+                &format!(
+                    "list_for_all_{}_by_{}_via{}",
+                    for_column_name,
+                    by_column_name,
+                    delete.include_deletion_fn_postfix()
+                ),
+                Span::call_site(),
+            );
 
             let asc_query = format!(
-                r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
+                r#"SELECT {}, {} FROM {} WHERE (({} = ANY($1)) AND ({})){} ORDER BY {} LIMIT $2"#,
                 for_column_name,
                 select_columns,
                 self.table_name,
@@ -82,7 +112,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                 cursor.order_by(true)
             );
             let desc_query = format!(
-                r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
+                r#"SELECT {}, {} FROM {} WHERE (({} = ANY($1)) AND ({})){} ORDER BY {} LIMIT $2"#,
                 for_column_name,
                 select_columns,
                 self.table_name,
@@ -103,14 +133,24 @@ impl<'a> ToTokens for ListForFn<'a> {
                     cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
                     direction: es_entity::ListDirection,
                 ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
+                    self.#fn_via(self.pool(), &[#for_column_name], cursor, direction).await
+                }
+
+                pub async fn #fn_via(
+                    &self,
+                    executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                    #for_column_name: &[#for_column_type],
+                    cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
+                    direction: es_entity::ListDirection,
+                ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
                     #destructure_tokens
 
-                    let (entities, has_next_page) = match direction {
+                    let #maybe_mut_entities = match direction {
                         es_entity::ListDirection::Ascending => {
                             es_entity::es_query!(
                                 self.pool(),
                                 #asc_query,
-                                #for_column_name as #for_column_type,
+                                #for_column_name as &[#for_column_type],
                                 #arg_tokens
                             )
                                 .fetch_n(first)
@@ -120,13 +160,15 @@ impl<'a> ToTokens for ListForFn<'a> {
                             es_entity::es_query!(
                                 self.pool(),
                                 #desc_query,
-                                #for_column_name as #for_column_type,
+                                #for_column_name as &[#for_column_type],
                                 #arg_tokens
                             )
                                 .fetch_n(first)
                                 .await?
                         }
                     };
+
+                    #maybe_lookup_nested
 
                     let end_cursor = entities.last().map(#cursor_mod::#cursor_ident::from);
 
@@ -172,6 +214,7 @@ mod tests {
             error: &error,
             delete: DeleteOption::No,
             cursor_mod,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -181,6 +224,16 @@ mod tests {
             pub async fn list_for_customer_id_by_id(
                 &self,
                 customer_id: Uuid,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
+                self.list_for_all_customer_id_by_id_via(self.pool(), &[customer_id], cursor, direction).await
+            }
+
+            pub async fn list_for_all_customer_id_by_id_via(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                customer_id: &[Uuid],
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
@@ -194,8 +247,8 @@ mod tests {
                     es_entity::ListDirection::Ascending => {
                         es_entity::es_query!(
                             self.pool(),
-                            "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2",
-                            customer_id as Uuid,
+                            "SELECT customer_id, id FROM entities WHERE ((customer_id = ANY($1)) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2",
+                            customer_id as &[Uuid],
                             (first + 1) as i64,
                             id as Option<EntityId>,
                         )
@@ -205,8 +258,8 @@ mod tests {
                     es_entity::ListDirection::Descending => {
                         es_entity::es_query!(
                             self.pool(),
-                            "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2",
-                            customer_id as Uuid,
+                            "SELECT customer_id, id FROM entities WHERE ((customer_id = ANY($1)) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2",
+                            customer_id as &[Uuid],
                             (first + 1) as i64,
                             id as Option<EntityId>,
                         )

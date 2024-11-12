@@ -1,16 +1,16 @@
 use crate::traits::*;
 
-use indexmap::IndexMap;
+use std::collections::HashMap;
 
 pub struct Nested<T: EsEntity> {
-    entities: IndexMap<<<T as EsEntity>::Event as EsEvent>::EntityId, T>,
+    entities: HashMap<<<T as EsEntity>::Event as EsEvent>::EntityId, T>,
     new_entities: Vec<<T as EsEntity>::New>,
 }
 
 impl<T: EsEntity> Default for Nested<T> {
     fn default() -> Self {
         Self {
-            entities: IndexMap::new(),
+            entities: HashMap::new(),
             new_entities: Vec::new(),
         }
     }
@@ -29,7 +29,7 @@ impl<T: EsEntity> Nested<T> {
 
     pub fn entities_mut(
         &mut self,
-    ) -> &mut IndexMap<<<T as EsEntity>::Event as EsEvent>::EntityId, T> {
+    ) -> &mut HashMap<<<T as EsEntity>::Event as EsEvent>::EntityId, T> {
         &mut self.entities
     }
 

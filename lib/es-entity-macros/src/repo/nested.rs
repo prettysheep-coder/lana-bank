@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use darling::ToTokens;
 use proc_macro2::TokenStream;
 use quote::{quote, TokenStreamExt};
@@ -5,6 +6,7 @@ use quote::{quote, TokenStreamExt};
 use super::options::{RepoField, RepositoryOptions};
 
 pub struct Nested<'a> {
+    entity: &'a syn::Ident,
     field: &'a RepoField,
     error: &'a syn::Type,
 }
@@ -12,6 +14,7 @@ pub struct Nested<'a> {
 impl<'a> Nested<'a> {
     pub fn new(field: &'a RepoField, opts: &'a RepositoryOptions) -> Nested<'a> {
         Nested {
+            entity: opts.entity(),
             field,
             error: opts.err(),
         }
@@ -26,6 +29,15 @@ impl<'a> ToTokens for Nested<'a> {
         let nested_repo_ty = &self.field.ty;
         let create_fn_name = self.field.create_nested_fn_name();
         let update_fn_name = self.field.update_nested_fn_name();
+        let find_fn_name = self.field.find_nested_fn_name();
+
+        let entity_name = self.entity.to_string().to_case(Case::Snake);
+        let column = format!("{entity_name}_id");
+        let lookup_fn = syn::Ident::new(
+            &format!("list_for_all_{column}_by_id_via"),
+            proc_macro2::Span::call_site(),
+        );
+        let column_ident = syn::Ident::new(&column, proc_macro2::Span::call_site());
 
         tokens.append_all(quote! {
             async fn #create_fn_name<P>(&self, op: &mut es_entity::DbOp<'_>, entity: &mut P) -> Result<(), #error>
@@ -57,6 +69,24 @@ impl<'a> ToTokens for Nested<'a> {
                 self.#create_fn_name(op, entity).await?;
                 Ok(())
             }
+
+            async fn #find_fn_name<P>(&self, entities: &mut [P]) -> Result<(), #error>
+                where
+                    P: es_entity::Parent<<#nested_repo_ty as EsRepo>::Entity>
+            {
+                let ids = entities.iter().map(|e| e.events().entity_id).collect::<Vec<_>>();
+                let query = es_entity::PaginatedQueryArgs {
+                    first: 10000,
+                    after: None,
+                };
+                let res = self.#repo_field.#lookup_fn(self.pool(), &ids, query, Default::default()).await?;
+                let lookup: HashMap<_, _> = entities.iter().map(|entity| (entity.events().entity_id, entity.nested_mut())).collect();
+                for entity in res.entities.iter_mut() {
+                    let nested = lookup.get(&entity.#column_ident).expect("Missing entity");
+                    nested.extend_entities(std::iter::once(entity));
+                }
+                Ok(())
+            }
         });
     }
 }
@@ -75,9 +105,11 @@ mod tests {
             nested: true,
             pool: false,
         };
+        let entity = Ident::new("parent", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let cursor = Nested {
+            entity: &entity,
             error: &error,
             field: &field,
         };
@@ -113,6 +145,24 @@ mod tests {
                     self.users.update_in_op(op, entity).await?;
                 }
                 self.create_nested_users(op, entity).await?;
+                Ok(())
+            }
+
+            async fn find_nested_users<P>(&self, entities: &mut [P]) -> Result<(), es_entity::EsRepoError>
+                where
+                    P: es_entity::Parent<<UserRepo as EsRepo>::Entity>
+            {
+                let ids = entities.iter().map(|e| e.events().entity_id).collect::<Vec<_>>();
+                let query = es_entity::PaginatedQueryArgs {
+                    first: 10000,
+                    after: None,
+                };
+                let res = self.users.list_for_all_parent_id_by_id_via(self.pool(), &ids, query, Default::default()).await?;
+                let lookup: HashMap<_, _> = entities.iter().map(|entity| (entity.events().entity_id, entity.nested_mut())).collect();
+                for entity in res.entities.iter_mut() {
+                    let nested = lookup.get(&entity.parent_id).expect("Missing entity");
+                    nested.extend_entities(std::iter::once(entity));
+                }
                 Ok(())
             }
         };
