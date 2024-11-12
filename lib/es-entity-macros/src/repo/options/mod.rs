@@ -138,7 +138,7 @@ impl RepositoryOptions {
     pub fn cursor_mod(&self) -> syn::Ident {
         let name = format!(
             "{}_cursor",
-            pluralizer::pluralize(&self.table_name(), 1, false,)
+            pluralizer::pluralize(self.table_name(), 1, false,)
         );
         syn::Ident::new(&name, proc_macro2::Span::call_site())
     }
@@ -146,7 +146,7 @@ impl RepositoryOptions {
     pub fn repo_types_mod(&self) -> syn::Ident {
         let name = format!(
             "{}_repo_types",
-            pluralizer::pluralize(&self.table_name(), 1, false,)
+            pluralizer::pluralize(self.table_name(), 1, false,)
         );
         syn::Ident::new(&name, proc_macro2::Span::call_site())
     }

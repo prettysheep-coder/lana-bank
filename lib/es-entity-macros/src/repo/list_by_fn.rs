@@ -26,7 +26,7 @@ impl<'a> CursorStruct<'a> {
     }
 
     pub fn cursor_mod(&self) -> &syn::Ident {
-        &self.cursor_mod
+        self.cursor_mod
     }
 
     pub fn select_columns(&self) -> String {
