@@ -71,7 +71,7 @@
         PGHOST = "127.0.0.1";
         DATABASE_URL = "postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5433/pg";
         PG_CON = "${DATABASE_URL}";
-        NODE_ENV = "development";
+        BACKEND_ENV = "development";
       };
     in
       with pkgs; {

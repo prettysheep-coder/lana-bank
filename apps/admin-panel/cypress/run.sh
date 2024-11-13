@@ -2,7 +2,7 @@
 
 set -eu
 
-if [[ $NODE_ENV == "development" ]]; then
+if [[ $BACKEND_ENV == "development" ]]; then
   ADMIN_URL="http://localhost:4455/admin-panel"
   MAILHOG_URL="http://localhost:8025"
   email="admin%40galoy.io"
@@ -56,7 +56,7 @@ get_magiclink() {
     sed 's/=3D/=/g; s/%3A/:/g; s/%2F/\//g; s/%3F/?/g; s/%3D/=/g; s/%26/\&/g; s/%40/@/g'
 }
 
-if [[ $NODE_ENV == "development" ]]; then
+if [[ $BACKEND_ENV == "development" ]]; then
     LINK=$(get_magiclink)
     if [[ -z "$LINK" ]]; then
         echo "Error: Could not retrieve magic link"
@@ -74,7 +74,7 @@ cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
 sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
 
-if [[ $NODE_ENV == "development" ]]; then
+if [[ $BACKEND_ENV == "development" ]]; then
   nix develop -c pnpm run cypress:open-local
 else
   nix develop -c pnpm run cypress:open-browserstack
