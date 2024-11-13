@@ -36,11 +36,8 @@ impl<'a> ListForFn<'a> {
             column: self.by_column,
             id: self.id,
             entity: self.entity,
-<<<<<<< HEAD
             cursor_mod: &self.cursor_mod,
-=======
             table_name: self.table_name,
->>>>>>> 707b1895 (refactor: rename cursors to plural)
         }
     }
 }
@@ -75,6 +72,10 @@ impl<'a> ToTokens for ListForFn<'a> {
         let by_column_name = self.by_column.name();
 
         let for_column_name = self.for_column.name();
+        let filter_arg_name = syn::Ident::new(
+            &format!("filter_{}", self.for_column.name()),
+            Span::call_site(),
+        );
         let for_column_type = self.for_column.ty();
 
         let destructure_tokens = self.cursor().destructure_tokens();
@@ -124,8 +125,13 @@ impl<'a> ToTokens for ListForFn<'a> {
             tokens.append_all(quote! {
                 pub async fn #fn_name(
                     &self,
+<<<<<<< HEAD
                     #for_column_name: #for_column_type,
                     cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
+=======
+                    #filter_arg_name: #for_column_type,
+                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+>>>>>>> a9efd3f7 (refactor(es-entity): improve args)
                     direction: es_entity::ListDirection,
                 ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
                     #destructure_tokens
@@ -135,7 +141,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                             es_entity::es_query!(
                                 self.pool(),
                                 #asc_query,
-                                #for_column_name as #for_column_type,
+                                #filter_arg_name as #for_column_type,
                                 #arg_tokens
                             )
                                 .fetch_n(first)
@@ -145,7 +151,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                             es_entity::es_query!(
                                 self.pool(),
                                 #desc_query,
-                                #for_column_name as #for_column_type,
+                                #filter_arg_name as #for_column_type,
                                 #arg_tokens
                             )
                                 .fetch_n(first)
@@ -208,12 +214,16 @@ mod tests {
         let expected = quote! {
             pub async fn list_for_customer_id_by_id(
                 &self,
+<<<<<<< HEAD
                 customer_id: Uuid,
 <<<<<<< HEAD
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
 =======
+=======
+                filter_customer_id: Uuid,
+>>>>>>> a9efd3f7 (refactor(es-entity): improve args)
                 cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
@@ -229,7 +239,7 @@ mod tests {
                         es_entity::es_query!(
                             self.pool(),
                             "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2",
-                            customer_id as Uuid,
+                            filter_customer_id as Uuid,
                             (first + 1) as i64,
                             id as Option<EntityId>,
                         )
@@ -240,7 +250,7 @@ mod tests {
                         es_entity::es_query!(
                             self.pool(),
                             "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2",
-                            customer_id as Uuid,
+                            filter_customer_id as Uuid,
                             (first + 1) as i64,
                             id as Option<EntityId>,
                         )
