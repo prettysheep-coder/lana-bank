@@ -8,17 +8,14 @@ use super::options::*;
 pub struct CursorStruct<'a> {
     pub id: &'a syn::Ident,
     pub entity: &'a syn::Ident,
+    pub table_name: &'a str,
     pub column: &'a Column,
     pub cursor_mod: &'a syn::Ident,
 }
 
 impl<'a> CursorStruct<'a> {
     fn name(&self) -> String {
-        format!(
-            "{}By{}Cursor",
-            self.entity,
-            self.column.name().to_string().to_case(Case::UpperCamel)
-        )
+        format!("{}_by_{}_cursor", self.table_name, self.column.name()).to_case(Case::UpperCamel)
     }
 
     pub fn ident(&self) -> syn::Ident {
@@ -233,6 +230,7 @@ impl<'a> ListByFn<'a> {
             id: self.id,
             entity: self.entity,
             cursor_mod: &self.cursor_mod,
+            table_name: self.table_name,
         }
     }
 }
@@ -369,6 +367,7 @@ mod tests {
             id: &id_type,
             entity: &entity,
             cursor_mod: &cursor_mod,
+            table_name: "entities",
         };
 
         let mut tokens = TokenStream::new();
@@ -376,11 +375,11 @@ mod tests {
 
         let expected = quote! {
             #[derive(Debug, serde::Serialize, serde::Deserialize)]
-            pub struct EntityByIdCursor {
+            pub struct EntitiesByIdCursor {
                 pub id: EntityId,
             }
 
-            impl From<&Entity> for EntityByIdCursor {
+            impl From<&Entity> for EntitiesByIdCursor {
                 fn from(entity: &Entity) -> Self {
                     Self {
                         id: entity.id.clone(),
@@ -403,7 +402,11 @@ mod tests {
             column: &by_column,
             id: &id_type,
             entity: &entity,
+<<<<<<< HEAD
             cursor_mod: &cursor_mod,
+=======
+            table_name: "entities",
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
         };
 
         let mut tokens = TokenStream::new();
@@ -411,12 +414,12 @@ mod tests {
 
         let expected = quote! {
             #[derive(Debug, serde::Serialize, serde::Deserialize)]
-            pub struct EntityByCreatedAtCursor {
+            pub struct EntitiesByCreatedAtCursor {
                 pub id: EntityId,
                 pub created_at: es_entity::prelude::chrono::DateTime<es_entity::prelude::chrono::Utc>,
             }
 
-            impl From<&Entity> for EntityByCreatedAtCursor {
+            impl From<&Entity> for EntitiesByCreatedAtCursor {
                 fn from(entity: &Entity) -> Self {
                     Self {
                         id: entity.id.clone(),
@@ -457,9 +460,15 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_id(
                 &self,
+<<<<<<< HEAD
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
+=======
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -490,7 +499,11 @@ mod tests {
                     },
                 };
 
+<<<<<<< HEAD
                 let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
+=======
+                let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -500,9 +513,15 @@ mod tests {
 
             pub async fn list_by_id_include_deleted(
                 &self,
+<<<<<<< HEAD
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
+=======
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -531,7 +550,11 @@ mod tests {
                             .await?
                     },
                 };
+<<<<<<< HEAD
                 let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
+=======
+                let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -571,9 +594,15 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_name(
                 &self,
+<<<<<<< HEAD
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByNameCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByNameCursor>, es_entity::EsRepoError> {
+=======
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByNameCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByNameCursor>, es_entity::EsRepoError> {
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, name) = if let Some(after) = after {
                     (Some(after.id), Some(after.name))
@@ -606,7 +635,11 @@ mod tests {
                     },
                 };
 
+<<<<<<< HEAD
                 let end_cursor = entities.last().map(cursor_mod::EntityByNameCursor::from);
+=======
+                let end_cursor = entities.last().map(cursor::EntitiesByNameCursor::from);
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
@@ -647,9 +680,15 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_value(
                 &self,
+<<<<<<< HEAD
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByValueCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByValueCursor>, es_entity::EsRepoError> {
+=======
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByValueCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByValueCursor>, es_entity::EsRepoError> {
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, value) = if let Some(after) = after {
                     (Some(after.id), after.value)
@@ -682,7 +721,11 @@ mod tests {
                     },
                 };
 
+<<<<<<< HEAD
                 let end_cursor = entities.last().map(cursor_mod::EntityByValueCursor::from);
+=======
+                let end_cursor = entities.last().map(cursor::EntitiesByValueCursor::from);
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,

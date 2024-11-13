@@ -36,7 +36,11 @@ impl<'a> ListForFn<'a> {
             column: self.by_column,
             id: self.id,
             entity: self.entity,
+<<<<<<< HEAD
             cursor_mod: &self.cursor_mod,
+=======
+            table_name: self.table_name,
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
         }
     }
 }
@@ -205,9 +209,15 @@ mod tests {
             pub async fn list_for_customer_id_by_id(
                 &self,
                 customer_id: Uuid,
+<<<<<<< HEAD
                 cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
+=======
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -239,7 +249,11 @@ mod tests {
                     }
                 };
 
+<<<<<<< HEAD
                 let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
+=======
+                let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
+>>>>>>> 707b1895 (refactor: rename cursors to plural)
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,

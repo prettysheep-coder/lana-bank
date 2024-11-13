@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use darling::ToTokens;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, TokenStreamExt};
@@ -5,20 +6,23 @@ use quote::{quote, TokenStreamExt};
 use super::{list_by_fn::CursorStruct, options::*};
 
 pub struct ComboCursor<'a> {
-    pub entity: &'a syn::Ident,
-    pub cursors: Vec<CursorStruct<'a>>,
+    table_name: &'a str,
+    cursors: Vec<CursorStruct<'a>>,
 }
 
 impl<'a> ComboCursor<'a> {
     pub fn new(opts: &'a RepositoryOptions, cursors: Vec<CursorStruct<'a>>) -> Self {
         Self {
-            entity: opts.entity(),
+            table_name: opts.table_name(),
             cursors,
         }
     }
 
     pub fn ident(&self) -> syn::Ident {
-        syn::Ident::new(&format!("{}ComboCursor", self.entity), Span::call_site())
+        syn::Ident::new(
+            &format!("{}_cursor", self.table_name).to_case(Case::UpperCamel),
+            Span::call_site(),
+        )
     }
 
     pub fn variants(&self) -> TokenStream {

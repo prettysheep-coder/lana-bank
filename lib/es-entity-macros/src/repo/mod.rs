@@ -2,6 +2,7 @@ mod begin;
 mod combo_cursor;
 mod create_fn;
 mod delete_fn;
+// mod filter;
 mod find_all_fn;
 mod find_by_fn;
 mod list_by_fn;
