@@ -1,7 +1,6 @@
 describe("credit facility", () => {
   before(() => {
     Cypress.env("creditFacilityId", null)
-    Cypress.env("collateralRequired", null)
   })
 
   it("create new terms-template", () => {
@@ -111,36 +110,64 @@ describe("credit facility", () => {
       })
 
     cy.contains("Credit Facility created successfully").should("be.visible")
+  })
+
+  it("should update the collateral for the created credit facility", () => {
+    const creditFacilityId = Cypress.env("creditFacilityId")
+    expect(creditFacilityId).to.exist
+    cy.visit(`/credit-facilities/${creditFacilityId}`)
 
     cy.get('[data-testid="collateral-to-reach-target"]')
       .should("be.visible")
       .invoke("text")
       .then((collateralValue) => {
         const numericValue = parseFloat(collateralValue.split(" ")[0])
-        Cypress.env("collateralRequired", numericValue)
+
+        cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
+        cy.get('[data-testid="new-collateral-input"]')
+          .should("be.visible")
+          .clear()
+          .type(numericValue.toString())
+
+        cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
+        cy.get('[data-testid="proceed-to-confirm-button"]')
+          .should("be.visible")
+          .then(($el) => {
+            $el.on("click", (e) => e.preventDefault())
+          })
+          .click()
+
+        cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
+
+        cy.get("[data-testid=credit-facility-status-badge]")
+          .should("be.visible")
+          .invoke("text")
+          .should("eq", "ACTIVE")
       })
   })
 
-  it("should update the collateral for the created credit facility", () => {
-    const creditFacilityId =
-      Cypress.env("creditFacilityId") || "7b1d5da3-8771-40c7-8cea-c77a78554a8a"
-    const collateralRequired = Cypress.env("collateralRequired") || 7
-
+  it("should initiate a disbursal for the created credit facility", () => {
+    const creditFacilityId = Cypress.env("creditFacilityId")
     expect(creditFacilityId).to.exist
-    expect(collateralRequired).to.exist
-
     cy.visit(`/credit-facilities/${creditFacilityId}`)
 
-    cy.wait(2000)
+    cy.get('[data-testid="initiate-disbursal-button"]').should("be.visible").click()
 
-    cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
+    cy.get('[data-testid="disbursal-amount-input"]')
+      .type("1000")
+      .should("have.value", "1000")
 
-    cy.get('[data-testid="new-collateral-input"]')
+    cy.get('[data-testid="disbursal-submit-button"]').click()
+
+    cy.url().should(
+      "match",
+      /\/disbursals\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    )
+    cy.contains("Disbursal initiated successfully").should("be.visible")
+
+    cy.get('[data-testid="disbursal-status-badge"]')
       .should("be.visible")
-      .clear()
-      .type(collateralRequired.toString())
-
-    cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible").click()
-    cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
+      .invoke("text")
+      .should("eq", "CONFIRMED")
   })
 })
