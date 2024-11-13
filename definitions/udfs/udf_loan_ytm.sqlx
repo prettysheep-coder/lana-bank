@@ -1,0 +1,40 @@
+config {
+	type: "operations",
+	hasOutput: true,
+	description: "Calculates a loan Yield-to-Maturity internal rate of return."
+}
+
+CREATE OR REPLACE FUNCTION ${self()} (interest_rate FLOAT64, times ARRAY<FLOAT64>, cash_flows ARRAY<FLOAT64>)
+RETURNS FLOAT64
+LANGUAGE js
+AS r"""
+  function udf_loan_pv(interest_rate, times, cash_flows) {
+    if (times.length != cash_flows.length){
+      return NaN;
+    }
+    pv = 0;
+    for (var i=0; i<times.length; i++){
+      pv += cash_flows[i] / ((1.0 + interest_rate) ** times[i]);
+    }
+    return pv;
+  }
+
+  const ACCURACY = 0.00005;
+  const MAX_ITERATIONS = 200;
+
+  var bottom=0.0, top=1.0;
+
+  loan_pv = udf_loan_pv(interest_rate, times, cash_flows);
+
+  while(udf_loan_pv(top, times, cash_flows) > loan_pv) { top = top * 2.0; }
+  var ytm = 0.5 * (top + bottom);
+  for (i=0; i< MAX_ITERATIONS; i++) {
+    var diff = udf_loan_pv(ytm, times, cash_flows) - loan_pv;
+    if (Math.abs(diff) < ACCURACY){ return ytm; }
+    if (diff > 0.0){ bottom = ytm; }
+    else           { top = ytm;    }
+    ytm = 0.5 * (top + bottom);
+  }
+
+  return ytm;
+""";

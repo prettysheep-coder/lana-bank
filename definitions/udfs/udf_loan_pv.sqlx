@@ -1,0 +1,19 @@
+config {
+	type: "operations",
+	hasOutput: true,
+	description: "Calculates a loan Present Value from it's expected cash flows."
+}
+
+CREATE OR REPLACE FUNCTION ${self()} (interest_rate FLOAT64, times ARRAY<FLOAT64>, cash_flows ARRAY<FLOAT64>)
+RETURNS FLOAT64
+LANGUAGE js
+AS r"""
+  if (times.length != cash_flows.length){
+    return NaN;
+  }
+  pv = 0;
+  for (var i=0; i<times.length; i++){
+    pv += cash_flows[i] / ((1.0 + interest_rate) ** times[i]);
+  }
+  return pv;
+""";
