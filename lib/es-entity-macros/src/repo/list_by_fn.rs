@@ -22,15 +22,25 @@ impl<'a> CursorStruct<'a> {
         syn::Ident::new(&self.name(), Span::call_site())
     }
 
+<<<<<<< HEAD
     pub fn cursor_mod(&self) -> &syn::Ident {
         self.cursor_mod
     }
 
     pub fn select_columns(&self) -> String {
+=======
+    pub fn select_columns(&self, for_column: Option<&syn::Ident>) -> String {
+        let mut for_column_str = String::new();
+        if let Some(for_column) = for_column {
+            if self.column.name() != for_column {
+                for_column_str = format!("{}, ", for_column);
+            }
+        }
+>>>>>>> e5a88ccf (refactor: handle for and by being same column)
         if self.column.is_id() {
-            "id".to_string()
+            format!("{}id", for_column_str)
         } else {
-            format!("{}, id", self.column.name())
+            format!("{}{}, id", for_column_str, self.column.name())
         }
     }
 
@@ -264,7 +274,7 @@ impl<'a> ToTokens for ListByFn<'a> {
         };
 
         let destructure_tokens = self.cursor().destructure_tokens();
-        let select_columns = cursor.select_columns();
+        let select_columns = cursor.select_columns(None);
         let arg_tokens = cursor.query_arg_tokens();
 
         for delete in [DeleteOption::No, DeleteOption::Soft] {
@@ -402,11 +412,8 @@ mod tests {
             column: &by_column,
             id: &id_type,
             entity: &entity,
-<<<<<<< HEAD
             cursor_mod: &cursor_mod,
-=======
             table_name: "entities",
->>>>>>> 707b1895 (refactor: rename cursors to plural)
         };
 
         let mut tokens = TokenStream::new();

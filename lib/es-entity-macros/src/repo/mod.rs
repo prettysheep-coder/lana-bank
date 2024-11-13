@@ -60,7 +60,6 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             .flat_map(|list_for_column| {
                 opts.columns
                     .all_list_by()
-                    .filter(move |list_by_column| list_for_column != *list_by_column)
                     .map(|b| list_for_fn::ListForFn::new(list_for_column, b, opts))
             })
             .collect();

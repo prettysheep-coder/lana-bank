@@ -79,7 +79,7 @@ impl<'a> ToTokens for ListForFn<'a> {
         let for_column_type = self.for_column.ty();
 
         let destructure_tokens = self.cursor().destructure_tokens();
-        let select_columns = cursor.select_columns();
+        let select_columns = cursor.select_columns(Some(for_column_name));
         let arg_tokens = cursor.query_arg_tokens();
 
         for delete in [DeleteOption::No, DeleteOption::Soft] {
@@ -94,8 +94,7 @@ impl<'a> ToTokens for ListForFn<'a> {
             );
 
             let asc_query = format!(
-                r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
-                for_column_name,
+                r#"SELECT {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
                 select_columns,
                 self.table_name,
                 for_column_name,
@@ -108,8 +107,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                 cursor.order_by(true)
             );
             let desc_query = format!(
-                r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
-                for_column_name,
+                r#"SELECT {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
                 select_columns,
                 self.table_name,
                 for_column_name,
@@ -264,6 +262,81 @@ mod tests {
 =======
                 let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
 >>>>>>> 707b1895 (refactor: rename cursors to plural)
+                Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page,
+                    end_cursor,
+                })
+            }
+        };
+
+        assert_eq!(tokens.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn list_same_column() {
+        let entity = Ident::new("Entity", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
+        let id = syn::Ident::new("EntityId", proc_macro2::Span::call_site());
+        let column = Column::new(
+            syn::Ident::new("email", proc_macro2::Span::call_site()),
+            syn::parse_str("String").unwrap(),
+        );
+
+        let persist_fn = ListForFn {
+            entity: &entity,
+            id: &id,
+            for_column: &column,
+            by_column: &column,
+            table_name: "entities",
+            error: &error,
+            delete: DeleteOption::No,
+        };
+
+        let mut tokens = TokenStream::new();
+        persist_fn.to_tokens(&mut tokens);
+
+        let expected = quote! {
+            pub async fn list_for_email_by_email(
+                &self,
+                filter_email: String,
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByEmailCursor>,
+                direction: es_entity::ListDirection,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByEmailCursor>, es_entity::EsRepoError> {
+                let es_entity::PaginatedQueryArgs { first, after } = cursor;
+                let (id, email) = if let Some(after) = after {
+                    (Some(after.id), Some(after.email))
+                } else {
+                    (None, None)
+                };
+                let (entities, has_next_page) = match direction {
+                    es_entity::ListDirection::Ascending => {
+                        es_entity::es_query!(
+                            self.pool(),
+                            "SELECT email, id FROM entities WHERE ((email = $1) AND (COALESCE((email, id) > ($4, $3), $3 IS NULL))) ORDER BY email ASC, id ASC LIMIT $2",
+                            filter_email as String,
+                            (first + 1) as i64,
+                            id as Option<EntityId>,
+                            email as Option<String>,
+                        )
+                            .fetch_n(first)
+                            .await?
+                    },
+                    es_entity::ListDirection::Descending => {
+                        es_entity::es_query!(
+                            self.pool(),
+                            "SELECT email, id FROM entities WHERE ((email = $1) AND (COALESCE((email, id) < ($4, $3), $3 IS NULL))) ORDER BY email DESC, id DESC LIMIT $2",
+                            filter_email as String,
+                            (first + 1) as i64,
+                            id as Option<EntityId>,
+                            email as Option<String>,
+                        )
+                            .fetch_n(first)
+                            .await?
+                    }
+                };
+
+                let end_cursor = entities.last().map(cursor::EntitiesByEmailCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
