@@ -1,4 +1,9 @@
 describe("credit facility", () => {
+  before(() => {
+    Cypress.env("creditFacilityId", null)
+    Cypress.env("collateralRequired", null)
+  })
+
   it("create new terms-template", () => {
     cy.visit("/terms-templates")
 
@@ -95,10 +100,47 @@ describe("credit facility", () => {
 
     cy.get('[data-testid="create-credit-facility-submit"]').click()
 
-    cy.url().should(
-      "match",
-      /\/credit-facilities\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    )
+    cy.url()
+      .should(
+        "match",
+        /\/credit-facilities\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      )
+      .then((url) => {
+        const facilityId = url.split("/").pop()
+        Cypress.env("creditFacilityId", facilityId)
+      })
+
     cy.contains("Credit Facility created successfully").should("be.visible")
+
+    cy.get('[data-testid="collateral-to-reach-target"]')
+      .should("be.visible")
+      .invoke("text")
+      .then((collateralValue) => {
+        const numericValue = parseFloat(collateralValue.split(" ")[0])
+        Cypress.env("collateralRequired", numericValue)
+      })
+  })
+
+  it("should update the collateral for the created credit facility", () => {
+    const creditFacilityId =
+      Cypress.env("creditFacilityId") || "7b1d5da3-8771-40c7-8cea-c77a78554a8a"
+    const collateralRequired = Cypress.env("collateralRequired") || 7
+
+    expect(creditFacilityId).to.exist
+    expect(collateralRequired).to.exist
+
+    cy.visit(`/credit-facilities/${creditFacilityId}`)
+
+    cy.wait(2000)
+
+    cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
+
+    cy.get('[data-testid="new-collateral-input"]')
+      .should("be.visible")
+      .clear()
+      .type(collateralRequired.toString())
+
+    cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible").click()
+    cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
   })
 })
