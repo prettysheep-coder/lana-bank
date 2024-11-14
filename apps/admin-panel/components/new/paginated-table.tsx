@@ -15,7 +15,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuCheckboxItem,
 } from "@/components/primitive/dropdown-menu"
 import { Button } from "@/components/primitive/button"
 import { Skeleton } from "@/components/primitive/skeleton"
@@ -166,19 +166,21 @@ const PaginatedTable = <T,>({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem
-                              onSelect={() => handleFilter(col.key, undefined)}
+                            <DropdownMenuCheckboxItem
+                              checked={!filterState[col.key]}
+                              onCheckedChange={() => handleFilter(col.key, undefined)}
                             >
                               All
-                            </DropdownMenuItem>
+                            </DropdownMenuCheckboxItem>
                             {col.filterValues.map((value, idx) => (
-                              <DropdownMenuItem
+                              <DropdownMenuCheckboxItem
                                 key={idx}
-                                onSelect={() => handleFilter(col.key, value)}
+                                checked={filterState[col.key] === value}
+                                onCheckedChange={() => handleFilter(col.key, value)}
                                 className="capitalize"
                               >
                                 {String(value).split("_").join(" ").toLowerCase()}
-                              </DropdownMenuItem>
+                              </DropdownMenuCheckboxItem>
                             ))}
                           </DropdownMenuContent>
                         </DropdownMenu>
