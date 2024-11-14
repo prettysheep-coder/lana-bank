@@ -98,10 +98,7 @@ const PaginatedTable = <T,>({
   }
 
   const handleFilter = (columnKey: keyof T, value: T[keyof T] | undefined) => {
-    setFilterState((prev) => ({
-      ...prev,
-      [columnKey]: value,
-    }))
+    setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
     onFilter && onFilter(columnKey, value)
   }
 
