@@ -1,7 +1,7 @@
 config {
-	type: "operations",
-	hasOutput: true,
-	description: "Calculates a loan Yield-to-Maturity internal rate of return."
+  type: "operations",
+  hasOutput: true,
+  description: "Calculates a loan Modified Duration."
 }
 
 CREATE OR REPLACE FUNCTION ${self()} (interest_rate FLOAT64, times ARRAY<FLOAT64>, cash_flows ARRAY<FLOAT64>)
@@ -17,7 +17,7 @@ AS r"""
   const loan_pv_delta_on_interest_rate_delta = ${time_value_money.loan_pv_delta_on_interest_rate_delta};
   const loan_pv_delta_on_interest_rate_delta_with_convex = ${time_value_money.loan_pv_delta_on_interest_rate_delta_with_convex};
 
-  return loan_ytm(interest_rate, times, cash_flows);
+  return loan_mod_duration(interest_rate, times, cash_flows);
 """
 -- OPTIONS (library='gs://external_code/time-value-money.js')
 ;

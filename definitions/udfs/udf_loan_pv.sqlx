@@ -8,12 +8,16 @@ CREATE OR REPLACE FUNCTION ${self()} (interest_rate FLOAT64, times ARRAY<FLOAT64
 RETURNS FLOAT64
 LANGUAGE js
 AS r"""
-  if (times.length != cash_flows.length){
-    return NaN;
-  }
-  pv = 0;
-  for (var i=0; i<times.length; i++){
-    pv += cash_flows[i] / ((1.0 + interest_rate) ** times[i]);
-  }
-  return pv;
-""";
+  const loan_pv = ${time_value_money.loan_pv};
+  const loan_ytm = ${time_value_money.loan_ytm};
+  const loan_duration = ${time_value_money.loan_duration};
+  const loan_mac_duration = ${time_value_money.loan_mac_duration};
+  const loan_mod_duration = ${time_value_money.loan_mod_duration};
+  const loan_convexity = ${time_value_money.loan_convexity};
+  const loan_pv_delta_on_interest_rate_delta = ${time_value_money.loan_pv_delta_on_interest_rate_delta};
+  const loan_pv_delta_on_interest_rate_delta_with_convex = ${time_value_money.loan_pv_delta_on_interest_rate_delta_with_convex};
+
+  return loan_pv(interest_rate, times, cash_flows);
+"""
+-- OPTIONS (library='gs://external_code/time-value-money.js')
+;
