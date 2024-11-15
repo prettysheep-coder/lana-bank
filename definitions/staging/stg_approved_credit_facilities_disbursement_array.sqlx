@@ -1,0 +1,84 @@
+config {
+	type: "table",
+}
+
+WITH projected_interest_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, days_from_now
+		, years_from_now
+		, amount_in_cents
+	-- FROM ${ref("stg_approved_credit_facilities_projected_interest_payment")}
+	FROM dataform_sv.stg_approved_credit_facilities_projected_interest_payment
+	WHERE recorded_at > now_ts
+
+), projected_principal_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, days_from_now
+		, years_from_now
+		, amount_in_cents
+	-- FROM ${ref("stg_approved_credit_facilities_projected_principal_payment")}
+	FROM dataform_sv.stg_approved_credit_facilities_projected_principal_payment
+	WHERE recorded_at > now_ts
+
+), unioned AS (
+
+	SELECT * FROM projected_interest_payment UNION ALL
+	SELECT * FROM projected_principal_payment
+	ORDER BY days_from_now
+
+), arrayed AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, ARRAY_AGG(days_from_now) AS days_from_now
+		, ARRAY_AGG(years_from_now) AS times
+		, ARRAY_AGG(amount_in_cents) AS cash_flows
+	FROM unioned
+	GROUP BY
+		  customer_id
+		, loc_id
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+
+), with_risk AS (
+
+	SELECT
+		  *
+		, dataform_sv.udf_loan_pv(loc_daily_interest_rate, times, cash_flows) AS pv
+		, dataform_sv.udf_loan_ytm(loc_daily_interest_rate, times, cash_flows) AS ytm
+		, dataform_sv.udf_loan_duration(loc_daily_interest_rate, times, cash_flows) AS duration
+		, dataform_sv.udf_loan_mac_duration(loc_daily_interest_rate, times, cash_flows) AS mac_duration
+		, dataform_sv.udf_loan_mod_duration(loc_daily_interest_rate, times, cash_flows) AS mod_duration
+		, dataform_sv.udf_loan_convexity(loc_daily_interest_rate, times, cash_flows) AS convexity
+		, dataform_sv.udf_loan_pv(loc_daily_interest_rate + 0.0001 / days_per_year, times, cash_flows) AS calc_new_pv
+		, dataform_sv.udf_loan_pv_delta_on_interest_rate_delta(loc_daily_interest_rate, times, cash_flows, 0.0001 / days_per_year) AS dv01
+	FROM arrayed
+
+)
+
+SELECT * FROM with_risk

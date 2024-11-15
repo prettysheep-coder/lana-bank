@@ -1,0 +1,364 @@
+config {
+	type: "table",
+}
+
+/*
+	stg_approved_credit_facilities_terms
+
+	stg_approved_credit_facilities_collateral_posted
+	stg_approved_credit_facilities_collateral_refunded
+
+	stg_approved_credit_facilities_disbursement
+
+	stg_approved_credit_facilities_accrued_interest
+
+	stg_approved_credit_facilities_projected_interest_payment
+	stg_approved_credit_facilities_projected_principal_payment
+	stg_approved_credit_facilities_recorded_interest_payment
+	stg_approved_credit_facilities_recorded_principal_payment
+*/
+
+WITH
+line_of_credit_terms AS (
+
+	SELECT
+		  JSON_VALUE(event, "$.customer_id") AS customer_id
+		, id AS loc_id
+		, recorded_at AS loc_recorded_at
+		, event_type AS loc_event_type
+
+		, CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS loc_borrow_limit_in_cents
+		, recorded_at AS loc_initialized_timestamp
+		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS loc_annual_interest_rate
+
+		, 'actual/360' AS loc_day_count_convention
+		, 5.53 / 100.0 AS bench_mark_interest_rate
+		, CURRENT_TIMESTAMP() AS now_ts
+
+		, CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) AS loc_period_count
+		, JSON_VALUE(event, "$.terms.duration.type") AS loc_period
+
+		, CASE WHEN JSON_VALUE(event, "$.terms.duration.type") = 'months' THEN
+			TIMESTAMP_ADD(DATE(recorded_at), INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INT64) MONTH)
+		--   ELSE
+		-- 	TIMESTAMP_ADD(DATE(recorded_at), INTERVAL 1 YEAR)
+		  END AS loc_end_date
+
+		, JSON_VALUE(event, "$.terms.accrual_interval.type") AS loc_interest_accrual_interval
+		, JSON_VALUE(event, "$.terms.incurrence_interval.type") AS loc_interest_incurrence_interval
+
+		, JSON_VALUE(event, "$.terms.initial_cvl") AS loc_initial_cvl
+		, JSON_VALUE(event, "$.terms.liquidation_cvl") AS loc_liquidation_cvl
+		, JSON_VALUE(event, "$.terms.margin_call_cvl") AS loc_margin_call_cvl
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	WHERE event_type = "initialized"
+
+), initialized_line_of_credit AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, loc_recorded_at AS recorded_at
+		, loc_event_type AS event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	FROM line_of_credit_terms
+
+), process_started_line_of_credit AS (
+
+	SELECT
+		  terms.customer_id
+		, cfe.id AS loc_id
+		, TIMESTAMP_ADD(cfe.recorded_at, INTERVAL 1 MILLISECOND) AS recorded_at
+		, cfe.event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events cfe
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = cfe.id
+	WHERE event_type = "approval_process_started"
+
+), approved_line_of_credit AS (
+
+	SELECT
+		  terms.customer_id
+		, cfe.id AS loc_id
+		, cfe.recorded_at
+		, cfe.event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events cfe
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = cfe.id
+	WHERE event_type = "approval_process_concluded"
+	AND JSON_VALUE(event, "$.approved") = 'true'
+
+), completed_line_of_credit AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, TIMESTAMP_ADD(recorded_at, INTERVAL 1 MILLISECOND) AS recorded_at
+		, event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "completed"
+
+), collateral_posted AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, LOWER(CONCAT(event_type, '_', JSON_VALUE(event, "$.action"))) as event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "collateral_updated"
+	AND JSON_VALUE(event, "$.action") = "Add"
+
+), collateral_refunded AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, LOWER(CONCAT(event_type, '_', JSON_VALUE(event, "$.action"))) as event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, SAFE_NEGATE(CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC)) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "collateral_updated"
+	AND JSON_VALUE(event, "$.action") = "Remove"
+
+), initiated_disbursements AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, event_type
+		, CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+		, CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "disbursement_initiated"
+
+), concluded_disbursements AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, event_type
+		, CAST(NULL AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+		, CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "disbursement_concluded"
+
+), disbursements AS (
+
+	SELECT
+		  cd.customer_id
+		, cd.loc_id
+		, cd.recorded_at
+		, cd.event_type
+		, SAFE_NEGATE(id.amount_in_cents) AS amount_in_cents
+		, cd.amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM concluded_disbursements AS cd
+	LEFT JOIN initiated_disbursements AS id ON id.loc_id = cd.loc_id AND id.idx = cd.idx
+
+), recorded_interest_payments AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, 'interest_payment_recorded' AS event_type
+		, CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "payment_recorded"
+	AND COALESCE(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC), 0) > 0
+
+), recorded_principal_payments AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, 'principal_payment_recorded' AS event_type
+		, CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "payment_recorded"
+	AND COALESCE(CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC), 0) > 0
+
+), incurred_interests AS (
+
+	SELECT
+		  terms.customer_id
+		, id AS loc_id
+		, recorded_at
+		, event_type
+		, CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS amount_in_cents
+		, CAST(NULL AS NUMERIC) AS amount_in_sats
+	-- FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+	FROM sv_dataset.credit_facility_events
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	WHERE event_type = "interest_incurred"
+
+), interest_payment_data AS (
+
+	SELECT
+		  ds.customer_id
+		, ds.loc_id
+		, ds.recorded_at
+		, 'projected_interest_payment' AS event_type
+		, SAFE_NEGATE(ds.amount_in_cents) AS amount_in_cents
+		, ds.amount_in_sats
+		, terms.loc_annual_interest_rate
+		, SAFE_DIVIDE(
+			terms.loc_annual_interest_rate / 100.0,
+			CASE
+				WHEN ENDS_WITH(terms.loc_day_count_convention, '/360') THEN 360.0
+				WHEN ENDS_WITH(terms.loc_day_count_convention, '/365') THEN 365.0
+				ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(terms.loc_recorded_at), YEAR)), DATE_TRUNC(terms.loc_recorded_at, YEAR), DAY)
+			END
+		  ) AS loc_daily_interest_rate
+		, terms.loc_day_count_convention
+		, CASE
+			WHEN ENDS_WITH(terms.loc_day_count_convention, '/360') THEN 360.0
+			WHEN ENDS_WITH(terms.loc_day_count_convention, '/365') THEN 365.0
+			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(terms.loc_recorded_at), YEAR)), DATE_TRUNC(terms.loc_recorded_at, YEAR), DAY)
+		  END AS days_per_year
+		, terms.bench_mark_interest_rate
+		, terms.now_ts
+		, terms.loc_period_count
+		, terms.loc_period
+		, terms.loc_interest_accrual_interval
+		, ds.recorded_at AS disbursement_start_date
+		, terms.loc_end_date
+		, CASE WHEN terms.loc_interest_accrual_interval = 'end_of_month' THEN
+			GENERATE_DATE_ARRAY(DATE(ds.recorded_at), DATE(terms.loc_end_date), INTERVAL 1 MONTH)
+		  END AS interest_schedule_months
+	FROM disbursements AS ds
+	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = ds.loc_id
+
+), projected_interest_payment_data AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, recorded_at
+		, event_type
+		, amount_in_cents
+		, amount_in_sats
+		, DATE_TRUNC(projected_month, month) AS period_start_date
+		, CASE WHEN LAST_DAY(projected_month) > loc_end_date THEN
+			loc_end_date
+		  ELSE
+		  	LAST_DAY(projected_month)
+		  END AS period_end_date
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, loc_day_count_convention
+		, days_per_year
+		, bench_mark_interest_rate
+		, now_ts
+		, loc_period_count
+		, loc_period
+		, loc_interest_accrual_interval
+		, disbursement_start_date
+		, loc_end_date
+	FROM interest_payment_data,
+	     UNNEST(interest_schedule_months) AS projected_month
+
+), projected_interest_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, TIMESTAMP(period_end_date) AS recorded_at
+		, event_type
+		, SAFE_MULTIPLY(
+			amount_in_cents,
+			SAFE_MULTIPLY(
+				loc_daily_interest_rate,
+				TIMESTAMP_DIFF(period_end_date, period_start_date, DAY)
+			)
+		  ) AS amount_in_cents
+		, amount_in_sats
+		, amount_in_cents AS principal
+		, loc_daily_interest_rate
+
+		, SAFE_DIVIDE(
+			SAFE_MULTIPLY(amount_in_cents,
+				SAFE_MULTIPLY(
+					loc_daily_interest_rate,
+					TIMESTAMP_DIFF(period_end_date, period_start_date, DAY))),
+			POWER((1.0 + bench_mark_interest_rate),
+				SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year))
+		  ) AS present_value
+
+		, bench_mark_interest_rate
+		, TIMESTAMP_DIFF(period_end_date, period_start_date, DAY) AS days_in_the_period
+		, days_per_year
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year) AS period_duration_in_years
+		, POWER((1.0 + bench_mark_interest_rate), SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year)) AS pv_discount_factor
+	FROM projected_interest_payment_data
+
+), projected_principal_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, TIMESTAMP(loc_end_date) AS recorded_at
+		, 'projected_principal_payment' AS event_type
+		, amount_in_cents
+		, amount_in_sats
+		, SAFE_DIVIDE(amount_in_cents,
+			POWER((1.0 + bench_mark_interest_rate),
+				SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year))
+		  ) AS present_value
+		, bench_mark_interest_rate
+		, TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY) AS days_in_the_period
+		, days_per_year
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year) AS period_duration_in_years
+		, POWER((1.0 + bench_mark_interest_rate), SAFE_DIVIDE(TIMESTAMP_DIFF(TIMESTAMP(loc_end_date), now_ts, DAY), days_per_year)) AS pv_discount_factor
+	FROM interest_payment_data
+
+), unioned AS (
+
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM initialized_line_of_credit UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM process_started_line_of_credit UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM approved_line_of_credit UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM completed_line_of_credit UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM collateral_posted UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM collateral_refunded UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM disbursements UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM recorded_interest_payments UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM recorded_principal_payments UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM incurred_interests UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM projected_interest_payment UNION ALL
+	SELECT customer_id, loc_id, recorded_at, event_type, ROUND(amount_in_cents) AS amount_in_cents, amount_in_sats FROM projected_principal_payment
+)
+
+SELECT * FROM unioned

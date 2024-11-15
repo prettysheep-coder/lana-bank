@@ -1,0 +1,43 @@
+config {
+	type: "table",
+}
+
+WITH projected_interest_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, recorded_at
+		, event_type
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, amount_in_cents
+		, years_from_now
+	FROM ${ref("stg_approved_credit_facilities_projected_interest_payment")}
+
+), projected_principal_payment AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, recorded_at
+		, event_type
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, amount_in_cents
+		, years_from_now
+	FROM ${ref("stg_approved_credit_facilities_projected_principal_payment")}
+
+), unioned AS (
+
+	SELECT * FROM projected_interest_payment UNION ALL
+	SELECT * FROM projected_principal_payment
+)
+
+SELECT * FROM unioned
