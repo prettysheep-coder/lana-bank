@@ -11,19 +11,6 @@ WITH line_of_credit_terms AS (
 
 	SELECT
 		  *
-		, SAFE_DIVIDE(
-			loc_annual_interest_rate / 100.0,
-			CASE
-				WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
-				WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
-				ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
-			END
-		  ) AS loc_daily_interest_rate
-		, CASE
-			WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
-			WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
-			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
-		  END AS days_per_year
 		, initiated_disbursement_at AS disbursement_start_date
 		, CASE WHEN loc_interest_accrual_interval = 'end_of_month' THEN
 			GENERATE_DATE_ARRAY(DATE(concluded_disbursement_at), DATE(loc_end_date), INTERVAL 1 MONTH)
