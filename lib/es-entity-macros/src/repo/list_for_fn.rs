@@ -5,10 +5,10 @@ use quote::{quote, TokenStreamExt};
 use super::{list_by_fn::CursorStruct, options::*};
 
 pub struct ListForFn<'a> {
+    pub for_column: &'a Column,
+    pub by_column: &'a Column,
     entity: &'a syn::Ident,
     id: &'a syn::Ident,
-    for_column: &'a Column,
-    by_column: &'a Column,
     table_name: &'a str,
     error: &'a syn::Type,
     delete: DeleteOption,
@@ -31,7 +31,7 @@ impl<'a> ListForFn<'a> {
         }
     }
 
-    fn cursor(&'a self) -> CursorStruct<'a> {
+    pub fn cursor(&'a self) -> CursorStruct<'a> {
         CursorStruct {
             column: self.by_column,
             id: self.id,

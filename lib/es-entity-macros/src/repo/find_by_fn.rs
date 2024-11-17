@@ -129,7 +129,7 @@ impl<'a> ToTokens for FindByFn<'a> {
 mod tests {
     use super::*;
     use proc_macro2::Span;
-    use syn::{parse_quote, Ident};
+    use syn::Ident;
 
     #[test]
     fn find_by_fn() {

@@ -2,9 +2,9 @@ mod begin;
 mod combo_cursor;
 mod create_fn;
 mod delete_fn;
-// mod filter;
 mod find_all_fn;
 mod find_by_fn;
+mod find_many;
 mod list_by_fn;
 mod list_for_fn;
 mod nested;
@@ -107,6 +107,14 @@ impl<'a> ToTokens for EsRepo<'a> {
             self.opts,
             self.list_by_fns.iter().map(|l| l.cursor()).collect(),
         );
+        let sort_by = combo_cursor.sort_by();
+        let find_many = find_many::FindManyFn::new(
+            self.opts,
+            self.opts.columns.all_list_for().collect(),
+            &self.list_for_fns,
+            &combo_cursor,
+        );
+        let find_many_filter = &find_many.filter;
         #[cfg(feature = "graphql")]
         let gql_combo_cursor = combo_cursor.gql_cursor();
         #[cfg(not(feature = "graphql"))]
@@ -182,6 +190,9 @@ impl<'a> ToTokens for EsRepo<'a> {
                 }
             }
 
+            #find_many_filter
+            #sort_by
+
             impl #repo {
                 #[inline(always)]
                 pub fn pool(&self) -> &sqlx::PgPool {
@@ -196,6 +207,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #delete_fn
                 #(#find_by_fns)*
                 #find_all_fn
+                #find_many
                 #(#list_by_fns)*
                 #(#list_for_fns)*
 
