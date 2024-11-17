@@ -13,7 +13,7 @@ pub struct ManyFilter<'a> {
 impl<'a> ManyFilter<'a> {
     pub fn new(opts: &'a RepositoryOptions, columns: Vec<&'a Column>) -> Self {
         Self {
-            table_name: &opts.table_name(),
+            table_name: opts.table_name(),
             columns,
         }
     }
@@ -67,9 +67,11 @@ impl<'a> ToTokens for ManyFilter<'a> {
 
 pub struct FindManyFn<'a> {
     pub filter: ManyFilter<'a>,
+    table_name: &'a str,
     entity: &'a syn::Ident,
     error: &'a syn::Type,
     list_for_fns: &'a Vec<ListForFn<'a>>,
+    by_columns: Vec<&'a Column>,
     cursor: &'a ComboCursor<'a>,
     delete: DeleteOption,
     cursor_mod: syn::Ident,
@@ -78,15 +80,18 @@ pub struct FindManyFn<'a> {
 impl<'a> FindManyFn<'a> {
     pub fn new(
         opts: &'a RepositoryOptions,
-        for_columns: Vec<&'a Column>,
         list_for_fns: &'a Vec<ListForFn<'a>>,
+        for_columns: Vec<&'a Column>,
+        by_columns: Vec<&'a Column>,
         cursor: &'a ComboCursor<'a>,
     ) -> Self {
         Self {
-            filter: ManyFilter::new(opts, for_columns),
+            filter: ManyFilter::new(opts, for_columns.clone()),
+            table_name: opts.table_name(),
             entity: opts.entity(),
             error: opts.err(),
             list_for_fns,
+            by_columns,
             cursor,
             delete: opts.delete,
             cursor_mod: opts.cursor_mod(),
@@ -116,14 +121,6 @@ impl<'a> ToTokens for FindManyFn<'a> {
                     ),
                     Span::call_site(),
                 );
-                let no_filter_fn_name = syn::Ident::new(
-                    &format!(
-                        "list_by_{}{}",
-                        f.by_column.name(),
-                        delete.include_deletion_fn_postfix()
-                    ),
-                    Span::call_site(),
-                );
                 let filter_variant = ManyFilter::tag(f.for_column);
                 let by_variant = syn::Ident::new(
                     &format!("{}", f.by_column.name()).to_case(Case::UpperCamel),
@@ -146,6 +143,25 @@ impl<'a> ToTokens for FindManyFn<'a> {
                             end_cursor: end_cursor.map(#cursor_mod::#cursor_ident::from)
                         }
                     }
+                }
+            }).chain(
+            self.by_columns.iter().map(|b| {
+                let by_variant = syn::Ident::new(
+                    &format!("{}", b.name()).to_case(Case::UpperCamel),
+                    Span::call_site(),
+                );
+                let inner_cursor_ident = syn::Ident::new(
+                    &format!("{}_by_{}_cursor", self.table_name, b.name()).to_case(Case::UpperCamel)
+                    , Span::call_site());
+                let no_filter_fn_name = syn::Ident::new(
+                    &format!(
+                        "list_by_{}{}",
+                        b.name(),
+                        delete.include_deletion_fn_postfix()
+                    ),
+                    Span::call_site(),
+                );
+                quote! {
                     (#filter_name::NoFilter, #sort_by_name::#by_variant) => {
                         let after = after.map(#cursor_mod::#inner_cursor_ident::try_from).transpose()?;
                         let query = es_entity::PaginatedQueryArgs { first, after };
@@ -162,7 +178,7 @@ impl<'a> ToTokens for FindManyFn<'a> {
                         }
                     }
                 }
-            });
+            }));
             let fn_name = syn::Ident::new(
                 &format!("find_many{}", delete.include_deletion_fn_postfix()),
                 Span::call_site(),

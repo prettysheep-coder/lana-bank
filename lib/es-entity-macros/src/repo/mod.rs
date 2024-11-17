@@ -110,8 +110,9 @@ impl<'a> ToTokens for EsRepo<'a> {
         let sort_by = combo_cursor.sort_by();
         let find_many = find_many::FindManyFn::new(
             self.opts,
-            self.opts.columns.all_list_for().collect(),
             &self.list_for_fns,
+            self.opts.columns.all_list_for().collect(),
+            self.opts.columns.all_list_by().collect(),
             &combo_cursor,
         );
         let find_many_filter = &find_many.filter;

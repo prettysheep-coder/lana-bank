@@ -19,7 +19,7 @@ use crate::{
 
 pub use entity::*;
 use error::DepositError;
-pub use repo::{deposit_cursor::DepositByCreatedAtCursor, DepositRepo};
+pub use repo::{deposit_cursor::DepositsByCreatedAtCursor, DepositRepo};
 
 #[derive(Clone)]
 pub struct Deposits {

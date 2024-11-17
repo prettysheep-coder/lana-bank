@@ -100,8 +100,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByEmailCursor,
+                    CustomersCursor,
+                    CustomersByEmailCursor,
                     Customer,
                     ctx,
                     after,
@@ -132,8 +132,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByCreatedAtCursor,
+                    CustomersCursor,
+                    CustomersByCreatedAtCursor,
                     Customer,
                     ctx,
                     after,
@@ -164,8 +164,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByTelegramIdCursor,
+                    CustomersCursor,
+                    CustomersByTelegramIdCursor,
                     Customer,
                     ctx,
                     after,

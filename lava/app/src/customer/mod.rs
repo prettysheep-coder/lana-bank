@@ -207,9 +207,9 @@ impl Customers {
         &self,
         sub: &Subject,
         status: AccountStatus,
-        query: es_entity::PaginatedQueryArgs<CustomerByEmailCursor>,
+        query: es_entity::PaginatedQueryArgs<CustomersByEmailCursor>,
         direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByEmailCursor>, CustomerError> {
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByEmailCursor>, CustomerError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -243,9 +243,9 @@ impl Customers {
         &self,
         sub: &Subject,
         status: AccountStatus,
-        query: es_entity::PaginatedQueryArgs<CustomerByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<CustomersByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByCreatedAtCursor>, CustomerError>
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByCreatedAtCursor>, CustomerError>
     {
         self.authz
             .enforce_permission(
@@ -280,9 +280,9 @@ impl Customers {
         &self,
         sub: &Subject,
         status: AccountStatus,
-        query: es_entity::PaginatedQueryArgs<CustomerByTelegramIdCursor>,
+        query: es_entity::PaginatedQueryArgs<CustomersByTelegramIdCursor>,
         direction: impl Into<es_entity::ListDirection>,
-    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomerByTelegramIdCursor>, CustomerError>
+    ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersByTelegramIdCursor>, CustomerError>
     {
         self.authz
             .enforce_permission(

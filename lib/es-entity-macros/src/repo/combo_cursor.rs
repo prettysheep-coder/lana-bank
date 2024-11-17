@@ -111,18 +111,28 @@ impl<'a> ComboCursor<'a> {
         });
         let name = self.sort_by_name();
         #[cfg(feature = "graphql")]
-        let derive = quote! {
-            #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+        let mod_name =
+            syn::Ident::new(&format!("{}", name).to_case(Case::Snake), Span::call_site());
+        #[cfg(feature = "graphql")]
+        let sort_by_enum = quote! {
+            mod #mod_name {
+                use es_entity::graphql::async_graphql;
+                #[derive(async_graphql::Enum, Default, Debug, Clone, Copy, PartialEq, Eq)]
+                pub enum #name {
+                    #(#variants),*
+                }
+            }
+            pub use #mod_name::#name;
         };
         #[cfg(not(feature = "graphql"))]
-        let derive = quote! {
+        let sort_by_enum = quote! {
             #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-        };
-        quote! {
-            #derive
             pub enum #name {
                 #(#variants),*
             }
+        };
+        quote! {
+            #sort_by_enum
         }
     }
 
