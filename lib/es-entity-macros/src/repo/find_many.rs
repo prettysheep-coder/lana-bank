@@ -72,6 +72,7 @@ pub struct FindManyFn<'a> {
     list_for_fns: &'a Vec<ListForFn<'a>>,
     cursor: &'a ComboCursor<'a>,
     delete: DeleteOption,
+    cursor_mod: syn::Ident,
 }
 
 impl<'a> FindManyFn<'a> {
@@ -88,6 +89,7 @@ impl<'a> FindManyFn<'a> {
             list_for_fns,
             cursor,
             delete: opts.delete,
+            cursor_mod: opts.cursor_mod(),
         }
     }
 }
@@ -100,6 +102,8 @@ impl<'a> ToTokens for FindManyFn<'a> {
 
         let entity = self.entity;
         let error = self.error;
+
+        let cursor_mod = &self.cursor_mod;
 
         for delete in [DeleteOption::No, DeleteOption::Soft] {
             let variants = self.list_for_fns.iter().map(|f| {
@@ -128,7 +132,7 @@ impl<'a> ToTokens for FindManyFn<'a> {
                 let inner_cursor_ident = f.cursor().ident();
                 quote! {
                     (#filter_name::#filter_variant(filter_value), #sort_by_name::#by_variant) => {
-                        let after = after.map(cursor::#inner_cursor_ident::try_from).transpose()?;
+                        let after = after.map(#cursor_mod::#inner_cursor_ident::try_from).transpose()?;
                         let query = es_entity::PaginatedQueryArgs { first, after };
 
                         let es_entity::PaginatedQueryRet {
@@ -139,11 +143,11 @@ impl<'a> ToTokens for FindManyFn<'a> {
                         es_entity::PaginatedQueryRet {
                             entities,
                             has_next_page,
-                            end_cursor: end_cursor.map(cursor::#cursor_ident::from)
+                            end_cursor: end_cursor.map(#cursor_mod::#cursor_ident::from)
                         }
                     }
                     (#filter_name::NoFilter, #sort_by_name::#by_variant) => {
-                        let after = after.map(cursor::#inner_cursor_ident::try_from).transpose()?;
+                        let after = after.map(#cursor_mod::#inner_cursor_ident::try_from).transpose()?;
                         let query = es_entity::PaginatedQueryArgs { first, after };
 
                         let es_entity::PaginatedQueryRet {
@@ -154,7 +158,7 @@ impl<'a> ToTokens for FindManyFn<'a> {
                         es_entity::PaginatedQueryRet {
                             entities,
                             has_next_page,
-                            end_cursor: end_cursor.map(cursor::#cursor_ident::from)
+                            end_cursor: end_cursor.map(#cursor_mod::#cursor_ident::from)
                         }
                     }
                 }
@@ -168,14 +172,14 @@ impl<'a> ToTokens for FindManyFn<'a> {
                     &self,
                     filter: #filter_name,
                     sort: es_entity::Sort<#sort_by_name>,
-                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
-                ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error>
+                    cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
+                ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error>
                     where #error: From<es_entity::CursorDestructureError>
                 {
                     let es_entity::Sort { by, direction } = sort;
                     let es_entity::PaginatedQueryArgs { first, after } = cursor;
 
-                    use cursor::#cursor_ident;
+                    use #cursor_mod::#cursor_ident;
                     let res = match (filter, by) {
                         #(#variants)*
                     };

@@ -123,13 +123,8 @@ impl<'a> ToTokens for ListForFn<'a> {
             tokens.append_all(quote! {
                 pub async fn #fn_name(
                     &self,
-<<<<<<< HEAD
-                    #for_column_name: #for_column_type,
-                    cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
-=======
                     #filter_arg_name: #for_column_type,
-                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
->>>>>>> a9efd3f7 (refactor(es-entity): improve args)
+                    cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
                     direction: es_entity::ListDirection,
                 ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
                     #destructure_tokens
@@ -212,20 +207,10 @@ mod tests {
         let expected = quote! {
             pub async fn list_for_customer_id_by_id(
                 &self,
-<<<<<<< HEAD
-                customer_id: Uuid,
-<<<<<<< HEAD
-                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
-                direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
-=======
-=======
                 filter_customer_id: Uuid,
->>>>>>> a9efd3f7 (refactor(es-entity): improve args)
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntitiesByIdCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntitiesByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -257,16 +242,12 @@ mod tests {
                     }
                 };
 
-<<<<<<< HEAD
-                let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
-=======
-                let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
->>>>>>> 707b1895 (refactor: rename cursors to plural)
-                Ok(es_entity::PaginatedQueryRet {
-                    entities,
-                    has_next_page,
-                    end_cursor,
-                })
+                    let end_cursor = entities.last().map(cursor_mod::EntitiesByIdCursor::from);
+                    Ok(es_entity::PaginatedQueryRet {
+                        entities,
+                        has_next_page,
+                        end_cursor,
+                    })
             }
         };
 
@@ -282,6 +263,7 @@ mod tests {
             syn::Ident::new("email", proc_macro2::Span::call_site()),
             syn::parse_str("String").unwrap(),
         );
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListForFn {
             entity: &entity,
@@ -291,6 +273,8 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::No,
+            cursor_mod,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -300,9 +284,9 @@ mod tests {
             pub async fn list_for_email_by_email(
                 &self,
                 filter_email: String,
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByEmailCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntitiesByEmailCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByEmailCursor>, es_entity::EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntitiesByEmailCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, email) = if let Some(after) = after {
                     (Some(after.id), Some(after.email))
@@ -336,7 +320,7 @@ mod tests {
                     }
                 };
 
-                let end_cursor = entities.last().map(cursor::EntitiesByEmailCursor::from);
+                let end_cursor = entities.last().map(cursor_mod::EntitiesByEmailCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,

@@ -22,13 +22,10 @@ impl<'a> CursorStruct<'a> {
         syn::Ident::new(&self.name(), Span::call_site())
     }
 
-<<<<<<< HEAD
     pub fn cursor_mod(&self) -> &syn::Ident {
         self.cursor_mod
     }
 
-    pub fn select_columns(&self) -> String {
-=======
     pub fn select_columns(&self, for_column: Option<&syn::Ident>) -> String {
         let mut for_column_str = String::new();
         if let Some(for_column) = for_column {
@@ -36,7 +33,6 @@ impl<'a> CursorStruct<'a> {
                 for_column_str = format!("{}, ", for_column);
             }
         }
->>>>>>> e5a88ccf (refactor: handle for and by being same column)
         if self.column.is_id() {
             format!("{}id", for_column_str)
         } else {
@@ -467,15 +463,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_id(
                 &self,
-<<<<<<< HEAD
-                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntitiesByIdCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
-=======
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
-                direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntitiesByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -506,11 +496,7 @@ mod tests {
                     },
                 };
 
-<<<<<<< HEAD
-                let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
-=======
-                let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+                let end_cursor = entities.last().map(cursor_mod::EntitiesByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -520,15 +506,9 @@ mod tests {
 
             pub async fn list_by_id_include_deleted(
                 &self,
-<<<<<<< HEAD
-                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntitiesByIdCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
-=======
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByIdCursor>,
-                direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByIdCursor>, es_entity::EsRepoError> {
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntitiesByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -557,11 +537,7 @@ mod tests {
                             .await?
                     },
                 };
-<<<<<<< HEAD
-                let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
-=======
-                let end_cursor = entities.last().map(cursor::EntitiesByIdCursor::from);
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+                let end_cursor = entities.last().map(cursor_mod::EntitiesByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -601,15 +577,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_name(
                 &self,
-<<<<<<< HEAD
-                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByNameCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntitiesByNameCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByNameCursor>, es_entity::EsRepoError> {
-=======
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByNameCursor>,
-                direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByNameCursor>, es_entity::EsRepoError> {
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntitiesByNameCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, name) = if let Some(after) = after {
                     (Some(after.id), Some(after.name))
@@ -642,11 +612,7 @@ mod tests {
                     },
                 };
 
-<<<<<<< HEAD
-                let end_cursor = entities.last().map(cursor_mod::EntityByNameCursor::from);
-=======
-                let end_cursor = entities.last().map(cursor::EntitiesByNameCursor::from);
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+                let end_cursor = entities.last().map(cursor_mod::EntitiesByNameCursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
@@ -687,15 +653,9 @@ mod tests {
         let expected = quote! {
             pub async fn list_by_value(
                 &self,
-<<<<<<< HEAD
-                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByValueCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntitiesByValueCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByValueCursor>, es_entity::EsRepoError> {
-=======
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntitiesByValueCursor>,
-                direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntitiesByValueCursor>, es_entity::EsRepoError> {
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntitiesByValueCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let (id, value) = if let Some(after) = after {
                     (Some(after.id), after.value)
@@ -728,11 +688,7 @@ mod tests {
                     },
                 };
 
-<<<<<<< HEAD
-                let end_cursor = entities.last().map(cursor_mod::EntityByValueCursor::from);
-=======
-                let end_cursor = entities.last().map(cursor::EntitiesByValueCursor::from);
->>>>>>> 707b1895 (refactor: rename cursors to plural)
+                let end_cursor = entities.last().map(cursor_mod::EntitiesByValueCursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
