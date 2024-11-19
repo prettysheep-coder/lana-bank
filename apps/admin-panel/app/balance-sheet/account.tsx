@@ -7,19 +7,18 @@ import { AccountSetSubAccount, usePnlAccountSetQuery } from "@/lib/graphql/gener
 import Balance, { Currency } from "@/components/balance/balance"
 import { TableCell, TableRow } from "@/components/primitive/table"
 import { DateRange } from "@/components/date-range-picker"
-import { Satoshis, SignedSatoshis, SignedUsdCents, UsdCents } from "@/types"
 
 export const Account = ({
   account,
   currency,
-  depth = 0 as UsdCents | Satoshis | SignedSatoshis | SignedUsdCents,
+  depth = 0,
   layer,
   transactionType,
   dateRange,
 }: {
   account: AccountSetSubAccount
   currency: Currency
-  depth?: UsdCents | Satoshis | SignedSatoshis | SignedUsdCents
+  depth?: number
   layer: Layers
   transactionType: TransactionType
   dateRange: DateRange
@@ -70,14 +69,14 @@ export const Account = ({
 
 const SubAccountsForAccountSet = ({
   account,
-  depth = 0 as UsdCents | Satoshis | SignedSatoshis | SignedUsdCents,
+  depth = 0,
   currency,
   layer,
   transactionType,
   dateRange,
 }: {
   account: AccountSetSubAccount
-  depth?: UsdCents | Satoshis | SignedSatoshis | SignedUsdCents
+  depth?: number
   currency: Currency
   layer: Layers
   transactionType: TransactionType
@@ -103,7 +102,7 @@ const SubAccountsForAccountSet = ({
           currency={currency}
           key={subAccount.node.id}
           account={subAccount.node}
-          depth={(depth + 1) as UsdCents | Satoshis | SignedSatoshis | SignedUsdCents}
+          depth={depth + 1}
           layer={layer}
           transactionType={transactionType}
           dateRange={dateRange}

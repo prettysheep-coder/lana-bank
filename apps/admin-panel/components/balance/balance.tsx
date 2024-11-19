@@ -23,7 +23,7 @@ const formatAmount = (amount: number, currency: Currency) => {
 export type Currency = "btc" | "usd"
 
 type BalanceProps = {
-  amount: UsdCents | Satoshis | SignedSatoshis | SignedUsdCents
+  amount: Satoshis | SignedSatoshis | SignedUsdCents | UsdCents
   currency: Currency
   className?: string
 } & VariantProps<typeof balanceVariants>

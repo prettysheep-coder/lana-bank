@@ -284,7 +284,7 @@ function BalanceSheetColumn({
               <Balance
                 align="end"
                 currency={currency}
-                amount={total as UsdCents | Satoshis | SignedSatoshis | SignedUsdCents}
+                amount={total as Satoshis | SignedSatoshis | SignedUsdCents | UsdCents}
                 className="font-semibold"
               />
             </TableCell>
