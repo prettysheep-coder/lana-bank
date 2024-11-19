@@ -13,6 +13,7 @@ import {
 import Balance from "@/components/balance/balance"
 import { currencyConverter } from "@/lib/utils"
 import { CardSkeleton } from "@/components/card-skeleton"
+import { UsdCents } from "@/types"
 
 gql`
   query Dashboard {
@@ -72,7 +73,12 @@ const Dashboard = () => {
               )}
               {totalCollateralSats !== undefined && (
                 <DashboardCard
-                  h1={<Balance currency="usd" amount={totalCollateralUsdCents} />}
+                  h1={
+                    <Balance
+                      currency="usd"
+                      amount={totalCollateralUsdCents as UsdCents}
+                    />
+                  }
                   h2={<Balance currency="btc" amount={totalCollateralSats} />}
                   title="Total Collateral"
                   description="Total bitcoin collateral value at market rate that the bank holds"

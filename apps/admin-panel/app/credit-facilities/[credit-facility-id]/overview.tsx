@@ -12,6 +12,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
 import { CENTS_PER_USD, SATS_PER_BTC, formatDate, formatRole } from "@/lib/utils"
+import { UsdCents } from "@/types"
 
 type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
@@ -71,11 +72,13 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
               <>
                 <DetailItem
                   label={`Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`}
-                  value={<Balance amount={MarginCallPrice} currency="usd" />}
+                  value={<Balance amount={MarginCallPrice as UsdCents} currency="usd" />}
                 />
                 <DetailItem
                   label={`Liquidation Call Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`}
-                  value={<Balance amount={LiquidationCallPrice} currency="usd" />}
+                  value={
+                    <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />
+                  }
                 />
               </>
             ) : (
