@@ -55,16 +55,18 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 />
               }
             />
-            <DetailItem
-              label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
-              valueTestId="collateral-to-reach-target"
-              value={
-                <Balance
-                  amount={creditFacility.collateralToMatchInitialCvl}
-                  currency="btc"
-                />
-              }
-            />
+            {creditFacility.collateralToMatchInitialCvl && (
+              <DetailItem
+                label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
+                valueTestId="collateral-to-reach-target"
+                value={
+                  <Balance
+                    amount={creditFacility.collateralToMatchInitialCvl}
+                    currency="btc"
+                  />
+                }
+              />
+            )}
             {creditFacility.collateral > 0 ? (
               <>
                 <DetailItem
@@ -88,22 +90,24 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 />
               </>
             )}
-            <DetailItem
-              label={
-                <p className="text-textColor-secondary flex items-center">
-                  <div className="mr-2">
-                    Current CVL % <span className="text-sm">(BTC/USD:</span>
-                  </div>
-                  <Balance
-                    className="text-sm"
-                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
-                    currency="usd"
-                  />
-                  <div className="text-sm">)</div>
-                </p>
-              }
-              value={`${creditFacility.currentCvl.total}%`}
-            />
+            {priceInfo?.realtimePrice.usdCentsPerBtc !== undefined && (
+              <DetailItem
+                label={
+                  <p className="text-textColor-secondary flex items-center">
+                    <div className="mr-2">
+                      Current CVL % <span className="text-sm">(BTC/USD:</span>
+                    </div>
+                    <Balance
+                      className="text-sm"
+                      amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                      currency="usd"
+                    />
+                    <div className="text-sm">)</div>
+                  </p>
+                }
+                value={`${creditFacility.currentCvl.total}%`}
+              />
+            )}
 
             {creditFacility.expiresAt && (
               <DetailItem

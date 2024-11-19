@@ -183,19 +183,21 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                     value={<Balance amount={currentCollateral} currency="btc" />}
                     data-testid="current-collateral-balance"
                   />
-                  <DetailItem
-                    label="Expected Collateral"
-                    value={
-                      <Balance
-                        amount={
-                          creditFacilityDetails?.creditFacility
-                            ?.collateralToMatchInitialCvl
-                        }
-                        currency="btc"
-                      />
-                    }
-                    data-testid="expected-collateral-balance"
-                  />
+                  {creditFacilityDetails?.creditFacility?.collateralToMatchInitialCvl && (
+                    <DetailItem
+                      label="Expected Collateral"
+                      value={
+                        <Balance
+                          amount={
+                            creditFacilityDetails?.creditFacility
+                              ?.collateralToMatchInitialCvl
+                          }
+                          currency="btc"
+                        />
+                      }
+                      data-testid="expected-collateral-balance"
+                    />
+                  )}
                 </DetailsGroup>
               </div>
               <div>
