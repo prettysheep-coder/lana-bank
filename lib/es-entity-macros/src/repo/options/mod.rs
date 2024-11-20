@@ -72,6 +72,8 @@ pub struct RepositoryOptions {
     id_ty: Option<syn::Ident>,
     #[darling(default, rename = "err")]
     err_ty: Option<syn::Type>,
+    #[darling(default, rename = "tbl_prefix")]
+    prefix: Option<syn::LitStr>,
     #[darling(default, rename = "tbl")]
     table_name: Option<String>,
     #[darling(default, rename = "events_tbl")]
@@ -97,12 +99,20 @@ impl RepositoryOptions {
             self.err_ty =
                 Some(syn::parse_str("es_entity::EsRepoError").expect("Failed to parse error type"));
         }
+        let prefix = if let Some(prefix) = &self.prefix {
+            prefix.value()
+        } else {
+            String::new()
+        };
         if self.table_name.is_none() {
-            self.table_name =
-                Some(pluralizer::pluralize(&entity_name, 2, false).to_case(Case::Snake));
+            self.table_name = Some(format!(
+                "{prefix}{}",
+                pluralizer::pluralize(&entity_name, 2, false).to_case(Case::Snake)
+            ));
         }
         if self.events_table_name.is_none() {
-            self.events_table_name = Some(format!("{}Events", entity_name).to_case(Case::Snake));
+            self.events_table_name =
+                Some(format!("{prefix}{}Events", entity_name).to_case(Case::Snake));
         }
 
         self.columns
@@ -117,6 +127,10 @@ impl RepositoryOptions {
 
     pub fn table_name(&self) -> &str {
         self.table_name.as_ref().expect("Table name is not set")
+    }
+
+    pub fn table_prefix(&self) -> Option<&syn::LitStr> {
+        self.prefix.as_ref()
     }
 
     pub fn id(&self) -> &syn::Ident {
