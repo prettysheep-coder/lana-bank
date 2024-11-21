@@ -29,8 +29,8 @@ interface DetailItemProps {
   value: React.ReactNode
   className?: string
   onClick?: (() => void) | null
-  hover?: boolean
-  keyTestId?: string
+  showHoverEffect?: boolean
+  labelTestId?: string
   valueTestId?: string
   keyClassName?: string
 }
@@ -44,14 +44,14 @@ const DetailsGroup = ({
 }: DetailsGroupProps) => {
   const childrenArray = React.Children.toArray(children)
   const totalItems = childrenArray.length
-  const columns = totalItems > 2 ? 4 : 2
+  const columns = totalItems > 2 ? "grid-cols-4" : "grid-cols-2"
 
   return (
     <DetailsGroupContext.Provider value={layout}>
       <div
         className={cn(
           detailsGroupVariants({ layout }),
-          layout === "vertical" && `grid-cols-${columns}`,
+          layout === "vertical" && columns,
           className,
         )}
       >
@@ -66,10 +66,9 @@ const DetailItem = ({
   value,
   className,
   onClick = null,
-  hover = false,
-  keyTestId,
+  showHoverEffect = false,
+  labelTestId,
   valueTestId,
-  keyClassName,
 }: DetailItemProps) => {
   const layout = React.useContext(DetailsGroupContext)
 
@@ -79,22 +78,18 @@ const DetailItem = ({
       layout === "vertical"
         ? "flex flex-col justify-between"
         : "flex justify-between items-center p-1",
-      (hover || onClick) && "hover:bg-secondary",
+      (showHoverEffect || onClick) && "hover:bg-secondary",
       className,
     ),
-    label: cn(
-      "text-muted-foreground",
-      layout === "vertical" ? "text-sm" : "font-normal",
-      keyClassName,
-    ),
-    value: cn("text-md", layout === "vertical" ? "" : ""),
+    label: cn("text-muted-foreground", layout === "vertical" ? "text-sm" : "font-normal"),
+    value: cn("text-md"),
   }
 
   return (
     <div
       className={styles.container}
       onClick={onClick || undefined}
-      data-testid={keyTestId}
+      data-testid={labelTestId}
     >
       <div className={styles.label}>{label}</div>
       <div className={styles.value} data-testid={valueTestId}>

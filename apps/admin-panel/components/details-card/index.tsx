@@ -66,7 +66,7 @@ const DetailsCard = ({
           {details.map((detail) => {
             const detailItem = (
               <DetailItem
-                hover={detail.href ? true : false}
+                showHoverEffect={detail.href ? true : false}
                 label={detail.label}
                 value={detail.value}
                 valueTestId={detail.valueTestId}
