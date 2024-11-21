@@ -1,15 +1,15 @@
 #! Auto synced from Shared CI Resources repository
 #! Don't change this file, instead change it in github.com/GaloyMoney/concourse-shared
 
-name: Check Code
+name: Apps Check Code
 
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  check-code:
-    name: Check Code
+  apps-check-code:
+    name: Apps Check Code
     runs-on: ubuntu-latest
     steps:
       - name: Install Nix
@@ -17,6 +17,5 @@ jobs:
       - name: Run the Magic Nix Cache
         uses: DeterminateSystems/magic-nix-cache-action@v8
       - uses: actions/checkout@v4
-      - name: Run check code
-        run: nix develop -c make check-code
-
+      - name: Run apps check code
+        run: nix develop -c make apps-check-code
