@@ -9,7 +9,7 @@ on:
 
 jobs:
   check-code-backend:
-    name: Backend
+    name: Check Code Backend
     runs-on: ubuntu-latest
     steps:
       - name: Install Nix
@@ -21,7 +21,7 @@ jobs:
         run: nix develop -c make check-code
 
   check-code-apps:
-    name: Apps
+    name: Check Code Apps
     runs-on: ubuntu-latest
     steps:
       - name: Install Nix
