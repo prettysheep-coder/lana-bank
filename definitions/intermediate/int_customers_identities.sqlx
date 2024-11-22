@@ -16,7 +16,7 @@ SELECT
 	id_documents[SAFE_OFFSET(0)].number AS passport_number,
 
 FROM ${ref("int_sumsub_applicants")}
-LEFT JOIN ${ref("static_npb4_17_codigos_de_paises_o_territorios")} AS countries
+LEFT JOIN ${ref("static_npb4_17_31_codigos_de_paises_o_territorios")} AS countries
 	ON countries.iso_alpha_3_code = questionnaires[SAFE_OFFSET(0)].country_of_residence_iso_alpha_3_code
-LEFT JOIN ${ref("static_npb4_17_codigos_de_paises_o_territorios")} AS nationalities
+LEFT JOIN ${ref("static_npb4_17_31_codigos_de_paises_o_territorios")} AS nationalities
 	ON nationalities.iso_alpha_3_code = nationality_iso_alpha_3_code
