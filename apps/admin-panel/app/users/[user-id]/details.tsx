@@ -10,7 +10,7 @@ import {
   useUserRevokeRoleMutation,
   GetUserDetailsDocument,
 } from "@/lib/graphql/generated"
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import DetailsCard from "@/components/details-card"
 import { Button } from "@/ui/button"
 import {
   DropdownMenu,
@@ -92,7 +92,7 @@ const RolesDropDown = ({
 }
 
 const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
-  const details: DetailItemType[] = [
+  const details = [
     { label: "Created At", value: formatDate(user.createdAt) },
     { label: "Email", value: user.email },
     {

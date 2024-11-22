@@ -1,6 +1,8 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
+import Link from "next/link"
+
 import { cn } from "@/lib/utils"
 
 const detailsGroupVariants = cva("", {
@@ -25,7 +27,7 @@ interface DetailsGroupProps
   columns?: number
 }
 
-interface DetailItemProps {
+export type DetailItemProps = {
   label: React.ReactNode
   value: React.ReactNode
   className?: string
@@ -34,6 +36,7 @@ interface DetailItemProps {
   labelTestId?: string
   valueTestId?: string
   keyClassName?: string
+  href?: string
 }
 
 const DetailsGroupContext = React.createContext<LayoutType>("vertical")
@@ -45,10 +48,12 @@ const DetailsGroup = ({
   columns,
 }: DetailsGroupProps) => {
   const childrenArray = React.Children.toArray(children)
-  const totalItems = childrenArray.length
-  let gridColumns = totalItems > 2 ? "grid-cols-4" : "grid-cols-2"
-  if (columns) {
-    gridColumns = "grid-cols-" + columns
+  // TODO improve this logic
+  const gridColumns = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
   }
 
   return (
@@ -56,7 +61,12 @@ const DetailsGroup = ({
       <div
         className={cn(
           detailsGroupVariants({ layout }),
-          layout === "vertical" && gridColumns,
+          layout === "vertical" &&
+            (columns
+              ? gridColumns[columns as keyof typeof gridColumns]
+              : childrenArray.length > 2
+                ? "grid-cols-4"
+                : "grid-cols-2"),
           className,
         )}
       >
@@ -74,6 +84,7 @@ const DetailItem = ({
   showHoverEffect = false,
   labelTestId,
   valueTestId,
+  href,
 }: DetailItemProps) => {
   const layout = React.useContext(DetailsGroupContext)
 
@@ -83,14 +94,14 @@ const DetailItem = ({
       layout === "vertical"
         ? "flex flex-col justify-between"
         : "flex justify-between items-center p-1",
-      (showHoverEffect || onClick) && "hover:bg-secondary",
+      (showHoverEffect || onClick || href) && "hover:bg-secondary",
       className,
     ),
     label: cn("text-muted-foreground", layout === "vertical" ? "text-sm" : "font-normal"),
     value: cn("text-md"),
   }
 
-  return (
+  const content = (
     <div
       className={styles.container}
       onClick={onClick || undefined}
@@ -102,6 +113,16 @@ const DetailItem = ({
       </div>
     </div>
   )
+
+  if (href) {
+    return (
+      <Link href={href} className="no-underline hover:no-underline">
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }
 
 export { DetailItem, DetailsGroup, type LayoutType }

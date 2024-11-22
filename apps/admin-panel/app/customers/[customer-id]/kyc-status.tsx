@@ -8,7 +8,7 @@ import {
   useGetKycStatusForCustomerQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import DetailsCard from "@/components/details-card"
 import { Skeleton } from "@/ui/skeleton"
 import { removeUnderscore } from "@/lib/utils"
 
@@ -59,7 +59,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
 
   if (loading) return <Skeleton />
 
-  const details: DetailItemType[] = [
+  const details = [
     {
       label: "Level",
       value: removeUnderscore(data?.customer?.level),
