@@ -1,0 +1,13 @@
+[package]
+name = "sim-bootstrap"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+lava-app = { path = "../app" }
+
+anyhow = { workspace = true }
