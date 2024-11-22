@@ -6,7 +6,7 @@ import { WithdrawalStatusBadge } from "../status-badge"
 import { WithdrawalConfirmDialog } from "../confirm"
 import { WithdrawalCancelDialog } from "../cancel"
 
-import DetailsCard from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import {
@@ -35,7 +35,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
   const [openDenialDialog, setOpenDenialDialog] = useState(false)
 
-  const details = [
+  const details: DetailItemProps[] = [
     {
       label: "Customer Email",
       value: withdrawal.customer.email,
