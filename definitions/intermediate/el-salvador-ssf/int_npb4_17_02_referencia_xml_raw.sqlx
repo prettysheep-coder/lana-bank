@@ -9,7 +9,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH loans_and_credit_facilities AS (
 
-	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
+	SELECT customer_id, loan_id, initialized_at, end_date, incurrence_interval, accrual_interval, annual_rate,
 		most_recent_interest_payment_timestamp,
 		most_recent_principal_payment_timestamp AS most_recent_capital_payment_timestamp,
 		principal AS loan_amount,
@@ -23,7 +23,7 @@ WITH loans_and_credit_facilities AS (
 
 	UNION ALL
 
-	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
+	SELECT customer_id, loan_id, initialized_at, end_date, incurrence_interval, accrual_interval, annual_rate,
 		most_recent_interest_payment_timestamp,
 		most_recent_disbursement_payment_timestamp AS most_recent_capital_payment_timestamp,
 		facility AS loan_amount,
@@ -49,7 +49,7 @@ SELECT
   , remaining_interest_balance AS `saldo_vigente_i`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
   , CAST(NULL AS NUMERIC) AS `abono_deposito`
-  , DATE(start_timestamp) AS `fecha_otorgamiento`
+  , DATE(initialized_at) AS `fecha_otorgamiento`
   , DATE(end_date) AS `fecha_vencimiento`
   , CAST(NULL AS DATE) AS `fecha_castigo`
   , (SELECT code FROM ${ref("static_npb4_17_07_estados_de_la_referencia")} WHERE description = "Vigente") AS `estado_credito`
