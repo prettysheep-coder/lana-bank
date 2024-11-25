@@ -1,0 +1,13 @@
+config {
+	tags: ["current"],
+	type: "table",
+	description: "Each row represents a unique approved credit facility.",
+	assertions: {
+		uniqueKey: ["credit_facility_id"],
+		nonNull: ["credit_facility_id"],
+	},
+}
+
+SELECT *
+
+FROM ${ref("int_approved_credit_facilities")}(TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), DAY))
