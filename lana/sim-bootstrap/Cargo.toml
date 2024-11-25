@@ -10,6 +10,8 @@ fail-on-warnings = []
 [dependencies]
 lana-app = { path = "../app" }
 
+sim-time = { path = "../../lib/sim-time" }
+
 anyhow = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }

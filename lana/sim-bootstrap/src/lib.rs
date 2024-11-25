@@ -12,7 +12,16 @@ use lana_app::{
 pub async fn run(superuser_email: String, app: &LavaApp) -> anyhow::Result<()> {
     let sub = superuser_subject(&superuser_email, app).await?;
     initial_setup(&sub, app).await?;
-    bootstrap_credit_facility(&sub, app).await?;
+    let _ = bootstrap_credit_facility(&sub, app).await?;
+    // add accrual events to CreditEvent public events
+    // spawn tokio task that waits for public events -> reacts by executing a repayment
+    //
+    // once that is working genericise to be able to create N credit facilities
+    // inject config for N credit facilities
+    //
+    println!("waiting for real time");
+    sim_time::wait_until_realtime().await;
+    println!("done");
     Ok(())
 }
 
@@ -75,6 +84,7 @@ pub async fn bootstrap_credit_facility(
     app.credit_facilities()
         .update_collateral(sub, id, Satoshis::try_from_btc(dec!(230))?)
         .await?;
+    sim_time::sleep(std::time::Duration::from_secs(60 * 60 * 48)).await;
     app.credit_facilities()
         .initiate_disbursal(sub, id, UsdCents::try_from_usd(dec!(1_000_000))?)
         .await?;

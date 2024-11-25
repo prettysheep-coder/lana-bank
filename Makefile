@@ -48,6 +48,9 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
+	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+
+run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 check-code: sdl
