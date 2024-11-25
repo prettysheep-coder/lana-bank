@@ -80,11 +80,11 @@ pub async fn bootstrap_credit_facility(
         )
         .await?;
     let id = cf.id;
-    tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     app.credit_facilities()
         .update_collateral(sub, id, Satoshis::try_from_btc(dec!(230))?)
         .await?;
-    sim_time::sleep(std::time::Duration::from_secs(60 * 60 * 48)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     app.credit_facilities()
         .initiate_disbursal(sub, id, UsdCents::try_from_usd(dec!(1_000_000))?)
         .await?;
