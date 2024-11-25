@@ -8,6 +8,9 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-lava-app = { path = "../app" }
+lana-app = { path = "../app" }
 
 anyhow = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
+tokio = { workspace = true }
