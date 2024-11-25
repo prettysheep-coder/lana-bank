@@ -1,5 +1,4 @@
 config {
-	tags: ["current"],
 	type: "table",
 	description: "Each row represents a unique transaction.",
 	assertions: {
