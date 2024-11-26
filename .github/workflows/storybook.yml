@@ -1,0 +1,24 @@
+name: Storybook Publish
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  storybook-publish:
+    name: Storybook Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: actions/checkout@v4
+      - name: Run storybook publish
+        run: nix develop -c "cd apps/admin-panel && pnpm run build-storybook"
+      - uses: jsmrcaga/action-netlify-deploy@v2.0.0
+        with:
+          build_directory: apps/admin-panel/storybook-static
+          deploy_alias: 'pr-${{ github.event.pull_request.number }}-commit-${{ github.sha }}'
+          NETLIFY_AUTH_TOKEN: ${{ secrets.MY_TOKEN_SECRET }}
+          NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
