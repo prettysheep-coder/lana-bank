@@ -28,7 +28,7 @@ jobs:
         id: netlify_deploy
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
         run: |
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${{ github.sha }}"
           netlify deploy \
