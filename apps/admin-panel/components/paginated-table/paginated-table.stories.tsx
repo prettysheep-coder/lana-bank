@@ -9,15 +9,15 @@ type Person = {
   id: string
   name: string
   email: string
-  status: "ACTIVE" | "PENDING" | "INACTIVE"
-  role: "ADMIN" | "USER" | "MANAGER"
+  status: "active" | "pending" | "inactive"
+  role: "admin" | "user" | "manager"
   joinDate: string
 }
 
 const generatePeople = (count: number): Person[] =>
   Array.from({ length: count }, () => ({
     id: faker.string.uuid(),
-    name: faker.name.fullName(),
+    name: faker.person.fullName(),
     email: faker.internet.email(),
     status: faker.helpers.arrayElement(["active", "pending", "inactive"]),
     role: faker.helpers.arrayElement(["admin", "user", "manager"]),
@@ -167,7 +167,7 @@ export const WithSortingAndFiltering: Story = {
           {
             key: "role",
             label: "Role",
-            filterValues: ["ADMIN", "USER", "MANAGER"],
+            filterValues: ["admin", "user", "manager"],
           },
         ]}
       />

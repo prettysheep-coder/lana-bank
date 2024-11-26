@@ -23,7 +23,7 @@ const meta = {
 }
 
 export default meta
-type Story = StoryObj<typeof DataTable>
+type Story = StoryObj<typeof DataTable<User>>
 
 const generateUsers = (count: number): User[] =>
   Array.from({ length: count }, (_, i) => ({
@@ -35,51 +35,71 @@ const generateUsers = (count: number): User[] =>
     lastLogin: faker.date.past().toISOString().split("T")[0],
   }))
 
-const users = generateUsers(10)
-
-const commonColumns = [
-  { key: "name", header: "Name" },
-  { key: "email", header: "Email" },
-  { key: "role", header: "Role" },
-]
-
-const commonArgs = {
-  columns: commonColumns,
-  data: users,
+export const Basic: Story = {
+  args: {
+    columns: [
+      { key: "name", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "role", header: "Role" },
+    ],
+    data: generateUsers(10),
+  },
 }
 
-const createStory = (overrides: Partial<typeof commonArgs>): Story => ({
-  args: { ...commonArgs, ...overrides },
-})
+export const Loading: Story = {
+  args: {
+    columns: [
+      { key: "name", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "role", header: "Role" },
+    ],
+    loading: true,
+  },
+}
 
-export const Basic = createStory({})
-export const Loading = createStory({ data: [], loading: true })
-export const Empty = createStory({ data: [] })
-export const Interactive = createStory({
-  onRowClick: (item: User) => alert(`Clicked row with ID: ${item.id}`),
-})
-export const FullFeatured = createStory({
-  columns: [
-    { key: "name", header: "Name", width: "200px" },
-    { key: "email", header: "Email", width: "250px" },
-    {
-      key: "status",
-      header: "Status",
-      render: (status: User["status"]) => (
-        <span
-          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize
+export const Empty: Story = {
+  args: {
+    data: [],
+  },
+}
+
+export const Interactive: Story = {
+  args: {
+    columns: [
+      { key: "name", header: "Name" },
+      { key: "email", header: "Email" },
+      { key: "role", header: "Role" },
+    ],
+    data: generateUsers(10),
+    onRowClick: (item: User) => alert(`Clicked row with ID: ${item.id}`),
+  },
+}
+
+export const FullFeatured: Story = {
+  args: {
+    data: generateUsers(10),
+    columns: [
+      { key: "name", header: "Name", width: "200px" },
+      { key: "email", header: "Email", width: "250px" },
+      {
+        key: "status",
+        header: "Status",
+        render: (status: User["status"]) => (
+          <span
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize
           ${status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-        >
-          {status}
-        </span>
-      ),
-    },
-    {
-      key: "lastLogin",
-      header: "Last Login",
-      align: "right",
-      render: (date: string) => new Date(date).toLocaleDateString(),
-    },
-  ],
-  onRowClick: (item: User) => alert(`Clicked row with ID: ${item.id}`),
-})
+          >
+            {status}
+          </span>
+        ),
+      },
+      {
+        key: "lastLogin",
+        header: "Last Login",
+        align: "right",
+        render: (date: string) => new Date(date).toLocaleDateString(),
+      },
+    ],
+    onRowClick: (item: User) => alert(`Clicked row with ID: ${item.id}`),
+  },
+}
