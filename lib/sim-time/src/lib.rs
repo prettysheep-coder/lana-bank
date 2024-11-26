@@ -162,6 +162,7 @@ mod tests {
                 start_at: Utc::now(),
                 tick_interval_ms: 10,
                 tick_duration_secs: StdDuration::from_secs(10 * 24 * 60 * 60), // 10 days in seconds
+                transform_to_realtime: false,
             }),
         };
 
