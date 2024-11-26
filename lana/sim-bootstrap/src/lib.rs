@@ -4,7 +4,10 @@
 mod config;
 
 use futures::StreamExt;
+use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
+
+use std::collections::HashSet;
 
 use lana_app::{
     app::LanaApp,
@@ -15,14 +18,23 @@ use lana_events::*;
 
 pub use config::*;
 
-pub async fn run(superuser_email: String, app: &LanaApp) -> anyhow::Result<()> {
+pub async fn run(
+    superuser_email: String,
+    app: &LanaApp,
+    config: BootstrapConfig,
+) -> anyhow::Result<()> {
     let sub = superuser_subject(&superuser_email, app).await?;
-    initial_setup(&sub, app).await?;
-    let id = bootstrap_credit_facility(&sub, app).await?;
+    initial_setup(&sub, app, &config).await?;
+
+    let mut facility_ids = HashSet::new();
+    for _ in 0..config.num_facilities {
+        let id = bootstrap_credit_facility(&sub, app).await?;
+        facility_ids.insert(id);
+    }
 
     let spawned_app = app.clone();
     let _handle = tokio::spawn(async move {
-        let _ = process_repayment(sub, id, spawned_app).await;
+        let _ = process_repayment(sub, facility_ids, spawned_app).await;
     });
 
     // once that is working genericise to be able to create N credit facilities
@@ -34,32 +46,38 @@ pub async fn run(superuser_email: String, app: &LanaApp) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn process_repayment(sub: Subject, id: CreditFacilityId, app: LanaApp) -> anyhow::Result<()> {
+async fn process_repayment(
+    sub: Subject,
+    facility_ids: HashSet<CreditFacilityId>,
+    app: LanaApp,
+) -> anyhow::Result<()> {
     let mut stream = app.outbox().listen_persisted(None).await?;
 
     while let Some(msg) = stream.next().await {
         match &msg.payload {
             Some(LanaEvent::Credit(CreditEvent::AccrualExecuted {
                 id: cf_id, amount, ..
-            })) if *cf_id == id && amount > &UsdCents::ZERO => {
+            })) if facility_ids.contains(cf_id) && amount > &UsdCents::ZERO => {
                 let _ = app
                     .credit_facilities()
-                    .record_payment(&sub, id, *amount)
+                    .record_payment(&sub, *cf_id, *amount)
                     .await;
                 let mut cf = app
                     .credit_facilities()
-                    .find_by_id(&sub, id)
+                    .find_by_id(&sub, *cf_id)
                     .await?
                     .expect("cf exists");
                 if cf.interest_accrual_in_progress().is_none() {
                     app.credit_facilities()
-                        .record_payment(&sub, id, cf.outstanding().total())
+                        .record_payment(&sub, cf.id, cf.outstanding().total())
                         .await?;
-                    app.credit_facilities().complete_facility(&sub, id).await?;
+                    app.credit_facilities()
+                        .complete_facility(&sub, cf.id)
+                        .await?;
                 }
             }
             Some(LanaEvent::Credit(CreditEvent::FacilityCompleted { id: cf_id, .. }))
-                if *cf_id == id =>
+                if facility_ids.contains(cf_id) =>
             {
                 break;
             }
@@ -70,7 +88,11 @@ async fn process_repayment(sub: Subject, id: CreditFacilityId, app: LanaApp) -> 
     Ok(())
 }
 
-pub async fn initial_setup(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
+pub async fn initial_setup(
+    sub: &Subject,
+    app: &LanaApp,
+    config: &BootstrapConfig,
+) -> anyhow::Result<()> {
     let values = std_terms();
     let _ = app
         .terms_templates()
@@ -99,14 +121,11 @@ pub async fn initial_setup(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
         .await?
         .expect("Customer not found");
 
+    let deposit_amount =
+        UsdCents::try_from_usd(Decimal::from(config.num_facilities) * dec!(1_000_000))?;
     let _ = app
         .deposits()
-        .record(
-            sub,
-            customer.id,
-            UsdCents::try_from_usd(dec!(1_000_000))?,
-            None,
-        )
+        .record(sub, customer.id, deposit_amount, None)
         .await?;
     Ok(())
 }
