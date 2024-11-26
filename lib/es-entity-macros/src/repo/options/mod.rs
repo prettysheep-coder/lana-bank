@@ -100,7 +100,7 @@ impl RepositoryOptions {
                 Some(syn::parse_str("es_entity::EsRepoError").expect("Failed to parse error type"));
         }
         let prefix = if let Some(prefix) = &self.prefix {
-            prefix.value()
+            format!("{}_", prefix.value())
         } else {
             String::new()
         };
@@ -150,18 +150,12 @@ impl RepositoryOptions {
     }
 
     pub fn cursor_mod(&self) -> syn::Ident {
-        let name = format!(
-            "{}_cursor",
-            pluralizer::pluralize(self.table_name(), 1, false,)
-        );
+        let name = format!("{}Cursor", self.entity_ident).to_case(Case::Snake);
         syn::Ident::new(&name, proc_macro2::Span::call_site())
     }
 
     pub fn repo_types_mod(&self) -> syn::Ident {
-        let name = format!(
-            "{}_repo_types",
-            pluralizer::pluralize(self.table_name(), 1, false,)
-        );
+        let name = format!("{}RepoTypes", self.entity_ident).to_case(Case::Snake);
         syn::Ident::new(&name, proc_macro2::Span::call_site())
     }
 
