@@ -1,12 +1,12 @@
-name: Storybook Publish
+name: Storybook
 
 on:
   pull_request:
     branches: [main]
 
 jobs:
-  storybook-publish:
-    name: Storybook Publish
+  storybook-preview:
+    name: Storybook Preview
     runs-on: ubuntu-latest
     steps:
       - name: Install Nix
