@@ -24,7 +24,6 @@ macro_rules! idempotency_guard {
 
 #[macro_export]
 macro_rules! es_query {
-    // Pattern 1: With prefix, query, and no args
     ($prefix:literal, $db:expr, $query:expr) => ({
         $crate::expand_es_query!(
             ignore_prefix = $prefix,
@@ -32,8 +31,6 @@ macro_rules! es_query {
             sql = $query
         )
     });
-
-    // Pattern 2: With prefix, query, and args
     ($prefix:literal, $db:expr, $query:expr, $($args:tt)*) => ({
         $crate::expand_es_query!(
             ignore_prefix = $prefix,
@@ -42,16 +39,12 @@ macro_rules! es_query {
             args = [$($args)*]
         )
     });
-
-    // Pattern 3: Original without prefix, just query
     ($db:expr, $query:expr) => ({
         $crate::expand_es_query!(
             executor = $db,
             sql = $query
         )
     });
-
-    // Pattern 4: Original without prefix, with query and args
     ($db:expr, $query:expr, $($args:tt)*) => ({
         $crate::expand_es_query!(
             executor = $db,
