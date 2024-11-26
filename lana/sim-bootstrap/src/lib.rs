@@ -1,6 +1,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod config;
+
 use futures::StreamExt;
 use rust_decimal_macros::dec;
 
@@ -11,17 +13,18 @@ use lana_app::{
 };
 use lana_events::*;
 
-pub async fn run(superuser_email: String, app: LanaApp) -> anyhow::Result<()> {
-    let sub = superuser_subject(&superuser_email, app.clone()).await?;
-    initial_setup(&sub, app.clone()).await?;
-    let id = bootstrap_credit_facility(&sub, app.clone()).await?;
+pub use config::*;
 
+pub async fn run(superuser_email: String, app: &LanaApp) -> anyhow::Result<()> {
+    let sub = superuser_subject(&superuser_email, app).await?;
+    initial_setup(&sub, app).await?;
+    let id = bootstrap_credit_facility(&sub, app).await?;
+
+    let spawned_app = app.clone();
     let _handle = tokio::spawn(async move {
-        let _ = process_repayment(sub, id, app).await;
+        let _ = process_repayment(sub, id, spawned_app).await;
     });
-    // add accrual events to CreditEvent public events
-    // spawn tokio task that waits for public events -> reacts by executing a repayment
-    //
+
     // once that is working genericise to be able to create N credit facilities
     // inject config for N credit facilities
     //
@@ -67,7 +70,7 @@ async fn process_repayment(sub: Subject, id: CreditFacilityId, app: LanaApp) -> 
     Ok(())
 }
 
-pub async fn initial_setup(sub: &Subject, app: LanaApp) -> anyhow::Result<()> {
+pub async fn initial_setup(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
     let values = std_terms();
     let _ = app
         .terms_templates()
@@ -108,7 +111,7 @@ pub async fn initial_setup(sub: &Subject, app: LanaApp) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn superuser_subject(superuser_email: &String, app: LanaApp) -> anyhow::Result<Subject> {
+pub async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::Result<Subject> {
     let superuser = app
         .users()
         .find_by_email(None, superuser_email)
@@ -119,7 +122,7 @@ pub async fn superuser_subject(superuser_email: &String, app: LanaApp) -> anyhow
 
 pub async fn bootstrap_credit_facility(
     sub: &Subject,
-    app: LanaApp,
+    app: &LanaApp,
 ) -> anyhow::Result<CreditFacilityId> {
     let customer_email = "bootstrap@lana.com".to_string();
     let customer = app

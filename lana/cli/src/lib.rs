@@ -78,7 +78,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
 
     #[cfg(feature = "sim-bootstrap")]
     {
-        sim_bootstrap::run(superuser_email.to_string(), admin_app.clone()).await?;
+        sim_bootstrap::run(superuser_email.to_string(), &admin_app).await?;
     }
 
     let admin_send = send.clone();
