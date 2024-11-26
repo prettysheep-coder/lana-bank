@@ -9,6 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 lana-app = { path = "../app" }
+lana-events = { path = "../events" }
 
 sim-time = { path = "../../lib/sim-time" }
 
@@ -16,3 +17,5 @@ anyhow = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 tokio = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }

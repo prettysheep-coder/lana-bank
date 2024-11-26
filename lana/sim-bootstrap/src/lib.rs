@@ -1,18 +1,24 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+use futures::StreamExt;
 use rust_decimal_macros::dec;
 
 use lana_app::{
-    app::LavaApp,
+    app::LanaApp,
     primitives::{CreditFacilityId, Satoshis, Subject, UsdCents},
     terms::{Duration, InterestInterval, TermValues},
 };
+use lana_events::*;
 
-pub async fn run(superuser_email: String, app: &LavaApp) -> anyhow::Result<()> {
-    let sub = superuser_subject(&superuser_email, app).await?;
-    initial_setup(&sub, app).await?;
-    let _ = bootstrap_credit_facility(&sub, app).await?;
+pub async fn run(superuser_email: String, app: LanaApp) -> anyhow::Result<()> {
+    let sub = superuser_subject(&superuser_email, app.clone()).await?;
+    initial_setup(&sub, app.clone()).await?;
+    let id = bootstrap_credit_facility(&sub, app.clone()).await?;
+
+    let _handle = tokio::spawn(async move {
+        let _ = process_repayment(sub, id, app).await;
+    });
     // add accrual events to CreditEvent public events
     // spawn tokio task that waits for public events -> reacts by executing a repayment
     //
@@ -25,12 +31,49 @@ pub async fn run(superuser_email: String, app: &LavaApp) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub async fn initial_setup(sub: &Subject, app: &LavaApp) -> anyhow::Result<()> {
+async fn process_repayment(sub: Subject, id: CreditFacilityId, app: LanaApp) -> anyhow::Result<()> {
+    let mut stream = app.outbox().listen_persisted(None).await?;
+
+    while let Some(msg) = stream.next().await {
+        match &msg.payload {
+            Some(LanaEvent::Credit(CreditEvent::AccrualExecuted {
+                id: cf_id, amount, ..
+            })) if *cf_id == id && amount > &UsdCents::ZERO => {
+                let _ = app
+                    .credit_facilities()
+                    .record_payment(&sub, id, *amount)
+                    .await;
+                let mut cf = app
+                    .credit_facilities()
+                    .find_by_id(&sub, id)
+                    .await?
+                    .expect("cf exists");
+                if cf.interest_accrual_in_progress().is_none() {
+                    app.credit_facilities()
+                        .record_payment(&sub, id, cf.outstanding().total())
+                        .await?;
+                    app.credit_facilities().complete_facility(&sub, id).await?;
+                }
+            }
+            Some(LanaEvent::Credit(CreditEvent::FacilityCompleted { id: cf_id, .. }))
+                if *cf_id == id =>
+            {
+                break;
+            }
+            _ => {}
+        }
+    }
+
+    Ok(())
+}
+
+pub async fn initial_setup(sub: &Subject, app: LanaApp) -> anyhow::Result<()> {
     let values = std_terms();
     let _ = app
         .terms_templates()
         .create_terms_template(sub, "bootstrap".to_string(), values)
         .await;
+
     let _ = app
         .customers()
         .create(
@@ -47,10 +90,25 @@ pub async fn initial_setup(sub: &Subject, app: &LavaApp) -> anyhow::Result<()> {
             "bootstrap-whale".to_string(),
         )
         .await;
+    let customer = app
+        .customers()
+        .find_by_email(sub, "bootstrap@lana.com".to_string())
+        .await?
+        .expect("Customer not found");
+
+    let _ = app
+        .deposits()
+        .record(
+            sub,
+            customer.id,
+            UsdCents::try_from_usd(dec!(1_000_000))?,
+            None,
+        )
+        .await?;
     Ok(())
 }
 
-pub async fn superuser_subject(superuser_email: &String, app: &LavaApp) -> anyhow::Result<Subject> {
+pub async fn superuser_subject(superuser_email: &String, app: LanaApp) -> anyhow::Result<Subject> {
     let superuser = app
         .users()
         .find_by_email(None, superuser_email)
@@ -61,7 +119,7 @@ pub async fn superuser_subject(superuser_email: &String, app: &LavaApp) -> anyho
 
 pub async fn bootstrap_credit_facility(
     sub: &Subject,
-    app: &LavaApp,
+    app: LanaApp,
 ) -> anyhow::Result<CreditFacilityId> {
     let customer_email = "bootstrap@lana.com".to_string();
     let customer = app
