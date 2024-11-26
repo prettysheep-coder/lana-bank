@@ -25,3 +25,33 @@ generates:
         Satoshis: "types#Satoshis"
         SignedUsdCents: "types#SignedUsdCents"
         SignedSatoshis: "types#SignedSatoshis"
+  ./lib/graphql/generated/mocks.ts:
+    plugins:
+      - add:
+          content: |
+            import { faker } from '@faker-js/faker';
+            import { UsdCents, Satoshis, SignedUsdCents, SignedSatoshis } from 'types';
+
+            const mockUsdCents = () => faker.number.int({ min: 0, max: 100000 }) as UsdCents;
+            const mockSatoshis = () => faker.number.int({ min: 0, max: 100000 }) as Satoshis;
+            const mockSignedUsdCents = () => faker.number.int({ min: -100000, max: 100000 }) as SignedUsdCents;
+            const mockSignedSatoshis = () => faker.number.int({ min: -100000, max: 100000 }) as SignedSatoshis;
+
+            export const generateMocks = {
+              UsdCents: mockUsdCents,
+              Satoshis: mockSatoshis,
+              SignedUsdCents: mockSignedUsdCents,
+              SignedSatoshis: mockSignedSatoshis
+            };
+      - typescript-mock-data:
+          typesFile: "./index.ts"
+          prefix: "mock"
+          terminateCircularRelationships: true
+          maxDepth: 2
+          scalars:
+            UsdCents: "generateMocks.UsdCents()"
+            Satoshis: "generateMocks.Satoshis()"
+            SignedUsdCents: "generateMocks.SignedUsdCents()"
+            SignedSatoshis: "generateMocks.SignedSatoshis()"
+      - add:
+          content: "\/* eslint-disable *\/"
