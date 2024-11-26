@@ -12,6 +12,3 @@ jobs:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Tilt CI
       run: nix develop -c make tilt-in-ci
-      env:
-        AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-        AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
