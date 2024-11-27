@@ -3,7 +3,10 @@ config {
 	description: "Each row represents a unique transaction.",
 	assertions: {
 		uniqueKey: ["transaction_id"],
-		nonNull: ["transaction_id"],
+		nonNull: ["transaction_id", "transaction_type_id", "transaction_entry_ids"],
+		rowConditions: [
+			"ARRAY_LENGTH(transaction_entry_ids) > 1"
+		],
 	},
 }
 

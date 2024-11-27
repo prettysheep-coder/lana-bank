@@ -3,7 +3,12 @@ config {
 	description: "Each row represents a unique transaction entry.",
 	assertions: {
 		uniqueKey: ["transaction_entry_id"],
-		nonNull: ["transaction_entry_id"],
+		nonNull: ["transaction_entry_id", "recorded_at", "account_id", "currency", "direction", "journal_id", "transaction_id", "layer", "sequence", "units"],
+		rowConditions: [
+			"direction IN ('debit', 'credit')",
+			"layer IN ('Settled', 'Pending')",
+			"units >= 0",
+		],
 	},
 }
 
