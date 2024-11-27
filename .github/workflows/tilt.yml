@@ -18,3 +18,5 @@ jobs:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Tilt CI
       run: nix develop -c make tilt-in-ci
+      env:
+        TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
