@@ -2,6 +2,8 @@
 // @ts-nocheck
 import { UsdCents, Satoshis, SignedUsdCents, SignedSatoshis } from "types"
 
+faker.seed(12345)
+
 const getRandomEnumValue = <T extends Record<string, any>>(enumObj: T): T[keyof T] => {
   const enumValues = Object.values(enumObj).filter(
     (v) => typeof v === "string",

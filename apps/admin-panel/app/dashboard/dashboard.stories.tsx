@@ -1,9 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import { ApolloError } from "@apollo/client"
 import { MockedProvider } from "@apollo/client/testing"
-import { faker } from "@faker-js/faker"
 
 import Dashboard from "./page"
+
+import faker from "@/.storybook/faker"
 
 import {
   DashboardDocument,

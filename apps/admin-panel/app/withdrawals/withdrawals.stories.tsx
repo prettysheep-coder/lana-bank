@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import { MockedProvider } from "@apollo/client/testing"
-import { faker } from "@faker-js/faker"
 
 import Withdrawals from "./page"
+
+import faker from "@/.storybook/faker"
 
 import { WithdrawalsDocument } from "@/lib/graphql/generated"
 import { mockWithdrawal, mockPageInfo } from "@/lib/graphql/generated/mocks"
