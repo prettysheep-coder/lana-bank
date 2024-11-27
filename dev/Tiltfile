@@ -57,6 +57,7 @@ local_resource(
     resource_deps=[
         "next-auth-pg",
         "mailhog",
+        "core",
     ],
     links = [
         link("http://localhost:4455/admin-panel", "admin-panel"),
