@@ -21,6 +21,6 @@ jobs:
       with:
         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
     - name: Tilt CI
-      run: nix develop -c make run-tf tilt-in-ci
+      run: nix develop -c make reset-deps tilt-in-ci
       env:
         TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
