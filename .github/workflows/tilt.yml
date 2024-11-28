@@ -16,6 +16,10 @@ jobs:
     - uses: cachix/install-nix-action@v22
       with:
         github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - id: "gcp-auth"
+      uses: "google-github-actions/auth@v2"
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
     - name: Tilt CI
       run: nix develop -c make run-tf tilt-in-ci
       env:
