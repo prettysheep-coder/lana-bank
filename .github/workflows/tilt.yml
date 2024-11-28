@@ -20,7 +20,9 @@ jobs:
       uses: "google-github-actions/auth@v2"
       with:
         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+    - name: Reset Deps
+      run: nix develop -c make reset-deps
     - name: Tilt CI
-      run: nix develop -c make reset-deps tilt-in-ci
+      run: nix develop -c make tilt-in-ci
       env:
         TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
