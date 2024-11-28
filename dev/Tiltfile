@@ -3,7 +3,7 @@ is_ci = sys.argv[1] == "ci"
 docker_compose("../docker-compose.yml", project_name="lana-bank")
 docker_groups = {
     "auth": ["kratos", "kratos-pg", "oathkeeper"],
-    "otel": ["otel-agent"],
+#   "otel": ["otel-agent"],
     "cala": ["cala", "cala-pg"],
     "core": ["core-pg"],
     "dev": ["mailhog", "next-auth-pg"],
