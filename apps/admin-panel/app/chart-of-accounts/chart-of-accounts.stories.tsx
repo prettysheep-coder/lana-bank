@@ -8,7 +8,10 @@ import {
   GetOffBalanceSheetChartOfAccountsDocument,
 } from "@/lib/graphql/generated"
 
-import { regularChartOfAccountsMockData, offBalanceSheetChartOfAccountsMockData } from "@/.storybook/mocks"
+import {
+  regularChartOfAccountsMockData,
+  offBalanceSheetChartOfAccountsMockData,
+} from "@/.storybook/mocks"
 
 const createMocks = () => [
   {
@@ -24,8 +27,6 @@ const createMocks = () => [
     result: offBalanceSheetChartOfAccountsMockData,
   },
 ]
-
-console.log({ data: createMocks() })
 
 const ChartOfAccountsStory = () => {
   const mocks = createMocks()
