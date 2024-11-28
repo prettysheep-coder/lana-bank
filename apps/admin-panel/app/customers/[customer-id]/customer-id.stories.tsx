@@ -62,7 +62,7 @@ const baseMocks = [
 ]
 
 const meta = {
-  title: "Pages/Customer",
+  title: "Pages/Customers/Customer/Details",
   component: Customer,
   parameters: {
     layout: "fullscreen",
