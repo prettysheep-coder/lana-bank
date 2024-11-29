@@ -95,7 +95,7 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 #update_tokens
                 let n_events = {
                     let events = Self::extract_events(entity);
-                    self.persist_events(op, std::iter::once(events)).await?
+                    self.persist_events(op, events).await?
                 };
 
                 self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
@@ -178,7 +178,7 @@ mod tests {
 
                 let n_events = {
                     let events = Self::extract_events(entity);
-                    self.persist_events(op, std::iter::once(events)).await?
+                    self.persist_events(op, events).await?
                 };
 
                 self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
@@ -241,7 +241,7 @@ mod tests {
 
                 let n_events = {
                     let events = Self::extract_events(entity);
-                    self.persist_events(op, std::iter::once(events)).await?
+                    self.persist_events(op, events).await?
                 };
 
                 self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
