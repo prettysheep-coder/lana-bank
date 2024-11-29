@@ -20,10 +20,10 @@ WITH line_of_credit_terms AS (
 
 	SELECT
 		  *
-		, TIMESTAMP_DIFF(period_end_date, period_start_date, DAY) AS days_in_the_period
-		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, period_start_date, DAY), days_per_year) AS years_in_the_period
-		, CAST(TIMESTAMP_DIFF(period_end_date, now_ts, DAY) AS FLOAT64) AS days_from_now
-		, SAFE_DIVIDE(TIMESTAMP_DIFF(period_end_date, now_ts, DAY), 365.0) AS years_from_now
+		, TIMESTAMP_DIFF(DATE(period_end_date), DATE(period_start_date), DAY) + 1 AS days_in_the_period
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(DATE(period_end_date), DATE(period_start_date), DAY) + 1, days_per_year) AS years_in_the_period
+		, CAST(TIMESTAMP_DIFF(DATE(period_end_date), DATE(now_ts), DAY) + 1 AS FLOAT64) AS days_from_now
+		, SAFE_DIVIDE(TIMESTAMP_DIFF(DATE(period_end_date), DATE(now_ts), DAY) + 1, 365.0) AS years_from_now
 	FROM interest_payment_data
 
 ), projected_principal_payment AS (

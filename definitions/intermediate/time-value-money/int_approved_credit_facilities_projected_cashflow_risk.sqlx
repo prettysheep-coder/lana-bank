@@ -13,6 +13,7 @@ WITH projected_interest_payment AS (
 		, loc_daily_interest_rate
 		, days_per_year
 		, disbursement_amount_in_cents
+		, days_in_the_period
 		, days_from_now
 		, years_from_now
 		, amount_in_cents
@@ -30,6 +31,7 @@ WITH projected_interest_payment AS (
 		, loc_daily_interest_rate
 		, days_per_year
 		, disbursement_amount_in_cents
+		, days_in_the_period
 		, days_from_now
 		, years_from_now
 		, amount_in_cents
@@ -53,6 +55,7 @@ WITH projected_interest_payment AS (
 		, loc_daily_interest_rate
 		, days_per_year
 		, disbursement_amount_in_cents
+		, ARRAY_AGG(days_in_the_period) AS days_in_the_period
 		, ARRAY_AGG(days_from_now) AS days_from_now
 		, ARRAY_AGG(years_from_now) AS years_from_now
 		, ARRAY_AGG(amount_in_cents) AS cash_flows
