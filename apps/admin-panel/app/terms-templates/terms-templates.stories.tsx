@@ -3,14 +3,28 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import TermPage from "./page"
 
-import faker from "@/.storybook/faker"
-
 import { TermsTemplatesDocument } from "@/lib/graphql/generated"
 import { mockTermsTemplate } from "@/lib/graphql/generated/mocks"
 
+const templateNames = [
+  "High Risk",
+  "High Risk",
+  "Medium Risk",
+  "Medium Risk",
+  "Preferred Customer",
+  "Preferred Customer",
+  "Prime Customer",
+  "Prime Customer",
+  "Institutional",
+  "Institutional",
+]
+
 const createRandomTermsTemplates = () => {
-  const count = faker.number.int({ min: 3, max: 10 })
-  return Array.from({ length: count }, () => mockTermsTemplate())
+  return templateNames.map((name) =>
+    mockTermsTemplate({
+      name,
+    }),
+  )
 }
 
 const baseMocks = [
