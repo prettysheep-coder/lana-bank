@@ -4,27 +4,79 @@ import { MockedProvider } from "@apollo/client/testing"
 import TermPage from "./page"
 
 import { TermsTemplatesDocument } from "@/lib/graphql/generated"
-import { mockTermsTemplate } from "@/lib/graphql/generated/mocks"
+import {
+  mockDuration,
+  mockTermsTemplate,
+  mockTermValues,
+} from "@/lib/graphql/generated/mocks"
 
-const templateNames = [
-  "High Risk",
-  "High Risk",
-  "Medium Risk",
-  "Medium Risk",
-  "Preferred Customer",
-  "Preferred Customer",
-  "Prime Customer",
-  "Prime Customer",
-  "Institutional",
-  "Institutional",
+const templates = [
+  {
+    name: "High Risk",
+    riskProfile: {
+      annualRate: 18,
+      liquidationCvl: 85,
+      marginCallCvl: 90,
+      initialCvl: 95,
+      duration: {
+        units: 12,
+      },
+    },
+  },
+  {
+    name: "Medium Risk",
+    riskProfile: {
+      annualRate: 13,
+      liquidationCvl: 87,
+      marginCallCvl: 92,
+      initialCvl: 96,
+      duration: {
+        units: 12,
+      },
+    },
+  },
+  {
+    name: "Preferred Customer",
+    riskProfile: {
+      annualRate: 10,
+      liquidationCvl: 88,
+      marginCallCvl: 93,
+      initialCvl: 97,
+      duration: {
+        units: 12,
+      },
+    },
+  },
+  {
+    name: "Prime Customer",
+    riskProfile: {
+      annualRate: 6,
+      liquidationCvl: 89,
+      marginCallCvl: 94,
+      initialCvl: 98,
+      duration: {
+        units: 12,
+      },
+    },
+  },
 ]
 
-const createRandomTermsTemplates = () => {
-  return templateNames.map((name) =>
-    mockTermsTemplate({
-      name,
-    }),
-  )
+const createTermsTemplates = () => {
+  return templates.map((template) => {
+    const { riskProfile } = template
+    return mockTermsTemplate({
+      name: template.name,
+      values: mockTermValues({
+        annualRate: riskProfile.annualRate,
+        liquidationCvl: riskProfile.liquidationCvl,
+        marginCallCvl: riskProfile.marginCallCvl,
+        initialCvl: riskProfile.initialCvl,
+        duration: mockDuration({
+          units: riskProfile.duration.units,
+        }),
+      }),
+    })
+  })
 }
 
 const baseMocks = [
@@ -34,7 +86,7 @@ const baseMocks = [
     },
     result: {
       data: {
-        termsTemplates: createRandomTermsTemplates(),
+        termsTemplates: createTermsTemplates(),
       },
     },
   },

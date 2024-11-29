@@ -32,7 +32,7 @@ const generateMockValue = {
   signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
   int: () => faker.number.int({ min: 0, max: 1000 }),
   cursor: () => faker.string.alphanumeric(20),
-  deniedReason: () => faker.datatype.boolean() ? faker.lorem.sentence() : null,
+  deniedReason: () => null,
   applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null
 };
 
