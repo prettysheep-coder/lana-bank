@@ -42,6 +42,34 @@ WITH projected_interest_payment AS (
 
 	SELECT * FROM projected_interest_payment UNION ALL
 	SELECT * FROM projected_principal_payment
+
+), grouped AS (
+
+	SELECT
+		  customer_id
+		, loc_id
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, disbursement_amount_in_cents
+		, MAX(days_in_the_period) AS days_in_the_period
+		, days_from_now
+		, years_from_now
+		, SUM(amount_in_cents) AS amount_in_cents
+	FROM unioned
+	GROUP BY
+		  customer_id
+		, loc_id
+		, bench_mark_interest_rate
+		, bench_mark_daily_interest_rate
+		, loc_annual_interest_rate
+		, loc_daily_interest_rate
+		, days_per_year
+		, disbursement_amount_in_cents
+		, days_from_now
+		, years_from_now
 	ORDER BY days_from_now
 
 ), arrayed AS (
@@ -59,7 +87,7 @@ WITH projected_interest_payment AS (
 		, ARRAY_AGG(days_from_now) AS days_from_now
 		, ARRAY_AGG(years_from_now) AS years_from_now
 		, ARRAY_AGG(amount_in_cents) AS cash_flows
-	FROM unioned
+	FROM grouped
 	GROUP BY
 		  customer_id
 		, loc_id
