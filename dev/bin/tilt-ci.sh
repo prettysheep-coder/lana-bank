@@ -11,5 +11,3 @@ status=${PIPESTATUS[0]}
 if [[ $status -eq 0 ]]; then
   echo "Tilt CI passed"
 fi
-
-exit "$status"
