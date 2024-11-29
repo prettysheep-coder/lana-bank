@@ -13,7 +13,7 @@ WITH line_of_credit_terms AS (
 		  *
 		, concluded_disbursement_at AS disbursement_start_date
 		, CASE WHEN loc_interest_accrual_interval = 'end_of_month' THEN
-			GENERATE_DATE_ARRAY(DATE(concluded_disbursement_at), DATE(loc_end_date), INTERVAL 1 MONTH)
+			GENERATE_DATE_ARRAY(DATE(concluded_disbursement_at), LAST_DAY(DATE(loc_end_date)), INTERVAL 1 MONTH)
 		  END AS interest_schedule_months
 	FROM ${ref("int_approved_credit_facilities_disbursement")}
 
@@ -21,10 +21,10 @@ WITH line_of_credit_terms AS (
 
 	SELECT
 		  * except(interest_schedule_months)
-		, CASE WHEN TIMESTAMP(DATE_TRUNC(projected_month, month)) < disbursement_start_date THEN
+		, CASE WHEN TIMESTAMP(DATE_TRUNC(projected_month, MONTH)) < disbursement_start_date THEN
 			disbursement_start_date
 		  ELSE
-			TIMESTAMP(DATE_TRUNC(projected_month, month))
+			TIMESTAMP(DATE_TRUNC(projected_month, MONTH))
 		  END AS period_start_date
 		, CASE WHEN LAST_DAY(projected_month) > DATE(loc_end_date) THEN
 			loc_end_date
