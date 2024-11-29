@@ -67,7 +67,7 @@ impl<'a> ToTokens for DeleteFn<'a> {
                 if new_events {
                     let n_events = {
                         let events = Self::extract_events(&mut entity);
-                        self.persist_events(op, events).await?
+                        self.persist_events(op, std::iter::once(events)).await?
                     };
 
                     self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
@@ -127,7 +127,7 @@ mod tests {
                 if new_events {
                     let n_events = {
                         let events = Self::extract_events(&mut entity);
-                        self.persist_events(op, events).await?
+                        self.persist_events(op, std::iter::once(events)).await?
                     };
 
                     self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
@@ -190,7 +190,7 @@ mod tests {
                 if new_events {
                     let n_events = {
                         let events = Self::extract_events(&mut entity);
-                        self.persist_events(op, events).await?
+                        self.persist_events(op, std::iter::once(events)).await?
                     };
 
                     self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;

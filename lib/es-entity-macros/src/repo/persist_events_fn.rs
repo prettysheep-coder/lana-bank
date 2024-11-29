@@ -25,14 +25,14 @@ impl<'a> From<&'a RepositoryOptions> for PersistEventsFn<'a> {
 impl<'a> ToTokens for PersistEventsFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let query = format!(
-            "INSERT INTO {} (id, recorded_at, sequence, event_type, event) SELECT $1, $2, ROW_NUMBER() OVER () + $3, unnested.event_type, unnested.event FROM UNNEST($4::text[], $5::jsonb[]) AS unnested(event_type, event)",
+            "INSERT INTO {} (id, recorded_at, sequence, event_type, event) SELECT unnested.id, $1, unnested.sequence, unnested.event_type, unnested.event FROM UNNEST($2::UUID[], $3::INT[], $4::TEXT[], $5::JSONB[]) AS unnested(id, sequence, event_type, event)",
             self.events_table_name,
         );
         let id_type = &self.id;
         let event_type = &self.event;
         let error = self.error;
         let id_tokens = quote! {
-            id as &#id_type
+            &all_ids as &[#id_type]
         };
 
         tokens.append_all(quote! {
@@ -49,27 +49,50 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
             async fn persist_events(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                events: &mut es_entity::EntityEvents<#event_type>
+                events_iter: impl Iterator<Item = &mut es_entity::EntityEvents<#event_type>>,
             ) -> Result<usize, #error> {
-                let id = events.id();
-                let offset = events.len_persisted();
-                let serialized_events = events.serialize_new_events();
-                let events_types = serialized_events.iter().map(|e| e.get("type").and_then(es_entity::prelude::serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
+                let mut all_serialized = Vec::new();
+                let mut all_types = Vec::new();
+                let mut all_ids = Vec::new();
+                let mut all_offsets = Vec::new();
                 let now = op.now();
+
+                let mut all_events = Vec::new();
+                for events in events_iter {
+                    let id = events.id();
+                    let offset = events.len_persisted();
+                    let serialized = events.serialize_new_events();
+                    let types = serialized.iter()
+                        .map(|e| e.get("type")
+                            .and_then(es_entity::prelude::serde_json::Value::as_str)
+                            .expect("Could not read event type")
+                            .to_owned())
+                        .collect::<Vec<_>>();
+
+                    let n_events = serialized.len();
+                    all_serialized.extend(serialized);
+                    all_types.extend(types);
+                    all_ids.extend(std::iter::repeat(id).take(n_events));
+                    all_offsets.extend((offset..).take(n_events).map(|i| i as i32));
+                    all_events.push(events);
+                }
 
                 let rows = Self::extract_concurrent_modification(
                     sqlx::query!(
                         #query,
-                        #id_tokens,
                         now,
-                        offset as i32,
-                        &events_types,
-                        &serialized_events,
+                        #id_tokens,
+                        &all_offsets,
+                        &all_types,
+                        &all_serialized,
                     ).fetch_all(&mut **op.tx()).await)?;
 
-                let n_events = events.mark_new_events_persisted_at(now);
+                let total_events = all_serialized.len();
+                for events in all_events {
+                    events.mark_new_events_persisted_at(now);
+                }
 
-                Ok(n_events)
+                Ok(total_events)
             }
         });
     }
@@ -108,27 +131,51 @@ mod tests {
             async fn persist_events(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                events: &mut es_entity::EntityEvents<EntityEvent>
+                events_iter: impl Iterator<Item = &mut es_entity::EntityEvents<EntityEvent>>,
             ) -> Result<usize, es_entity::EsRepoError> {
-                let id = events.id();
-                let offset = events.len_persisted();
-                let serialized_events = events.serialize_new_events();
-                let events_types = serialized_events.iter().map(|e| e.get("type").and_then(es_entity::prelude::serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
+                let mut all_serialized = Vec::new();
+                let mut all_types = Vec::new();
+                let mut all_ids = Vec::new();
+                let mut all_offsets = Vec::new();
                 let now = op.now();
+
+                let mut all_events = Vec::new();
+                for events in events_iter {
+                    let id = events.id();
+                    let offset = events.len_persisted();
+                    let serialized = events.serialize_new_events();
+                    let types = serialized.iter()
+                        .map(|e| e.get("type")
+                            .and_then(es_entity::prelude::serde_json::Value::as_str)
+                            .expect("Could not read event type")
+                            .to_owned())
+                        .collect::<Vec<_>>();
+
+                    let n_events = serialized.len();
+                    all_serialized.extend(serialized);
+                    all_types.extend(types);
+                    all_ids.extend(std::iter::repeat(id).take(n_events));
+                    all_offsets.extend((offset..).take(n_events).map(|i| i as i32));
+                    all_events.push(events);
+                }
 
                 let rows = Self::extract_concurrent_modification(
                     sqlx::query!(
-                        "INSERT INTO entity_events (id, recorded_at, sequence, event_type, event) SELECT $1, $2, ROW_NUMBER() OVER () + $3, unnested.event_type, unnested.event FROM UNNEST($4::text[], $5::jsonb[]) AS unnested(event_type, event)",
-                        id as &EntityId,
-                        now,
-                        offset as i32,
-                        &events_types,
-                        &serialized_events,
-                    ).fetch_all(&mut **op.tx()).await)?;
+                        "INSERT INTO entity_events (id, recorded_at, sequence, event_type, event) SELECT unnested.id, $1, unnested.sequence, unnested.event_type, unnested.event FROM UNNEST($2::UUID[], $3::INT[], $4::TEXT[], $5::JSONB[]) AS unnested(id, sequence, event_type, event)",
+                         now,
+                         &all_ids as &[EntityId],
+                         &all_offsets,
+                         &all_types,
+                         &all_serialized,
+                    ).fetch_all(&mut **op.tx()).await
+                )?;
 
-                let n_events = events.mark_new_events_persisted_at(now);
+                let total_events = all_serialized.len();
+                for events in all_events {
+                    events.mark_new_events_persisted_at(now);
+                }
 
-                Ok(n_events)
+                Ok(total_events)
             }
         };
 
