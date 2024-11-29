@@ -39,17 +39,17 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
     depends_on:
       - cala-pg
-      # - otel-agent
-      #  otel-agent:
-      #    ports:
-      #      - "4317:4317" # OpenTelemetry receiver
-      #    image: otel/opentelemetry-collector-contrib:0.57.2
-      #    command: ["--config=/etc/otel-agent-config.yaml"]
-      #    environment:
-      #      - HONEYCOMB_DATASET=${HONEYCOMB_DATASET}
-      #      - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
-      #    volumes:
-      #      - ./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml
+      - otel-agent
+  otel-agent:
+    ports:
+      - "4317:4317" # OpenTelemetry receiver
+    image: otel/opentelemetry-collector-contrib:0.57.2
+    command: ["--config=/etc/otel-agent-config.yaml"]
+    environment:
+      - HONEYCOMB_DATASET=${HONEYCOMB_DATASET}
+      - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
+    volumes:
+      - ./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml
   kratos:
     image: oryd/kratos:v1.2.0
     extra_hosts:
@@ -94,7 +94,7 @@ services:
       - ./dev/ory:/home/ory
     depends_on:
       - kratos
-      #      - otel-agent
+      - otel-agent
   mailhog:
     image: mailhog/mailhog:latest
     ports:
