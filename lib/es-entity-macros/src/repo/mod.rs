@@ -33,6 +33,7 @@ pub struct EsRepo<'a> {
     persist_events_batch_fn: persist_events_batch_fn::PersistEventsBatchFn<'a>,
     update_fn: update_fn::UpdateFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
+    create_all_fn: create_all_fn::CreateAllFn<'a>,
     delete_fn: delete_fn::DeleteFn<'a>,
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
@@ -81,6 +82,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             persist_events_batch_fn: persist_events_batch_fn::PersistEventsBatchFn::from(opts),
             update_fn: update_fn::UpdateFn::from(opts),
             create_fn: create_fn::CreateFn::from(opts),
+            create_all_fn: create_all_fn::CreateAllFn::from(opts),
             delete_fn: delete_fn::DeleteFn::from(opts),
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
@@ -102,6 +104,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let persist_events_batch_fn = &self.persist_events_batch_fn;
         let update_fn = &self.update_fn;
         let create_fn = &self.create_fn;
+        let create_all_fn = &self.create_all_fn;
         let delete_fn = &self.delete_fn;
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
@@ -210,6 +213,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #persist_events_fn
                 #persist_events_batch_fn
                 #create_fn
+                #create_all_fn
                 #update_fn
                 #delete_fn
                 #(#find_by_fns)*

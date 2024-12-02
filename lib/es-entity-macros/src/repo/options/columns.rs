@@ -84,6 +84,19 @@ impl Columns {
             .collect()
     }
 
+    pub fn create_query_builder_args(&self) -> Vec<proc_macro2::TokenStream> {
+        self.all
+            .iter()
+            .filter(|c| c.opts.persist_on_create())
+            .map(|column| {
+                let ident = &column.name;
+                quote! {
+                    builder.push_bind(#ident);
+                }
+            })
+            .collect()
+    }
+
     pub fn insert_column_names(&self) -> Vec<String> {
         self.all
             .iter()

@@ -39,7 +39,7 @@ impl<'a> ToTokens for PersistEventsBatchFn<'a> {
             async fn persist_events_batch(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                events_iter: impl Iterator<Item = &mut es_entity::EntityEvents<#event_type>>,
+                all_events: &mut [es_entity::EntityEvents<#event_type>]
             ) -> Result<std::collections::HashMap<#id_type, usize>, #error> {
                 let mut all_serialized = Vec::new();
                 let mut all_types = Vec::new();
@@ -47,9 +47,8 @@ impl<'a> ToTokens for PersistEventsBatchFn<'a> {
                 let mut all_offsets = Vec::new();
                 let now = op.now();
 
-                let mut all_events = Vec::new();
                 let mut n_events_map = std::collections::HashMap::new();
-                for events in events_iter {
+                for events in all_events.iter_mut() {
                     let id = events.id();
                     let offset = events.len_persisted();
                     let serialized = events.serialize_new_events();
@@ -66,7 +65,6 @@ impl<'a> ToTokens for PersistEventsBatchFn<'a> {
                     all_ids.extend(std::iter::repeat(id).take(n_events));
                     all_offsets.extend((offset..).take(n_events).map(|i| i as i32));
                     n_events_map.insert(id.clone(), n_events);
-                    all_events.push(events);
                 }
 
                 let rows = Self::extract_concurrent_modification(
@@ -79,7 +77,7 @@ impl<'a> ToTokens for PersistEventsBatchFn<'a> {
                         &all_serialized,
                     ).fetch_all(&mut **op.tx()).await)?;
 
-                for events in all_events {
+                for events in all_events.iter_mut() {
                     events.mark_new_events_persisted_at(now);
                 }
 
@@ -112,7 +110,7 @@ mod tests {
             async fn persist_events_batch(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                events_iter: impl Iterator<Item = &mut es_entity::EntityEvents<EntityEvent>>,
+                all_events: &mut [es_entity::EntityEvents<EntityEvent>]
             ) -> Result<std::collections::HashMap<EntityId, usize>, es_entity::EsRepoError> {
                 let mut all_serialized = Vec::new();
                 let mut all_types = Vec::new();
@@ -120,9 +118,8 @@ mod tests {
                 let mut all_offsets = Vec::new();
                 let now = op.now();
 
-                let mut all_events = Vec::new();
                 let mut n_events_map = std::collections::HashMap::new();
-                for events in events_iter {
+                for events in all_events.iter_mut() {
                     let id = events.id();
                     let offset = events.len_persisted();
                     let serialized = events.serialize_new_events();
@@ -139,7 +136,6 @@ mod tests {
                     all_ids.extend(std::iter::repeat(id).take(n_events));
                     all_offsets.extend((offset..).take(n_events).map(|i| i as i32));
                     n_events_map.insert(id.clone(), n_events);
-                    all_events.push(events);
                 }
 
                 let rows = Self::extract_concurrent_modification(
@@ -153,7 +149,7 @@ mod tests {
                     ).fetch_all(&mut **op.tx()).await
                 )?;
 
-                for events in all_events {
+                for events in all_events.iter_mut() {
                     events.mark_new_events_persisted_at(now);
                 }
 

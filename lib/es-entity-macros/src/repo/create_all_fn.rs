@@ -49,70 +49,57 @@ impl<'a> ToTokens for CreateAllFn<'a> {
         let table_name = self.table_name;
 
         let column_names = self.columns.insert_column_names();
-        let placeholders = self.columns.insert_placeholders();
-        let args = self.columns.create_query_args();
+        let builder_args = self.columns.create_query_builder_args();
 
-        let query = format!(
-            "INSERT INTO {} ({}, created_at) VALUES ({}, ${})",
+        let insert_fragment = format!(
+            "INSERT INTO {} ({}, created_at)",
             table_name,
             column_names.join(", "),
-            placeholders,
-            column_names.len() + 1,
         );
 
         tokens.append_all(quote! {
-            #[inline(always)]
-            fn convert_new<T, E>(item: T) -> es_entity::EntityEvents<E>
-            where
-                T: es_entity::IntoEvents<E>,
-                E: es_entity::EsEvent,
-            {
-                item.into_events()
-            }
-
-            #[inline(always)]
-            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, #error>
-            where
-                T: es_entity::TryFromEvents<E>,
-                #error: From<es_entity::EsEntityError>,
-                E: es_entity::EsEvent,
-            {
-                Ok(T::try_from_events(events)?)
-            }
-
-            pub async fn create(
+            pub async fn create_all(
                 &self,
-                new_entity: <#entity as es_entity::EsEntity>::New
-            ) -> Result<#entity, #error> {
+                new_entities: Vec<<#entity as es_entity::EsEntity>::New>
+            ) -> Result<Vec<#entity>, #error> {
                 let mut op = self.begin_op().await?;
-                let res = self.create_in_op(&mut op, new_entity).await?;
+                let res = self.create_all_in_op(&mut op, new_entities).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_op(
+            pub async fn create_all_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                new_entity: <#entity as es_entity::EsEntity>::New
-            ) -> Result<#entity, #error> {
-                #assignments
+                new_entities: Vec<<#entity as es_entity::EsEntity>::New>
+            ) -> Result<Vec<#entity>, #error> {
+                let mut query_builder: sqlx::QueryBuilder<sqlx::Postgres> = sqlx::QueryBuilder::new(
+                    #insert_fragment,
+                );
+                query_builder.push_values(new_entities.iter(), |mut builder, new_entity: &<#entity as es_entity::EsEntity>::New| {
+                    #assignments
+                    #(#builder_args)*
+                    builder.push_bind(op.now());
+                });
+                let query = query_builder.build();
+                query.execute(&mut **op.tx()).await?;
 
-                 sqlx::query!(
-                     #query,
-                     #(#args)*
-                     op.now()
-                )
-                .execute(&mut **op.tx())
-                .await?;
 
-                let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(op, std::iter::once(&mut events)).await?;
-                let #maybe_mut_entity = Self::hydrate_entity(events)?;
+                let mut all_events: Vec<es_entity::EntityEvents<<#entity as es_entity::EsEntity>::Event>> = new_entities.into_iter().map(Self::convert_new).collect();
+                let mut n_persisted = self.persist_events_batch(op, &mut all_events).await?;
 
-                #(#nested)*
+                let mut res = Vec::new();
+                for events in all_events.into_iter() {
+                    let n_events = n_persisted.remove(events.id()).expect("n_events exists");
+                    let #maybe_mut_entity = Self::hydrate_entity(events)?;
 
-                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
-                Ok(entity)
+                    #(#nested)*
+
+                    self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
+                    res.push(entity);
+                }
+
+                Ok(res)
             }
         });
     }
@@ -128,87 +115,9 @@ mod tests {
     fn create_fn() {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
-        let id = Ident::new("EntityId", Span::call_site());
-        let mut columns = Columns::default();
-        columns.set_id_column(&id);
-
-        let create_fn = CreateAllFn {
-            table_name: "entities",
-            entity: &entity,
-            error: &error,
-            columns: &columns,
-            nested_fn_names: Vec::new(),
-        };
-
-        let mut tokens = TokenStream::new();
-        create_fn.to_tokens(&mut tokens);
-
-        let expected = quote! {
-            #[inline(always)]
-            fn convert_new<T, E>(item: T) -> es_entity::EntityEvents<E>
-            where
-                T: es_entity::IntoEvents<E>,
-                E: es_entity::EsEvent,
-            {
-                item.into_events()
-            }
-
-            #[inline(always)]
-            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, es_entity::EsRepoError>
-            where
-                T: es_entity::TryFromEvents<E>,
-                es_entity::EsRepoError: From<es_entity::EsEntityError>,
-                E: es_entity::EsEvent,
-            {
-                Ok(T::try_from_events(events)?)
-            }
-
-            pub async fn create(
-                &self,
-                new_entity: <Entity as es_entity::EsEntity>::New
-            ) -> Result<Entity, es_entity::EsRepoError> {
-                let mut op = self.begin_op().await?;
-                let res = self.create_in_op(&mut op, new_entity).await?;
-                op.commit().await?;
-                Ok(res)
-            }
-
-            pub async fn create_in_op(
-                &self,
-                op: &mut es_entity::DbOp<'_>,
-                new_entity: <Entity as es_entity::EsEntity>::New
-            ) -> Result<Entity, es_entity::EsRepoError> {
-                let id = &new_entity.id;
-
-                sqlx::query!("INSERT INTO entities (id, created_at) VALUES ($1, $2)",
-                    id as &EntityId,
-                    op.now()
-                )
-                .execute(&mut **op.tx())
-                .await?;
-
-                let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(op, std::iter::once(&mut events)).await?;
-                let entity = Self::hydrate_entity(events)?;
-
-                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
-                Ok(entity)
-            }
-        };
-
-        assert_eq!(tokens.to_string(), expected.to_string());
-    }
-
-    #[test]
-    fn create_fn_with_columns() {
-        let entity = Ident::new("Entity", Span::call_site());
-        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         use darling::FromMeta;
-        let input: syn::Meta = syn::parse_quote!(columns(
-            id = "EntityId",
-            name(ty = "String", create(accessor = "name()"))
-        ));
+        let input: syn::Meta = syn::parse_quote!(columns(id = "EntityId", name = "String",));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
 
         let create_fn = CreateAllFn {
@@ -222,58 +131,54 @@ mod tests {
         let mut tokens = TokenStream::new();
         create_fn.to_tokens(&mut tokens);
 
+        let mut tokens = TokenStream::new();
+        create_fn.to_tokens(&mut tokens);
+
         let expected = quote! {
-            #[inline(always)]
-            fn convert_new<T, E>(item: T) -> es_entity::EntityEvents<E>
-            where
-                T: es_entity::IntoEvents<E>,
-                E: es_entity::EsEvent,
-            {
-                item.into_events()
-            }
-
-            #[inline(always)]
-            fn hydrate_entity<T, E>(events: es_entity::EntityEvents<E>) -> Result<T, es_entity::EsRepoError>
-            where
-                T: es_entity::TryFromEvents<E>,
-                es_entity::EsRepoError: From<es_entity::EsEntityError>,
-                E: es_entity::EsEvent,
-            {
-                Ok(T::try_from_events(events)?)
-            }
-
-            pub async fn create(
+            pub async fn create_all(
                 &self,
-                new_entity: <Entity as es_entity::EsEntity>::New
-            ) -> Result<Entity, es_entity::EsRepoError> {
+                new_entities: Vec<<Entity as es_entity::EsEntity>::New>
+            ) -> Result<Vec<Entity>, es_entity::EsRepoError> {
                 let mut op = self.begin_op().await?;
-                let res = self.create_in_op(&mut op, new_entity).await?;
+                let res = self.create_all_in_op(&mut op, new_entities).await?;
                 op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_op(
+            pub async fn create_all_in_op(
                 &self,
                 op: &mut es_entity::DbOp<'_>,
-                new_entity: <Entity as es_entity::EsEntity>::New
-            ) -> Result<Entity, es_entity::EsRepoError> {
-                let id = &new_entity.id;
-                let name = &new_entity.name();
+                new_entities: Vec<<Entity as es_entity::EsEntity>::New>
+            ) -> Result<Vec<Entity>, es_entity::EsRepoError> {
+                let mut query_builder: sqlx::QueryBuilder<sqlx::Postgres> = sqlx::QueryBuilder::new(
+                    "INSERT INTO entities (id, name, created_at)",
+                );
 
-                sqlx::query!("INSERT INTO entities (id, name, created_at) VALUES ($1, $2, $3)",
-                    id as &EntityId,
-                    name as &String,
-                    op.now()
-                )
-                .execute(&mut **op.tx())
-                .await?;
+                query_builder.push_values(new_entities.iter(), |mut builder, new_entity: &<Entity as es_entity::EsEntity>::New| {
+                    let id = &new_entity.id;
+                    let name = &new_entity.name;
 
-                let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(op, std::iter::once(&mut events)).await?;
-                let entity = Self::hydrate_entity(events)?;
+                    builder.push_bind(id);
+                    builder.push_bind(name);
+                    builder.push_bind(op.now());
+                });
 
-                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
-                Ok(entity)
+                let query = query_builder.build();
+                query.execute(&mut **op.tx()).await?;
+
+                let mut all_events: Vec<es_entity::EntityEvents<<#entity as es_entity::EsEntity>::Event>> = new_entities.into_iter().map(Self::convert_new).collect();
+                let mut n_persisted = self.persist_events_batch(op, &mut all_events).await?;
+
+                let mut res = Vec::new();
+                for events in all_events.into_iter() {
+                    let n_events = n_persisted.remove(events.id()).expect("n_events exists");
+                    let entity = Self::hydrate_entity(events)?;
+
+                    self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
+                    res.push(entity);
+                }
+
+                Ok(res)
             }
         };
 
