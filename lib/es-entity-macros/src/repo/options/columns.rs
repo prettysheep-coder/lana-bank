@@ -287,8 +287,9 @@ impl Column {
     fn variable_assignment_for_create(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
         let accessor = self.opts.create_accessor(name);
+        let ty = &self.opts.ty;
         quote! {
-            let #name = &#ident.#accessor;
+            let #name: &#ty = &#ident.#accessor;
         }
     }
 

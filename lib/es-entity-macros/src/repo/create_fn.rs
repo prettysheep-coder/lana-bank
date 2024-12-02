@@ -178,7 +178,7 @@ mod tests {
                 op: &mut es_entity::DbOp<'_>,
                 new_entity: <Entity as es_entity::EsEntity>::New
             ) -> Result<Entity, es_entity::EsRepoError> {
-                let id = &new_entity.id;
+                let id: &EntityId = &new_entity.id;
 
                 sqlx::query!("INSERT INTO entities (id, created_at) VALUES ($1, $2)",
                     id as &EntityId,
@@ -257,8 +257,8 @@ mod tests {
                 op: &mut es_entity::DbOp<'_>,
                 new_entity: <Entity as es_entity::EsEntity>::New
             ) -> Result<Entity, es_entity::EsRepoError> {
-                let id = &new_entity.id;
-                let name = &new_entity.name();
+                let id: &EntityId = &new_entity.id;
+                let name: &String = &new_entity.name();
 
                 sqlx::query!("INSERT INTO entities (id, name, created_at) VALUES ($1, $2, $3)",
                     id as &EntityId,

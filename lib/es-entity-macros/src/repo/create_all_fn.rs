@@ -112,7 +112,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn create_fn() {
+    fn create_all_fn() {
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
@@ -155,8 +155,8 @@ mod tests {
                 );
 
                 query_builder.push_values(new_entities.iter(), |mut builder, new_entity: &<Entity as es_entity::EsEntity>::New| {
-                    let id = &new_entity.id;
-                    let name = &new_entity.name;
+                    let id: &EntityId = &new_entity.id;
+                    let name: &String = &new_entity.name;
 
                     builder.push_bind(id);
                     builder.push_bind(name);
