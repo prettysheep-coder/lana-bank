@@ -44,7 +44,7 @@ impl<'a> ToTokens for CreateAllFn<'a> {
         };
         let assignments = self
             .columns
-            .variable_assignments_for_create(syn::parse_quote! { new_entity });
+            .variable_assignments_for_create_all(syn::parse_quote! { new_entity });
 
         let table_name = self.table_name;
 
