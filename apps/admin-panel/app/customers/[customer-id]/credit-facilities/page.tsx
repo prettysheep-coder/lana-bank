@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client"
 
-import { CustomerCreditFacilitiesTable } from "../credit-facilities"
+import { CustomerCreditFacilitiesTable } from "./list"
 
 import { useGetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 

@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client"
 
-import { Documents } from "../documents"
+import { Documents } from "./list"
 
 import { useGetCustomerDocumentsQuery } from "@/lib/graphql/generated"
 

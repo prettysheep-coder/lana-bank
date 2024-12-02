@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client"
 
-import { CustomerTransactionsTable } from "../transactions"
+import { CustomerTransactionsTable } from "./list"
 
 import { useGetCustomerTransactionsQuery } from "@/lib/graphql/generated"
 

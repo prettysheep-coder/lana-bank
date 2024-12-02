@@ -44,7 +44,7 @@ export default function CustomerLayout({
   params: { "customer-id": string }
 }) {
   const { "customer-id": customerId } = params
-  const { currentTab, handleTabChange } = useTabNavigation(TABS, "/customers", customerId)
+  const { currentTab, handleTabChange } = useTabNavigation(TABS, customerId)
 
   const { setCustomer } = useCreateContext()
   const { data, loading, error, refetch } = useGetCustomerBasicDetailsQuery({
