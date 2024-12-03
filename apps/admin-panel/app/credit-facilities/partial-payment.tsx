@@ -14,7 +14,7 @@ import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
 import { Label } from "@/ui/label"
 import {
-  GetCreditFacilityDetailsDocument,
+  GetCreditFacilityOverviewDocument,
   useCreditFacilityPartialPaymentMutation,
 } from "@/lib/graphql/generated"
 import { UsdCents } from "@/types"
@@ -41,7 +41,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
 > = ({ setOpenDialog, openDialog, creditFacilityId }) => {
   const [partialPaymentCreditFacility, { loading, reset }] =
     useCreditFacilityPartialPaymentMutation({
-      refetchQueries: [GetCreditFacilityDetailsDocument],
+      refetchQueries: [GetCreditFacilityOverviewDocument],
     })
   const [error, setError] = useState<string | null>(null)
   const [amount, setAmount] = useState<string>("")

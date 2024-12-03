@@ -13,9 +13,10 @@ import {
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
 import {
-  GetCreditFacilityDetailsDocument,
+  GetCreditFacilityBasicDetailsDocument,
+  GetCreditFacilityOverviewDocument,
   useCreditFacilityCollateralUpdateMutation,
-  useGetCreditFacilityDetailsQuery,
+  useGetCreditFacilityOverviewQuery,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
@@ -50,13 +51,16 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
 > = ({ setOpenDialog, openDialog, creditFacilityId }) => {
   const [updateCollateral, { loading, reset }] =
     useCreditFacilityCollateralUpdateMutation({
-      refetchQueries: [GetCreditFacilityDetailsDocument],
+      refetchQueries: [
+        GetCreditFacilityBasicDetailsDocument,
+        GetCreditFacilityOverviewDocument,
+      ],
     })
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [newCollateral, setNewCollateral] = useState<string>("")
 
-  const { data: creditFacilityDetails } = useGetCreditFacilityDetailsQuery({
+  const { data: creditFacilityDetails } = useGetCreditFacilityOverviewQuery({
     variables: { id: creditFacilityId },
   })
 
