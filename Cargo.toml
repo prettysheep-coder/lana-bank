@@ -17,11 +17,8 @@ members = [
   "lib/audit",
   "lib/job",
   "lib/tracing-utils",
-  "lib/es-entity",
-  "lib/es-entity-macros",
   "lib/outbox",
   "lib/jwks-utils",
-  "lib/sim-time",
 ]
 
 [workspace.dependencies]
