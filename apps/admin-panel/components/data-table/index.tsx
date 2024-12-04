@@ -28,6 +28,8 @@ interface DataTableProps<T> {
   loading?: boolean
 }
 
+const DEFAULT_ROWS = 10
+
 const DataTable = <T,>({
   data,
   columns,
@@ -36,12 +38,14 @@ const DataTable = <T,>({
   rowClassName,
   cellClassName,
   onRowClick,
-  emptyMessage = "No data to display",
+  emptyMessage,
   loading = false,
 }: DataTableProps<T>) => {
+  const emptyRowsToFill = DEFAULT_ROWS - (data?.length || 0)
+
   if (loading) {
     return (
-      <div className="w-full overflow-x-auto">
+      <div className="w-full overflow-x-auto border rounded-md">
         <Table className={className}>
           <TableHeader>
             <TableRow className={headerClassName}>
@@ -60,11 +64,11 @@ const DataTable = <T,>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.from({ length: 5 }).map((_, rowIndex) => (
+            {Array.from({ length: DEFAULT_ROWS }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
                   <TableCell key={colIndex}>
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-5 w-full" />
                   </TableCell>
                 ))}
               </TableRow>
@@ -75,8 +79,18 @@ const DataTable = <T,>({
     )
   }
 
+  if (!data.length && emptyMessage) {
+    return emptyMessage
+  }
+
   if (!data.length) {
-    return <div className="text-sm">{emptyMessage}</div>
+    return (
+      <div className="overflow-x-auto border rounded-md">
+        <div className="w-full h-[calc(21px*20)] grid place-items-center">
+          <div className="text-sm">No data to display</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -128,6 +142,14 @@ const DataTable = <T,>({
               ))}
             </TableRow>
           ))}
+          {emptyRowsToFill > 0 &&
+            Array.from({ length: emptyRowsToFill }).map((_, idx) => (
+              <TableRow key={`empty-${idx}`} className="border-none hover:bg-transparent">
+                {columns.map((_, colIndex) => (
+                  <TableCell key={colIndex}>&nbsp;</TableCell>
+                ))}
+              </TableRow>
+            ))}
         </TableBody>
       </Table>
     </div>

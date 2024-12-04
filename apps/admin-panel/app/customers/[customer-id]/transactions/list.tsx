@@ -27,7 +27,13 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
         <CardDescription>Transactions for this Customer</CardDescription>
       </CardHeader>
       {transactions.length === 0 ? (
-        <CardContent className="text-sm">No data to display</CardContent>
+        <CardContent className="text-sm">
+          <div className="overflow-x-auto border rounded-md">
+            <div className="w-full h-[calc(21px*20)] grid place-items-center">
+              <div className="text-sm">No data to display</div>
+            </div>
+          </div>
+        </CardContent>
       ) : (
         <CardContent>
           <div className="overflow-x-auto border  rounded-md">

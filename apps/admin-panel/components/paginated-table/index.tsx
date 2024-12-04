@@ -61,7 +61,7 @@ const PaginatedTable = <T,>({
   columns,
   loading,
   data,
-  pageSize,
+  pageSize = DEFAULT_PAGESIZE,
   fetchMore,
   onSort,
   onFilter,
@@ -113,13 +113,21 @@ const PaginatedTable = <T,>({
     }
   }
 
+  const emptyRowsToFill = pageSize - (displayData?.length || 0)
+
   if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
-    return <div className="text-sm">No data to display</div>
+    return (
+      <div className="overflow-x-auto border rounded-md">
+        <div className="w-full h-[calc(21px*20)] grid place-items-center">
+          <div className="text-sm">No data to display</div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <>
-      <div className="overflow-x-auto border  rounded-md">
+      <div className="overflow-x-auto border rounded-md">
         <Table className="table-fixed w-full">
           {showHeader && (
             <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
@@ -184,20 +192,19 @@ const PaginatedTable = <T,>({
             </TableHeader>
           )}
           <TableBody>
-            {loading
-              ? // Render loading skeleton rows while keeping headers visible
-                Array.from({ length: displayData.length || pageSize }).map(
-                  (_, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      {columns.map((_, colIndex) => (
-                        <TableCell key={colIndex}>
-                          <Skeleton className="h-4 w-full" />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ),
-                )
-              : displayData.map(({ node }, idx) => (
+            {loading ? (
+              Array.from({ length: pageSize }).map((_, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {columns.map((_, colIndex) => (
+                    <TableCell key={colIndex}>
+                      <Skeleton className="h-5 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <>
+                {displayData.map(({ node }, idx) => (
                   <TableRow
                     key={idx}
                     onClick={() => onClick?.(node)}
@@ -215,6 +222,16 @@ const PaginatedTable = <T,>({
                     ))}
                   </TableRow>
                 ))}
+                {emptyRowsToFill > 0 &&
+                  Array.from({ length: emptyRowsToFill }).map((_, idx) => (
+                    <TableRow key={`empty-${idx}`} className="border-none hover:bg-transparent">
+                      {columns.map((_, colIndex) => (
+                        <TableCell key={colIndex}>&nbsp;</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+              </>
+            )}
           </TableBody>
         </Table>
         <Separator />
