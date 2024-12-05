@@ -3,7 +3,6 @@
 import type { ComponentProps } from "react"
 
 import { UserBlock } from "./user-block"
-import { MarketRate } from "./market-rate"
 import { NavSection } from "./nav-section"
 import {
   navDashboardItems,
@@ -14,7 +13,7 @@ import {
   navAdminItems,
 } from "./nav-items"
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarHeader } from "@/ui/sidebar"
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   return (
