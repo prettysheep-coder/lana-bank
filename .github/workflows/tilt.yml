@@ -23,14 +23,16 @@ jobs:
     - name: Setup container monitoring
       run: |
         mkdir -p ./logs
-        # Log docker stats every 5 seconds with timestamp
+        # Start monitoring in the background and log the process ID
         (while true; do 
           echo "$(date '+%Y-%m-%d %H:%M:%S')" >> ./logs/container_memory.log
           docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}" >> ./logs/container_memory.log
           echo "---" >> ./logs/container_memory.log
           sleep 5
         done) &
-        echo $! > monitor.pid:
+        echo $! > monitor.pid
+    - name: Wait for monitoring to run
+      run: sleep 15  # Ensure the process has time to generate logs
     - name: Reset Deps
       run: nix develop -c make reset-deps
     - name: Tilt CI
@@ -39,17 +41,21 @@ jobs:
         TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
         # Add these two steps:
     - name: Stop monitoring
-      if: always()  # Run even if previous steps failed
+      if: always()
       run: |
         if [ -f monitor.pid ]; then
-          kill $(cat monitor.pid)
+          kill $(cat monitor.pid) || echo "Monitoring process already stopped."
+          rm -f monitor.pid
         fi
-        
+        sleep 5  # Allow log flush
+    - name: Debug log file
+      run: |
+        ls -la ./logs
+        cat ./logs/container_memory.log || echo "No logs found."
+
     - name: Upload memory logs
-      if: always()  # Run even if previous steps failed
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: memory-logs
-        path: |
-          ./logs/container_memory.log
-          ~/.tilt-dev/logs  # Include Tilt logs as well
+        path: ./logs/container_memory.log
