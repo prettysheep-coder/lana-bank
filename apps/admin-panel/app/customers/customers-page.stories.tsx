@@ -125,9 +125,7 @@ export const Error: Story = {
         ]}
         addTypename={false}
       >
-        <div className="max-w-7xl m-auto p-4">
-          <Story />
-        </div>
+        <Story />
       </MockedProvider>
     ),
   ],
@@ -164,9 +162,7 @@ export const Empty: Story = {
         ]}
         addTypename={false}
       >
-        <div className="max-w-7xl m-auto p-4">
-          <Story />
-        </div>
+        <Story />
       </MockedProvider>
     ),
   ],

@@ -55,11 +55,9 @@ const CommitteeStory = (args: CommitteeStoryArgs) => {
   const mocks = createMocks(args, committeeId)
 
   return (
-    <div className="max-w-7xl m-auto p-4">
-      <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-        <CommitteePage params={{ "committee-id": committeeId }} />
-      </MockedProvider>
-    </div>
+    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+      <CommitteePage params={{ "committee-id": committeeId }} />
+    </MockedProvider>
   )
 }
 
@@ -119,11 +117,9 @@ export const Error: Story = {
     ]
 
     return (
-      <div className="max-w-7xl m-auto p-4">
-        <MockedProvider mocks={errorMocks} addTypename={false}>
-          <CommitteePage params={{ "committee-id": faker.string.uuid() }} />
-        </MockedProvider>
-      </div>
+      <MockedProvider mocks={errorMocks} addTypename={false}>
+        <CommitteePage params={{ "committee-id": faker.string.uuid() }} />
+      </MockedProvider>
     )
   },
 }

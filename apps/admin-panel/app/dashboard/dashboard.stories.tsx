@@ -98,11 +98,9 @@ const DashboardStory = (args: DashboardStoryArgs) => {
   const mocks = createMocks(args)
 
   return (
-    <div className="max-w-7xl m-auto p-4">
-      <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-        <Dashboard />
-      </MockedProvider>
-    </div>
+    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+      <Dashboard />
+    </MockedProvider>
   )
 }
 
