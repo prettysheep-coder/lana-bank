@@ -22,19 +22,32 @@ jobs:
         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
     - name: Setup container monitoring
       run: |
-        mkdir -p ./logs
-        # Start monitoring in the background and log the process ID
-        (while true; do 
-          echo "$(date '+%Y-%m-%d %H:%M:%S')" >> ./logs/container_memory.log
-          docker stats --no-stream --format "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}" >> ./logs/container_memory.log
-          echo "---" >> ./logs/container_memory.log
+          mkdir -p ./logs
+          # Start monitoring in the background and log the process ID
+          (while true; do 
+            echo "$(date '+%Y-%m-%d %H:%M:%S')" >> ./logs/container_memory.log
+            docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.PIDs}}" >> ./logs/container_memory.log
+            echo "---" >> ./logs/container_memory.log
+            sleep 1
+          done) &
+          MONITOR_PID=$!
+          echo $MONITOR_PID > monitor.pid
+          
+          # Wait for monitoring to start and verify it's running
           sleep 5
-        done) &
-        echo $! > monitor.pid
-    - name: Wait for monitoring to run
-      run: sleep 15  # Ensure the process has time to generate logs
+          if ! kill -0 $MONITOR_PID 2>/dev/null; then
+            echo "Monitoring failed to start"
+            exit 1
+          fi
+
     - name: Reset Deps
-      run: nix develop -c make reset-deps
+      run: |
+        # Verify monitoring is still running
+        if ! kill -0 $(cat monitor.pid) 2>/dev/null; then
+          echo "Monitoring stopped unexpectedly"
+          exit 1
+        fi
+        nix develop -c make reset-deps
     - name: Tilt CI
       run: nix develop -c make tilt-in-ci
       env:
