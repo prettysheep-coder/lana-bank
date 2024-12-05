@@ -97,6 +97,13 @@ export const Default: Story = {
       </MockedProvider>
     ),
   ],
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/customers",
+      },
+    },
+  },
 }
 
 export const Error: Story = {
