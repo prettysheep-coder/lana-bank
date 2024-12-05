@@ -46,12 +46,14 @@ const LoadingStory = () => {
       request: {
         query: GetOnBalanceSheetTrialBalanceDocument,
       },
+      variableMatcher: () => true,
       delay: Infinity,
     },
     {
       request: {
         query: GetOffBalanceSheetTrialBalanceDocument,
       },
+      variableMatcher: () => true,
       delay: Infinity,
     },
   ]
@@ -80,7 +82,9 @@ const meta = {
 export default meta
 
 type Story = StoryObj<typeof meta>
+
 export const Default: Story = {}
+
 export const Loading: Story = {
   render: LoadingStory,
   parameters: {
