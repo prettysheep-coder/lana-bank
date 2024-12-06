@@ -155,6 +155,27 @@ withdraw_amount() {
   [[ "$status" == "CONFIRMED" ]] || exit 1
 }
 
+deposit_amount() {
+  customer_id=$1
+  amount=$2
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+      --argjson amount "$amount" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'record-deposit' "$variables"
+  deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  [[ "$deposit_id" != "null" ]] || exit 1
+
+}
+
 generate_facilities_with_multiple_terms() {
   declare -a facilities=(
     1000000000
@@ -183,13 +204,14 @@ generate_facilities_with_multiple_terms() {
 
       withdraw_amount "$customer_id" 100000000
 
+      deposit_amount "$customer_id" 40000000
+
     done
   done
 }
 
 whale_account() {
   customer_id=$(create_customer)
-  cache_value "customer_id" $customer_id
 
   variables=$(
     jq -n \
@@ -203,11 +225,10 @@ whale_account() {
   )
   exec_admin_graphql 'record-deposit' "$variables"
   deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
-  echo $(graphql_output)
   [[ "$deposit_id" != "null" ]] || exit 1
 }
 
-@test "generate credit facilities with multiple terms and execute steps" {
+@test "credit-facility: generate multiple facilities" {
   whale_account
   generate_facilities_with_multiple_terms
 }

@@ -246,7 +246,7 @@ getEmailCode() {
 }
 
 generate_email() {
-  echo "user$(date +%s | sha256sum | head -c 8)@example.com"
+  echo "user$(date +%s | sha256sum | head -c 6)$(head /dev/urandom | tr -dc a-z0-9 | head -c 4)@example.com"
 }
 
 create_customer() {
