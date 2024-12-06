@@ -14,6 +14,17 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+wait_for_approval() {
+  variables=$(
+    jq -n \
+      --arg withdrawId "$1" \
+    '{ id: $withdrawId }'
+  )
+  exec_admin_graphql 'find-withdraw' "$variables"
+  status=$(graphql_output '.data.withdrawal.status')
+  [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
+}
+
 wait_for_active() {
   credit_facility_id=$1
 
@@ -35,6 +46,7 @@ ymd() {
 
 create_credit_facility_with_terms() {
   customer_id=$(create_customer)
+  cache_value "customer_id" "$customer_id"
 
   facility=$1
   terms=$2
@@ -105,6 +117,44 @@ record_accruals() {
   sleep $((RANDOM % 31 + 30))
 }
 
+withdraw_amount() {
+  customer_id=$1
+  amount=$2
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+      --arg date "$(date +%s%N)" \
+      --argjson amount "$amount" \
+      '{
+        input: {
+          customerId: $customerId,
+          amount: $amount,
+          reference: ("withdrawal-ref-" + $date)
+        }
+      }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+
+  retry 5 1 wait_for_approval "$withdrawal_id"
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+      '{
+        input: {
+          withdrawalId: $withdrawalId
+        }
+      }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+  echo $(graphql_output)
+  status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
+  [[ "$status" == "CONFIRMED" ]] || exit 1
+}
+
 generate_facilities_with_multiple_terms() {
   declare -a facilities=(
     1000000000
@@ -123,16 +173,41 @@ generate_facilities_with_multiple_terms() {
       create_credit_facility_with_terms "$facility" "$term"
 
       credit_facility_id=$(read_value 'credit_facility_id')
+      customer_id=$(read_value 'customer_id')
 
       update_collateral "$credit_facility_id" 900000000000
 
       initiate_disbursal "$credit_facility_id" 500000000
 
       record_accruals "$credit_facility_id"
+
+      withdraw_amount "$customer_id" 100000000
+
     done
   done
 }
 
+whale_account() {
+  customer_id=$(create_customer)
+  cache_value "customer_id" $customer_id
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId,
+        amount: 15000000000000,
+      }
+    }'
+  )
+  exec_admin_graphql 'record-deposit' "$variables"
+  deposit_id=$(graphql_output '.data.depositRecord.deposit.depositId')
+  echo $(graphql_output)
+  [[ "$deposit_id" != "null" ]] || exit 1
+}
+
 @test "generate credit facilities with multiple terms and execute steps" {
+  whale_account
   generate_facilities_with_multiple_terms
 }
