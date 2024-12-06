@@ -107,9 +107,9 @@ record_accruals() {
 
 generate_facilities_with_multiple_terms() {
   declare -a facilities=(
-    1000000
-    2000000
-    3000000
+    1000000000
+    2000000000
+    3000000000
   )
 
   declare -a terms=(
@@ -124,9 +124,9 @@ generate_facilities_with_multiple_terms() {
 
       credit_facility_id=$(read_value 'credit_facility_id')
 
-      update_collateral "$credit_facility_id" 100000000
+      update_collateral "$credit_facility_id" 900000000000
 
-      initiate_disbursal "$credit_facility_id" 50000
+      initiate_disbursal "$credit_facility_id" 500000000
 
       record_accruals "$credit_facility_id"
     done
