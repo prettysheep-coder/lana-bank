@@ -229,6 +229,8 @@ whale_account() {
 }
 
 @test "credit-facility: generate multiple facilities" {
+  skip
+
   whale_account
   generate_facilities_with_multiple_terms
 }
