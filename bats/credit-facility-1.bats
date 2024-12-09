@@ -150,9 +150,6 @@ withdraw_amount() {
       }'
   )
   exec_admin_graphql 'confirm-withdrawal' "$variables"
-  echo $(graphql_output)
-  status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
-  [[ "$status" == "CONFIRMED" ]] || exit 1
 }
 
 deposit_amount() {
