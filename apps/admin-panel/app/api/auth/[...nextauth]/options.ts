@@ -1,4 +1,5 @@
 import EmailProvider from "next-auth/providers/email"
+import CredentialsProvider from "next-auth/providers/credentials"
 import { NextAuthOptions } from "next-auth"
 import axios from "axios"
 
@@ -9,7 +10,7 @@ import { basePath, env } from "@/env"
 async function checkUserEmail(email: string): Promise<boolean> {
   try {
     const response = await axios.post(env.CHECK_USER_ALLOWED_CALLBACK_URL, {
-      email: email,
+      email,
       transient_payload: {},
     })
 
@@ -21,25 +22,64 @@ async function checkUserEmail(email: string): Promise<boolean> {
   }
 }
 
+const isPreviewEnvironment = process.env.VERCEL_ENV === "preview"
+
 export const authOptions: NextAuthOptions = {
   providers: [
-    EmailProvider({
-      server: env.EMAIL_SERVER,
-      from: env.EMAIL_FROM,
-    }),
+    ...(!isPreviewEnvironment
+      ? [
+          EmailProvider({
+            server: env.EMAIL_SERVER,
+            from: env.EMAIL_FROM,
+          }),
+        ]
+      : []),
+
+    ...(isPreviewEnvironment
+      ? [
+          CredentialsProvider({
+            name: "Preview Access",
+            credentials: {
+              email: { label: "Email", type: "email" },
+              password: { label: "Password", type: "password" },
+            },
+            async authorize(credentials) {
+              if (!credentials?.email || !credentials?.password) return null
+
+              if (
+                credentials.email === "galoysuperuser@mailinator.com" &&
+                credentials.password === "admin"
+              ) {
+                return {
+                  id: "preview-user",
+                  email: credentials.email,
+                  name: "Preview User",
+                }
+              }
+              return null
+            },
+          }),
+        ]
+      : []),
   ],
+
   session: {
     strategy: "jwt",
   },
+
   callbacks: {
     async redirect() {
       return `${basePath}/dashboard`
     },
-    async signIn({ account }) {
-      const email = account?.providerAccountId
-      if (account?.provider === "email" && email) {
-        return checkUserEmail(email)
+    async signIn({ account, credentials }) {
+      if (isPreviewEnvironment && credentials) {
+        return true
       }
+
+      if (account?.provider === "email" && account.providerAccountId) {
+        return checkUserEmail(account.providerAccountId)
+      }
+
       return false
     },
     async session({ session, token }) {
@@ -50,11 +90,17 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
-  adapter: customPostgresAdapter(pool),
+
+  adapter: isPreviewEnvironment ? undefined : customPostgresAdapter(pool),
   secret: env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: `${basePath}/auth/login`,
-    error: `${basePath}/auth/error`,
-    verifyRequest: `${basePath}/auth/verify`,
-  },
+
+  ...(isPreviewEnvironment
+    ? {}
+    : {
+        pages: {
+          signIn: `${basePath}/auth/login`,
+          error: `${basePath}/auth/error`,
+          verifyRequest: `${basePath}/auth/verify`,
+        },
+      }),
 }

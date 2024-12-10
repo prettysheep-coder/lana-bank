@@ -26,7 +26,7 @@ const inter = Inter_Tight({
   variable: "--font-inter",
 })
 
-const PUBLIC_PAGES = ["/auth/login", "/auth/error", "/auth/verify"]
+const PUBLIC_PAGES = ["/auth/login", "/auth/error", "/auth/verify", "/api/auth/signin"]
 
 export default async function RootLayout({
   children,
@@ -37,7 +37,7 @@ export default async function RootLayout({
   const currentPath = headerList.get("x-current-path") || "/"
 
   const session = await getServerSession(authOptions)
-  if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/login")
+  if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/api/auth/signin")
   if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
   if (session && ["/", "/app"].includes(currentPath)) redirect("/dashboard")
 
