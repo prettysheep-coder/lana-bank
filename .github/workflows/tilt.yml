@@ -74,6 +74,8 @@ jobs:
         # Add container inspection
         echo "\n=== Cala Container Inspect ===" >> ./logs/failure_info.log
         docker inspect lana-bank-cala-1 >> ./logs/failure_info.log
+        docker logs lana-bank-cala-1 >> ./logs/failure_info.log 
+        docker logs lana-bank-cala-1 2>&1 || true
     # Then update the stop monitoring step to kill both processes:
     - name: Stop monitoring
       if: always()
