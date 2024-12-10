@@ -1,7 +1,7 @@
 resource "google_service_account" "holistics" {
   project      = local.gcp_project
-  account_id   = "holistics"
-  display_name = "Holistics"
+  account_id   = local.holistics_sa_name
+  display_name = local.holistics_sa_name
 }
 
 resource "google_service_account_key" "holistics_key" {
