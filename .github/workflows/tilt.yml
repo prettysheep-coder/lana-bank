@@ -33,9 +33,18 @@ jobs:
           MONITOR_PID=$!
           echo $MONITOR_PID > monitor.pid
           
+          # Add container status monitoring
+          (while true; do 
+            echo "=== Container Status at $(date '+%Y-%m-%d %H:%M:%S.%N') ===" >> ./logs/container_status.log
+            docker ps -a --format "{{.Names}}\t{{.Status}}\t{{.State}}" >> ./logs/container_status.log
+            sleep 0.1
+          done) &
+          STATUS_PID=$!
+          echo $STATUS_PID > status.pid
+          
           # Wait for monitoring to start and verify it's running
           sleep 5
-          if ! kill -0 $MONITOR_PID 2>/dev/null; then
+          if ! kill -0 $MONITOR_PID 2>/dev/null || ! kill -0 $STATUS_PID 2>/dev/null; then
             echo "Monitoring failed to start"
             exit 1
           fi
@@ -53,6 +62,17 @@ jobs:
       env:
         TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
         # Add these two steps:
+    - name: Collect failure information
+      if: failure()
+      run: |
+        echo "=== Docker Container Status ===" > ./logs/failure_info.log
+        docker ps -a >> ./logs/failure_info.log
+        echo "\n=== Failed Container Logs ===" >> ./logs/failure_info.log
+        for container in $(docker ps -a --filter "status=exited" --format '{{.Names}}'); do
+          echo "\n=== $container logs ===" >> ./logs/failure_info.log
+          docker logs $container &>> ./logs/failure_info.log
+        done
+    # Then update the stop monitoring step to kill both processes:
     - name: Stop monitoring
       if: always()
       run: |
@@ -60,15 +80,15 @@ jobs:
           kill $(cat monitor.pid) || echo "Monitoring process already stopped."
           rm -f monitor.pid
         fi
+        if [ -f status.pid ]; then
+          kill $(cat status.pid) || echo "Status monitoring process already stopped."
+          rm -f status.pid
+        fi
         sleep 5  # Allow log flush
-    - name: Debug log file
-      run: |
-        ls -la ./logs
-        cat ./logs/container_memory.log || echo "No logs found."
 
     - name: Upload memory logs
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: memory-logs
-        path: ./logs/container_memory.log
+        name: debug-logs
+        path: ./logs/*.log
