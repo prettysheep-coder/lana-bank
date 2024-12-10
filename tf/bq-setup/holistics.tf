@@ -4,6 +4,10 @@ resource "google_service_account" "holistics" {
   display_name = "Holistics"
 }
 
+resource "google_service_account_key" "holistics_key" {
+  service_account_id = google_service_account.holistics.name
+}
+
 resource "google_project_iam_member" "holistics_job_user" {
   project = local.gcp_project
   role    = "roles/bigquery.jobUser"
