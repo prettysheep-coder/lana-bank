@@ -68,10 +68,12 @@ jobs:
         echo "=== Docker Container Status ===" > ./logs/failure_info.log
         docker ps -a >> ./logs/failure_info.log
         echo "\n=== Failed Container Logs ===" >> ./logs/failure_info.log
-        for container in $(docker ps -a --filter "status=exited" --format '{{.Names}}'); do
-          echo "\n=== $container logs ===" >> ./logs/failure_info.log
-          docker logs $container &>> ./logs/failure_info.log
-        done
+        # Add specific logging for cala container
+        echo "\n=== Cala Container Logs ===" >> ./logs/failure_info.log
+        docker logs lana-bank-cala-1 &>> ./logs/failure_info.log
+        # Add container inspection
+        echo "\n=== Cala Container Inspect ===" >> ./logs/failure_info.log
+        docker inspect lana-bank-cala-1 >> ./logs/failure_info.log
     # Then update the stop monitoring step to kill both processes:
     - name: Stop monitoring
       if: always()
