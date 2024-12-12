@@ -1,4 +1,7 @@
 describe("Terms Template", () => {
+  let templateName: string
+  let templateId: string
+
   beforeEach(() => {
     cy.on("uncaught:exception", (err) => {
       if (err.message.includes("ResizeObserver loop")) {
@@ -8,14 +11,13 @@ describe("Terms Template", () => {
   })
 
   it("should successfully create a new terms template", () => {
+    templateName = `Test Template ${Date.now()}`
     cy.visit("/terms-templates")
 
     cy.takeScreenshot("1_visit_terms_templates_page")
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("2_click_create_button")
-
-    const templateName = `Test Template ${Date.now()}`
 
     cy.get('[data-testid="terms-template-name-input"]')
       .type(templateName)
@@ -68,5 +70,30 @@ describe("Terms Template", () => {
     )
     cy.contains(templateName).should("be.visible")
     cy.takeScreenshot("13_verify_terms_template_creation")
+
+    cy.getIdFromUrl("/terms-templates/").then((id) => {
+      templateId = id
+      cy.log(`Template ID: ${templateId}`)
+    })
+  })
+
+  it("should show newly created terms template in the list", () => {
+    cy.visit("/terms-templates")
+    cy.wait(1000)
+    cy.contains(templateName).should("be.visible")
+  })
+
+  it("should update the terms template", () => {
+    cy.visit(`/terms-templates/${templateId}`)
+    cy.wait(1000)
+
+    cy.get('[data-testid="terms-template-update-button"]').click()
+
+    cy.get('[data-testid="terms-template-annual-rate-input"]')
+      .type("6")
+      .should("have.value", "6")
+
+    cy.get('[data-testid="terms-template-update-submit-button"]').click()
+    cy.contains("Terms Template updated successfully").should("be.visible")
   })
 })

@@ -1,5 +1,11 @@
 describe("Customers", () => {
+  let testEmail: string
+  let testTelegramId: string
+
   it("should successfully create a new customer", () => {
+    testEmail = `test-${Date.now()}@example.com`
+    testTelegramId = `user${Date.now()}`
+
     cy.visit("/customers")
 
     cy.contains(
@@ -18,13 +24,11 @@ describe("Customers", () => {
     cy.get('[data-testid="customer-create-email"]').should("be.visible")
     cy.takeScreenshot("4_verify_email_input_visible")
 
-    const testEmail = `test-${Date.now()}@example.com`
     cy.get('[data-testid="customer-create-email"]')
       .type(testEmail)
       .should("have.value", testEmail)
     cy.takeScreenshot("5_enter_email")
 
-    const testTelegramId = `user${Date.now()}`
     cy.get('[data-testid="customer-create-telegram-id"]')
       .type(testTelegramId)
       .should("have.value", testTelegramId)
@@ -50,5 +54,11 @@ describe("Customers", () => {
     )
     cy.contains(testEmail).should("be.visible")
     cy.takeScreenshot("10_verify_email")
+  })
+
+  it("should show newly created customer in the list", () => {
+    cy.visit("/customers")
+    cy.wait(1000)
+    cy.contains(testEmail).should("be.visible")
   })
 })

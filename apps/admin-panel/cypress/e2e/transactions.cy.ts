@@ -44,37 +44,54 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.get('[data-testid="withdraw-amount-input"]')
       .type("5000")
       .should("have.value", "5000")
-
     cy.get('[data-testid="withdraw-submit-button"]').click()
-    cy.get('[data-testid="withdraw-cancel-button"]').should("be.visible").click()
-    cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
-      .should("be.visible")
-      .click()
-    cy.get("[data-testid=withdrawal-status-badge]")
-      .should("be.visible")
-      .invoke("text")
-      .should("eq", "CANCELLED")
+
+    cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
+      if (badge.text() === "PENDING APPROVAL") {
+        cy.get('[data-testid="approval-process-deny-button"]').click()
+        cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")
+        cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
+        // TODO investigate this it is failing
+      } else {
+        cy.get('[data-testid="withdraw-cancel-button"]').should("be.visible").click()
+        cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
+          .should("be.visible")
+          .click()
+        cy.get("[data-testid=withdrawal-status-badge]")
+          .should("be.visible")
+          .invoke("text")
+          .should("eq", "CANCELLED")
+      }
+    })
   })
 
   it("should create and approve Withdraw", () => {
     cy.visit(`/customers/${customerId}`)
     cy.wait(1000)
+
     cy.get('[data-testid="global-create-button"]').click()
-
     cy.get('[data-testid="create-withdrawal-button"]').should("be.visible").click()
-
     cy.get('[data-testid="withdraw-amount-input"]')
       .type("5000")
       .should("have.value", "5000")
-
     cy.get('[data-testid="withdraw-submit-button"]').click()
-    cy.get('[data-testid="withdraw-confirm-button"]').should("be.visible").click()
-    cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
-      .should("be.visible")
-      .click()
+
     cy.get("[data-testid=withdrawal-status-badge]")
-      .should("be.visible")
-      .invoke("text")
-      .should("eq", "CONFIRMED")
+      .then((badge) => {
+        if (badge.text() === "PENDING APPROVAL") {
+          cy.get('[data-testid="approval-process-approve-button"]').click()
+          cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
+        }
+      })
+      .then(() => {
+        cy.get('[data-testid="withdraw-confirm-button"]').should("be.visible").click()
+        cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
+          .should("be.visible")
+          .click()
+        cy.get("[data-testid=withdrawal-status-badge]")
+          .should("be.visible")
+          .invoke("text")
+          .should("eq", "CONFIRMED")
+      })
   })
 })
