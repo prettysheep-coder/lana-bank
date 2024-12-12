@@ -7,6 +7,7 @@ config {
 	},
 }
 
+-- Adding dummy date to coalesce NULLs in FK & maintaining referential integrity, regardless of BQ
 SELECT
 	  19000101 AS PK
 	, DATE('1900-01-01') AS event_date
