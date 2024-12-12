@@ -60,5 +60,6 @@ describe("Customers", () => {
     cy.visit("/customers")
     cy.wait(1000)
     cy.contains(testEmail).should("be.visible")
+    cy.takeScreenshot("11_verify_customer_in_list")
   })
 })

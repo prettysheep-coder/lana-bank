@@ -81,19 +81,26 @@ describe("Terms Template", () => {
     cy.visit("/terms-templates")
     cy.wait(1000)
     cy.contains(templateName).should("be.visible")
+    cy.takeScreenshot("14_terms_template_in_list")
   })
 
   it("should update the terms template", () => {
     cy.visit(`/terms-templates/${templateId}`)
     cy.wait(1000)
+    cy.takeScreenshot("15_terms_template_details")
 
     cy.get('[data-testid="terms-template-update-button"]').click()
+    cy.takeScreenshot("16_click_update_button")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
       .type("6")
       .should("have.value", "6")
+    cy.takeScreenshot("17_update_annual_rate")
 
     cy.get('[data-testid="terms-template-update-submit-button"]').click()
+    cy.takeScreenshot("18_submit_update")
+
     cy.contains("Terms Template updated successfully").should("be.visible")
+    cy.takeScreenshot("19_update_success")
   })
 })

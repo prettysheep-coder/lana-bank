@@ -73,6 +73,7 @@ describe("credit facility", () => {
     cy.visit(`/credit-facilities`)
     cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
     cy.contains("$5,000.00").should("be.visible")
+    cy.takeScreenshot("credit_facility_in_list")
   })
 
   it("should update collateral and activate the credit facility", () => {
@@ -108,7 +109,7 @@ describe("credit facility", () => {
           .click()
 
         cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
-        cy.wait(1000).then(() => {
+        cy.wait(5000).then(() => {
           cy.reload().then(() => {
             cy.get("[data-testid=credit-facility-status-badge]")
               .should("be.visible")
@@ -157,17 +158,6 @@ describe("credit facility", () => {
   it("should show disbursal in the list page", () => {
     cy.visit(`/disbursals`)
     cy.contains("$1,000.00").should("be.visible")
+    cy.takeScreenshot("18_disbursal_in_list")
   })
-
-  // it("should successfully record a payment", () => {
-  //   const creditFacilityId = Cypress.env("creditFacilityId")
-  //   expect(creditFacilityId).to.exist
-  //   cy.visit(`/credit-facilities/${creditFacilityId}`)
-  //   cy.get('[data-testid="make-payment-button"]').should("be.visible").click()
-  //   cy.get('[data-testid="facility-partial-payment-amount-input"]')
-  //     .type("5000")
-  //     .should("have.value", "5000")
-  //   cy.get('[data-testid="facility-partial-payment-submit-button"]').click()
-  //   cy.contains("Partial payment processed successfully").should("be.visible")
-  // })
 })
