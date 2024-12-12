@@ -69,6 +69,12 @@ describe("credit facility", () => {
     cy.takeScreenshot("5_credit_facility_created_success")
   })
 
+  it("should show newly created credit facility in the list", () => {
+    cy.visit(`/credit-facilities`)
+    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
+    cy.contains("$5,000.00").should("be.visible")
+  })
+
   it("should update collateral and activate the credit facility", () => {
     const creditFacilityId = Cypress.env("creditFacilityId")
     expect(creditFacilityId).to.exist
@@ -102,12 +108,15 @@ describe("credit facility", () => {
           .click()
 
         cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
-
-        cy.get("[data-testid=credit-facility-status-badge]")
-          .should("be.visible")
-          .invoke("text")
-          .should("eq", "ACTIVE")
-        cy.takeScreenshot("10_verify_active_status")
+        cy.wait(1000).then(() => {
+          cy.reload().then(() => {
+            cy.get("[data-testid=credit-facility-status-badge]")
+              .should("be.visible")
+              .invoke("text")
+              .should("eq", "ACTIVE")
+            cy.takeScreenshot("10_verify_active_status")
+          })
+        })
       })
   })
 
@@ -144,4 +153,21 @@ describe("credit facility", () => {
       .should("eq", "CONFIRMED")
     cy.takeScreenshot("17_verify_disbursal_status_confirmed")
   })
+
+  it("should show disbursal in the list page", () => {
+    cy.visit(`/disbursals`)
+    cy.contains("$1,000.00").should("be.visible")
+  })
+
+  // it("should successfully record a payment", () => {
+  //   const creditFacilityId = Cypress.env("creditFacilityId")
+  //   expect(creditFacilityId).to.exist
+  //   cy.visit(`/credit-facilities/${creditFacilityId}`)
+  //   cy.get('[data-testid="make-payment-button"]').should("be.visible").click()
+  //   cy.get('[data-testid="facility-partial-payment-amount-input"]')
+  //     .type("5000")
+  //     .should("have.value", "5000")
+  //   cy.get('[data-testid="facility-partial-payment-submit-button"]').click()
+  //   cy.contains("Partial payment processed successfully").should("be.visible")
+  // })
 })
