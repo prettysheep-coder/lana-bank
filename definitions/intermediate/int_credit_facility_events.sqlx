@@ -16,7 +16,11 @@ config {
 		nonNull: ["terms_liquidation_cvl_FK"],
 		nonNull: ["terms_margin_call_cvl_FK"],
 		nonNull: ["approval_process_started_recorded_at_date_FK"],
-		nonNull: ["approval_process_started_recorded_at"],
+		nonNull: ["approval_process_concluded_recorded_at_date_FK"],
+		nonNull: ["activated_recorded_at_date_FK"],
+		nonNull: ["activated_activated_at_date_FK"],
+		nonNull: ["completed_recorded_at_date_FK"],
+		nonNull: ["completed_completed_at_date_FK"],
 		nonNull: ["facility"],
 	},
 }
@@ -95,21 +99,21 @@ SELECT
     -- DIMSs
         i.* EXCEPT (facility)
 
-      , aps.recorded_at_date_FK AS approval_process_started_recorded_at_date_FK
+      , COALESCE(aps.recorded_at_date_FK, 19000101) AS approval_process_started_recorded_at_date_FK
       , aps.recorded_at AS approval_process_started_recorded_at
 
-      , apc.recorded_at_date_FK AS approval_process_concluded_recorded_at_date_FK
+      , COALESCE(apc.recorded_at_date_FK, 19000101) AS approval_process_concluded_recorded_at_date_FK
       , apc.recorded_at AS approval_process_concluded_recorded_at
-      , apc.approved AS approval_process_concluded_approved
+      , COALESCE(apc.approved, FALSE) AS approval_process_concluded_approved
 
-      , a.recorded_at_date_FK AS activated_recorded_at_date_FK
+      , COALESCE(a.recorded_at_date_FK, 19000101) AS activated_recorded_at_date_FK
       , a.recorded_at AS activated_recorded_at
-      , a.activated_at_date_FK AS activated_activated_at_date_FK
+      , COALESCE(a.activated_at_date_FK) AS activated_activated_at_date_FK
       , a.activated_at AS activated_activated_at
 
-      , c.recorded_at_date_FK AS completed_recorded_at_date_FK
+      , COALESCE(c.recorded_at_date_FK, 19000101) AS completed_recorded_at_date_FK
       , c.recorded_at AS completed_recorded_at
-      , c.completed_at_date_FK AS completed_completed_at_date_FK
+      , COALESCE(c.completed_at_date_FK, 19000101) AS completed_completed_at_date_FK
       , c.completed_at AS completed_completed_at
     -- FACTs
       , i.facility

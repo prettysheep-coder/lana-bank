@@ -8,6 +8,12 @@ config {
 }
 
 SELECT
+	  19000101 AS PK
+	, DATE('1900-01-01') AS event_date
+
+UNION ALL
+
+SELECT
       CAST(FORMAT_DATE('%Y%m%d', event_date) as INT64) AS PK
     , event_date
 FROM
