@@ -2,9 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents a unique terms liquidation cvl in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["terms_liquidation_cvl_key"],
 		nonNull: ["terms_liquidation_cvl"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
@@ -15,6 +16,6 @@ WITH distinct_entries AS (
 )
 
 SELECT
-      ROW_NUMBER() OVER (ORDER BY terms_liquidation_cvl) AS PK
+      ROW_NUMBER() OVER (ORDER BY terms_liquidation_cvl) AS terms_liquidation_cvl_key
     , terms_liquidation_cvl
 FROM distinct_entries

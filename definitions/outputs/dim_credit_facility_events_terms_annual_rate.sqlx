@@ -2,9 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents a unique terms annual rate in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["terms_annual_rate_key"],
 		nonNull: ["terms_annual_rate"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
@@ -15,6 +16,6 @@ WITH distinct_entries AS (
 )
 
 SELECT
-      ROW_NUMBER() OVER (ORDER BY terms_annual_rate) AS PK
+      ROW_NUMBER() OVER (ORDER BY terms_annual_rate) AS terms_annual_rate_key
     , terms_annual_rate
 FROM distinct_entries

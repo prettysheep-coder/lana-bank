@@ -2,9 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents the unique (surrogate, natural) key pair in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["event_key"],
 		nonNull: ["event_id"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
@@ -14,6 +15,6 @@ WITH distinct_entries AS (
 )
 
 SELECT
-      ROW_NUMBER() OVER (ORDER BY event_id) AS PK
+      ROW_NUMBER() OVER (ORDER BY event_id) AS event_key
     , event_id
 FROM distinct_entries

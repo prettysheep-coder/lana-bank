@@ -2,47 +2,47 @@ config {
 	type: "table",
 	description: "ETL process preparing facts for credit facility events.",
 	assertions: {
-		uniqueKey: ["PK"],
-		nonNull: ["recorded_at_date_FK"],
-		nonNull: ["recorded_at"],
-		nonNull: ["event_type_FK"],
-		nonNull: ["customer_id_FK"],
-		nonNull: ["terms_accrual_interval_type_FK"],
-		nonNull: ["terms_annual_rate_FK"],
-		nonNull: ["terms_duration_type_FK"],
-		nonNull: ["terms_duration_value_FK"],
-		nonNull: ["terms_incurrence_interval_type_FK"],
-		nonNull: ["terms_initial_cvl_FK"],
-		nonNull: ["terms_liquidation_cvl_FK"],
-		nonNull: ["terms_margin_call_cvl_FK"],
-		nonNull: ["approval_process_started_recorded_at_date_FK"],
-		nonNull: ["approval_process_concluded_recorded_at_date_FK"],
-		nonNull: ["activated_recorded_at_date_FK"],
-		nonNull: ["activated_activated_at_date_FK"],
-		nonNull: ["completed_recorded_at_date_FK"],
-		nonNull: ["completed_completed_at_date_FK"],
-		nonNull: ["facility"],
+		uniqueKey: ["event_key"],
+		nonNull: [
+            "recorded_at_date_key",
+            "recorded_at",
+            "event_type_key",
+            "customer_id_key",
+            "terms_accrual_interval_type_key",
+            "terms_annual_rate_key",
+            "terms_duration_type_key",
+            "terms_duration_value_key",
+            "terms_incurrence_interval_type_key",
+            "terms_initial_cvl_key",
+            "terms_liquidation_cvl_key",
+            "terms_margin_call_cvl_key",
+            "approval_process_started_recorded_at_date_key",
+            "approval_process_concluded_recorded_at_date_key",
+            "activated_recorded_at_date_key",
+            "activated_at_date_key",
+            "completed_recorded_at_date_key",
+            "completed_at_date_key",
+            "facility"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH initialized AS (
 
     SELECT
-        -- DIMs
-          (SELECT PK FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS PK
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_FK
+          (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_type")} AS t WHERE t.event_type = cfe.event_type) AS event_type_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_customer_id")} AS t WHERE t.customer_id = JSON_VALUE(event, "$.customer_id")) AS customer_id_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_accrual_interval_type")} AS t WHERE t.terms_accrual_interval_type = JSON_VALUE(event, "$.terms.accrual_interval.type")) AS terms_accrual_interval_type_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_annual_rate")} AS t WHERE t.terms_annual_rate = JSON_VALUE(event, "$.terms.annual_rate")) AS terms_annual_rate_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_duration_type")} AS t WHERE t.terms_duration_type = JSON_VALUE(event, "$.terms.duration.type")) AS terms_duration_type_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_duration_value")} AS t WHERE t.terms_duration_value = JSON_VALUE(event, "$.terms.duration.value")) AS terms_duration_value_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_incurrence_interval_type")} AS t WHERE t.terms_incurrence_interval_type = JSON_VALUE(event, "$.terms.incurrence_interval.type")) AS terms_incurrence_interval_type_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t WHERE t.terms_initial_cvl = JSON_VALUE(event, "$.terms.initial_cvl")) AS terms_initial_cvl_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t WHERE t.terms_liquidation_cvl = JSON_VALUE(event, "$.terms.liquidation_cvl")) AS terms_liquidation_cvl_FK
-        , (SELECT PK FROM ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t WHERE t.terms_margin_call_cvl = JSON_VALUE(event, "$.terms.margin_call_cvl")) AS terms_margin_call_cvl_FK
-        -- FACTs
+        , (SELECT event_type_key FROM ${ref("dim_credit_facility_events_type")} AS t WHERE t.event_type = cfe.event_type) AS event_type_key
+        , (SELECT customer_id_key FROM ${ref("dim_credit_facility_events_customer_id")} AS t WHERE t.customer_id = JSON_VALUE(event, "$.customer_id")) AS customer_id_key
+        , (SELECT terms_accrual_interval_type_key FROM ${ref("dim_credit_facility_events_terms_accrual_interval_type")} AS t WHERE t.terms_accrual_interval_type = JSON_VALUE(event, "$.terms.accrual_interval.type")) AS terms_accrual_interval_type_key
+        , (SELECT terms_annual_rate_key FROM ${ref("dim_credit_facility_events_terms_annual_rate")} AS t WHERE t.terms_annual_rate = JSON_VALUE(event, "$.terms.annual_rate")) AS terms_annual_rate_key
+        , (SELECT terms_duration_type_key FROM ${ref("dim_credit_facility_events_terms_duration_type")} AS t WHERE t.terms_duration_type = JSON_VALUE(event, "$.terms.duration.type")) AS terms_duration_type_key
+        , (SELECT terms_duration_value_key FROM ${ref("dim_credit_facility_events_terms_duration_value")} AS t WHERE t.terms_duration_value = JSON_VALUE(event, "$.terms.duration.value")) AS terms_duration_value_key
+        , (SELECT terms_incurrence_interval_type_key FROM ${ref("dim_credit_facility_events_terms_incurrence_interval_type")} AS t WHERE t.terms_incurrence_interval_type = JSON_VALUE(event, "$.terms.incurrence_interval.type")) AS terms_incurrence_interval_type_key
+        , (SELECT terms_initial_cvl_key FROM ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t WHERE t.terms_initial_cvl = JSON_VALUE(event, "$.terms.initial_cvl")) AS terms_initial_cvl_key
+        , (SELECT terms_liquidation_cvl_key FROM ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t WHERE t.terms_liquidation_cvl = JSON_VALUE(event, "$.terms.liquidation_cvl")) AS terms_liquidation_cvl_key
+        , (SELECT terms_margin_call_cvl_key FROM ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t WHERE t.terms_margin_call_cvl = JSON_VALUE(event, "$.terms.margin_call_cvl")) AS terms_margin_call_cvl_key
 		, CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
 	WHERE event_type = "initialized"
@@ -50,9 +50,8 @@ WITH initialized AS (
 ), approval_process_started AS (
 
 	SELECT
-        -- DIMs
-          (SELECT PK FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS PK
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_FK
+          (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
 	WHERE event_type = "approval_process_started"
@@ -60,9 +59,8 @@ WITH initialized AS (
 ), approval_process_concluded AS (
 
 	SELECT
-        -- DIMs
-          (SELECT PK FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS PK
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_FK
+          (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
         , CAST(JSON_VALUE(event, "$.approved") AS BOOLEAN) AS approved
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
@@ -71,24 +69,24 @@ WITH initialized AS (
 ), activated AS (
 
 	SELECT
-        -- DIMs
-          (SELECT PK FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS PK
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_FK
+          (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.activated_at"))) as INT64) AS activated_at_date_FK
+        , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.activated_at"))) as INT64) AS activated_at_date_key
         , TIMESTAMP(JSON_VALUE(event, "$.activated_at")) AS activated_at
+        -- PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at"), "UTC")
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
 	WHERE event_type = "activated"
 
 ), completed AS (
 
 	SELECT
-        -- DIMs
-          (SELECT PK FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS PK
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_FK
+          (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.completed_at"))) as INT64) AS completed_at_date_FK
+        , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.completed_at"))) as INT64) AS completed_at_date_key
         , TIMESTAMP(JSON_VALUE(event, "$.completed_at")) AS completed_at
+        -- , PARSE_TIMESTAMP("%Y-%m-%dT%H:%M:%E*SZ", JSON_VALUE(event, "$.completed_at"), "UTC") AS completed_at
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
 	WHERE event_type = "completed"
 
@@ -96,29 +94,28 @@ WITH initialized AS (
 
 
 SELECT
-    -- DIMSs
         i.* EXCEPT (facility)
 
-      , COALESCE(aps.recorded_at_date_FK, 19000101) AS approval_process_started_recorded_at_date_FK
+      , COALESCE(aps.recorded_at_date_key, 19000101) AS approval_process_started_recorded_at_date_key
       , aps.recorded_at AS approval_process_started_recorded_at
 
-      , COALESCE(apc.recorded_at_date_FK, 19000101) AS approval_process_concluded_recorded_at_date_FK
+      , COALESCE(apc.recorded_at_date_key, 19000101) AS approval_process_concluded_recorded_at_date_key
       , apc.recorded_at AS approval_process_concluded_recorded_at
       , COALESCE(apc.approved, FALSE) AS approval_process_concluded_approved
 
-      , COALESCE(a.recorded_at_date_FK, 19000101) AS activated_recorded_at_date_FK
+      , COALESCE(a.recorded_at_date_key, 19000101) AS activated_recorded_at_date_key
       , a.recorded_at AS activated_recorded_at
-      , COALESCE(a.activated_at_date_FK) AS activated_activated_at_date_FK
-      , a.activated_at AS activated_activated_at
+      , COALESCE(a.activated_at_date_key) AS activated_at_date_key
+      , a.activated_at
 
-      , COALESCE(c.recorded_at_date_FK, 19000101) AS completed_recorded_at_date_FK
+      , COALESCE(c.recorded_at_date_key, 19000101) AS completed_recorded_at_date_key
       , c.recorded_at AS completed_recorded_at
-      , COALESCE(c.completed_at_date_FK, 19000101) AS completed_completed_at_date_FK
-      , c.completed_at AS completed_completed_at
-    -- FACTs
+      , COALESCE(c.completed_at_date_key, 19000101) AS completed_at_date_key
+      , c.completed_at
+
       , i.facility
 FROM initialized AS i
-LEFT JOIN approval_process_started aps ON aps.PK = i.PK
-LEFT JOIN approval_process_concluded apc ON apc.PK = i.PK
-LEFT JOIN activated a ON a.PK = i.PK
-LEFT JOIN completed c ON c.PK = i.PK
+LEFT JOIN approval_process_started aps ON aps.event_key = i.event_key
+LEFT JOIN approval_process_concluded apc ON apc.event_key = i.event_key
+LEFT JOIN activated a ON a.event_key = i.event_key
+LEFT JOIN completed c ON c.event_key = i.event_key

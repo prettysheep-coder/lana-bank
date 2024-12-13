@@ -2,20 +2,21 @@ config {
 	type: "table",
 	description: "Each row represents a unique event date in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["event_date_key"],
 		nonNull: ["event_date"],
 	},
+	tags: ["current-dev"],
 }
 
 -- Adding dummy date to coalesce NULLs in FK & maintaining referential integrity, regardless of BQ
 SELECT
-	  19000101 AS PK
+	  19000101 AS event_date_key
 	, DATE('1900-01-01') AS event_date
 
 UNION ALL
 
 SELECT
-      CAST(FORMAT_DATE('%Y%m%d', event_date) as INT64) AS PK
+      CAST(FORMAT_DATE('%Y%m%d', event_date) as INT64) AS event_date_key
     , event_date
 FROM
 	UNNEST(

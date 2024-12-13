@@ -2,9 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents a unique event type in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["event_type_key"],
 		nonNull: ["event_type"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
@@ -14,6 +15,6 @@ WITH distinct_entries AS (
 )
 
 SELECT
-      ROW_NUMBER() OVER (ORDER BY event_type) AS PK
+      ROW_NUMBER() OVER (ORDER BY event_type) AS event_type_key
     , event_type
 FROM distinct_entries

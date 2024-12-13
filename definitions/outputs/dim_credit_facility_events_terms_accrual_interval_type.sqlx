@@ -2,9 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents a unique terms accrual interval type in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["terms_accrual_interval_type_key"],
 		nonNull: ["terms_accrual_interval_type"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
@@ -15,6 +16,6 @@ WITH distinct_entries AS (
 )
 
 SELECT
-      ROW_NUMBER() OVER (ORDER BY terms_accrual_interval_type) AS PK
+      ROW_NUMBER() OVER (ORDER BY terms_accrual_interval_type) AS terms_accrual_interval_type_key
     , terms_accrual_interval_type
 FROM distinct_entries

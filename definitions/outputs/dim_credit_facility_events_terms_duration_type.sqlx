@@ -2,9 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents a unique terms duration type in credit facility.",
 	assertions: {
-		uniqueKey: ["PK"],
+		uniqueKey: ["terms_duration_type_key"],
 		nonNull: ["terms_duration_type"],
 	},
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
@@ -15,6 +16,6 @@ WITH distinct_entries AS (
 )
 
 SELECT
-      ROW_NUMBER() OVER (ORDER BY terms_duration_type) AS PK
+      ROW_NUMBER() OVER (ORDER BY terms_duration_type) AS terms_duration_type_key
     , terms_duration_type
 FROM distinct_entries
