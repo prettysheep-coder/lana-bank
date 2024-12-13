@@ -5,7 +5,6 @@ config {
         uniqueKey: ["terms_annual_rate_key"],
         nonNull: ["terms_annual_rate"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

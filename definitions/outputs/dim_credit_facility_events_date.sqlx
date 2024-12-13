@@ -5,7 +5,6 @@ config {
         uniqueKey: ["event_date_key"],
         nonNull: ["event_date"],
     },
-    tags: ["current-dev"],
 }
 
 -- Adding dummy date to coalesce NULLs in FK & maintaining referential integrity, regardless of BQ

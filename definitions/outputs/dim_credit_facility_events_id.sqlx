@@ -5,7 +5,6 @@ config {
         uniqueKey: ["event_key"],
         nonNull: ["event_id"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

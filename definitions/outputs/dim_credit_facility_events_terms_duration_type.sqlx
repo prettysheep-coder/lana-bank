@@ -5,7 +5,6 @@ config {
         uniqueKey: ["terms_duration_type_key"],
         nonNull: ["terms_duration_type"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

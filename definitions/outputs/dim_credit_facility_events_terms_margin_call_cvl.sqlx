@@ -5,7 +5,6 @@ config {
         uniqueKey: ["terms_margin_call_cvl_key"],
         nonNull: ["terms_margin_call_cvl"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

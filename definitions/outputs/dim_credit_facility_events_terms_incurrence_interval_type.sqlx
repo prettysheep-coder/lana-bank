@@ -5,7 +5,6 @@ config {
         uniqueKey: ["terms_incurrence_interval_type_key"],
         nonNull: ["terms_incurrence_interval_type"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

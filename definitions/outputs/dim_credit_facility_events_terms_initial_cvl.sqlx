@@ -5,7 +5,6 @@ config {
         uniqueKey: ["terms_initial_cvl_key"],
         nonNull: ["terms_initial_cvl"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

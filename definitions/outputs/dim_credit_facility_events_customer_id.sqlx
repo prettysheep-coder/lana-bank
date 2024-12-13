@@ -5,7 +5,6 @@ config {
         uniqueKey: ["customer_id_key"],
         nonNull: ["customer_id"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (

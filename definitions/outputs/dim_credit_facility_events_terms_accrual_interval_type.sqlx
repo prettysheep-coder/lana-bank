@@ -5,7 +5,6 @@ config {
         uniqueKey: ["terms_accrual_interval_type_key"],
         nonNull: ["terms_accrual_interval_type"],
     },
-    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
