@@ -24,7 +24,6 @@ config {
             "completed_at_date_key",
             "facility"],
     },
-    tags: ["current-dev"],
 }
 
 WITH initialized AS (
@@ -85,9 +84,8 @@ WITH initialized AS (
           event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.activated_at"))) as INT64) AS activated_at_date_key
-        , TIMESTAMP(JSON_VALUE(event, "$.activated_at")) AS activated_at
-        -- PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at"), "UTC")
+        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at")), "UTC") as INT64) AS activated_at_date_key
+        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at"), "UTC") AS activated_at
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
     LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t ON t.event_id = id
     WHERE cfe.event_type = "activated"
@@ -98,9 +96,8 @@ WITH initialized AS (
           event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.completed_at"))) as INT64) AS completed_at_date_key
-        , TIMESTAMP(JSON_VALUE(event, "$.completed_at")) AS completed_at
-        -- , PARSE_TIMESTAMP("%Y-%m-%dT%H:%M:%E*SZ", JSON_VALUE(event, "$.completed_at"), "UTC") AS completed_at
+        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.completed_at")), "UTC") as INT64) AS completed_at_date_key
+        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.completed_at"), "UTC") AS completed_at
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
     LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t ON t.event_id = id
     WHERE cfe.event_type = "completed"
