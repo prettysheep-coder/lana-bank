@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use authz::PermissionCheck;
 use futures::StreamExt;
 
+use audit::AuditSvc;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
@@ -11,18 +12,51 @@ use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use super::ApproveWithdrawal;
 
 #[derive(serde::Serialize)]
-pub struct WithdrawApprovalJobConfig;
-impl JobConfig for WithdrawApprovalJobConfig {
-    type Initializer = WithdrawApprovalJobInitializer;
+pub struct WithdrawApprovalJobConfig<Perms, E> {
+    _phantom: std::marker::PhantomData<(Perms, E)>,
+}
+impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
+    pub fn new() -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+impl<Perms, E> JobConfig for WithdrawApprovalJobConfig<Perms, E>
+where
+    E: OutboxEventMarker<GovernanceEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
+    type Initializer = WithdrawApprovalJobInitializer<Perms, E>;
 }
 
-pub struct WithdrawApprovalJobInitializer {
-    outbox: Outbox,
-    process: ApproveWithdrawal,
+pub struct WithdrawApprovalJobInitializer<Perms, E>
+where
+    E: OutboxEventMarker<GovernanceEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
+    outbox: Outbox<E>,
+    process: ApproveWithdrawal<Perms, E>,
 }
 
-impl WithdrawApprovalJobInitializer {
-    pub fn new(outbox: &Outbox, process: &ApproveWithdrawal) -> Self {
+impl<Perms, E> WithdrawApprovalJobInitializer<Perms, E>
+where
+    E: OutboxEventMarker<GovernanceEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
+    pub fn new(outbox: &Outbox<E>, process: &ApproveWithdrawal<Perms, E>) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),
@@ -31,7 +65,15 @@ impl WithdrawApprovalJobInitializer {
 }
 
 const WITHDRAW_APPROVE_JOB: JobType = JobType::new("withdraw-approval");
-impl JobInitializer for WithdrawApprovalJobInitializer {
+impl<Perms, E> JobInitializer for WithdrawApprovalJobInitializer<Perms, E>
+where
+    E: OutboxEventMarker<GovernanceEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
     fn job_type() -> JobType
     where
         Self: Sized,
@@ -59,12 +101,28 @@ struct WithdrawApprovalJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct WithdrawApprovalJobRunner {
-    outbox: Outbox,
-    process: ApproveWithdrawal,
+pub struct WithdrawApprovalJobRunner<Perms, E>
+where
+    E: OutboxEventMarker<GovernanceEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
+    outbox: Outbox<E>,
+    process: ApproveWithdrawal<Perms, E>,
 }
 #[async_trait]
-impl JobRunner for WithdrawApprovalJobRunner {
+impl<Perms, E> JobRunner for WithdrawApprovalJobRunner<Perms, E>
+where
+    E: OutboxEventMarker<GovernanceEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
     #[allow(clippy::single_match)]
     async fn run(
         &self,
@@ -76,14 +134,14 @@ impl JobRunner for WithdrawApprovalJobRunner {
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            match message.payload {
-                Some(CoreDepositEvent::Governance(GovernanceEvent::ApprovalProcessConcluded {
+            match message.as_ref().as_event() {
+                Some(GovernanceEvent::ApprovalProcessConcluded {
                     id,
                     approved,
                     ref process_type,
                     ..
-                })) if process_type == &super::APPROVE_WITHDRAWAL_PROCESS => {
-                    self.process.execute(id, approved).await?;
+                }) if process_type == &super::APPROVE_WITHDRAWAL_PROCESS => {
+                    self.process.execute(*id, *approved).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }

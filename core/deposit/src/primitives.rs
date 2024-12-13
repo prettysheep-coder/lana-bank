@@ -19,7 +19,6 @@ es_entity::entity_id! {
     DepositId => LedgerTransactionId,
     WithdrawalId => LedgerTransactionId,
     WithdrawalId => ApprovalProcessId
-
 }
 
 pub use core_money::UsdCents;
@@ -35,7 +34,6 @@ pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
-    Governance(GovernanceObject),
 }
 
 impl CoreDepositObject {
@@ -56,12 +54,6 @@ impl CoreDepositObject {
     }
 }
 
-impl From<GovernanceObject> for CoreDepositObject {
-    fn from(object: GovernanceObject) -> Self {
-        CoreDepositObject::Governance(object)
-    }
-}
-
 impl Display for CoreDepositObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = CoreDepositObjectDiscriminants::from(self);
@@ -70,7 +62,6 @@ impl Display for CoreDepositObject {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Governance(obj) => obj.fmt(f),
         }
     }
 }
@@ -100,7 +91,6 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Withdrawal(obj_ref)
             }
-            Governance => CoreDepositObject::from(id.parse::<GovernanceObject>()?),
         };
         Ok(res)
     }
@@ -113,13 +103,6 @@ pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
     Deposit(DepositAction),
     Withdrawal(WithdrawalAction),
-    Governance(GovernanceAction),
-}
-
-impl From<GovernanceAction> for CoreDepositAction {
-    fn from(action: GovernanceAction) -> Self {
-        CoreDepositAction::Governance(action)
-    }
 }
 
 impl CoreDepositAction {
@@ -145,7 +128,6 @@ impl Display for CoreDepositAction {
             DepositAccount(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Withdrawal(action) => action.fmt(f),
-            Governance(action) => action.fmt(f),
         }
     }
 }
@@ -160,7 +142,6 @@ impl FromStr for CoreDepositAction {
             DepositAccount => CoreDepositAction::from(action.parse::<DepositAccountAction>()?),
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
             Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
-            Governance => CoreDepositAction::from(action.parse::<GovernanceAction>()?),
         };
 
         Ok(res)

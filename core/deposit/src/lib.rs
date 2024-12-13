@@ -91,7 +91,7 @@ where
 
         jobs.add_initializer_and_spawn_unique(
             WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
-            WithdrawApprovalJobConfig,
+            WithdrawApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
 

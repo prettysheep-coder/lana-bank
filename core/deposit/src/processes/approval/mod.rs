@@ -20,7 +20,6 @@ pub use job::*;
 
 pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
-#[derive(Clone)]
 pub struct ApproveWithdrawal<Perms, E>
 where
     Perms: PermissionCheck,
@@ -29,6 +28,19 @@ where
     repo: WithdrawalRepo,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
+}
+impl<Perms, E> Clone for ApproveWithdrawal<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            repo: self.repo.clone(),
+            audit: self.audit.clone(),
+            governance: self.governance.clone(),
+        }
+    }
 }
 
 impl<Perms, E> ApproveWithdrawal<Perms, E>
