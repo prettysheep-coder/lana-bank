@@ -106,26 +106,26 @@ WITH initialized AS (
 
 
 SELECT
-        i.* EXCEPT (facility)
+      i.* EXCEPT (facility)
 
-      , COALESCE(aps.recorded_at_date_key, 19000101) AS approval_process_started_recorded_at_date_key
-      , aps.recorded_at AS approval_process_started_recorded_at
+    , COALESCE(aps.recorded_at_date_key, 19000101) AS approval_process_started_recorded_at_date_key
+    , aps.recorded_at AS approval_process_started_recorded_at
 
-      , COALESCE(apc.recorded_at_date_key, 19000101) AS approval_process_concluded_recorded_at_date_key
-      , apc.recorded_at AS approval_process_concluded_recorded_at
-      , COALESCE(apc.approved, FALSE) AS approval_process_concluded_approved
+    , COALESCE(apc.recorded_at_date_key, 19000101) AS approval_process_concluded_recorded_at_date_key
+    , apc.recorded_at AS approval_process_concluded_recorded_at
+    , COALESCE(apc.approved, FALSE) AS approval_process_concluded_approved
 
-      , COALESCE(a.recorded_at_date_key, 19000101) AS activated_recorded_at_date_key
-      , a.recorded_at AS activated_recorded_at
-      , COALESCE(a.activated_at_date_key, 19000101) AS activated_at_date_key
-      , a.activated_at
+    , COALESCE(a.recorded_at_date_key, 19000101) AS activated_recorded_at_date_key
+    , a.recorded_at AS activated_recorded_at
+    , COALESCE(a.activated_at_date_key, 19000101) AS activated_at_date_key
+    , a.activated_at
 
-      , COALESCE(c.recorded_at_date_key, 19000101) AS completed_recorded_at_date_key
-      , c.recorded_at AS completed_recorded_at
-      , COALESCE(c.completed_at_date_key, 19000101) AS completed_at_date_key
-      , c.completed_at
+    , COALESCE(c.recorded_at_date_key, 19000101) AS completed_recorded_at_date_key
+    , c.recorded_at AS completed_recorded_at
+    , COALESCE(c.completed_at_date_key, 19000101) AS completed_at_date_key
+    , c.completed_at
 
-      , i.facility
+    , i.facility
 FROM initialized AS i
 LEFT JOIN approval_process_started aps ON aps.event_key = i.event_key
 LEFT JOIN approval_process_concluded apc ON apc.event_key = i.event_key
