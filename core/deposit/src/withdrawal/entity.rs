@@ -92,7 +92,7 @@ impl Withdrawal {
             .any(|e| matches!(e, WithdrawalEvent::Confirmed { .. }))
     }
 
-    pub(super) fn is_approved_or_denied(&self) -> Option<bool> {
+    pub fn is_approved_or_denied(&self) -> Option<bool> {
         self.events.iter_all().find_map(|e| {
             if let WithdrawalEvent::ApprovalProcessConcluded { approved, .. } = e {
                 Some(*approved)
@@ -106,6 +106,23 @@ impl Withdrawal {
         self.events
             .iter_all()
             .any(|e| matches!(e, WithdrawalEvent::Cancelled { .. }))
+    }
+
+    pub fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            WithdrawalEvent::ApprovalProcessConcluded { .. }
+        );
+        self.events.push(WithdrawalEvent::ApprovalProcessConcluded {
+            approval_process_id: self.id.into(),
+            approved,
+            audit_info,
+        });
+        Idempotent::Executed(())
     }
 }
 

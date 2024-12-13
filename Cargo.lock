@@ -1195,6 +1195,7 @@ name = "deposit"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "audit",
  "authz",
  "cala-ledger",
@@ -1202,7 +1203,9 @@ dependencies = [
  "core-money",
  "derive_builder",
  "es-entity",
+ "futures",
  "governance",
+ "job",
  "outbox",
  "rust_decimal",
  "rust_decimal_macros",

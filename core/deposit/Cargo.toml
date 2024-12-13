@@ -17,6 +17,7 @@ governance = { path = "../governance", optional = true }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
@@ -29,6 +30,8 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 derive_builder = { workspace = true }
 rust_decimal = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
 
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }

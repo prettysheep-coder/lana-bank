@@ -7,6 +7,7 @@ pub mod error;
 mod event;
 mod ledger;
 mod primitives;
+mod processes;
 mod withdrawal;
 
 use tracing::instrument;
@@ -14,6 +15,8 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use governance::{Governance, GovernanceEvent};
+use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
 use account::*;
@@ -22,6 +25,10 @@ use error::*;
 pub use event::*;
 use ledger::*;
 pub use primitives::*;
+use processes::approval::{
+    ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
+    APPROVE_WITHDRAWAL_PROCESS,
+};
 use withdrawal::*;
 
 pub struct CoreDeposit<Perms, E>
@@ -34,6 +41,7 @@ where
     withdrawals: WithdrawalRepo,
     ledger: DepositLedger,
     authz: Perms,
+    governance: Governance<Perms, E>,
     outbox: Outbox<E>,
 }
 
@@ -49,6 +57,7 @@ where
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             authz: self.authz.clone(),
+            governance: self.governance.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -57,14 +66,18 @@ where
 impl<Perms, E> CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreDepositAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreDepositObject>,
-    E: OutboxEventMarker<CoreDepositEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
         outbox: &Outbox<E>,
+        governance: &Governance<Perms, E>,
+        jobs: &Jobs,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
         omnibus_account_code: String,
@@ -73,12 +86,30 @@ where
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
         let ledger = DepositLedger::init(cala, journal_id, omnibus_account_code).await?;
+
+        let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
+
+        jobs.add_initializer_and_spawn_unique(
+            WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
+            WithdrawApprovalJobConfig,
+        )
+        .await?;
+
+        match governance.init_policy(APPROVE_WITHDRAWAL_PROCESS).await {
+            Err(governance::error::GovernanceError::PolicyError(
+                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
+            )) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+
         let res = Self {
             accounts,
             deposits,
             withdrawals,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            governance: governance.clone(),
             ledger,
         };
         Ok(res)
@@ -173,6 +204,14 @@ where
             .build()
             .expect("Could not build new withdrawal");
         let mut op = self.withdrawals.begin_op().await?;
+        self.governance
+            .start_process(
+                &mut op,
+                withdrawal_id,
+                withdrawal_id.to_string(),
+                APPROVE_WITHDRAWAL_PROCESS,
+            )
+            .await?;
         let withdrawal = self
             .withdrawals
             .create_in_op(&mut op, new_withdrawal)

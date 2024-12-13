@@ -14,4 +14,14 @@ pub enum CoreDepositError {
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
     #[error("CoreDepositError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
+    #[error("CoreDepositError - GovernanceError: {0}")]
+    GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreDepositError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
+    #[error("CoreDepositError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
+    #[error("CoreDepositError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
 }
+
+es_entity::from_es_entity_error!(CoreDepositError);

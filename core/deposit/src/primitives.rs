@@ -2,8 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-#[cfg(feature = "governance")]
-pub use governance::ApprovalProcessId;
+pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
     AccountId as LedgerAccountId, JournalId as LedgerJournalId,
@@ -18,7 +17,8 @@ es_entity::entity_id! {
 
     DepositAccountId => LedgerAccountId,
     DepositId => LedgerTransactionId,
-    WithdrawalId => LedgerTransactionId
+    WithdrawalId => LedgerTransactionId,
+    WithdrawalId => ApprovalProcessId
 
 }
 
@@ -35,6 +35,7 @@ pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
+    Governance(GovernanceObject),
 }
 
 impl CoreDepositObject {
@@ -55,6 +56,12 @@ impl CoreDepositObject {
     }
 }
 
+impl From<GovernanceObject> for CoreDepositObject {
+    fn from(object: GovernanceObject) -> Self {
+        CoreDepositObject::Governance(object)
+    }
+}
+
 impl Display for CoreDepositObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = CoreDepositObjectDiscriminants::from(self);
@@ -63,6 +70,7 @@ impl Display for CoreDepositObject {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Governance(obj) => obj.fmt(f),
         }
     }
 }
@@ -92,6 +100,7 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Withdrawal(obj_ref)
             }
+            Governance => CoreDepositObject::from(id.parse::<GovernanceObject>()?),
         };
         Ok(res)
     }
@@ -104,6 +113,13 @@ pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
     Deposit(DepositAction),
     Withdrawal(WithdrawalAction),
+    Governance(GovernanceAction),
+}
+
+impl From<GovernanceAction> for CoreDepositAction {
+    fn from(action: GovernanceAction) -> Self {
+        CoreDepositAction::Governance(action)
+    }
 }
 
 impl CoreDepositAction {
@@ -114,7 +130,11 @@ impl CoreDepositAction {
         CoreDepositAction::DepositAccount(DepositAccountAction::ReadBalance);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
+
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
+
+    pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
+        CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess);
 }
 
 impl Display for CoreDepositAction {
@@ -125,6 +145,7 @@ impl Display for CoreDepositAction {
             DepositAccount(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Withdrawal(action) => action.fmt(f),
+            Governance(action) => action.fmt(f),
         }
     }
 }
@@ -139,7 +160,9 @@ impl FromStr for CoreDepositAction {
             DepositAccount => CoreDepositAction::from(action.parse::<DepositAccountAction>()?),
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
             Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
+            Governance => CoreDepositAction::from(action.parse::<GovernanceAction>()?),
         };
+
         Ok(res)
     }
 }
@@ -173,6 +196,7 @@ impl From<DepositAction> for CoreDepositAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum WithdrawalAction {
     Initiate,
+    ConcludeApprovalProcess,
 }
 
 impl From<WithdrawalAction> for CoreDepositAction {

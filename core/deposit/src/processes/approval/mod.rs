@@ -1,0 +1,106 @@
+mod job;
+
+use authz::PermissionCheck;
+use governance::{
+    ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, GovernanceAction, GovernanceEvent,
+    GovernanceObject,
+};
+
+use audit::AuditSvc;
+use governance::Governance;
+use outbox::OutboxEventMarker;
+
+use crate::{
+    primitives::WithdrawalId,
+    withdrawal::{repo::WithdrawalRepo, Withdrawal},
+    CoreDepositAction, CoreDepositError, CoreDepositObject, WithdrawalAction,
+};
+
+pub use job::*;
+
+pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
+
+#[derive(Clone)]
+pub struct ApproveWithdrawal<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<GovernanceEvent>,
+{
+    repo: WithdrawalRepo,
+    audit: Perms::Audit,
+    governance: Governance<Perms, E>,
+}
+
+impl<Perms, E> ApproveWithdrawal<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<GovernanceEvent>,
+{
+    pub fn new(
+        repo: &WithdrawalRepo,
+        audit: &Perms::Audit,
+        governance: &Governance<Perms, E>,
+    ) -> Self {
+        Self {
+            repo: repo.clone(),
+            audit: audit.clone(),
+            governance: governance.clone(),
+        }
+    }
+
+    pub async fn execute_from_svc(
+        &self,
+        withdraw: &Withdrawal,
+    ) -> Result<Option<Withdrawal>, CoreDepositError> {
+        if withdraw.is_approved_or_denied().is_some() {
+            return Ok(None);
+        }
+
+        let process: ApprovalProcess = self
+            .governance
+            .find_all_approval_processes(&[withdraw.approval_process_id])
+            .await?
+            .remove(&withdraw.approval_process_id)
+            .expect("approval process not found");
+
+        let res = match process.status() {
+            ApprovalProcessStatus::Approved => Some(self.execute(withdraw.id, true).await?),
+            ApprovalProcessStatus::Denied => Some(self.execute(withdraw.id, false).await?),
+            _ => None,
+        };
+        Ok(res)
+    }
+
+    #[es_entity::retry_on_concurrent_modification]
+    pub async fn execute(
+        &self,
+        id: impl es_entity::RetryableInto<WithdrawalId>,
+        approved: bool,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let mut withdraw = self.repo.find_by_id(id.into()).await?;
+        if withdraw.is_approved_or_denied().is_some() {
+            return Ok(withdraw);
+        }
+        let mut db = self.repo.begin_op().await?;
+        let audit_info = self
+            .audit
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
+            )
+            .await?;
+        if withdraw
+            .approval_process_concluded(approved, audit_info)
+            .did_execute()
+        {
+            self.repo.update_in_op(&mut db, &mut withdraw).await?;
+            db.commit().await?;
+        }
+        Ok(withdraw)
+    }
+}
