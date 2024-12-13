@@ -1,9 +1,9 @@
 config {
-	type: "table",
-	description: "ETL process preparing facts for credit facility events.",
-	assertions: {
-		uniqueKey: ["event_key"],
-		nonNull: [
+    type: "table",
+    description: "ETL process preparing facts for credit facility events.",
+    assertions: {
+        uniqueKey: ["event_key"],
+        nonNull: [
             "recorded_at_date_key",
             "recorded_at",
             "event_type_key",
@@ -23,7 +23,7 @@ config {
             "completed_recorded_at_date_key",
             "completed_at_date_key",
             "facility"],
-	},
+    },
     tags: ["current-dev"],
 }
 
@@ -43,52 +43,52 @@ WITH initialized AS (
         , (SELECT terms_initial_cvl_key FROM ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t WHERE t.terms_initial_cvl = JSON_VALUE(event, "$.terms.initial_cvl")) AS terms_initial_cvl_key
         , (SELECT terms_liquidation_cvl_key FROM ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t WHERE t.terms_liquidation_cvl = JSON_VALUE(event, "$.terms.liquidation_cvl")) AS terms_liquidation_cvl_key
         , (SELECT terms_margin_call_cvl_key FROM ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t WHERE t.terms_margin_call_cvl = JSON_VALUE(event, "$.terms.margin_call_cvl")) AS terms_margin_call_cvl_key
-		, CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
+        , CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
-	WHERE event_type = "initialized"
+    WHERE event_type = "initialized"
 
 ), approval_process_started AS (
 
-	SELECT
+    SELECT
           (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
-	WHERE event_type = "approval_process_started"
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    WHERE event_type = "approval_process_started"
 
 ), approval_process_concluded AS (
 
-	SELECT
+    SELECT
           (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
         , CAST(JSON_VALUE(event, "$.approved") AS BOOLEAN) AS approved
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
-	WHERE event_type = "approval_process_concluded"
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    WHERE event_type = "approval_process_concluded"
 
 ), activated AS (
 
-	SELECT
+    SELECT
           (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
         , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.activated_at"))) as INT64) AS activated_at_date_key
         , TIMESTAMP(JSON_VALUE(event, "$.activated_at")) AS activated_at
         -- PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at"), "UTC")
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
-	WHERE event_type = "activated"
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    WHERE event_type = "activated"
 
 ), completed AS (
 
-	SELECT
+    SELECT
           (SELECT event_key FROM ${ref("dim_credit_facility_events_id")} WHERE event_id = id) AS event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
         , CAST(FORMAT_DATE('%Y%m%d', TIMESTAMP(JSON_VALUE(event, "$.completed_at"))) as INT64) AS completed_at_date_key
         , TIMESTAMP(JSON_VALUE(event, "$.completed_at")) AS completed_at
         -- , PARSE_TIMESTAMP("%Y-%m-%dT%H:%M:%E*SZ", JSON_VALUE(event, "$.completed_at"), "UTC") AS completed_at
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
-	WHERE event_type = "completed"
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    WHERE event_type = "completed"
 
 )
 

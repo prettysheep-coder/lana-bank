@@ -1,18 +1,18 @@
 config {
-	type: "table",
-	description: "Each row represents a unique terms duration value in credit facility.",
-	assertions: {
-		uniqueKey: ["terms_duration_value_key"],
-		nonNull: ["terms_duration_value"],
-	},
+    type: "table",
+    description: "Each row represents a unique terms duration value in credit facility.",
+    assertions: {
+        uniqueKey: ["terms_duration_value_key"],
+        nonNull: ["terms_duration_value"],
+    },
     tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
-	SELECT DISTINCT
-		JSON_VALUE(event, "$.terms.duration.value") AS terms_duration_value
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	WHERE event_type = "initialized"
+    SELECT DISTINCT
+        JSON_VALUE(event, "$.terms.duration.value") AS terms_duration_value
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+    WHERE event_type = "initialized"
 )
 
 SELECT

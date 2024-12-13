@@ -1,18 +1,18 @@
 config {
-	type: "table",
-	description: "Each row represents the unique customer (surrogate, natural) key pair in credit facility.",
-	assertions: {
-		uniqueKey: ["customer_id_key"],
-		nonNull: ["customer_id"],
-	},
-	tags: ["current-dev"],
+    type: "table",
+    description: "Each row represents the unique customer (surrogate, natural) key pair in credit facility.",
+    assertions: {
+        uniqueKey: ["customer_id_key"],
+        nonNull: ["customer_id"],
+    },
+    tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
-	SELECT DISTINCT
-		JSON_VALUE(event, "$.customer_id") AS customer_id
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	WHERE event_type = "initialized"
+    SELECT DISTINCT
+        JSON_VALUE(event, "$.customer_id") AS customer_id
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+    WHERE event_type = "initialized"
 )
 
 SELECT

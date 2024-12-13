@@ -1,17 +1,17 @@
 config {
-	type: "table",
-	description: "Each row represents the unique (surrogate, natural) key pair in credit facility.",
-	assertions: {
-		uniqueKey: ["event_key"],
-		nonNull: ["event_id"],
-	},
+    type: "table",
+    description: "Each row represents the unique (surrogate, natural) key pair in credit facility.",
+    assertions: {
+        uniqueKey: ["event_key"],
+        nonNull: ["event_id"],
+    },
     tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
-	SELECT DISTINCT
-		id AS event_id
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+    SELECT DISTINCT
+        id AS event_id
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
 )
 
 SELECT

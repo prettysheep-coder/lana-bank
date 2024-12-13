@@ -1,18 +1,18 @@
 config {
-	type: "table",
-	description: "Each row represents a unique terms margin call cvl in credit facility.",
-	assertions: {
-		uniqueKey: ["terms_margin_call_cvl_key"],
-		nonNull: ["terms_margin_call_cvl"],
-	},
+    type: "table",
+    description: "Each row represents a unique terms margin call cvl in credit facility.",
+    assertions: {
+        uniqueKey: ["terms_margin_call_cvl_key"],
+        nonNull: ["terms_margin_call_cvl"],
+    },
     tags: ["current-dev"],
 }
 
 WITH distinct_entries AS (
-	SELECT DISTINCT
-		JSON_VALUE(event, "$.terms.margin_call_cvl") AS terms_margin_call_cvl
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	WHERE event_type = "initialized"
+    SELECT DISTINCT
+        JSON_VALUE(event, "$.terms.margin_call_cvl") AS terms_margin_call_cvl
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+    WHERE event_type = "initialized"
 )
 
 SELECT
