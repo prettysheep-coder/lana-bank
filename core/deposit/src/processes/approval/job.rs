@@ -3,11 +3,11 @@ use authz::PermissionCheck;
 use futures::StreamExt;
 
 use audit::AuditSvc;
-use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
+use crate::{CoreDepositAction, CoreDepositObject};
 
 use super::ApproveWithdrawal;
 

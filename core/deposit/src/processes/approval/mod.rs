@@ -64,7 +64,7 @@ where
         }
     }
 
-    pub async fn execute_from_svc(
+    pub async fn _execute_from_svc(
         &self,
         withdraw: &Withdrawal,
     ) -> Result<Option<Withdrawal>, CoreDepositError> {
