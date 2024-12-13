@@ -16,6 +16,7 @@ config {
             "total_collateral",
         ],
     },
+    tags: ["current-dev"]
 }
 
 WITH collateral_updated AS (
@@ -42,8 +43,8 @@ WITH collateral_updated AS (
           event_key
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.event_recorded_at"), "UTC")) as INT64) AS event_recorded_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.event_recorded_at"), "UTC") AS event_recorded_at
+        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_at"), "UTC")) as INT64) AS event_recorded_at_date_key
+        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_at"), "UTC") AS event_recorded_at
         , state_key
         , CAST(JSON_VALUE(event, "$.collateral") AS NUMERIC) AS collateral
         , CAST(JSON_VALUE(event, "$.price") AS NUMERIC) AS price
