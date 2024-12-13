@@ -1,6 +1,6 @@
 config {
-	type: "view",
-	description: "Each row represents a unique 'combo-event'/fact? in the life cycle [initialized -> approval_process_started -> approval_process_concluded -> activated -> completed] of the credit facility.",
+    type: "view",
+    description: "Each row represents a unique 'combo-event'/fact? in the life cycle [initialized -> approval_process_started -> approval_process_concluded -> activated -> completed] of the credit facility.",
 }
 
 SELECT * FROM ${ref("int_credit_facility_events")}
