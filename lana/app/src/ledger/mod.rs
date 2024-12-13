@@ -19,8 +19,9 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CollateralAction, CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId,
-        Subject, UsdCents,
+        CollateralAction, CreditFacilityId, CreditFacilityId, CustomerId, CustomerId, DepositId,
+        LedgerAccountId, LedgerAccountSetId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
+        LedgerTxTemplateId, Subject, Subject, UsdCents, UsdCents, WithdrawalId,
     },
 };
 
@@ -208,46 +209,6 @@ impl Ledger {
                 tx_ref,
             )
             .await?)
-    }
-
-    #[instrument(
-        name = "lana.ledger.manage_credit_facility_collateral",
-        skip(self),
-        err
-    )]
-    pub async fn update_credit_facility_collateral(
-        &self,
-        CreditFacilityCollateralUpdate {
-            tx_id,
-            credit_facility_account_ids,
-            abs_diff,
-            tx_ref,
-            action,
-        }: CreditFacilityCollateralUpdate,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        let created_at = match action {
-            CollateralAction::Add => {
-                self.cala
-                    .add_credit_facility_collateral(
-                        tx_id,
-                        credit_facility_account_ids,
-                        abs_diff.to_btc(),
-                        tx_ref,
-                    )
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .remove_credit_facility_collateral(
-                        tx_id,
-                        credit_facility_account_ids,
-                        abs_diff.to_btc(),
-                        tx_ref,
-                    )
-                    .await
-            }
-        }?;
-        Ok(created_at)
     }
 
     #[instrument(name = "lana.ledger.record_credit_facility_repayment", skip(self), err)]

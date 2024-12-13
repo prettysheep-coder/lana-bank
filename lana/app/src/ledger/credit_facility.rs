@@ -1,13 +1,15 @@
 use chrono::{DateTime, Utc};
 
 use crate::{
-    primitives::{CollateralAction, LedgerTxId, Satoshis, UsdCents},
+    primitives::{LedgerTxId, Satoshis, UsdCents},
     terms::InterestPeriod,
 };
 
 use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
 
-pub use crate::credit_facility::ledger::{CreditFacilityAccountIds, CreditFacilityLedgerBalance};
+pub use crate::credit_facility::ledger::{
+    CreditFacilityAccountIds, CreditFacilityCollateralUpdate, CreditFacilityLedgerBalance,
+};
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
     type Error = LedgerError;
@@ -41,15 +43,6 @@ impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLed
                 .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
         })
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityCollateralUpdate {
-    pub tx_ref: String,
-    pub tx_id: LedgerTxId,
-    pub abs_diff: Satoshis,
-    pub action: CollateralAction,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
 
 #[derive(Debug, Clone)]

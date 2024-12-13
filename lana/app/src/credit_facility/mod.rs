@@ -414,11 +414,10 @@ impl CreditFacilities {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.gql_ledger
-            .update_credit_facility_collateral(credit_facility_collateral_update)
+        self.ledger
+            .update_credit_facility_collateral(db, credit_facility_collateral_update)
             .await?;
 
-        db.commit().await?;
         Ok(credit_facility)
     }
 
@@ -460,7 +459,7 @@ impl CreditFacilities {
             .await?;
 
         let ledger_balances = self
-            .gql_ledger
+            .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
         credit_facility

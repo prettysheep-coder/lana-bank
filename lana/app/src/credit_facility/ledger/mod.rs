@@ -2,29 +2,47 @@ mod credit_facility_accounts;
 pub mod error;
 mod templates;
 
-use cala_ledger::{account::NewAccount, CalaLedger, Currency, JournalId};
+use cala_ledger::{
+    account::{error::AccountError, NewAccount},
+    AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
+};
 
-use crate::primitives::{CreditFacilityId, Satoshis, UsdCents};
+use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
 
 pub use credit_facility_accounts::*;
 use error::*;
+
+pub(super) const BANK_COLLATERAL_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityCollateralUpdate {
+    pub tx_id: TransactionId,
+    pub abs_diff: Satoshis,
+    pub action: CollateralAction,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+}
 
 #[derive(Clone)]
 pub struct CreditLedger {
     cala: CalaLedger,
     journal_id: JournalId,
+    bank_collateral_account_id: AccountId,
     usd: Currency,
     btc: Currency,
 }
 
 impl CreditLedger {
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
+        let bank_collateral_account_id =
+            Self::create_bank_collateral_account(cala, BANK_COLLATERAL_ACCOUNT_CODE.to_string())
+                .await?;
         templates::AddCollateral::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
             journal_id,
+            bank_collateral_account_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
@@ -171,14 +189,74 @@ impl CreditLedger {
 
     pub async fn update_credit_facility_collateral(
         &self,
-        // CreditFacilityCollateralUpdate {
-        //     tx_id,
-        //     credit_facility_account_ids,
-        //     abs_diff,
-        //     tx_ref,
-        //     action,
-        // }: CreditFacilityCollateralUpdate,
+        op: es_entity::DbOp<'_>,
+        CreditFacilityCollateralUpdate {
+            tx_id,
+            credit_facility_account_ids,
+            abs_diff,
+            action,
+        }: CreditFacilityCollateralUpdate,
     ) -> Result<(), CreditLedgerError> {
-        unimplemented!()
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        match action {
+            CollateralAction::Add => {
+                self.cala
+                    .post_transaction_in_op(
+                        &mut op,
+                        tx_id,
+                        templates::ADD_COLLATERAL_CODE,
+                        templates::AddCollateralParams {
+                            journal_id: self.journal_id,
+                            currency: self.btc,
+                            amount: abs_diff.to_btc(),
+                            collateral_account_id: credit_facility_account_ids
+                                .collateral_account_id,
+                            bank_collateral_account_id: self.bank_collateral_account_id,
+                        },
+                    )
+                    .await
+            }
+            CollateralAction::Remove => {
+                self.cala
+                    .post_transaction_in_op(
+                        &mut op,
+                        tx_id,
+                        templates::REMOVE_COLLATERAL_CODE,
+                        templates::RemoveCollateralParams {
+                            journal_id: self.journal_id,
+                            currency: self.btc,
+                            amount: abs_diff.to_btc(),
+                            collateral_account_id: credit_facility_account_ids
+                                .collateral_account_id,
+                            bank_collateral_account_id: self.bank_collateral_account_id,
+                        },
+                    )
+                    .await
+            }
+        }?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    async fn create_bank_collateral_account(
+        cala: &CalaLedger,
+        code: String,
+    ) -> Result<AccountId, CreditLedgerError> {
+        let new_account = NewAccount::builder()
+            .code(&code)
+            .id(AccountId::new())
+            .name("Bank collateral account")
+            .description("Bank collateral account")
+            .normal_balance_type(DebitOrCredit::Debit)
+            .build()
+            .expect("Couldn't create onchain incoming account");
+        match cala.accounts().create(new_account).await {
+            Err(AccountError::CodeAlreadyExists) => {
+                let account = cala.accounts().find_by_code(code).await?;
+                Ok(account.id)
+            }
+            Err(e) => Err(e.into()),
+            Ok(account) => Ok(account.id),
+        }
     }
 }

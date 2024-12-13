@@ -72,7 +72,6 @@ pub enum CreditFacilityEvent {
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
-        tx_ref: String,
         total_collateral: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
@@ -956,13 +955,6 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
-    fn count_collateral_adjustments(&self) -> usize {
-        self.events
-            .iter_all()
-            .filter(|event| matches!(event, CreditFacilityEvent::CollateralUpdated { .. }))
-            .count()
-    }
-
     pub(super) fn record_collateral_update(
         &mut self,
         updated_collateral: Satoshis,
@@ -987,16 +979,9 @@ impl CreditFacility {
             (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
         };
 
-        let tx_ref = format!(
-            "{}-collateral-{}",
-            self.id,
-            self.count_collateral_adjustments() + 1
-        );
-
         let collateral_update = CreditFacilityCollateralUpdate {
             abs_diff: collateral,
             credit_facility_account_ids: self.account_ids,
-            tx_ref,
             tx_id: LedgerTxId::new(),
             action,
         };
@@ -1011,11 +996,10 @@ impl CreditFacility {
         Ok(collateral_update)
     }
 
-    pub(super) fn confirm_collateral_update(
+    fn confirm_collateral_update(
         &mut self,
         CreditFacilityCollateralUpdate {
             tx_id,
-            tx_ref,
             abs_diff,
             action,
             ..
@@ -1032,7 +1016,6 @@ impl CreditFacility {
         };
         self.events.push(CreditFacilityEvent::CollateralUpdated {
             tx_id,
-            tx_ref,
             total_collateral,
             abs_diff,
             action,
@@ -1091,10 +1074,7 @@ impl CreditFacility {
     pub(super) fn confirm_completion(
         &mut self,
         CreditFacilityCompletion {
-            tx_id,
-            tx_ref,
-            collateral,
-            ..
+            tx_id, collateral, ..
         }: CreditFacilityCompletion,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -1105,7 +1085,6 @@ impl CreditFacility {
             CreditFacilityCollateralUpdate {
                 credit_facility_account_ids: self.account_ids,
                 tx_id,
-                tx_ref,
                 abs_diff: collateral,
                 action: CollateralAction::Remove,
             },
@@ -1347,7 +1326,6 @@ mod test {
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
-                tx_ref: "tx-ref".to_string(),
                 total_collateral: Satoshis::from(500),
                 abs_diff: Satoshis::from(500),
                 action: CollateralAction::Add,
@@ -1565,7 +1543,6 @@ mod test {
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
-                tx_ref: "tx-ref".to_string(),
                 total_collateral: Satoshis::from(500),
                 abs_diff: Satoshis::from(500),
                 action: CollateralAction::Add,
@@ -1904,7 +1881,6 @@ mod test {
                 },
                 CreditFacilityEvent::CollateralUpdated {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "".to_string(),
                     total_collateral: Satoshis::ONE,
                     abs_diff: Satoshis::ONE,
                     action: CollateralAction::Add,
@@ -1931,7 +1907,6 @@ mod test {
                 },
                 CreditFacilityEvent::CollateralUpdated {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "".to_string(),
                     total_collateral: Satoshis::ONE,
                     abs_diff: Satoshis::ONE,
                     action: CollateralAction::Add,
@@ -1964,7 +1939,6 @@ mod test {
                 },
                 CreditFacilityEvent::CollateralUpdated {
                     tx_id: LedgerTxId::new(),
-                    tx_ref: "".to_string(),
                     total_collateral: collateral_amount,
                     abs_diff: collateral_amount,
                     action: CollateralAction::Add,
