@@ -109,6 +109,7 @@ Cypress.Commands.add(
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,
           initialCvl: input.initialCvl,
+          oneTimeFeeRate: input.oneTimeFeeRate,
         },
       })
       .then((response) => response.data.termsTemplateCreate.termsTemplate.termsId)

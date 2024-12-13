@@ -81,6 +81,7 @@ describe("credit facility", () => {
     expect(creditFacilityId).to.exist
 
     cy.visit(`/credit-facilities/${creditFacilityId}`)
+    cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("6_visit_credit_facility_page")
 
     cy.get('[data-testid="collateral-to-reach-target"]')
@@ -126,6 +127,7 @@ describe("credit facility", () => {
     expect(creditFacilityId).to.exist
 
     cy.visit(`/credit-facilities/${creditFacilityId}`)
+    cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("11_visit_credit_facility_page_for_disbursal")
 
     cy.get('[data-testid="initiate-disbursal-button"]').should("be.visible").click()

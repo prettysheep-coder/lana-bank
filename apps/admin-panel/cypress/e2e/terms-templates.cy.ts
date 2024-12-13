@@ -61,6 +61,10 @@ describe("Terms Template", () => {
       .should("have.value", "110")
     cy.takeScreenshot("11_enter_liquidation_cvl")
 
+    cy.get('[data-testid="terms-template-one-time-fee-rate-input"]')
+      .type("5")
+      .should("have.value", "5")
+
     cy.get('[data-testid="terms-template-submit-button"]').click()
     cy.takeScreenshot("12_submit_terms_template")
 
@@ -69,6 +73,7 @@ describe("Terms Template", () => {
       /\/terms-templates\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     cy.contains(templateName).should("be.visible")
+    cy.contains("Create Terms Template").should("not.exist")
     cy.takeScreenshot("13_verify_terms_template_creation")
 
     cy.getIdFromUrl("/terms-templates/").then((id) => {

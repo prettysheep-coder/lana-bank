@@ -53,6 +53,7 @@ describe("Customers", () => {
       /\/customers\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     cy.contains(testEmail).should("be.visible")
+    cy.contains("Add new customer").should("not.exist")
     cy.takeScreenshot("10_verify_email")
   })
 
