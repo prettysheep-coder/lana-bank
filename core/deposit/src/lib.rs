@@ -3,6 +3,7 @@
 
 mod account;
 mod deposit;
+mod deposit_account_balance;
 pub mod error;
 mod event;
 mod ledger;
@@ -21,9 +22,10 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use account::*;
 use deposit::*;
+use deposit_account_balance::*;
 use error::*;
 pub use event::*;
-use ledger::{primitives::LayeredUsdBalance, *};
+use ledger::*;
 pub use primitives::*;
 use processes::approval::{
     ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
@@ -200,6 +202,7 @@ where
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
+            .amount(amount)
             .approval_process_id(withdrawal_id)
             .reference(reference)
             .audit_info(audit_info)
@@ -252,7 +255,8 @@ where
             .confirm_withdrawal(
                 op,
                 tx_id,
-                withdrawal.id,
+                withdrawal.id.to_string(),
+                withdrawal.amount,
                 withdrawal.deposit_account_id,
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
             )
@@ -282,7 +286,7 @@ where
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
         self.ledger
-            .cancel_withdrawal(op, tx_id, withdrawal.id, withdrawal.deposit_account_id)
+            .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
             .await?;
         Ok(withdrawal)
     }
@@ -291,7 +295,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: DepositAccountId,
-    ) -> Result<LayeredUsdBalance, CoreDepositError> {
+    ) -> Result<DepositAccountBalance, CoreDepositError> {
         let _ = self
             .authz
             .enforce_permission(

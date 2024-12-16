@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-#[cfg(feature = "governance")]
-use crate::primitives::ApprovalProcessId;
-use crate::primitives::{DepositAccountId, LedgerTransactionId, WithdrawalId};
+use crate::primitives::{
+    ApprovalProcessId, DepositAccountId, LedgerTransactionId, UsdCents, WithdrawalId,
+};
 use audit::AuditInfo;
 
 use super::error::WithdrawalError;
@@ -26,6 +26,7 @@ pub enum WithdrawalEvent {
     Initialized {
         id: WithdrawalId,
         deposit_account_id: DepositAccountId,
+        amount: UsdCents,
         reference: String,
         audit_info: AuditInfo,
     },
@@ -56,8 +57,9 @@ pub struct Withdrawal {
     pub id: WithdrawalId,
     pub deposit_account_id: DepositAccountId,
     pub reference: String,
-    #[cfg(feature = "governance")]
+    pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
+
     pub(super) events: EntityEvents<WithdrawalEvent>,
 }
 
@@ -178,14 +180,15 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                     id,
                     reference,
                     deposit_account_id,
+                    amount,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .deposit_account_id(*deposit_account_id)
+                        .amount(*amount)
                         .reference(reference.clone());
                 }
-                #[cfg(feature = "governance")]
                 WithdrawalEvent::ApprovalProcessStarted {
                     approval_process_id,
                     ..
@@ -203,7 +206,8 @@ pub struct NewWithdrawal {
     pub(super) id: WithdrawalId,
     #[builder(setter(into))]
     pub(super) deposit_account_id: DepositAccountId,
-    #[cfg(feature = "governance")]
+    #[builder(setter(into))]
+    pub(super) amount: UsdCents,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     reference: Option<String>,
@@ -234,6 +238,7 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                     reference: self.reference(),
                     id: self.id,
                     deposit_account_id: self.deposit_account_id,
+                    amount: self.amount,
                     audit_info: self.audit_info.clone(),
                 },
                 #[cfg(feature = "governance")]

@@ -1,5 +1,4 @@
 pub mod error;
-pub mod primitives;
 mod templates;
 
 use cala_ledger::{
@@ -7,11 +6,9 @@ use cala_ledger::{
     CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
-use crate::primitives::UsdCents;
+use crate::{primitives::UsdCents, DepositAccountBalance};
 
 use error::*;
-use primitives::LayeredUsdBalance;
-use templates::CONFIRM_WITHDRAW_CODE;
 
 #[derive(Clone)]
 pub struct DepositLedger {
@@ -102,16 +99,13 @@ impl DepositLedger {
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        let meta = templates::InitiateWithdrawMeta {
-            amount: amount.to_usd(),
-            currency: self.usd,
-        };
 
         let params = templates::InitiateWithdrawParams {
             journal_id: self.journal_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_id,
             credit_account_id: credit_account_id.into(),
-            meta,
+            amount: amount.to_usd(),
+            currency: self.usd,
         };
 
         self.cala
@@ -126,38 +120,26 @@ impl DepositLedger {
         &self,
         op: es_entity::DbOp<'_>,
         tx_id: impl Into<TransactionId>,
-        correlation_id: impl Into<TransactionId>,
+        correlation_id: String,
+        amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
         external_id: String,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
-        let correlation_id = correlation_id.into();
         let mut op = self.cala.ledger_operation_from_db_op(op);
-
-        let templates::InitiateWithdrawMeta { amount, .. } = serde_json::from_value(
-            self.cala
-                .transactions()
-                .find_by_id(correlation_id)
-                .await?
-                .into_values()
-                .metadata
-                .ok_or(DepositLedgerError::MissingTxMetadata)?
-                .to_owned(),
-        )
-        .map_err(DepositLedgerError::MismatchedTxMetadata)?;
 
         let params = templates::ConfirmWithdrawParams {
             journal_id: self.journal_id,
             currency: self.usd,
-            amount,
+            amount: amount.to_usd(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_id,
             credit_account_id: credit_account_id.into(),
-            correlation_id: correlation_id.to_string(),
+            correlation_id,
             external_id,
         };
 
         self.cala
-            .post_transaction_in_op(&mut op, tx_id, CONFIRM_WITHDRAW_CODE, params)
+            .post_transaction_in_op(&mut op, tx_id, templates::CONFIRM_WITHDRAW_CODE, params)
             .await?;
         op.commit().await?;
         Ok(())
@@ -167,27 +149,16 @@ impl DepositLedger {
         &self,
         op: es_entity::DbOp<'_>,
         tx_id: impl Into<TransactionId>,
-        correlation_id: impl Into<TransactionId>,
+        amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
-        let correlation_id = correlation_id.into();
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        let templates::InitiateWithdrawMeta { amount, .. } = serde_json::from_value(
-            self.cala
-                .transactions()
-                .find_by_id(correlation_id)
-                .await?
-                .into_values()
-                .metadata
-                .ok_or(DepositLedgerError::MissingTxMetadata)?,
-        )
-        .map_err(DepositLedgerError::MismatchedTxMetadata)?;
 
         let params = templates::CancelWithdrawParams {
             journal_id: self.journal_id,
             currency: self.usd,
-            amount,
+            amount: amount.to_usd(),
             credit_account_id: credit_account_id.into(),
             deposit_omnibus_account_id: self.deposit_omnibus_account_id,
         };
@@ -224,14 +195,14 @@ impl DepositLedger {
     pub async fn balance(
         &self,
         account_id: impl Into<AccountId>,
-    ) -> Result<LayeredUsdBalance, DepositLedgerError> {
+    ) -> Result<DepositAccountBalance, DepositLedgerError> {
         let balances = self
             .cala
             .balances()
             .find(self.journal_id, account_id.into(), self.usd)
             .await?;
 
-        Ok(LayeredUsdBalance {
+        Ok(DepositAccountBalance {
             settled: UsdCents::try_from_usd(balances.settled())?,
             pending: UsdCents::try_from_usd(balances.pending())?,
         })

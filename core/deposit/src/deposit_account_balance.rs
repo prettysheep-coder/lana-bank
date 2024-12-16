@@ -1,12 +1,12 @@
 use core_money::UsdCents;
 
-pub struct LayeredUsdBalance {
+pub struct DepositAccountBalance {
     pub settled: UsdCents,
     pub pending: UsdCents,
 }
 
-impl LayeredUsdBalance {
-    pub const ZERO: Self = LayeredUsdBalance {
+impl DepositAccountBalance {
+    pub const ZERO: Self = DepositAccountBalance {
         settled: UsdCents::ZERO,
         pending: UsdCents::ZERO,
     };
