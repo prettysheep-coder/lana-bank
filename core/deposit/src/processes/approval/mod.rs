@@ -13,8 +13,10 @@ use outbox::OutboxEventMarker;
 use crate::{
     primitives::WithdrawalId,
     withdrawal::{repo::WithdrawalRepo, Withdrawal},
-    CoreDepositAction, CoreDepositError, CoreDepositObject, WithdrawalAction,
+    CoreDepositAction, CoreDepositObject, WithdrawalAction,
 };
+
+use super::ProcessError;
 
 pub use job::*;
 
@@ -67,7 +69,7 @@ where
     pub async fn _execute_from_svc(
         &self,
         withdraw: &Withdrawal,
-    ) -> Result<Option<Withdrawal>, CoreDepositError> {
+    ) -> Result<Option<Withdrawal>, ProcessError> {
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(None);
         }
@@ -92,7 +94,7 @@ where
         &self,
         id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,
-    ) -> Result<Withdrawal, CoreDepositError> {
+    ) -> Result<Withdrawal, ProcessError> {
         let mut withdraw = self.repo.find_by_id(id.into()).await?;
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
