@@ -30,6 +30,7 @@ describe("Regulatory Report Management", () => {
     cy.wait(1000)
     cy.get('[data-testid="report-id"]').should("be.visible")
     cy.get('[data-testid="report-status"]').should("be.visible")
+    cy.takeScreenshot("4_report_status")
     cy.get('[data-testid="report-downloads"]').should("be.visible")
     cy.takeScreenshot("5_report_details")
   })
