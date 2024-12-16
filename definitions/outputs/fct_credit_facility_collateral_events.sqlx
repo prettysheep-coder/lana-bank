@@ -36,6 +36,7 @@ WITH collateral_updated AS (
     LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
     LEFT JOIN ${ref("dim_credit_facility_events_collateral_action")} AS t3 ON t3.action = JSON_VALUE(event, "$.action")
     WHERE cfe.event_type = "collateral_updated"
+    AND JSON_VALUE(event, "$.tx_id") IS NOT NULL
 
 ), collateralization_changed AS (
 
