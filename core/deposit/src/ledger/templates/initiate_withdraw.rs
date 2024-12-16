@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use cala_ledger::{
@@ -10,13 +11,18 @@ use crate::ledger::error::*;
 
 pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW_CODE";
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InitiateWithdrawMeta {
+    pub amount: Decimal,
+    pub currency: Currency,
+}
+
 #[derive(Debug)]
 pub struct InitiateWithdrawParams {
     pub journal_id: JournalId,
-    pub currency: Currency,
-    pub amount: Decimal,
     pub deposit_omnibus_account_id: AccountId,
     pub credit_account_id: AccountId,
+    pub meta: InitiateWithdrawMeta,
 }
 
 impl InitiateWithdrawParams {
@@ -52,6 +58,11 @@ impl InitiateWithdrawParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -60,19 +71,23 @@ impl From<InitiateWithdrawParams> for Params {
     fn from(
         InitiateWithdrawParams {
             journal_id,
-            currency,
-            amount,
             deposit_omnibus_account_id,
             credit_account_id,
+            meta,
         }: InitiateWithdrawParams,
     ) -> Self {
         let mut params = Self::default();
+        let amount = meta.amount;
+        let currency = meta.currency;
+        let meta = serde_json::to_value(meta).expect("Couldn't serialize meta");
+
         params.insert("journal_id", journal_id);
         params.insert("currency", currency);
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
         params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("meta", meta);
 
         params
     }
@@ -87,6 +102,7 @@ impl InitiateWithdraw {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .description("'Initiate a withdraw'")
+            .metadata("params.meta")
             .build()
             .expect("Couldn't build TxInput");
         let entries = vec![

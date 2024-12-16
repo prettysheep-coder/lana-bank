@@ -23,7 +23,7 @@ use account::*;
 use deposit::*;
 use error::*;
 pub use event::*;
-use ledger::*;
+use ledger::{primitives::LayeredUsdBalance, *};
 pub use primitives::*;
 use processes::approval::{
     ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
@@ -200,10 +200,12 @@ where
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
+            .approval_process_id(withdrawal_id)
             .reference(reference)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new withdrawal");
+
         let mut op = self.withdrawals.begin_op().await?;
         self.governance
             .start_process(
@@ -235,7 +237,7 @@ where
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_withdrawals(),
-                CoreDepositAction::WITHDRAWAL_INITIATE,
+                CoreDepositAction::WITHDRAWAL_CONFIRM,
             )
             .await?;
         let id = withdrawal_id.into();
@@ -250,9 +252,8 @@ where
             .confirm_withdrawal(
                 op,
                 tx_id,
-                withdrawal.id.to_string(),
+                withdrawal.id,
                 withdrawal.deposit_account_id,
-                UsdCents::ZERO, // TODO: use entries from initiate_withdraw to get this
                 format!("lana:withdraw:{}:confirm", withdrawal.id),
             )
             .await?;
@@ -260,11 +261,37 @@ where
         Ok(withdrawal)
     }
 
+    pub async fn cancel_withdrawal(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        withdrawal_id: impl Into<WithdrawalId>,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_CANCEL,
+            )
+            .await?;
+        let id = withdrawal_id.into();
+        let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        let mut op = self.withdrawals.begin_op().await?;
+        let tx_id = withdrawal.cancel(audit_info)?;
+        self.withdrawals
+            .update_in_op(&mut op, &mut withdrawal)
+            .await?;
+        self.ledger
+            .cancel_withdrawal(op, tx_id, withdrawal.id, withdrawal.deposit_account_id)
+            .await?;
+        Ok(withdrawal)
+    }
+
     pub async fn balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: DepositAccountId,
-    ) -> Result<UsdCents, CoreDepositError> {
+    ) -> Result<LayeredUsdBalance, CoreDepositError> {
         let _ = self
             .authz
             .enforce_permission(

@@ -12,6 +12,12 @@ pub enum DepositLedgerError {
     CalaTxTemplate(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("DepositLedgerError - CalaBalanceError: {0}")]
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
+    #[error("DepositLedgerError - CalaTransactionError: {0}")]
+    CalaTransaction(#[from] cala_ledger::transaction::error::TransactionError),
     #[error("DepositLedgerError - ConversionError: {0}")]
     ConversionError(#[from] core_money::ConversionError),
+    #[error("DepositLedgerError - MissingTxMetadata")]
+    MissingTxMetadata,
+    #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]
+    MismatchedTxMetadata(serde_json::Error),
 }

@@ -118,6 +118,10 @@ impl CoreDepositAction {
 
     pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
         CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess);
+
+    pub const WITHDRAWAL_CANCEL: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Cancel);
+
+    pub const WITHDRAWAL_CONFIRM: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Confirm);
 }
 
 impl Display for CoreDepositAction {
@@ -177,6 +181,8 @@ impl From<DepositAction> for CoreDepositAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum WithdrawalAction {
     Initiate,
+    Cancel,
+    Confirm,
     ConcludeApprovalProcess,
 }
 

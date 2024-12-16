@@ -10,6 +10,15 @@ use audit::AuditInfo;
 
 use super::error::WithdrawalError;
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub enum WithdrawalStatus {
+    PendingApproval,
+    PendingConfirmation,
+    Confirmed,
+    Denied,
+    Cancelled,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "WithdrawalId")]
@@ -86,6 +95,26 @@ impl Withdrawal {
         Ok(ledger_tx_id)
     }
 
+    pub fn cancel(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<LedgerTransactionId, WithdrawalError> {
+        if self.is_confirmed() {
+            return Err(WithdrawalError::AlreadyConfirmed(self.id));
+        }
+
+        if self.is_cancelled() {
+            return Err(WithdrawalError::AlreadyCancelled(self.id));
+        }
+
+        let ledger_tx_id = LedgerTransactionId::new();
+        self.events.push(WithdrawalEvent::Cancelled {
+            ledger_tx_id,
+            audit_info,
+        });
+        Ok(ledger_tx_id)
+    }
+
     fn is_confirmed(&self) -> bool {
         self.events
             .iter_all()
@@ -106,6 +135,20 @@ impl Withdrawal {
         self.events
             .iter_all()
             .any(|e| matches!(e, WithdrawalEvent::Cancelled { .. }))
+    }
+
+    pub fn status(&self) -> WithdrawalStatus {
+        if self.is_confirmed() {
+            WithdrawalStatus::Confirmed
+        } else if self.is_cancelled() {
+            WithdrawalStatus::Cancelled
+        } else {
+            match self.is_approved_or_denied() {
+                Some(true) => WithdrawalStatus::PendingConfirmation,
+                Some(false) => WithdrawalStatus::Denied,
+                None => WithdrawalStatus::PendingApproval,
+            }
+        }
     }
 
     pub fn approval_process_concluded(
