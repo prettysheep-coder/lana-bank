@@ -91,8 +91,8 @@ pub enum CreditFacilityEvent {
         tx_ref: String,
         disbursal_amount: UsdCents,
         interest_amount: UsdCents,
-        audit_info: AuditInfo,
         recorded_in_ledger_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     Completed {
         completed_at: DateTime<Utc>,
@@ -827,8 +827,12 @@ impl CreditFacility {
     }
 
     pub(super) fn initiate_repayment(
-        &self,
+        &mut self,
         amount: UsdCents,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+        now: DateTime<Utc>,
+        audit_info: AuditInfo,
     ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
         if self.outstanding().is_zero() {
             return Err(
@@ -847,31 +851,24 @@ impl CreditFacility {
             tx_id: LedgerTxId::new(),
             tx_ref,
             credit_facility_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
+            debit_account_id: self
+                .customer_account_ids
+                .on_balance_sheet_deposit_account_id,
             amounts,
         };
 
-        Ok(res)
-    }
-
-    pub fn confirm_repayment(
-        &mut self,
-        repayment: CreditFacilityRepayment,
-        recorded_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-    ) {
         self.events.push(CreditFacilityEvent::PaymentRecorded {
-            tx_id: repayment.tx_id,
-            tx_ref: repayment.tx_ref,
-            disbursal_amount: repayment.amounts.disbursal,
-            interest_amount: repayment.amounts.interest,
+            tx_id: res.tx_id,
+            tx_ref: res.tx_ref.clone(),
+            disbursal_amount: res.amounts.disbursal,
+            interest_amount: res.amounts.interest,
+            recorded_in_ledger_at: now,
             audit_info: audit_info.clone(),
-            recorded_in_ledger_at: recorded_at,
         });
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
+
+        Ok(res)
     }
 
     fn count_recorded_payments(&self) -> usize {
@@ -2035,36 +2032,70 @@ mod test {
 
         #[test]
         fn initiate_repayment_errors_when_no_disbursals() {
-            let credit_facility = facility_from(initial_events());
+            let mut credit_facility = facility_from(initial_events());
 
             let repayment_amount = UsdCents::from(5);
             assert!(credit_facility
-                .initiate_repayment(repayment_amount)
+                .initiate_repayment(
+                    repayment_amount,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .is_err());
         }
 
         #[test]
         fn initiate_repayment_before_expiry_errors_for_amount_above_interest() {
             let activated_at = Utc::now();
-            let credit_facility = credit_facility_with_interest_accrual(activated_at);
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let interest = credit_facility.outstanding().interest;
 
             assert!(credit_facility
-                .initiate_repayment(interest + UsdCents::ONE)
+                .initiate_repayment(
+                    interest + UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .is_err());
-            assert!(credit_facility.initiate_repayment(interest).is_ok());
+            assert!(credit_facility
+                .initiate_repayment(
+                    interest,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .is_ok());
         }
 
         #[test]
         fn initiate_repayment_after_expiry_errors_for_amount_above_total() {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-            let credit_facility = credit_facility_with_interest_accrual(activated_at);
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
             let outstanding = credit_facility.outstanding().total();
 
             assert!(credit_facility
-                .initiate_repayment(outstanding + UsdCents::ONE)
+                .initiate_repayment(
+                    outstanding + UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .is_err());
-            assert!(credit_facility.initiate_repayment(outstanding).is_ok());
+            assert!(credit_facility
+                .initiate_repayment(
+                    outstanding,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .is_ok());
         }
 
         #[test]
@@ -2073,18 +2104,17 @@ mod test {
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
             let repayment_amount = credit_facility.outstanding().interest;
-            let repayment = credit_facility
-                .initiate_repayment(repayment_amount)
-                .unwrap();
             let outstanding_before = credit_facility.outstanding();
+            credit_facility
+                .initiate_repayment(
+                    repayment_amount,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
 
-            credit_facility.confirm_repayment(
-                repayment,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
             let outstanding_after = credit_facility.outstanding();
 
             assert_eq!(
@@ -2101,18 +2131,16 @@ mod test {
             let partial_repayment_amount = credit_facility.outstanding().interest
                 + credit_facility.outstanding().disbursed
                 - UsdCents::from(100);
-            let repayment = credit_facility
-                .initiate_repayment(partial_repayment_amount)
-                .unwrap();
             let outstanding_before = credit_facility.outstanding();
-
-            credit_facility.confirm_repayment(
-                repayment,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
+            credit_facility
+                .initiate_repayment(
+                    partial_repayment_amount,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
             let outstanding_after = credit_facility.outstanding();
 
             assert!(!outstanding_after.is_zero());
@@ -2127,16 +2155,15 @@ mod test {
             let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
             let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
 
-            let repayment = credit_facility
-                .initiate_repayment(credit_facility.outstanding().total())
+            credit_facility
+                .initiate_repayment(
+                    credit_facility.outstanding().total(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
                 .unwrap();
-            credit_facility.confirm_repayment(
-                repayment,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
             assert!(credit_facility.outstanding().is_zero());
 
             let completion = credit_facility.initiate_completion().unwrap();

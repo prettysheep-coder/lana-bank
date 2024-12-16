@@ -211,34 +211,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lana.ledger.record_credit_facility_repayment", skip(self), err)]
-    pub async fn record_credit_facility_repayment(
-        &self,
-        CreditFacilityRepayment {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            amounts:
-                CreditFacilityPaymentAmounts {
-                    interest,
-                    disbursal,
-                },
-        }: CreditFacilityRepayment,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_repay_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                customer_account_ids,
-                interest.to_usd(),
-                disbursal.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
     #[instrument(name = "lana.ledger.complete_credit_facility", skip(self), err)]
     pub async fn complete_credit_facility(
         &self,

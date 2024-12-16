@@ -9,6 +9,7 @@ use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
 
 pub use crate::credit_facility::ledger::{
     CreditFacilityAccountIds, CreditFacilityCollateralUpdate, CreditFacilityLedgerBalance,
+    CreditFacilityPaymentAmounts, CreditFacilityRepayment,
 };
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
@@ -53,21 +54,6 @@ pub struct CreditFacilityActivationData {
     pub tx_id: LedgerTxId,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
-}
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityRepayment {
-    pub tx_id: LedgerTxId,
-    pub tx_ref: String,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-    pub customer_account_ids: CustomerLedgerAccountIds,
-    pub amounts: CreditFacilityPaymentAmounts,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct CreditFacilityPaymentAmounts {
-    pub interest: UsdCents,
-    pub disbursal: UsdCents,
 }
 
 #[derive(Debug, Clone)]
