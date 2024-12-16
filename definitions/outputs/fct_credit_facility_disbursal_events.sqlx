@@ -11,7 +11,6 @@ config {
             "amount",
         ],
     },
-    tags: ["current-dev"]
 }
 
 WITH disbursal_initiated AS (

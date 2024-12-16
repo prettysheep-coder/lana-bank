@@ -16,7 +16,6 @@ config {
             "total_collateral",
         ],
     },
-    tags: ["current-dev"]
 }
 
 WITH collateral_updated AS (
