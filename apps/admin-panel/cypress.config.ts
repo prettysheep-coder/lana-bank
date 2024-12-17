@@ -19,7 +19,7 @@ export default defineConfig({
     baseUrl: "http://localhost:4455/admin-panel",
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
-    video: false,
+    video: true,
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       MAGIC_LINK: process.env.MAGIC_LINK,
