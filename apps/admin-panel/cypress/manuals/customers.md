@@ -1,6 +1,6 @@
 # Customers
 
-This guide provides the steps for creating a new customer, verifying their information, and managing their documents. Screenshots accompany each step for clarity.
+This guide provides the steps for creating a new customer, verifying their information, and managing their documents.
 
 ---
 
