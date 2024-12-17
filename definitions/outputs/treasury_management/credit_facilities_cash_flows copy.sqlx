@@ -1,0 +1,95 @@
+config {
+    type: "table",
+    tags: ["current-dev"],
+}
+
+
+  -- Total Value of Approved Credit Facilities
+  -- Total Value Disbursed from Approved Credit Facilities (& balance left)
+  --     Disbursed to Approved ratio
+  --     Breakeven % (>ratio green, =yellow, <red)
+  --     Present Value of future cashflows
+  --     Net Present Value of future cashflows
+  --     YTM
+  --     MacDuration
+  --     MacDurationDate
+  --     DV01
+  --     PV @ DV01
+
+
+
+
+  --     Present Value of future cashflows
+WITH disbursed_pre_proj AS (
+  SELECT
+    --   cfe.terms_duration_value_key
+    -- , dv.terms_duration_value_key
+    -- , dv.terms_duration_value
+    -- ,
+      *
+
+		, activated_recorded_at AS loc_recorded_at
+		, facility AS loc_borrow_limit_in_cents
+		, SAFE_DIVIDE(terms_annual_rate, 100.0) AS loc_annual_interest_rate
+
+		, 'actual/360' AS loc_day_count_convention	-- TODO get from proper source
+		, 5.53 / 100.0 AS bench_mark_interest_rate	-- TODO get from proper source
+		, CURRENT_TIMESTAMP() AS now_ts
+
+		, terms_duration_value AS loc_period_count
+		, terms_duration_type AS loc_period
+
+		, CASE WHEN terms_duration_type = 'months' THEN
+			TIMESTAMP(TIMESTAMP_ADD(DATE(activated_recorded_at), INTERVAL terms_duration_value MONTH))
+		--   ELSE
+		-- 	TIMESTAMP_ADD(DATE(activated_recorded_at), INTERVAL 1 YEAR)
+		  END AS loc_end_date
+
+		-- , terms_accrual_interval_type AS loc_interest_accrual_interval
+
+    -- project
+    -- from disbursal_concluded_event_recorded_at
+    -- to approval_process_concluded_recorded_at + terms_duration_value * terms_duration_type @ terms_annual_rate %
+    --  or
+    -- to activated_recorded_at                  + terms_duration_value * terms_duration_type @ terms_annual_rate %
+  FROM dataform_sv.fct_credit_facility_events cfe
+  RIGHT JOIN dataform_sv.fct_credit_facility_disbursal_events de USING (event_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_annual_rate ar USING (terms_annual_rate_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_duration_type dt USING (terms_duration_type_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_duration_value dv USING (terms_duration_value_key)
+  WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
+), other AS (
+
+	SELECT
+		  *
+		, SAFE_DIVIDE(bench_mark_interest_rate, 365.0) AS bench_mark_daily_interest_rate
+		, SAFE_DIVIDE(
+			loc_annual_interest_rate,
+			CASE
+				WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
+				WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
+				ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
+			END
+		  ) AS loc_daily_interest_rate
+		, CASE
+			WHEN ENDS_WITH(loc_day_count_convention, '/360') THEN 360.0
+			WHEN ENDS_WITH(loc_day_count_convention, '/365') THEN 365.0
+			ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(loc_recorded_at), YEAR)), DATE_TRUNC(loc_recorded_at, YEAR), DAY)
+		  END AS days_per_year
+		, SAFE_DIVIDE(bench_mark_interest_rate, loc_annual_interest_rate) AS breakeven_disbursement_percent
+		, SAFE_MULTIPLY(
+			loc_borrow_limit_in_cents,
+			SAFE_DIVIDE(bench_mark_interest_rate, loc_annual_interest_rate)
+		) AS breakeven_disbursement_amount_in_cents
+		-- , SAFE_SUBTRACT(SAFE_DIVIDE(loc_margin_call_cvl, loc_initial_cvl), 1.0) AS margin_call_price_shift
+		-- , SAFE_SUBTRACT(SAFE_DIVIDE(loc_liquidation_cvl, loc_initial_cvl), 1.0) AS liquidation_price_shift
+		, loc_recorded_at AS loc_approved_at
+  FROM disbursed_pre_proj
+)
+
+-- SELECT 1 AS order_by,
+-- -- amount_in_usd, 'Total Value of Approved Credit Facilities' AS name
+-- FROM disbursed_pre_proj
+-- order by order_by
+
+SELECT * FROM other
