@@ -112,7 +112,7 @@ build-storybook-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm run build-storybook
 
 build-frontend:
-	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm build
+	cd apps/admin-panel && pnpm install --frozen-lockfile
 
 # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 ngrok:
@@ -122,7 +122,7 @@ tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
 test-cypress-in-ci-through-browserstack:
-	cd apps/admin-panel && pnpm run cypress:run:browserstack
+	cd apps/admin-panel && pnpm run cypress:run browserstack
 
 push-dataform-branch:
 	git push -f origin HEAD:${DATAFORM_BRANCH}
