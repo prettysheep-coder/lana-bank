@@ -28,25 +28,33 @@ Follow these steps to set up a new credit facility from the customer page.
 ### Step 1: Click the Create Credit Facility Button  
 From the customer’s page, click the **Create Credit Facility** button to begin.
 ![Click Create Credit Facility](./screenshots/credit-facilities.cy.ts/1_click_create_credit_facility_button.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 2: Open the Credit Facility Form  
 Select the option to create a credit facility from the displayed form.  
 ![Open Facility Form](./screenshots/credit-facilities.cy.ts/2_open_credit_facility_form.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 3: Enter Facility Amount and Choose a Terms Template
 Type in the desired facility amount and enter data into the terms or select a Terms Template.
 ![Enter Facility Amount](./screenshots/credit-facilities.cy.ts/3_enter_facility_amount.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 4: Submit the Credit Facility Form  
 Click **Submit** to finalize the creation of the credit facility. 
 ![Submit the Form](./screenshots/credit-facilities.cy.ts/4_submit_credit_facility_form.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 5: Verify Creation  
@@ -56,6 +64,7 @@ A success message and confirmation page should appear, confirming the facility�
 **Tip:** If any errors appear, review the form for missing or invalid data and submit again.
 
 ---
+
 <!-- new-page -->
 
 ## Updating Collateral
@@ -65,19 +74,25 @@ Once a facility is created, you may need to update its collateral values to keep
 ### Step 1: Visit the Credit Facility Page  
 Navigate to the facility’s detail page whose collateral you want to update
 ![Visit Facility Page](./screenshots/credit-facilities.cy.ts/6_visit_credit_facility_page.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 2: Click Update Collateral  
 Select **Update Collateral** to open the collateral update form.  
 ![Update Collateral Button](./screenshots/credit-facilities.cy.ts/7_click_update_collateral_button.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 3: Enter New Collateral Value  
 Provide the updated collateral amount.  
 ![Enter New Collateral Value](./screenshots/credit-facilities.cy.ts/8_enter_new_collateral_value.png)
+
 ---
+
 <!-- new-page -->
 
 ### Step 4: Confirm the Update  
@@ -87,6 +102,7 @@ Click to confirm the collateral update. A success message should appear, and the
 **Note:** Keeping collateral values current ensures the facility remains compliant and fully secured.
 
 ---
+
 <!-- new-page -->
 
 ## Disbrsals
@@ -97,17 +113,33 @@ Once the facility is active, you can initiate a disbursal to provide funds to th
 Return to the facility detail page.  
 ![Visit Facility Page for Disbursal](./screenshots/credit-facilities.cy.ts/11_visit_credit_facility_page_for_disbursal.png)
 
+---
+
+<!-- new-page -->
+
 ### Step 2: Click Initiate Disbursal  
 Click **Initiate Disbursal** to start the process.  
 ![Initiate Disbursal](./screenshots/credit-facilities.cy.ts/12_click_initiate_disbursal_button.png)
+
+---
+
+<!-- new-page -->
 
 ### Step 3: Enter Disbursal Amount  
 Specify the amount to disburse, ensuring it is within the approved limit.  
 ![Enter Disbursal Amount](./screenshots/credit-facilities.cy.ts/13_enter_disbursal_amount.png)
 
+---
+
+<!-- new-page -->
+
 ### Step 4: Submit Disbursal Request  
 Click **Submit** to finalize the disbursal.  
 ![Submit Disbursal Request](./screenshots/credit-facilities.cy.ts/14_submit_disbursal_request.png)
+
+---
+
+<!-- new-page -->
 
 ### Step 5: Verify Disbursal Status  
 You should see a confirmation and be taken to the disbursal details page, with a success message and a **CONFIRMED** status.  
