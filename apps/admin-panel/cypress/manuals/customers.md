@@ -84,7 +84,7 @@ Click the "Confirm and Submit" button to finalize the creation of the new custom
 
 ### Step 9: Look at the Customer Details
 
-Here you have all the customer details. You can view their balances and do all operations on this customer from this screen.
+Here you have all the customer details. You can view their balances and perform all operations for this customer from this screen.
 
 ![Step 9: Customer Details Page](./screenshots/customers.cy.ts/10_verify_email.png)
 
@@ -114,7 +114,7 @@ Navigate to the customer's documents section to start uploading documents. You'l
 
 ### Step 12: Upload Document
 
-Upload documents by clicking the upload area or dragging and dropping a PDF file. After processing, the system will display a success message. You can then manage your documents by using the "View" button to open them or the "Delete" button to remove them from the system.
+Upload documents by clicking the Upload area or dragging and dropping a PDF file. After processing, the system will display a success message. You can then manage your documents by using the "View" button to open them or the "Delete" button to remove them from the system.
 
 ![Step 12: Document Upload](./screenshots/customers.cy.ts/13_upload_document.png)
 

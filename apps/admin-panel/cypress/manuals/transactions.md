@@ -36,7 +36,7 @@ Input the amount you wish to deposit in the designated field.
 
 ### Step 4: Submit Deposit
 
-Click the submit button to process your deposit.
+Click the Submit button to process your deposit.
 
 ![Step 4: Submit Deposit](./screenshots/transactions.cy.ts/4_deposit_submit.png)
 
@@ -78,7 +78,7 @@ The deposit will also be visible in the customer's transaction history.
 
 ### Step 8: Initiate Withdrawal
 
-Click the create button to start a new withdrawal.
+Click the Create button to start a new withdrawal.
 
 ![Step 8: Start Withdrawal](./screenshots/transactions.cy.ts/8_withdrawal_create_button.png)
 
@@ -140,7 +140,7 @@ The withdrawal will also be visible in the customer's transaction history.
 
 ### Step 14: Click Cancel Button
 
-To cancel a withdrawal, click the cancel button.
+To cancel a withdrawal, click the Cancel button.
 
 ![Step 14: Cancel Button](./screenshots/transactions.cy.ts/14_withdrawal_cancel_button.png)
 
@@ -160,7 +160,7 @@ Confirm that you want to cancel the withdrawal.
 
 ### Step 16: View Cancelled Status
 
-The withdrawal status will be updated to cancelled.
+The withdrawal status will update to cancelled.
 
 ![Step 16: Cancelled Status](./screenshots/transactions.cy.ts/16_withdrawal_cancelled_status.png)
 
@@ -172,7 +172,7 @@ The withdrawal status will be updated to cancelled.
 
 ### Step 17: Click Approve Button
 
-To approve a withdrawal, click the approve button.
+To approve a withdrawal, click the Approve button.
 
 ![Step 17: Approve Button](./screenshots/transactions.cy.ts/17_withdrawal_approve_button.png)
 
@@ -192,7 +192,7 @@ Confirm that you want to approve the withdrawal.
 
 ### Step 19: View Approved Status
 
-The withdrawal status will be updated to confirmed.
+The withdrawal status will update to confirmed.
 
 ![Step 19: Approved Status](./screenshots/transactions.cy.ts/19_withdrawal_approved_status.png)
 
