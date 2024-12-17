@@ -131,3 +131,51 @@ resource "google_bigquery_table_iam_member" "price_cents_btc_owner_sa" {
   role       = "roles/bigquery.dataOwner"
   member     = local.sa_member
 }
+
+resource "google_bigquery_table" "report_events" {
+  count = local.setup_bq ? 1 : 0
+
+  project             = local.project_id
+  dataset_id          = local.dataset_id
+  table_id            = local.bq_report_events
+  deletion_protection = local.deletion_protection
+
+  schema = <<EOF
+[
+  {
+    "name": "id",
+    "type": "STRING",
+    "description": "The ID of the entity"
+  },
+  {
+    "name": "sequence",
+    "type": "INTEGER",
+    "description": "The sequence number of the event"
+  },
+  {
+    "name": "event_type",
+    "type": "STRING",
+    "description": "The type of the event"
+  },
+  {
+    "name": "event",
+    "type": "JSON",
+    "description": "The JSON of the event"
+  },
+  {
+    "name": "recorded_at",
+    "type": "TIMESTAMP",
+    "description": "When the event was recorded"
+  }
+]
+EOF
+}
+
+resource "google_bigquery_table_iam_member" "report_events_owner_sa" {
+  count      = local.setup_bq ? 1 : 0
+  project    = local.project_id
+  dataset_id = local.dataset_id
+  table_id   = google_bigquery_table.report_events[0].table_id
+  role       = "roles/bigquery.dataOwner"
+  member     = local.sa_member
+}

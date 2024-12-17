@@ -28,3 +28,9 @@ import {
   to       = module.setup.google_bigquery_table.price_cents_btc[0]
   id       = "projects/${local.project_id}/datasets/${local.dataset_id}/tables/${each.value}"
 }
+
+import {
+  for_each = local.setup_bq ? toset(["report_events"]) : []
+  to       = module.setup.google_bigquery_table.report_events[0]
+  id       = "projects/${local.project_id}/datasets/${local.dataset_id}/tables/${each.value}"
+}
