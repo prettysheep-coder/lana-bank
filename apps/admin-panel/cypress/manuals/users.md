@@ -6,7 +6,7 @@ Follow these steps to manage users in the application.
 
 ### Step 1: Visit the Users Page
 
-Navigate to the Users page where you can see the list of all users with their roles and permissions.
+Navigate to the Users page where you can see a data table listing all users with their email addresses and roles.
 
 ![Step 1: Users List](./screenshots/user.cy.ts/1_users_list.png)
 
@@ -16,7 +16,7 @@ Navigate to the Users page where you can see the list of all users with their ro
 
 ### Step 2: Create a New User
 
-Click on the "Create" button to start creating a new user.
+Click on the "Create" button to open the user creation dialog.
 
 ![Step 2: Click Create Button](./screenshots/user.cy.ts/2_click_create_button.png)
 
@@ -26,7 +26,7 @@ Click on the "Create" button to start creating a new user.
 
 ### Step 3: Enter User Email
 
-Input the email address for the new user.
+In the dialog form, input the email address for the new user. This will be used to send them a magic link for access.
 
 ![Step 3: Enter Email](./screenshots/user.cy.ts/3_enter_email.png)
 
@@ -36,7 +36,7 @@ Input the email address for the new user.
 
 ### Step 4: Assign Admin Role
 
-Select the admin role checkbox to grant administrative privileges.
+Use the checkbox to assign roles. This determines the user's initial permissions in the system, you can update these in future
 
 ![Step 4: Assign Admin Role](./screenshots/user.cy.ts/4_assign_admin_role.png)
 
@@ -46,7 +46,10 @@ Select the admin role checkbox to grant administrative privileges.
 
 ### Step 5: Submit User Creation
 
-Click the submit button to create the user and send a magic link.
+Click the submit button. This will:
+- Create the user account
+- Generate a magic link
+- Send the link to the provided email
 
 ![Step 5: Submit Creation](./screenshots/user.cy.ts/5_submit_creation.png)
 
@@ -56,7 +59,9 @@ Click the submit button to create the user and send a magic link.
 
 ### Step 6: Verify User Creation
 
-Confirm that the user is created successfully and magic link is sent.
+A success message will appear confirming that:
+- The user has been created
+- A magic link has been sent
 
 ![Step 6: Verify Creation](./screenshots/user.cy.ts/6_verify_creation.png)
 
@@ -66,7 +71,7 @@ Confirm that the user is created successfully and magic link is sent.
 
 ### Step 7: View User in List
 
-Navigate back to the users list to verify the new user appears.
+The data table will update to show the newly created user with their email and assigned roles.
 
 ![Step 7: View in List](./screenshots/user.cy.ts/7_view_in_list.png)
 
@@ -76,7 +81,7 @@ Navigate back to the users list to verify the new user appears.
 
 ### Step 8: Manage User Roles
 
-Click on the user and manage their roles by assigning additional permissions.
+Click on a user to view their details. Use the roles dropdown menu to modify their permissions.
 
 ![Step 8: Manage Roles](./screenshots/user.cy.ts/8_manage_roles.png)
 
@@ -86,7 +91,10 @@ Click on the user and manage their roles by assigning additional permissions.
 
 ### Step 9: Update Roles
 
-Select additional roles (e.g., Accountant) to update user permissions.
+In the roles dropdown:
+- Check a role to assign it
+- Uncheck a role to revoke it
+Available roles include Admin, Accountant, and others as configured.
 
 ![Step 9: Update Roles](./screenshots/user.cy.ts/9_update_roles.png)
 
@@ -96,6 +104,6 @@ Select additional roles (e.g., Accountant) to update user permissions.
 
 ### Step 10: Verify Role Update
 
-Confirm that the role update is successful.
+The user's details will update to reflect the new role assignments.
 
 ![Step 10: Verify Update](./screenshots/user.cy.ts/10_verify_update.png)
