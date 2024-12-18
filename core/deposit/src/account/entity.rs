@@ -23,7 +23,17 @@ pub enum DepositAccountEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct DepositAccount {
     pub id: DepositAccountId,
+    pub account_holder_id: DepositAccountHolderId,
+    pub ledger_account_id: LedgerAccountId,
     pub(super) events: EntityEvents<DepositAccountEvent>,
+}
+
+impl DepositAccount {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("Deposit Account has never been persisted")
+    }
 }
 
 impl TryFromEvents<DepositAccountEvent> for DepositAccount {
@@ -31,7 +41,17 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
         let mut builder = DepositAccountBuilder::default();
         for event in events.iter_all() {
             match event {
-                DepositAccountEvent::Initialized { id, .. } => builder = builder.id(*id),
+                DepositAccountEvent::Initialized {
+                    id,
+                    account_holder_id,
+                    ledger_account_id,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .account_holder_id(*account_holder_id)
+                        .ledger_account_id(*ledger_account_id)
+                }
             }
         }
         builder.events(events).build()

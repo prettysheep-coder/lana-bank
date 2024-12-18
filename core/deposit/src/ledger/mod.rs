@@ -3,6 +3,7 @@ mod templates;
 
 use cala_ledger::{
     account::{error::AccountError, *},
+    journal::*,
     CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
@@ -24,6 +25,7 @@ impl DepositLedger {
         journal_id: JournalId,
         omnibus_account_code: String,
     ) -> Result<Self, DepositLedgerError> {
+        Self::create_journal(cala, journal_id).await?;
         let deposit_omnibus_account_id =
             Self::create_deposit_omnibus_account(cala, omnibus_account_code.clone()).await?;
 
@@ -167,6 +169,21 @@ impl DepositLedger {
             .post_transaction_in_op(&mut op, tx_id, templates::CANCEL_WITHDRAW_CODE, params)
             .await?;
         op.commit().await?;
+        Ok(())
+    }
+
+    async fn create_journal(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+    ) -> Result<(), DepositLedgerError> {
+        let new_journal = NewJournal::builder()
+            .id(journal_id)
+            .name("DEPOSIT_JOURNAL".to_string())
+            .description("Journal for Deposit module")
+            .build()
+            .expect("Couldn't create onchain journal");
+        cala.journals().create(new_journal).await?;
+
         Ok(())
     }
 

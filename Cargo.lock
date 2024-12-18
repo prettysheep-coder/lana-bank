@@ -39,6 +39,7 @@ dependencies = [
  "axum-extra",
  "base64 0.22.1",
  "chrono",
+ "deposit",
  "es-entity",
  "governance",
  "jsonwebtoken 9.3.0",
@@ -748,6 +749,8 @@ name = "cala-ledger"
 version = "0.3.3-dev"
 source = "git+https://github.com/galoymoney/cala.git?branch=main#fe03fbcc0e4243a7f094f54add7f21cc43aa7473"
 dependencies = [
+ "async-graphql",
+ "base64 0.22.1",
  "cached 0.51.4",
  "cala-cel-interpreter 0.3.3-dev",
  "cala-ledger-core-types 0.3.3-dev",
@@ -1195,6 +1198,7 @@ name = "deposit"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-graphql",
  "async-trait",
  "audit",
  "authz",
@@ -2482,6 +2486,7 @@ dependencies = [
  "core-money",
  "core-user",
  "dashboard",
+ "deposit",
  "derive_builder",
  "es-entity",
  "futures",
@@ -2542,6 +2547,7 @@ dependencies = [
  "chrono",
  "core-money",
  "core-user",
+ "deposit",
  "governance",
  "lana-ids",
  "outbox",
@@ -3484,6 +3490,7 @@ dependencies = [
  "authz",
  "core-user",
  "dashboard",
+ "deposit",
  "governance",
  "lana-ids",
  "serde",

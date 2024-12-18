@@ -26,7 +26,6 @@ use crate::{
     storage::Storage,
     terms_template::TermsTemplates,
     user::Users,
-    withdrawal::Withdrawals,
 };
 
 pub use config::*;
@@ -39,7 +38,6 @@ pub struct LanaApp {
     audit: Audit,
     authz: Authorization,
     customers: Customers,
-    withdrawals: Withdrawals,
     deposits: Deposits,
     ledger: Ledger,
     applicants: Applicants,
@@ -66,20 +64,17 @@ impl LanaApp {
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &export);
-        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
-        let withdrawals = Withdrawals::init(
-            &pool,
-            &customers,
-            &ledger,
-            &authz,
-            &export,
-            &governance,
-            &jobs,
-            &outbox,
-        )
-        .await?;
-        let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
+        // let withdrawals = Withdrawals::init(
+        //     &pool,
+        //     &customers,
+        //     &ledger,
+        //     &authz,
+        //     &export,
+        //     &governance,
+        //     &jobs,
+        //     &outbox,
+        // )
+        // .await?;
         let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
@@ -91,6 +86,20 @@ impl LanaApp {
             .build()
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
+        let deposits = Deposits::init(
+            &pool,
+            &authz,
+            &outbox,
+            &governance,
+            &jobs,
+            &cala,
+            cala_ledger::JournalId::new(),
+            String::from("OMNIBUS_ACCOUNT_ID"),
+        )
+        .await?;
+        let customers =
+            Customers::new(&pool, &config.customer, &ledger, &deposits, &authz, &export);
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -115,7 +124,6 @@ impl LanaApp {
             audit,
             authz,
             customers,
-            withdrawals,
             deposits,
             ledger,
             applicants,
@@ -168,10 +176,6 @@ impl LanaApp {
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)
-    }
-
-    pub fn withdrawals(&self) -> &Withdrawals {
-        &self.withdrawals
     }
 
     pub fn deposits(&self) -> &Deposits {
