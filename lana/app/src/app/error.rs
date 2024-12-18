@@ -32,4 +32,6 @@ pub enum ApplicationError {
     CalaError(#[from] cala_ledger::error::LedgerError),
     #[error("ApplicationError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
+    #[error("ApplicationError - JournalError: {0}")]
+    JournalError(#[from] cala_ledger::journal::error::JournalError),
 }
