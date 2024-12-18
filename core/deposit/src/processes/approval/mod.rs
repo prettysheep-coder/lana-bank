@@ -12,11 +12,11 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     primitives::WithdrawalId,
-    withdrawal::{repo::WithdrawalRepo, Withdrawal},
+    withdrawal::{error::WithdrawalError, repo::WithdrawalRepo, Withdrawal},
     CoreDepositAction, CoreDepositObject, WithdrawalAction,
 };
 
-use super::ProcessError;
+use super::error::ProcessError;
 
 pub use job::*;
 
@@ -94,7 +94,7 @@ where
         &self,
         id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,
-    ) -> Result<Withdrawal, ProcessError> {
+    ) -> Result<Withdrawal, WithdrawalError> {
         let id = id.into();
         let mut withdraw = self.repo.find_by_id(id).await?;
         if withdraw.is_approved_or_denied().is_some() {
