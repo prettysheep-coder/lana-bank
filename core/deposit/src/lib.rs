@@ -244,15 +244,15 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId>,
     ) -> Result<Withdrawal, CoreDepositError> {
+        let id = withdrawal_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_withdrawals(),
+                CoreDepositObject::withdrawal(id),
                 CoreDepositAction::WITHDRAWAL_CONFIRM,
             )
             .await?;
-        let id = withdrawal_id.into();
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.confirm(audit_info)?;
@@ -279,15 +279,15 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId>,
     ) -> Result<Withdrawal, CoreDepositError> {
+        let id = withdrawal_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_withdrawals(),
+                CoreDepositObject::withdrawal(id),
                 CoreDepositAction::WITHDRAWAL_CANCEL,
             )
             .await?;
-        let id = withdrawal_id.into();
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.cancel(audit_info)?;
@@ -324,15 +324,16 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DepositId> + std::fmt::Debug,
     ) -> Result<Option<Deposit>, CoreDepositError> {
+        let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_deposits(),
+                CoreDepositObject::deposit(id),
                 CoreDepositAction::DEPOSIT_READ,
             )
             .await?;
 
-        match self.deposits.find_by_id(id.into()).await {
+        match self.deposits.find_by_id(id).await {
             Ok(deposit) => Ok(Some(deposit)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
@@ -344,15 +345,16 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Option<Withdrawal>, CoreDepositError> {
+        let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_withdrawals(),
+                CoreDepositObject::withdrawal(id),
                 CoreDepositAction::WITHDRAWAL_READ,
             )
             .await?;
 
-        match self.withdrawals.find_by_id(id.into()).await {
+        match self.withdrawals.find_by_id(id).await {
             Ok(withdrawal) => Ok(Some(withdrawal)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
@@ -429,7 +431,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::deposit_account(account_id),
+                CoreDepositObject::all_deposits(),
                 CoreDepositAction::DEPOSIT_LIST,
             )
             .await?;

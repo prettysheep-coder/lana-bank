@@ -95,7 +95,8 @@ where
         id: impl es_entity::RetryableInto<WithdrawalId>,
         approved: bool,
     ) -> Result<Withdrawal, ProcessError> {
-        let mut withdraw = self.repo.find_by_id(id.into()).await?;
+        let id = id.into();
+        let mut withdraw = self.repo.find_by_id(id).await?;
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
@@ -104,7 +105,7 @@ where
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                CoreDepositObject::all_withdrawals(),
+                CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )
             .await?;
