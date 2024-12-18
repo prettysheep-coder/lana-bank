@@ -24,7 +24,6 @@ pub enum DepositAccountEvent {
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
-    pub ledger_account_id: LedgerAccountId,
     pub(super) events: EntityEvents<DepositAccountEvent>,
 }
 
@@ -44,14 +43,8 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                 DepositAccountEvent::Initialized {
                     id,
                     account_holder_id,
-                    ledger_account_id,
                     ..
-                } => {
-                    builder = builder
-                        .id(*id)
-                        .account_holder_id(*account_holder_id)
-                        .ledger_account_id(*ledger_account_id)
-                }
+                } => builder = builder.id(*id).account_holder_id(*account_holder_id),
             }
         }
         builder.events(events).build()

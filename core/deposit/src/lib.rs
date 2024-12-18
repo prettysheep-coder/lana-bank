@@ -300,7 +300,7 @@ where
         Ok(withdrawal)
     }
 
-    pub async fn balance(
+    pub async fn account_balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,

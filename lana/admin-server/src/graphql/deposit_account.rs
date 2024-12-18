@@ -10,18 +10,23 @@ use super::{customer::Customer, deposit::*, withdrawal::*};
 #[graphql(complex)]
 pub struct DepositAccount {
     id: ID,
+    deposit_account_id: UUID,
     account_holder_id: UUID,
-    ledger_account_id: UUID,
     created_at: Timestamp,
+
+    #[graphql(skip)]
+    pub(super) entity: Arc<DomainDepositAccount>,
 }
 
 impl From<DomainDepositAccount> for DepositAccount {
     fn from(account: DomainDepositAccount) -> Self {
         DepositAccount {
             id: account.id.to_global_id(),
+            deposit_account_id: account.id.into(),
             account_holder_id: account.account_holder_id.into(),
-            ledger_account_id: account.ledger_account_id.into(),
             created_at: account.created_at().into(),
+
+            entity: Arc::new(account),
         }
     }
 }
@@ -54,7 +59,7 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app
             .deposits()
-            .list_deposits_for_account(sub, self.ledger_account_id)
+            .list_deposits_for_account(sub, self.entity.id)
             .await?;
         Ok(deposits.into_iter().map(Deposit::from).collect())
     }
@@ -63,14 +68,14 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let withdrawals = app
             .deposits()
-            .list_withdrawals_for_account(sub, self.ledger_account_id)
+            .list_withdrawals_for_account(sub, self.entity.id)
             .await?;
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     }
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app.deposits().balance(sub, self.ledger_account_id).await?;
+        let balance = app.deposits().account_balance(sub, self.entity.id).await?;
         Ok(DepositAccountBalance::from(balance))
     }
 
