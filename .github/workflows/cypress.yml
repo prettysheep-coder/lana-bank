@@ -49,6 +49,8 @@ jobs:
         run: |
           free -h
           df -h
+          ps aux | grep tilt
+          nix develop -c tilt get uiresources -o yaml
 
       - name: run cypress tests
         run: nix develop -c make test-cypress-in-ci-through-browserstack
