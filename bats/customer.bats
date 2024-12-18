@@ -69,12 +69,12 @@ wait_for_approval() {
 
   exec_admin_graphql 'customer' "$variables"
   echo $(graphql_output) | jq .
-  ledger_account_id=$(graphql_output .data.customer.depositAccount.ledgerAccountId)
-  cache_value "ledger_account_id" $ledger_account_id
+  deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
+  cache_value "deposit_account_id" $deposit_account_id
 
   variables=$(
     jq -n \
-      --arg depositAccountId "$ledger_account_id" \
+      --arg depositAccountId "$deposit_account_id" \
     '{
       input: {
         depositAccountId: $depositAccountId,
@@ -91,11 +91,11 @@ wait_for_approval() {
 }
 
 @test "customer: withdraw can be cancelled" {
-  ledger_account_id=$(read_value 'ledger_account_id')
+  deposit_account_id=$(read_value 'deposit_account_id')
 
   variables=$(
     jq -n \
-      --arg depositAccountId "$ledger_account_id" \
+      --arg depositAccountId "$deposit_account_id" \
     --arg date "$(date +%s%N)" \
     '{
       input: {
@@ -145,11 +145,11 @@ wait_for_approval() {
 }
 
 @test "customer: can withdraw" {
-  ledger_account_id=$(read_value 'ledger_account_id')
+  deposit_account_id=$(read_value 'deposit_account_id')
 
   variables=$(
     jq -n \
-      --arg depositAccountId "$ledger_account_id" \
+      --arg depositAccountId "$deposit_account_id" \
     --arg date "$(date +%s%N)" \
     '{
       input: {
@@ -162,7 +162,6 @@ wait_for_approval() {
   exec_admin_graphql 'initiate-withdrawal' "$variables"
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
-  echo $(graphql_output)
   [[ "$withdrawal_id" != "null" ]] || exit 1
   # settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   # [[ "$settled_usd_balance" == "0" ]] || exit 1
