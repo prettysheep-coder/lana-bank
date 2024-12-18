@@ -11,7 +11,7 @@ use super::{customer::Customer, deposit::*, withdrawal::*};
 pub struct DepositAccount {
     id: ID,
     deposit_account_id: UUID,
-    account_holder_id: UUID,
+    customer_id: UUID,
     created_at: Timestamp,
 
     #[graphql(skip)]
@@ -23,7 +23,7 @@ impl From<DomainDepositAccount> for DepositAccount {
         DepositAccount {
             id: account.id.to_global_id(),
             deposit_account_id: account.id.into(),
-            account_holder_id: account.account_holder_id.into(),
+            customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),
 
             entity: Arc::new(account),
@@ -83,7 +83,7 @@ impl DepositAccount {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let customer = app
             .customers()
-            .find_by_id(sub, self.account_holder_id)
+            .find_by_id(sub, self.entity.account_holder_id)
             .await?
             .expect("customer not found");
 

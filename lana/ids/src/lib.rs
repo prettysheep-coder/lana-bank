@@ -13,4 +13,5 @@ es_entity::entity_id! {
     ReportId => job::JobId,
     CreditFacilityId => job::JobId,
     InterestAccrualId => job::JobId,
+    CustomerId => deposit::DepositAccountHolderId,
 }

@@ -2558,6 +2558,7 @@ dependencies = [
 name = "lana-ids"
 version = "0.2.56-dev"
 dependencies = [
+ "deposit",
  "es-entity",
  "governance",
  "job",

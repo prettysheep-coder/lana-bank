@@ -628,7 +628,7 @@ type Deposit {
 type DepositAccount {
 	id: ID!
 	depositAccountId: UUID!
-	accountHolderId: UUID!
+	customerId: UUID!
 	createdAt: Timestamp!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
