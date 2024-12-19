@@ -58,7 +58,6 @@ pub struct CreditFacilities {
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
     governance: Governance,
-    gql_ledger: Ledger,
     ledger: CreditLedger,
     price: Price,
     config: CreditFacilityConfig,
@@ -157,7 +156,6 @@ impl CreditFacilities {
             credit_facility_repo,
             disbursal_repo,
             governance: governance.clone(),
-            gql_ledger: gql_ledger.clone(),
             ledger,
             price: price.clone(),
             config,
@@ -670,25 +668,15 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let completion = credit_facility.initiate_completion()?;
-
-        let executed_at = self
-            .gql_ledger
-            .complete_credit_facility(completion.clone())
-            .await?;
-        credit_facility.confirm_completion(
-            completion,
-            executed_at,
-            audit_info,
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-        );
+        let completion =
+            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
-        db.commit().await?;
+
+        self.ledger.complete_credit_facility(db, completion).await?;
 
         Ok(credit_facility)
     }

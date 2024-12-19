@@ -1029,8 +1029,11 @@ impl CreditFacility {
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
     }
 
-    pub(super) fn initiate_completion(
-        &self,
+    pub(super) fn complete(
+        &mut self,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CreditFacilityCompletion, CreditFacilityError> {
         if self.is_completed() {
             return Err(CreditFacilityError::AlreadyCompleted);
@@ -1039,13 +1042,32 @@ impl CreditFacility {
             return Err(CreditFacilityError::OutstandingAmount);
         }
 
-        Ok(CreditFacilityCompletion {
+        let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
-            tx_ref: format!("{}-completion", self.id),
             collateral: self.collateral(),
             credit_facility_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
-        })
+        };
+
+        let completed_at = crate::time::now();
+        self.confirm_collateral_update(
+            CreditFacilityCollateralUpdate {
+                credit_facility_account_ids: self.account_ids,
+                tx_id: res.tx_id,
+                abs_diff: res.collateral,
+                action: CollateralAction::Remove,
+            },
+            completed_at,
+            audit_info.clone(),
+            price,
+            upgrade_buffer_cvl_pct,
+        );
+
+        self.events.push(CreditFacilityEvent::Completed {
+            completed_at,
+            audit_info,
+        });
+
+        Ok(res)
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
@@ -1066,35 +1088,6 @@ impl CreditFacility {
         } else {
             None
         }
-    }
-
-    pub(super) fn confirm_completion(
-        &mut self,
-        CreditFacilityCompletion {
-            tx_id, collateral, ..
-        }: CreditFacilityCompletion,
-        executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-    ) {
-        self.confirm_collateral_update(
-            CreditFacilityCollateralUpdate {
-                credit_facility_account_ids: self.account_ids,
-                tx_id,
-                abs_diff: collateral,
-                action: CollateralAction::Remove,
-            },
-            executed_at,
-            audit_info.clone(),
-            price,
-            upgrade_buffer_cvl_pct,
-        );
-
-        self.events.push(CreditFacilityEvent::Completed {
-            completed_at: executed_at,
-            audit_info,
-        });
     }
 
     pub(super) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
@@ -2166,14 +2159,13 @@ mod test {
                 .unwrap();
             assert!(credit_facility.outstanding().is_zero());
 
-            let completion = credit_facility.initiate_completion().unwrap();
-            credit_facility.confirm_completion(
-                completion,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
+            credit_facility
+                .complete(
+                    dummy_audit_info(),
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                )
+                .unwrap();
             assert!(credit_facility.is_completed());
             assert!(credit_facility.status() == CreditFacilityStatus::Closed);
         }

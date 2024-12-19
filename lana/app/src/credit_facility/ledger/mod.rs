@@ -272,6 +272,34 @@ impl CreditLedger {
         Ok(())
     }
 
+    pub async fn complete_credit_facility(
+        &self,
+        op: es_entity::DbOp<'_>,
+        CreditFacilityCompletion {
+            tx_id,
+            collateral,
+            credit_facility_account_ids,
+        }: CreditFacilityCompletion,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::REMOVE_COLLATERAL_CODE,
+                templates::RemoveCollateralParams {
+                    journal_id: self.journal_id,
+                    currency: self.btc,
+                    amount: collateral.to_btc(),
+                    collateral_account_id: credit_facility_account_ids.collateral_account_id,
+                    bank_collateral_account_id: self.bank_collateral_account_id,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
     async fn create_bank_collateral_account(
         cala: &CalaLedger,
         code: String,

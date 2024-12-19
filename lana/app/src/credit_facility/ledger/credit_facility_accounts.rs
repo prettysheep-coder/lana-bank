@@ -58,3 +58,10 @@ pub struct CreditFacilityPaymentAmounts {
     pub interest: UsdCents,
     pub disbursal: UsdCents,
 }
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityCompletion {
+    pub tx_id: LedgerTxId,
+    pub collateral: Satoshis,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+}
