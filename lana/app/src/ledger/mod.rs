@@ -134,31 +134,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lana.ledger.activate_credit_facility", skip(self), err)]
-    pub async fn activate_credit_facility(
-        &self,
-        CreditFacilityActivationData {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            facility,
-            structuring_fee,
-        }: CreditFacilityActivationData,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_approve_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                customer_account_ids,
-                facility.to_usd(),
-                structuring_fee.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
     #[instrument(
         name = "lana.ledger.record_credit_facility_interest_accrual",
         skip(self),

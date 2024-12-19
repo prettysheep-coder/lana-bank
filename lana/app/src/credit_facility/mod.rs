@@ -91,12 +91,14 @@ impl CreditFacilities {
             governance,
             gql_ledger,
         );
+        let ledger = CreditLedger::init(cala, journal_id).await?;
+
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
             &credit_facility_repo,
             &disbursal_repo,
-            gql_ledger,
+            &ledger,
             price,
             jobs,
             authz.audit(),
@@ -147,8 +149,6 @@ impl CreditFacilities {
             .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
         let _ = governance.init_policy(APPROVE_DISBURSAL_PROCESS).await;
-
-        let ledger = CreditLedger::init(cala, journal_id).await?;
 
         Ok(Self {
             authz: authz.clone(),

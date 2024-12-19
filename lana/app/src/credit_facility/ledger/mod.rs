@@ -13,6 +13,7 @@ pub use credit_facility_accounts::*;
 use error::*;
 
 pub(super) const BANK_COLLATERAL_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
+pub(super) const CREDIT_OMNIBUS_ACCOUNT_CODE: &str = "CREDIT.OMNIBUS";
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
@@ -26,6 +27,7 @@ pub struct CreditFacilityCollateralUpdate {
 pub struct CreditLedger {
     cala: CalaLedger,
     journal_id: JournalId,
+    credit_omnibus_account: AccountId,
     bank_collateral_account_id: AccountId,
     usd: Currency,
     btc: Currency,
@@ -36,7 +38,12 @@ impl CreditLedger {
         let bank_collateral_account_id =
             Self::create_bank_collateral_account(cala, BANK_COLLATERAL_ACCOUNT_CODE.to_string())
                 .await?;
+
+        let credit_omnibus_account =
+            Self::create_credit_omnibus_account(cala, CREDIT_OMNIBUS_ACCOUNT_CODE.to_string())
+                .await?;
         templates::AddCollateral::init(cala).await?;
+        templates::ApproveCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPayment::init(cala).await?;
 
@@ -44,6 +51,7 @@ impl CreditLedger {
             cala: cala.clone(),
             journal_id,
             bank_collateral_account_id,
+            credit_omnibus_account,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
@@ -300,6 +308,43 @@ impl CreditLedger {
         Ok(())
     }
 
+    pub async fn activate_credit_facility(
+        &self,
+        op: es_entity::DbOp<'_>,
+        CreditFacilityActivation {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            debit_account_id,
+            facility_amount,
+            structuring_fee_amount,
+        }: CreditFacilityActivation,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::APPROVE_CREDIT_FACILITY_CODE,
+                templates::ApproveCreditFacilityParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account_id: self.credit_omnibus_account,
+                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    facility_disbursed_receivable_account: credit_facility_account_ids
+                        .disbursed_receivable_account_id,
+                    facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
+                    checking_account: debit_account_id,
+                    facility_amount: facility_amount.to_usd(),
+                    structuring_fee_amount: structuring_fee_amount.to_usd(),
+                    currency: self.usd,
+                    external_id: tx_ref,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
     async fn create_bank_collateral_account(
         cala: &CalaLedger,
         code: String,
@@ -312,6 +357,28 @@ impl CreditLedger {
             .normal_balance_type(DebitOrCredit::Debit)
             .build()
             .expect("Couldn't create onchain incoming account");
+        match cala.accounts().create(new_account).await {
+            Err(AccountError::CodeAlreadyExists) => {
+                let account = cala.accounts().find_by_code(code).await?;
+                Ok(account.id)
+            }
+            Err(e) => Err(e.into()),
+            Ok(account) => Ok(account.id),
+        }
+    }
+
+    async fn create_credit_omnibus_account(
+        cala: &CalaLedger,
+        code: String,
+    ) -> Result<AccountId, CreditLedgerError> {
+        let new_account = NewAccount::builder()
+            .code(&code)
+            .id(AccountId::new())
+            .name("Credit Omnibus Account")
+            .description("Omnibus Account for Credit module")
+            .normal_balance_type(DebitOrCredit::Debit)
+            .build()
+            .expect("Couldn't create credit omnibus account");
         match cala.accounts().create(new_account).await {
             Err(AccountError::CodeAlreadyExists) => {
                 let account = cala.accounts().find_by_code(code).await?;

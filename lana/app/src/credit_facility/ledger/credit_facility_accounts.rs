@@ -65,3 +65,13 @@ pub struct CreditFacilityCompletion {
     pub collateral: Satoshis,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityActivation {
+    pub tx_id: LedgerTxId,
+    pub tx_ref: String,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub debit_account_id: LedgerAccountId,
+    pub facility_amount: UsdCents,
+    pub structuring_fee_amount: UsdCents,
+}

@@ -5,11 +5,12 @@ use crate::{
     terms::InterestPeriod,
 };
 
-use super::{cala::graphql::*, error::*, CustomerLedgerAccountIds};
+use super::{cala::graphql::*, error::*};
 
 pub use crate::credit_facility::ledger::{
-    CreditFacilityAccountIds, CreditFacilityCollateralUpdate, CreditFacilityCompletion,
-    CreditFacilityLedgerBalance, CreditFacilityPaymentAmounts, CreditFacilityRepayment,
+    CreditFacilityAccountIds, CreditFacilityActivation, CreditFacilityCollateralUpdate,
+    CreditFacilityCompletion, CreditFacilityLedgerBalance, CreditFacilityPaymentAmounts,
+    CreditFacilityRepayment,
 };
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
@@ -44,16 +45,6 @@ impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLed
                 .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
         })
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityActivationData {
-    pub facility: UsdCents,
-    pub structuring_fee: UsdCents,
-    pub tx_ref: String,
-    pub tx_id: LedgerTxId,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-    pub customer_account_ids: CustomerLedgerAccountIds,
 }
 
 #[derive(Debug, Clone)]

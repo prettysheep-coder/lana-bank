@@ -502,7 +502,7 @@ impl CreditFacility {
     pub(crate) fn activation_data(
         &self,
         price: PriceOfOneBTC,
-    ) -> Result<CreditFacilityActivationData, CreditFacilityError> {
+    ) -> Result<CreditFacilityActivation, CreditFacilityError> {
         if self.is_activated() {
             return Err(CreditFacilityError::AlreadyActivated);
         }
@@ -523,19 +523,21 @@ impl CreditFacility {
             .cvl(price)
             .check_approval_allowed(self.terms)?;
 
-        Ok(CreditFacilityActivationData {
-            facility: self.initial_facility(),
-            structuring_fee: self.structuring_fee(),
-            tx_ref: format!("{}-activate", self.id),
+        Ok(CreditFacilityActivation {
             tx_id: LedgerTxId::new(),
+            tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
+            debit_account_id: self
+                .customer_account_ids
+                .on_balance_sheet_deposit_account_id,
+            facility_amount: self.initial_facility(),
+            structuring_fee_amount: self.structuring_fee(),
         })
     }
 
     pub(super) fn activate(
         &mut self,
-        CreditFacilityActivationData { tx_id, .. }: CreditFacilityActivationData,
+        CreditFacilityActivation { tx_id, .. }: CreditFacilityActivation,
         activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<NewAccrualPeriods> {
