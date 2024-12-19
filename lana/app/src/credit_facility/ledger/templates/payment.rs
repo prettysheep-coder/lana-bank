@@ -19,11 +19,17 @@ pub struct RecordPaymentParams {
     pub debit_account_id: AccountId,
     pub principal_receivable_account_id: AccountId,
     pub interest_receivable_account_id: AccountId,
+    pub tx_ref: String,
 }
 
 impl RecordPaymentParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
+            NewParamDefinition::builder()
+                .name("external_id")
+                .r#type(ParamDataType::String)
+                .build()
+                .unwrap(),
             NewParamDefinition::builder()
                 .name("journal_id")
                 .r#type(ParamDataType::Uuid)
@@ -77,9 +83,11 @@ impl From<RecordPaymentParams> for Params {
             debit_account_id,
             principal_receivable_account_id,
             interest_receivable_account_id,
+            tx_ref,
         }: RecordPaymentParams,
     ) -> Self {
         let mut params = Self::default();
+        params.insert("external_id", tx_ref);
         params.insert("journal_id", journal_id);
         params.insert("currency", currency);
         params.insert("interest_amount", interest_amount);
@@ -107,6 +115,7 @@ impl RecordPayment {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .external_id("params.external_id")
             .description("'Record a deposit'")
             .build()
             .expect("Couldn't build TxInput");

@@ -466,16 +466,6 @@ impl CreditFacilities {
             .balances()
             .check_against_ledger(ledger_balances)?;
 
-        // let customer = self
-        //     .customers
-        //     .repo()
-        //     .find_by_id(credit_facility.customer_id)
-        //     .await?;
-        // self.gql_ledger
-        //     .get_customer_balance(customer.account_ids)
-        //     .await?
-        //     .check_withdraw_amount(amount)?;
-
         let repayment = credit_facility.initiate_repayment(
             amount,
             price,
@@ -483,23 +473,13 @@ impl CreditFacilities {
             db.now(),
             audit_info,
         )?;
-        // credit_facility.confirm_repayment(
-        //     repayment,
-        //     executed_at,
-        //     audit_info,
-        //     price,
-        //     self.config.upgrade_buffer_cvl_pct,
-        // );
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        // let self
-        //     .gql_ledger
-        //     .record_credit_facility_repayment(repayment.clone())
-        //     .await?;
-
-        db.commit().await?;
+        self.ledger
+            .record_credit_facility_repayment(db, repayment)
+            .await?;
 
         Ok(credit_facility)
     }

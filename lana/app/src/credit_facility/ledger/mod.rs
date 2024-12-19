@@ -38,6 +38,7 @@ impl CreditLedger {
                 .await?;
         templates::AddCollateral::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
+        templates::RecordPayment::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
@@ -234,6 +235,39 @@ impl CreditLedger {
                     .await
             }
         }?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn record_credit_facility_repayment(
+        &self,
+        op: es_entity::DbOp<'_>,
+        CreditFacilityRepayment {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            debit_account_id,
+            amounts,
+        }: CreditFacilityRepayment,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        let params = templates::RecordPaymentParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            interest_amount: amounts.interest.to_usd(),
+            principal_amount: amounts.disbursal.to_usd(),
+            debit_account_id,
+            principal_receivable_account_id: credit_facility_account_ids
+                .disbursed_receivable_account_id,
+            interest_receivable_account_id: credit_facility_account_ids
+                .interest_receivable_account_id,
+            tx_ref,
+        };
+        self.cala
+            .post_transaction_in_op(&mut op, tx_id, templates::RECORD_PAYMENT_CODE, params)
+            .await?;
+
         op.commit().await?;
         Ok(())
     }
