@@ -19,9 +19,7 @@ use tracing::instrument;
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CollateralAction, CreditFacilityId, CreditFacilityId, CustomerId, CustomerId, DepositId,
-        LedgerAccountId, LedgerAccountSetId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
-        LedgerTxTemplateId, Subject, Subject, UsdCents, UsdCents, WithdrawalId,
+        CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId, Subject, UsdCents,
     },
 };
 
