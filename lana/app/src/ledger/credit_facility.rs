@@ -1,16 +1,13 @@
 use chrono::{DateTime, Utc};
 
-use crate::{
-    primitives::{LedgerTxId, Satoshis, UsdCents},
-    terms::InterestPeriod,
-};
+use crate::primitives::{LedgerTxId, Satoshis, UsdCents};
 
 use super::{cala::graphql::*, error::*};
 
 pub use crate::credit_facility::ledger::{
     CreditFacilityAccountIds, CreditFacilityActivation, CreditFacilityCollateralUpdate,
-    CreditFacilityCompletion, CreditFacilityLedgerBalance, CreditFacilityPaymentAmounts,
-    CreditFacilityRepayment,
+    CreditFacilityCompletion, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
+    CreditFacilityLedgerBalance, CreditFacilityPaymentAmounts, CreditFacilityRepayment,
 };
 
 impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLedgerBalance {
@@ -45,22 +42,4 @@ impl TryFrom<credit_facility_ledger_balance::ResponseData> for CreditFacilityLed
                 .unwrap_or_else(|| Ok(Satoshis::ZERO))?,
         })
     }
-}
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityInterestIncurrence {
-    pub interest: UsdCents,
-    pub period: InterestPeriod,
-    pub tx_ref: String,
-    pub tx_id: LedgerTxId,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-}
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityInterestAccrual {
-    pub interest: UsdCents,
-    pub tx_ref: String,
-    pub tx_id: LedgerTxId,
-    pub accrued_at: DateTime<Utc>,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
 }

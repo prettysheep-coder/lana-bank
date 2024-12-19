@@ -117,14 +117,14 @@ impl CreditFacilities {
         .await?;
         jobs.add_initializer(
             interest_incurrences::CreditFacilityProcessingJobInitializer::new(
-                gql_ledger,
+                &ledger,
                 credit_facility_repo.clone(),
                 authz.audit(),
             ),
         );
         jobs.add_initializer(
             interest_accruals::CreditFacilityProcessingJobInitializer::new(
-                gql_ledger,
+                &ledger,
                 credit_facility_repo.clone(),
                 jobs,
                 authz.audit(),
