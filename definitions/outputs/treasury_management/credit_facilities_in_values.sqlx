@@ -1,6 +1,5 @@
 config {
     type: "table",
-    tags: ["current-dev"],
 }
 
 -- Total Value of Approved Credit Facilities
@@ -11,12 +10,12 @@ config {
 WITH value_approved_cf AS (
   SELECT
     SAFE_DIVIDE(SUM(facility), 100.0) as amount_in_usd
-  FROM dataform_sv.fct_credit_facility_events
+  FROM ${ref("fct_credit_facility_events")}
   WHERE approval_process_concluded_approved
 ), disbursed AS (
   SELECT
     SAFE_DIVIDE(SUM(amount), 100.0) as amount_in_usd
-  FROM dataform_sv.fct_credit_facility_disbursal_events
+  FROM ${ref("fct_credit_facility_disbursal_events")}
   WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
 ), breakeven AS (
   SELECT
@@ -25,9 +24,9 @@ WITH value_approved_cf AS (
     , ar.terms_annual_rate
     , COALESCE(de.amount, 0) AS disbursal_amount_in_cents
     , facility AS credit_facility_limit_in_cents
-  FROM dataform_sv.fct_credit_facility_events cfe
-  LEFT JOIN dataform_sv.fct_credit_facility_disbursal_events de USING (event_key)
-  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_annual_rate ar USING (terms_annual_rate_key)
+  FROM ${ref("fct_credit_facility_events")} cfe
+  LEFT JOIN ${ref("fct_credit_facility_disbursal_events")} de USING (event_key)
+  LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} ar USING (terms_annual_rate_key)
   WHERE approval_process_concluded_approved
   AND facility > 0
 ), breakeven_by_cf AS (
@@ -91,3 +90,5 @@ SELECT 5 AS order_by, disbursal_ratio * 100, 'Disbursal ratio (%) - proportional
 SELECT 6 AS order_by, breakeven_disbursal_ratio * 100, 'Breakeven ratio (%) - proportional @' || bench_mark || '% benchmark' FROM breakeven_sum
 
 ORDER BY order_by
+
+-- TODO: fix float64, numeric, bignumeric

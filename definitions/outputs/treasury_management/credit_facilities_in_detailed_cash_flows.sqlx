@@ -1,6 +1,5 @@
 config {
     type: "table",
-    tags: ["current-dev"],
 }
 
 --  Present Value of future cashflows
@@ -25,12 +24,12 @@ WITH terms_and_disbursal AS (
       END AS credit_facility_end_date
     , de.amount AS disbursal_amount_in_cents
     , de.disbursal_concluded_event_recorded_at AS disbursal_start_date
-  FROM dataform_sv.fct_credit_facility_events cfe
-  RIGHT JOIN dataform_sv.fct_credit_facility_disbursal_events de USING (event_key)
-  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_annual_rate ar USING (terms_annual_rate_key)
-  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_accrual_interval_type it USING (terms_accrual_interval_type_key)
-  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_duration_type dt USING (terms_duration_type_key)
-  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_duration_value dv USING (terms_duration_value_key)
+  FROM ${ref("fct_credit_facility_events")} cfe
+  RIGHT JOIN ${ref("fct_credit_facility_disbursal_events")} de USING (event_key)
+  LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} ar USING (terms_annual_rate_key)
+  LEFT JOIN ${ref("dim_credit_facility_events_terms_accrual_interval_type")} it USING (terms_accrual_interval_type_key)
+  LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_type")} dt USING (terms_duration_type_key)
+  LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_value")} dv USING (terms_duration_value_key)
   WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
   AND terms_accrual_interval_type = 'end_of_month'
 ), projections AS (
@@ -199,16 +198,16 @@ WITH terms_and_disbursal AS (
 ), with_risk AS (
   SELECT
       *
-    , dataform_sv.udf_loan_pv(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS pv
-    , SAFE_SUBTRACT(dataform_sv.udf_loan_pv(bench_mark_daily_interest_rate, days_from_now, cash_flows), disbursal_amount_in_cents) AS npv
-    , SAFE_MULTIPLY(dataform_sv.udf_loan_ytm(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS ytm
-    , SAFE_MULTIPLY(dataform_sv.udf_loan_ytm_from_price(disbursal_amount_in_cents, days_from_now, cash_flows), 365.0) AS ytm_from_price
-    , dataform_sv.udf_loan_mac_duration(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS mac_duration
-    , TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(dataform_sv.udf_loan_mac_duration(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS INT64) DAY) AS mac_duration_date
---  , SAFE_DIVIDE(dataform_sv.udf_loan_mod_duration(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS mod_duration
---  , SAFE_DIVIDE(dataform_sv.udf_loan_convexity(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0 * 365.0) AS convexity
-    , dataform_sv.udf_loan_pv_delta_on_interest_rate_delta_with_convex(bench_mark_daily_interest_rate, days_from_now, cash_flows, 0.0001 / days_per_year) AS dv01
-    , dataform_sv.udf_loan_pv(bench_mark_daily_interest_rate + (0.0001 / days_per_year), days_from_now, cash_flows) AS pv_at_dv01
+    , ${ref("udf_loan_pv")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS pv
+    , SAFE_SUBTRACT(${ref("udf_loan_pv")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), disbursal_amount_in_cents) AS npv
+    , SAFE_MULTIPLY(${ref("udf_loan_ytm")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS ytm
+    , SAFE_MULTIPLY(${ref("udf_loan_ytm_from_price")}(disbursal_amount_in_cents, days_from_now, cash_flows), 365.0) AS ytm_from_price
+    , ${ref("udf_loan_mac_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS mac_duration
+    , TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(${ref("udf_loan_mac_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS INT64) DAY) AS mac_duration_date
+--  , SAFE_DIVIDE(${ref("udf_loan_mod_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS mod_duration
+--  , SAFE_DIVIDE(${ref("udf_loan_convexity")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0 * 365.0) AS convexity
+    , ${ref("udf_loan_pv_delta_on_interest_rate_delta_with_convex")}(bench_mark_daily_interest_rate, days_from_now, cash_flows, 0.0001 / days_per_year) AS dv01
+    , ${ref("udf_loan_pv")}(bench_mark_daily_interest_rate + (0.0001 / days_per_year), days_from_now, cash_flows) AS pv_at_dv01
   FROM arrayed
 )
 
@@ -235,3 +234,4 @@ select * from with_risk order by customer_id_key, event_key, disbursal_idx
 -- select * from grouped order by customer_id_key, event_key, disbursal_idx
 
 -- TODO: need to add disbursal cashflows: projected_disbursal
+-- TODO: fix float64, numeric, bignumeric

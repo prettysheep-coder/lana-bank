@@ -1,6 +1,5 @@
 config {
     type: "table",
-    tags: ["current-dev"],
 }
 
 -- Number of Approved Credit Facilities
@@ -10,12 +9,12 @@ config {
 WITH approved AS (
   SELECT
     COUNT(DISTINCT event_key)  AS value
-  FROM dataform_sv.fct_credit_facility_events
+  FROM ${ref("fct_credit_facility_events")}
   WHERE approval_process_concluded_approved
 ), total AS (
   SELECT
     COUNT(DISTINCT event_key)  AS value
-  FROM dataform_sv.fct_credit_facility_events
+  FROM ${ref("fct_credit_facility_events")}
 )
 
 SELECT 1 AS order_by, value, 'Number of Approved Credit Facilities' AS name FROM approved
