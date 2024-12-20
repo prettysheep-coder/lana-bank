@@ -143,12 +143,13 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         } = self
             .confirm_interest_incurrence(&mut db, &audit_info)
             .await?;
+
+        unimplemented!();
+        let sub_op = db.begin_sub_operation().await?;
         self.ledger
-            .record_interest_incurrence(db, interest_incurrence)
+            .record_interest_incurrence(sub_op, interest_incurrence)
             .await?;
 
-        // handle move of db
-        unimplemented!();
         if let Some(period) = next_incurrence_period {
             Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
