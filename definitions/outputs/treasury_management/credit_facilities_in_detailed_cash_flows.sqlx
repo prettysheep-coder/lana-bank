@@ -1,0 +1,237 @@
+config {
+    type: "table",
+    tags: ["current-dev"],
+}
+
+--  Present Value of future cashflows
+--  Net Present Value of future cashflows
+--  YTM
+--  MacDuration
+--  MacDurationDate
+--  DV01
+--  PV @ DV01
+
+WITH terms_and_disbursal AS (
+  SELECT
+     *
+    , facility AS credit_facility_limit_in_cents
+    , SAFE_DIVIDE(terms_annual_rate, 100.0) AS credit_facility_annual_interest_rate
+    , 'actual/360' AS credit_facility_day_count_convention	  -- TODO get from proper source
+    , 5.53 / 100.0         AS bench_mark_interest_rate	      -- TODO get from proper source
+    , CURRENT_TIMESTAMP() AS now_ts
+    , activated_recorded_at AS credit_facility_start_date
+    , CASE WHEN terms_duration_type = 'months' THEN
+        TIMESTAMP(TIMESTAMP_ADD(DATE(activated_recorded_at), INTERVAL terms_duration_value MONTH))
+      END AS credit_facility_end_date
+    , de.amount AS disbursal_amount_in_cents
+    , de.disbursal_concluded_event_recorded_at AS disbursal_start_date
+  FROM dataform_sv.fct_credit_facility_events cfe
+  RIGHT JOIN dataform_sv.fct_credit_facility_disbursal_events de USING (event_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_annual_rate ar USING (terms_annual_rate_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_accrual_interval_type it USING (terms_accrual_interval_type_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_duration_type dt USING (terms_duration_type_key)
+  LEFT JOIN dataform_sv.dim_credit_facility_events_terms_duration_value dv USING (terms_duration_value_key)
+  WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
+  AND terms_accrual_interval_type = 'end_of_month'
+), projections AS (
+  SELECT
+      *
+    , SAFE_DIVIDE(
+        credit_facility_annual_interest_rate,
+        CASE
+            WHEN ENDS_WITH(credit_facility_day_count_convention, '/360') THEN 360.0
+            WHEN ENDS_WITH(credit_facility_day_count_convention, '/365') THEN 365.0
+            ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(credit_facility_start_date), YEAR)), DATE_TRUNC(credit_facility_start_date, YEAR), DAY)
+        END
+      ) AS credit_facility_daily_interest_rate
+    , SAFE_DIVIDE(
+        bench_mark_interest_rate,
+        CASE
+            WHEN ENDS_WITH(credit_facility_day_count_convention, '/360') THEN 360.0
+            WHEN ENDS_WITH(credit_facility_day_count_convention, '/365') THEN 365.0
+            ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(credit_facility_start_date), YEAR)), DATE_TRUNC(credit_facility_start_date, YEAR), DAY)
+        END
+      ) AS bench_mark_daily_interest_rate
+    , CASE
+        WHEN ENDS_WITH(credit_facility_day_count_convention, '/360') THEN 360.0
+        WHEN ENDS_WITH(credit_facility_day_count_convention, '/365') THEN 365.0
+        ELSE TIMESTAMP_DIFF(TIMESTAMP(LAST_DAY(DATE(credit_facility_start_date), YEAR)), DATE_TRUNC(credit_facility_start_date, YEAR), DAY)
+      END AS days_per_year
+    , SAFE_DIVIDE(bench_mark_interest_rate, credit_facility_annual_interest_rate) AS breakeven_disbursal_percent
+    , SAFE_MULTIPLY(
+        credit_facility_limit_in_cents,
+        SAFE_DIVIDE(bench_mark_interest_rate, credit_facility_annual_interest_rate)
+      ) AS breakeven_disbursal_amount_in_cents
+    , CASE
+        WHEN terms_accrual_interval_type = 'end_of_day' THEN
+            GENERATE_DATE_ARRAY(DATE(disbursal_start_date), LAST_DAY(DATE(credit_facility_end_date)), INTERVAL 1 DAY)
+        WHEN terms_accrual_interval_type = 'end_of_month' THEN
+            GENERATE_DATE_ARRAY(DATE(disbursal_start_date), LAST_DAY(DATE(credit_facility_end_date)), INTERVAL 1 MONTH)
+      END AS interest_schedule_months
+  FROM terms_and_disbursal
+), projected_interest_payment_data AS (
+    SELECT
+          p.* except(interest_schedule_months)
+        , CASE WHEN TIMESTAMP(DATE_TRUNC(projected_month, MONTH)) < disbursal_start_date THEN
+              TIMESTAMP(DATE(disbursal_start_date))
+          ELSE
+              TIMESTAMP(DATE_TRUNC(projected_month, MONTH))
+          END AS period_start_date
+        , CASE WHEN LAST_DAY(projected_month) > DATE(credit_facility_end_date) THEN
+        TIMESTAMP(DATE(credit_facility_end_date))
+          ELSE
+              TIMESTAMP(LAST_DAY(projected_month))
+          END AS period_end_date
+        , 'projected_interest_payment' AS payment_type
+    FROM projections p,
+         UNNEST(interest_schedule_months) AS projected_month
+), projected_principal_payment_data AS (
+    SELECT
+          * except(interest_schedule_months)
+        , TIMESTAMP(DATE(disbursal_start_date)) AS period_start_date
+        , TIMESTAMP(DATE(credit_facility_end_date)) AS period_end_date
+        , 'projected_principal_payment' AS payment_type
+    FROM projections
+), projected_payment_data AS (
+    SELECT * FROM projected_interest_payment_data
+        UNION ALL
+    SELECT * FROM projected_principal_payment_data
+), projected_time_data AS (
+  SELECT
+      *
+    , TIMESTAMP_DIFF(DATE(period_end_date), DATE(period_start_date), DAY) + 1 AS days_in_the_period
+    , SAFE_DIVIDE(TIMESTAMP_DIFF(DATE(period_end_date), DATE(period_start_date), DAY) + 1, days_per_year) AS years_in_the_period
+    , CAST(TIMESTAMP_DIFF(DATE(period_end_date), DATE(now_ts), DAY) + 1 AS FLOAT64) AS days_from_now
+--  , SAFE_DIVIDE(TIMESTAMP_DIFF(DATE(period_end_date), DATE(now_ts), DAY) + 1, days_per_year) AS years_from_now
+  FROM projected_payment_data
+), projected_payment AS (
+  SELECT
+      customer_id_key
+    , event_key
+    , idx AS disbursal_idx
+    , credit_facility_start_date
+    , credit_facility_end_date
+    , bench_mark_interest_rate
+    , bench_mark_daily_interest_rate
+    , credit_facility_annual_interest_rate
+    , credit_facility_daily_interest_rate
+    , now_ts
+    , days_per_year
+    , disbursal_amount_in_cents
+    , days_in_the_period
+    , days_from_now
+--  , years_from_now
+    , CASE
+        WHEN payment_type = 'projected_interest_payment'
+          THEN SAFE_MULTIPLY(disbursal_amount_in_cents, SAFE_MULTIPLY(credit_facility_daily_interest_rate, days_in_the_period))
+        WHEN payment_type = 'projected_principal_payment'
+          THEN disbursal_amount_in_cents
+      END AS projected_amount_in_cents
+  FROM projected_time_data
+  WHERE days_from_now >= 0
+), grouped AS (
+  SELECT
+      customer_id_key
+    , event_key
+    , disbursal_idx
+    , credit_facility_start_date
+    , credit_facility_end_date
+    , bench_mark_interest_rate
+    , bench_mark_daily_interest_rate
+    , credit_facility_annual_interest_rate
+    , credit_facility_daily_interest_rate
+    , now_ts
+    , days_per_year
+    , disbursal_amount_in_cents
+    , MAX(days_in_the_period) AS days_in_the_period
+    , days_from_now
+--  , years_from_now
+    , SUM(projected_amount_in_cents) AS projected_amount_in_cents
+  FROM projected_payment
+  GROUP BY
+      customer_id_key
+    , event_key
+    , disbursal_idx
+    , credit_facility_start_date
+    , credit_facility_end_date
+    , bench_mark_interest_rate
+    , bench_mark_daily_interest_rate
+    , credit_facility_annual_interest_rate
+    , credit_facility_daily_interest_rate
+    , now_ts
+    , days_per_year
+    , disbursal_amount_in_cents
+    , days_from_now
+--  , years_from_now
+  ORDER BY days_from_now
+), arrayed AS (
+  SELECT
+      customer_id_key
+    , event_key
+    , disbursal_idx
+    , credit_facility_start_date
+    , credit_facility_end_date
+    , bench_mark_interest_rate
+    , bench_mark_daily_interest_rate
+    , credit_facility_annual_interest_rate
+    , credit_facility_daily_interest_rate
+    , now_ts
+    , days_per_year
+    , disbursal_amount_in_cents
+    , ARRAY_AGG(days_in_the_period) AS days_in_the_period
+    , ARRAY_AGG(days_from_now) AS days_from_now
+--  , ARRAY_AGG(years_from_now) AS years_from_now
+    , ARRAY_AGG(projected_amount_in_cents) AS cash_flows
+  FROM grouped
+  GROUP BY
+      customer_id_key
+    , event_key
+    , disbursal_idx
+    , credit_facility_start_date
+    , credit_facility_end_date
+    , bench_mark_interest_rate
+    , bench_mark_daily_interest_rate
+    , credit_facility_annual_interest_rate
+    , credit_facility_daily_interest_rate
+    , now_ts
+    , days_per_year
+    , disbursal_amount_in_cents
+), with_risk AS (
+  SELECT
+      *
+    , dataform_sv.udf_loan_pv(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS pv
+    , SAFE_SUBTRACT(dataform_sv.udf_loan_pv(bench_mark_daily_interest_rate, days_from_now, cash_flows), disbursal_amount_in_cents) AS npv
+    , SAFE_MULTIPLY(dataform_sv.udf_loan_ytm(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS ytm
+    , SAFE_MULTIPLY(dataform_sv.udf_loan_ytm_from_price(disbursal_amount_in_cents, days_from_now, cash_flows), 365.0) AS ytm_from_price
+    , dataform_sv.udf_loan_mac_duration(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS mac_duration
+    , TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(dataform_sv.udf_loan_mac_duration(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS INT64) DAY) AS mac_duration_date
+--  , SAFE_DIVIDE(dataform_sv.udf_loan_mod_duration(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS mod_duration
+--  , SAFE_DIVIDE(dataform_sv.udf_loan_convexity(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0 * 365.0) AS convexity
+    , dataform_sv.udf_loan_pv_delta_on_interest_rate_delta_with_convex(bench_mark_daily_interest_rate, days_from_now, cash_flows, 0.0001 / days_per_year) AS dv01
+    , dataform_sv.udf_loan_pv(bench_mark_daily_interest_rate + (0.0001 / days_per_year), days_from_now, cash_flows) AS pv_at_dv01
+  FROM arrayed
+)
+
+-- SELECT 1 AS order_by, CAST(pv AS STRING), 'Present Value of future cashflows' AS name FROM with_risk
+--     UNION ALL
+-- SELECT 2 AS order_by, CAST(npv AS STRING), 'Net Present Value of future cashflows' FROM with_risk
+--     UNION ALL
+-- SELECT 3 AS order_by, CAST(ytm AS STRING), 'YTM' FROM with_risk
+--     UNION ALL
+-- SELECT 4 AS order_by, CAST(ytm_from_price AS STRING), 'YTM' FROM with_risk
+--     UNION ALL
+-- SELECT 5 AS order_by, CAST(mac_duration AS STRING), 'MacDuration' FROM with_risk
+--     UNION ALL
+-- SELECT 6 AS order_by, CAST(mac_duration_date AS STRING), 'MacDurationDate' FROM with_risk
+--     UNION ALL
+-- SELECT 7 AS order_by, CAST(dv01 AS STRING), 'DV01' FROM with_risk
+--     UNION ALL
+-- SELECT 8 AS order_by, CAST(pv_at_dv01 AS STRING), 'PV @ DV01' FROM with_risk
+
+-- ORDER BY order_by
+
+select * from with_risk order by customer_id_key, event_key, disbursal_idx
+-- select * from arrayed order by customer_id_key, event_key, disbursal_idx
+-- select * from grouped order by customer_id_key, event_key, disbursal_idx
+
+-- TODO: need to add disbursal cashflows: projected_disbursal

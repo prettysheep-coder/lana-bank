@@ -3,36 +3,39 @@ config {
     tags: ["current-dev"],
 }
 
-  -- Total Number of Customers
-  -- Total Number of Customers with Approved Credit Facilities
-  -- Total Number of Customers with Disbursed Approved Credit Facilities
+-- Total Number of Customers
+-- Total Number of Customers with Approved Credit Facilities
+-- Total Number of Customers with Disbursed Approved Credit Facilities
+
 WITH total_customers AS (
   SELECT
-    COUNT(DISTINCT customer_id) AS count
+    COUNT(DISTINCT customer_id) AS value
   FROM dataform_sv.dim_credit_facility_events_customer_id
 ), approved_cf AS (
   SELECT
-    COUNT(DISTINCT customer_id) AS count
+    COUNT(DISTINCT customer_id) AS value
   FROM dataform_sv.fct_credit_facility_events
   LEFT JOIN dataform_sv.dim_credit_facility_events_customer_id USING (customer_id_key)
   WHERE approval_process_concluded_approved
 ), activated_cf AS (
   SELECT
-    COUNT(DISTINCT customer_id) AS count
+    COUNT(DISTINCT customer_id) AS value
   FROM dataform_sv.fct_credit_facility_events
   LEFT JOIN dataform_sv.dim_credit_facility_events_customer_id USING (customer_id_key)
   WHERE activated_recorded_at_date_key != 19000101
 ), disbursed_cf AS (
   SELECT
-    COUNT(DISTINCT customer_id) AS count
+    COUNT(DISTINCT customer_id) AS value
   FROM dataform_sv.fct_credit_facility_events
   LEFT JOIN dataform_sv.dim_credit_facility_events_customer_id USING (customer_id_key)
   RIGHT JOIN dataform_sv.fct_credit_facility_disbursal_events USING (event_key)
   WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
 )
 
-SELECT count, 'Total Number of Customers' AS name FROM total_customers
-UNION ALL
-SELECT count, 'Total Number of Customers with Approved Credit Facilities' AS name FROM approved_cf
-UNION ALL
-SELECT count, 'Total Number of Customers with Disbursed Approved Credit Facilities' AS name FROM disbursed_cf
+SELECT 1 AS order_by, value, 'Total Number of Customers' AS name FROM total_customers
+  UNION ALL
+SELECT 2 AS order_by, value, 'Total Number of Customers with Approved Credit Facilities' AS name FROM approved_cf
+  UNION ALL
+SELECT 3 AS order_by, value, 'Total Number of Customers with Disbursed Approved Credit Facilities' AS name FROM disbursed_cf
+
+ORDER BY order_by

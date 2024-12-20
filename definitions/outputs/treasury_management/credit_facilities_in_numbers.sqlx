@@ -1,0 +1,27 @@
+config {
+    type: "table",
+    tags: ["current-dev"],
+}
+
+-- Number of Approved Credit Facilities
+-- Number of Total Credit Facilities
+--     Approved Rate
+
+WITH approved AS (
+  SELECT
+    COUNT(DISTINCT event_key)  AS value
+  FROM dataform_sv.fct_credit_facility_events
+  WHERE approval_process_concluded_approved
+), total AS (
+  SELECT
+    COUNT(DISTINCT event_key)  AS value
+  FROM dataform_sv.fct_credit_facility_events
+)
+
+SELECT 1 AS order_by, value, 'Number of Approved Credit Facilities' AS name FROM approved
+  UNION ALL
+SELECT 2 AS order_by, value, 'Number of Total Credit Facilities' FROM total
+  UNION ALL
+SELECT 3 AS order_by, a.value / t.value, 'Approved Rate' FROM approved a, total t
+
+ORDER BY order_by
