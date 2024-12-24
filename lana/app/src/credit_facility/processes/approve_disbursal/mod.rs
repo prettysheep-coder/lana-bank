@@ -7,11 +7,10 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        disbursal::error::DisbursalError, error::CreditFacilityError, repo::CreditFacilityRepo,
-        Disbursal, DisbursalRepo,
+        disbursal::error::DisbursalError, error::CreditFacilityError, ledger::CreditLedger,
+        repo::CreditFacilityRepo, Disbursal, DisbursalRepo,
     },
     governance::Governance,
-    ledger::Ledger,
     primitives::DisbursalId,
 };
 use rbac_types::{AppObject, CreditFacilityAction};
@@ -26,7 +25,7 @@ pub struct ApproveDisbursal {
     credit_facility_repo: CreditFacilityRepo,
     audit: Audit,
     governance: Governance,
-    ledger: Ledger,
+    ledger: CreditLedger,
 }
 
 impl ApproveDisbursal {
@@ -35,7 +34,7 @@ impl ApproveDisbursal {
         credit_facility_repo: &CreditFacilityRepo,
         audit: &Audit,
         governance: &Governance,
-        ledger: &Ledger,
+        ledger: &CreditLedger,
     ) -> Self {
         Self {
             disbursal_repo: disbursal_repo.clone(),
@@ -130,7 +129,11 @@ impl ApproveDisbursal {
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;
 
-                self.ledger.record_disbursal(disbursal_data.clone()).await?;
+                // Handle move of db here!!
+                unimplemented!();
+                self.ledger
+                    .record_disbursal(db, disbursal_data.clone())
+                    .await?;
             }
             Err(DisbursalError::Denied) => {
                 span.record("disbursal_executed", false);

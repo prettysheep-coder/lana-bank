@@ -84,14 +84,14 @@ impl CreditFacilities {
         let publisher = CreditFacilityPublisher::new(export, outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool, export);
+        let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
             &credit_facility_repo,
             authz.audit(),
             governance,
-            gql_ledger,
+            &ledger,
         );
-        let ledger = CreditLedger::init(cala, journal_id).await?;
 
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
