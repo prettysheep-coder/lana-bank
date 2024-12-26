@@ -77,17 +77,17 @@ WITH value_approved_cf AS (
   GROUP BY bench_mark
 )
 
-SELECT 1 AS order_by, amount_in_usd AS value, 'Total Value of Approved Credit Facilities' AS name FROM value_approved_cf
+SELECT 1 AS order_by, CAST(amount_in_usd AS STRING) AS value, 'Total Value of Approved Credit Facilities' AS name FROM value_approved_cf
   UNION ALL
-SELECT 2 AS order_by, amount_in_usd, 'Total Value Disbursed from Approved Credit Facilities' FROM disbursed
+SELECT 2 AS order_by, CAST(amount_in_usd AS STRING), 'Total Value Disbursed from Approved Credit Facilities' FROM disbursed
   UNION ALL
-SELECT 3 AS order_by, SAFE_SUBTRACT(v.amount_in_usd, d.amount_in_usd), 'Total Value NOT-YET Disbursed from Approved Credit Facilities' FROM value_approved_cf v, disbursed d
+SELECT 3 AS order_by, CAST(SAFE_SUBTRACT(v.amount_in_usd, d.amount_in_usd) AS STRING), 'Total Value NOT-YET Disbursed from Approved Credit Facilities' FROM value_approved_cf v, disbursed d
   UNION ALL
-SELECT 4 AS order_by, SAFE_DIVIDE(d.amount_in_usd, v.amount_in_usd) * 100, 'Disbursed-to-Approved ratio (%)' FROM value_approved_cf v, disbursed d
+SELECT 4 AS order_by, CAST(SAFE_DIVIDE(d.amount_in_usd, v.amount_in_usd) * 100 AS STRING), 'Disbursed-to-Approved ratio (%)' FROM value_approved_cf v, disbursed d
   UNION ALL
-SELECT 5 AS order_by, disbursal_ratio * 100, 'Disbursal ratio (%) - proportional' FROM breakeven_sum
+SELECT 5 AS order_by, CAST(disbursal_ratio * 100 AS STRING), 'Disbursal ratio (%) - proportional' FROM breakeven_sum
   UNION ALL
-SELECT 6 AS order_by, breakeven_disbursal_ratio * 100, 'Breakeven ratio (%) - proportional @' || bench_mark || '% benchmark' FROM breakeven_sum
+SELECT 6 AS order_by, CAST(breakeven_disbursal_ratio * 100 AS STRING), 'Breakeven ratio (%) - proportional @' || bench_mark || '% benchmark' FROM breakeven_sum
 
 ORDER BY order_by
 

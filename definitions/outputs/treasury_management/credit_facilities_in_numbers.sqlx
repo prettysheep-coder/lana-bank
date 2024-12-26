@@ -17,10 +17,10 @@ WITH approved AS (
   FROM ${ref("fct_credit_facility_events")}
 )
 
-SELECT 1 AS order_by, value, 'Number of Approved Credit Facilities' AS name FROM approved
+SELECT 1 AS order_by, CAST(value AS STRING) AS value, 'Number of Approved Credit Facilities' AS name FROM approved
   UNION ALL
-SELECT 2 AS order_by, value, 'Number of Total Credit Facilities' FROM total
+SELECT 2 AS order_by, CAST(value AS STRING) AS value, 'Number of Total Credit Facilities' FROM total
   UNION ALL
-SELECT 3 AS order_by, a.value / t.value, 'Approved Rate' FROM approved a, total t
+SELECT 3 AS order_by, CAST(a.value / t.value AS STRING) AS value, 'Approved Rate' FROM approved a, total t
 
 ORDER BY order_by
