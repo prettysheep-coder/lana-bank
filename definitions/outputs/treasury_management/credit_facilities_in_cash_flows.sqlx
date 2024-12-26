@@ -181,7 +181,6 @@ WITH terms_and_disbursal AS (
     , SAFE_MULTIPLY(${ref("udf_loan_ytm")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS ytm
 --  , SAFE_MULTIPLY(${ref("udf_loan_ytm_from_price")}(disbursal_amount_in_cents, days_from_now, cash_flows), 365.0) AS ytm_from_price
     , ${ref("udf_loan_mac_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS mac_duration
-    , TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(${ref("udf_loan_mac_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS INT64) DAY) AS mac_duration_date
     , SAFE_DIVIDE(${ref("udf_loan_mod_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0) AS mod_duration
     , SAFE_DIVIDE(${ref("udf_loan_convexity")}(bench_mark_daily_interest_rate, days_from_now, cash_flows), 365.0 * 365.0) AS convexity
     , ${ref("udf_loan_pv_delta_on_interest_rate_delta_with_convex")}(bench_mark_daily_interest_rate, days_from_now, cash_flows, 0.0001 / days_per_year) AS dv01
@@ -201,7 +200,10 @@ WITH terms_and_disbursal AS (
     , ytm
     , SAFE_MULTIPLY(${ref("udf_loan_ytm_from_price")}(SAFE_NEGATE(disbursal_pv), days_from_now, cash_flows), 365.0) AS ytm_from_price
     , mac_duration
-    , mac_duration_date
+    , CASE WHEN IS_NAN(mac_duration)
+        THEN TIMESTAMP('1900-01-01')
+        ELSE TIMESTAMP(TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(mac_duration AS INT64) DAY))
+      END AS mac_duration_date
 --  , mod_duration
 --  , convexity
     , dv01
