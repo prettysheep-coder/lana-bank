@@ -4,7 +4,7 @@ import React from "react"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
-import { CreditFacilityDisbursalInitiateDialog } from "../disbursal-initiate"
+import { CreditFacilityDisbursalInitiateDialog } from "../../disbursals/create"
 
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 

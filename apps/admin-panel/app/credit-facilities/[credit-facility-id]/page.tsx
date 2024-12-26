@@ -7,88 +7,61 @@ import { CreditFacilityOverview } from "./overview"
 import { useGetCreditFacilityOverviewQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCreditFacilityOverview($id: UUID!) {
-    creditFacility(id: $id) {
-      id
-      creditFacilityId
+  fragment CreditFacilityOverviewFragment on CreditFacility {
+    id
+    creditFacilityId
+    status
+    facilityAmount
+    collateral
+    expiresAt
+    currentCvl {
+      total
+      disbursed
+    }
+    collateralToMatchInitialCvl @client
+    disbursals {
       status
-      facilityAmount
-      collateral
-      expiresAt
-      currentCvl {
-        total
-        disbursed
+    }
+    balance {
+      facilityRemaining {
+        usdBalance
       }
-      collateralToMatchInitialCvl @client
-      disbursals {
-        status
-      }
-      balance {
-        facilityRemaining {
+      disbursed {
+        total {
           usdBalance
-        }
-        disbursed {
-          total {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
-        }
-        interest {
-          total {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
         }
         outstanding {
           usdBalance
         }
-        collateral {
-          btcBalance
+      }
+      interest {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
         }
       }
-      creditFacilityTerms {
-        marginCallCvl
-        liquidationCvl
-        initialCvl
+      outstanding {
+        usdBalance
       }
-      approvalProcess {
-        approvalProcessId
-        approvalProcessType
-        deniedReason
-        createdAt
-        subjectCanSubmitDecision
-        status
-        rules {
-          ... on CommitteeThreshold {
-            threshold
-            committee {
-              name
-              currentMembers {
-                email
-                roles
-              }
-            }
-          }
-          ... on SystemApproval {
-            autoApprove
-          }
-        }
-        voters {
-          stillEligible
-          didVote
-          didApprove
-          didDeny
-          user {
-            userId
-            email
-            roles
-          }
-        }
+      collateral {
+        btcBalance
       }
+    }
+    creditFacilityTerms {
+      marginCallCvl
+      liquidationCvl
+      initialCvl
+    }
+    approvalProcess {
+      ...ApprovalProcessFields
+    }
+  }
+
+  query GetCreditFacilityOverview($id: UUID!) {
+    creditFacility(id: $id) {
+      ...CreditFacilityOverviewFragment
     }
   }
 `

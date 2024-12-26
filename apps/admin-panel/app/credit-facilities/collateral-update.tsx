@@ -13,8 +13,6 @@ import {
 import { Button } from "@/ui/button"
 import { Input } from "@/ui/input"
 import {
-  GetCreditFacilityBasicDetailsDocument,
-  GetCreditFacilityOverviewDocument,
   useCreditFacilityCollateralUpdateMutation,
   useGetCreditFacilityOverviewQuery,
 } from "@/lib/graphql/generated"
@@ -35,6 +33,9 @@ gql`
             btcBalance
           }
         }
+        ...CreditFacilityTransactionsFragment
+        ...CreditFacilityOverviewFragment
+        ...CreditFacilityBasicDetailsFragment
       }
     }
   }
@@ -50,12 +51,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   CreditFacilityCollateralUpdateDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId }) => {
   const [updateCollateral, { loading, reset }] =
-    useCreditFacilityCollateralUpdateMutation({
-      refetchQueries: [
-        GetCreditFacilityBasicDetailsDocument,
-        GetCreditFacilityOverviewDocument,
-      ],
-    })
+    useCreditFacilityCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [newCollateral, setNewCollateral] = useState<string>("")

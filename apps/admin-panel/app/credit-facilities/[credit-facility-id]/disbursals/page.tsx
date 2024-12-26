@@ -7,51 +7,21 @@ import { CreditFacilityDisbursals } from "./list"
 import { useGetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 
 gql`
+  fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
+    id
+    disbursalId
+    index
+    amount
+    status
+    createdAt
+  }
+
   query GetCreditFacilityDisbursals($id: UUID!) {
     creditFacility(id: $id) {
       id
       creditFacilityId
       disbursals {
-        id
-        disbursalId
-        index
-        amount
-        status
-        createdAt
-        approvalProcess {
-          approvalProcessId
-          deniedReason
-          approvalProcessType
-          createdAt
-          subjectCanSubmitDecision
-          status
-          rules {
-            ... on CommitteeThreshold {
-              threshold
-              committee {
-                name
-                currentMembers {
-                  email
-                  roles
-                }
-              }
-            }
-            ... on SystemApproval {
-              autoApprove
-            }
-          }
-          voters {
-            stillEligible
-            didVote
-            didApprove
-            didDeny
-            user {
-              userId
-              email
-              roles
-            }
-          }
-        }
+        ...DisbursalOnFacilityPage
       }
     }
   }
