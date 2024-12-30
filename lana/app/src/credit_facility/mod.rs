@@ -23,7 +23,7 @@ use crate::{
     data_export::Export,
     governance::Governance,
     job::*,
-    ledger::{credit_facility::*, Ledger},
+    ledger::credit_facility::*,
     outbox::Outbox,
     price::Price,
     primitives::{
@@ -75,7 +75,6 @@ impl CreditFacilities {
         export: &Export,
         authz: &Authorization,
         customers: &Customers,
-        gql_ledger: &Ledger,
         price: &Price,
         outbox: &Outbox,
         cala: &CalaLedger,

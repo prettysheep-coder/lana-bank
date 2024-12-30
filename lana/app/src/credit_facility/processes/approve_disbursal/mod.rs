@@ -113,6 +113,7 @@ impl ApproveDisbursal {
                 CreditFacilityAction::ConfirmDisbursal,
             )
             .await?;
+
         match disbursal.record(executed_at, disbursal_audit_info.clone()) {
             Ok(disbursal_data) => {
                 span.record("disbursal_executed", true);
@@ -122,18 +123,25 @@ impl ApproveDisbursal {
                     executed_at,
                     disbursal_audit_info,
                 );
+
+                let (now, mut tx) = (db.now(), db.into_tx());
+                let sub_op = {
+                    use sqlx::Acquire;
+                    es_entity::DbOp::new(tx.begin().await?, now)
+                };
+
+                self.ledger
+                    .record_disbursal(sub_op, disbursal_data.clone())
+                    .await?;
+
+                let mut db = es_entity::DbOp::new(tx, now);
                 self.disbursal_repo
                     .update_in_op(&mut db, &mut disbursal)
                     .await?;
                 self.credit_facility_repo
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;
-
-                // Handle move of db here!!
-                unimplemented!();
-                self.ledger
-                    .record_disbursal(db, disbursal_data.clone())
-                    .await?;
+                db.commit().await?;
             }
             Err(DisbursalError::Denied) => {
                 span.record("disbursal_executed", false);
@@ -146,13 +154,13 @@ impl ApproveDisbursal {
                 self.credit_facility_repo
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;
+                db.commit().await?;
             }
             Err(e) => {
                 return Err(e.into());
             }
         }
 
-        db.commit().await?;
         Ok(disbursal)
     }
 }

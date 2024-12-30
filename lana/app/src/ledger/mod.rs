@@ -6,7 +6,6 @@ mod config;
 mod constants;
 pub mod credit_facility;
 pub mod customer;
-pub mod disbursal;
 pub mod error;
 pub mod primitives;
 
