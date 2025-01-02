@@ -98,7 +98,12 @@ const DashboardStory = (args: DashboardStoryArgs) => {
   const mocks = createMocks(args)
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+      key={JSON.stringify(args)}
+    >
       <Dashboard />
     </MockedProvider>
   )
@@ -174,7 +179,11 @@ export const Error: Story = {
     ]
 
     return (
-      <MockedProvider mocks={errorMocks} addTypename={false}>
+      <MockedProvider
+        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+        mocks={errorMocks}
+        addTypename={false}
+      >
         <Dashboard />
       </MockedProvider>
     )
@@ -198,7 +207,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <Dashboard />
     </MockedProvider>
   )

@@ -48,7 +48,10 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <MockedProvider mocks={defaultMocks}>
+      <MockedProvider
+        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+        mocks={defaultMocks}
+      >
         <SidebarProvider>
           <Story />
         </SidebarProvider>

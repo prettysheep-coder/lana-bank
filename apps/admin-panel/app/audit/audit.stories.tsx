@@ -69,7 +69,11 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   decorators: [
     (Story) => (
-      <MockedProvider mocks={baseMocks} addTypename={true}>
+      <MockedProvider
+        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+        mocks={baseMocks}
+        addTypename={true}
+      >
         <Story />
       </MockedProvider>
     ),
@@ -97,7 +101,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <AuditLogs />
     </MockedProvider>
   )

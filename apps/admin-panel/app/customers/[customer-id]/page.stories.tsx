@@ -98,7 +98,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <CustomerLayout params={mockParams}>
         <CustomerPage params={mockParams} />
       </CustomerLayout>
@@ -112,9 +116,17 @@ export const Default: Story = {
   },
   decorators: [
     (Story) => (
-      <MockedProvider mocks={layoutMocks} addTypename={false}>
+      <MockedProvider
+        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+        mocks={layoutMocks}
+        addTypename={false}
+      >
         <CustomerLayout params={mockParams}>
-          <MockedProvider mocks={overviewMocks} addTypename={false}>
+          <MockedProvider
+            defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+            mocks={overviewMocks}
+            addTypename={false}
+          >
             <Story />
           </MockedProvider>
         </CustomerLayout>

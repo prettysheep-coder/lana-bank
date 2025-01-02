@@ -55,7 +55,12 @@ const CommitteeStory = (args: CommitteeStoryArgs) => {
   const mocks = createMocks(args, committeeId)
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+      key={JSON.stringify(args)}
+    >
       <CommitteePage params={{ "committee-id": committeeId }} />
     </MockedProvider>
   )
@@ -117,7 +122,11 @@ export const Error: Story = {
     ]
 
     return (
-      <MockedProvider mocks={errorMocks} addTypename={false}>
+      <MockedProvider
+        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+        mocks={errorMocks}
+        addTypename={false}
+      >
         <CommitteePage params={{ "committee-id": faker.string.uuid() }} />
       </MockedProvider>
     )
@@ -137,7 +146,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <CommitteePage params={{ "committee-id": committeeId }} />
     </MockedProvider>
   )

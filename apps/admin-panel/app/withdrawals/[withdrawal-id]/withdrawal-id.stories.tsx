@@ -47,7 +47,12 @@ const WithdrawalStory = (args: WithdrawalStoryArgs) => {
   const withdrawalId = faker.string.uuid()
   const mocks = createMocks(args, withdrawalId)
   return (
-    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+      key={JSON.stringify(args)}
+    >
       <WithdrawalPage params={{ "withdrawal-id": withdrawalId }} />
     </MockedProvider>
   )
@@ -66,7 +71,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <WithdrawalPage params={{ "withdrawal-id": withdrawalId }} />
     </MockedProvider>
   )

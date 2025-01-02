@@ -37,7 +37,12 @@ const TermsTemplateStory = (args: TermsTemplateStoryArgs) => {
   const mocks = createMocks(args, templateId)
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+      key={JSON.stringify(args)}
+    >
       <TermsTemplatePage params={{ "terms-template-id": templateId }} />
     </MockedProvider>
   )
@@ -56,7 +61,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <TermsTemplatePage params={{ "terms-template-id": templateId }} />
     </MockedProvider>
   )

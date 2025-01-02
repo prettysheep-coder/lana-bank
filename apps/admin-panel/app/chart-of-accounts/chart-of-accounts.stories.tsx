@@ -32,7 +32,11 @@ const ChartOfAccountsStory = () => {
   const mocks = createMocks()
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <ChartOfAccounts />
     </MockedProvider>
   )
@@ -55,7 +59,11 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider mocks={mocks} addTypename={false}>
+    <MockedProvider
+      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
+      mocks={mocks}
+      addTypename={false}
+    >
       <ChartOfAccounts />
     </MockedProvider>
   )
