@@ -34,11 +34,7 @@ const TrialBalanceStory = () => {
   const mocks = createMocks()
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <TrialBalance />
     </MockedProvider>
   )
@@ -63,11 +59,7 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <TrialBalance />
     </MockedProvider>
   )

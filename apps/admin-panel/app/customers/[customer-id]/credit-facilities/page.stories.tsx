@@ -92,17 +92,9 @@ export const Default: Story = {
   },
   decorators: [
     (Story) => (
-      <MockedProvider
-        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-        mocks={layoutMocks}
-        addTypename={false}
-      >
+      <MockedProvider mocks={layoutMocks} addTypename={false}>
         <CustomerLayout params={mockParams}>
-          <MockedProvider
-            defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-            mocks={pageMocks}
-            addTypename={false}
-          >
+          <MockedProvider mocks={pageMocks} addTypename={false}>
             <Story />
           </MockedProvider>
         </CustomerLayout>

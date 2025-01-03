@@ -59,11 +59,7 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <CustomerLayout params={{ "customer-id": "4178b451-c9cb-4841-b248-5cc20e7774a6" }}>
         <div className="border flex justify-center items-center p-12">TAB CONTENT</div>
       </CustomerLayout>
@@ -80,11 +76,7 @@ export const Default: Story = {
   },
   decorators: [
     (Story) => (
-      <MockedProvider
-        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-        mocks={baseMocks}
-        addTypename={false}
-      >
+      <MockedProvider mocks={baseMocks} addTypename={false}>
         <Story />
       </MockedProvider>
     ),

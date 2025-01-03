@@ -41,12 +41,7 @@ const UserStory = (args: UserStoryArgs) => {
   const userId = faker.string.uuid()
   const mocks = createMocks(args, userId)
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-      key={JSON.stringify(args)}
-    >
+    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
       <UserPage params={{ "user-id": userId }} />
     </MockedProvider>
   )
@@ -65,11 +60,7 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <UserPage params={{ "user-id": userId }} />
     </MockedProvider>
   )

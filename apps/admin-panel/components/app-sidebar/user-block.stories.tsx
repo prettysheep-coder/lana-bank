@@ -15,7 +15,6 @@ const meta = {
   decorators: [
     (Story) => (
       <MockedProvider
-        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
         mocks={[
           {
             request: { query: AvatarDocument },

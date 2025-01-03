@@ -21,11 +21,7 @@ const ProfitAndLossStory = () => {
   const mocks = createMocks()
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <ProfitAndLoss />
     </MockedProvider>
   )
@@ -43,11 +39,7 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <ProfitAndLoss />
     </MockedProvider>
   )

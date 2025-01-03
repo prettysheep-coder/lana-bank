@@ -68,17 +68,9 @@ export const Default: Story = {
   },
   decorators: [
     (Story) => (
-      <MockedProvider
-        defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-        mocks={layoutMocks}
-        addTypename={false}
-      >
+      <MockedProvider mocks={layoutMocks} addTypename={false}>
         <CreditFacilityLayout params={mockParams}>
-          <MockedProvider
-            defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-            mocks={overviewMocks}
-            addTypename={false}
-          >
+          <MockedProvider mocks={overviewMocks} addTypename={false}>
             <Story />
           </MockedProvider>
         </CreditFacilityLayout>

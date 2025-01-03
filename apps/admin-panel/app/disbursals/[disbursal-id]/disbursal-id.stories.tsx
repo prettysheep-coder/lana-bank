@@ -54,12 +54,7 @@ const DisbursalStory = (args: DisbursalStoryArgs) => {
   const mocks = createMocks(args, disbursalId)
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-      key={JSON.stringify(args)}
-    >
+    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
       <DisbursalPage params={{ "disbursal-id": disbursalId }} />
     </MockedProvider>
   )
@@ -78,11 +73,7 @@ const LoadingStory = () => {
   ]
 
   return (
-    <MockedProvider
-      defaultOptions={{ watchQuery: { fetchPolicy: "no-cache" } }}
-      mocks={mocks}
-      addTypename={false}
-    >
+    <MockedProvider mocks={mocks} addTypename={false}>
       <DisbursalPage params={{ "disbursal-id": disbursalId }} />
     </MockedProvider>
   )
