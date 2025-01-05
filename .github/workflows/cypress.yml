@@ -1,11 +1,13 @@
-name: frontend e2e tests
+name: cypress
 
 on:
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  tilt-ci:
-    name: manual generation / execute via tilt and cypress
+  cypress-test-run-in-browserstack:
+    name: browserstack / local tunnel into tilt up
     runs-on: ubuntu-latest
     steps:
       - uses: docker/login-action@v3
@@ -50,3 +52,24 @@ jobs:
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+      - name: upload cypress screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: apps/admin-panel/cypress/manuals/screenshots/*
+
+  manual-generation:
+    name: manual pdfs / upload to lana-manuals.netlify.app
+    needs: cypress-test-run-in-browserstack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: screenshots
+          path: apps/admin-panel/cypress/manuals/screenshots/*
+      - name: generate pdfs
+        run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
