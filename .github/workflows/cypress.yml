@@ -67,10 +67,11 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@v4
       - uses: DeterminateSystems/magic-nix-cache-action@v8
       - uses: actions/checkout@v4
+      - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
         with:
           name: screenshots
-          path: apps/admin-panel/cypress/manuals
+          path: apps/admin-panel/cypress/manuals/screenshots
       - run: ls -R apps/admin-panel/cypress/manuals
       - name: generate pdfs
         run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
