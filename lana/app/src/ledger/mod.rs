@@ -12,7 +12,6 @@ pub mod primitives;
 use authz::PermissionCheck;
 
 use chrono::{DateTime, Utc};
-// use disbursal::DisbursalData;
 use tracing::instrument;
 
 use crate::{
@@ -160,29 +159,6 @@ impl Ledger {
             )
             .await?)
     }
-
-    // #[instrument(name = "lana.ledger.record_disbursal", skip(self), err)]
-    // pub async fn record_disbursal(
-    //     &self,
-    //     DisbursalData {
-    //         amount,
-    //         tx_ref,
-    //         tx_id,
-    //         account_ids,
-    //         customer_account_ids,
-    //     }: DisbursalData,
-    // ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-    //     Ok(self
-    //         .cala
-    //         .execute_credit_facility_disbursal_tx(
-    //             tx_id,
-    //             account_ids,
-    //             customer_account_ids,
-    //             amount.to_usd(),
-    //             tx_ref,
-    //         )
-    //         .await?)
-    // }
 
     #[instrument(
         name = "lana.ledger.create_accounts_for_credit_facility",
