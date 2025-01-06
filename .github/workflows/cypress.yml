@@ -60,17 +60,18 @@ jobs:
           path: apps/admin-panel/cypress/manuals/screenshots/*
 
   manual-generation:
-    name: manual pdfs / upload to lana-manuals.netlify.app
+    name: manual pdfs / upload to lana-manuals
     needs: cypress-test-run-in-browserstack
     runs-on: ubuntu-latest
     steps:
       - uses: DeterminateSystems/nix-installer-action@v4
       - uses: DeterminateSystems/magic-nix-cache-action@v8
       - uses: actions/checkout@v4
+      - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
         with:
           name: screenshots
-          path: apps/admin-panel/cypress/manuals/screenshots/*
+          path: apps/admin-panel/cypress/manuals/screenshots
       - name: generate pdfs
         run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
       - uses: actions/upload-artifact@v4
