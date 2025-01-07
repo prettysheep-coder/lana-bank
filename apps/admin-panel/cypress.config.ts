@@ -22,7 +22,8 @@ export default defineConfig({
     defaultCommandTimeout: 4000 * multiplier,
     requestTimeout: 5000 * multiplier,
     pageLoadTimeout: 60000 * multiplier,
-    retries: 2,
+    retries: 5,
+    screenshotOnRunFailure: false,
     video: true,
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
