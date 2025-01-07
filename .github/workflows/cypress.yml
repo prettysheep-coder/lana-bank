@@ -72,17 +72,16 @@ jobs:
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots
-      - run: ls -R apps/admin-panel/cypress/manuals
       - name: generate pdfs
         run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
+      - run: ls -R apps/admin-panel/cypress/manuals
       - uses: actions/upload-artifact@v4
         with:
           name: pdfs
-          path: apps/admin-panel/results/*
-      # Generate index.html dynamically from PDFs
+          path: apps/admin-panel/cypress/manuals/results/*
       - name: generate manual page
         run: |
-          cd apps/admin-panel/results
+          cd apps/admin-panel/cypress/manuals/results
           cat <<EOF > index.html
           <!DOCTYPE html>
           <html lang="en">
@@ -141,7 +140,7 @@ jobs:
           SHORT_SHA="${GITHUB_SHA::7}"
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
           netlify deploy \
-            --dir=apps/admin-panel/results \
+            --dir=apps/admin-panel/cypress/manuals/results \
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
             --alias="$ALIAS" \
@@ -158,7 +157,7 @@ jobs:
         run: |
           netlify deploy \
             --prod \
-            --dir=apps/admin-panel/results \
+            --dir=apps/admin-panel/cypress/manuals/results \
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
             --message="Manuals Build for Commit ${{ github.sha }}" \
