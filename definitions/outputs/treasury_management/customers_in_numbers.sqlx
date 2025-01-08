@@ -9,24 +9,21 @@ config {
 WITH total_customers AS (
   SELECT
     COUNT(DISTINCT customer_id) AS value
-  FROM ${ref("dim_credit_facility_events_customer_id")}
+  FROM ${ref("fct_credit_facility_events")}
 ), approved_cf AS (
   SELECT
     COUNT(DISTINCT customer_id) AS value
   FROM ${ref("fct_credit_facility_events")}
-  LEFT JOIN ${ref("dim_credit_facility_events_customer_id")} USING (customer_id_key)
   WHERE approval_process_concluded_approved
 ), activated_cf AS (
   SELECT
     COUNT(DISTINCT customer_id) AS value
   FROM ${ref("fct_credit_facility_events")}
-  LEFT JOIN ${ref("dim_credit_facility_events_customer_id")} USING (customer_id_key)
   WHERE activated_recorded_at_date_key != 19000101
 ), disbursed_cf AS (
   SELECT
     COUNT(DISTINCT customer_id) AS value
   FROM ${ref("fct_credit_facility_events")}
-  LEFT JOIN ${ref("dim_credit_facility_events_customer_id")} USING (customer_id_key)
   RIGHT JOIN ${ref("fct_credit_facility_disbursal_events")} USING (event_key)
   WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
 )

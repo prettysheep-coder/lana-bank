@@ -26,10 +26,6 @@ WITH terms_and_disbursal AS (
     , de.disbursal_concluded_event_recorded_at AS disbursal_start_date
   FROM ${ref("fct_credit_facility_events")} cfe
   RIGHT JOIN ${ref("fct_credit_facility_disbursal_events")} de USING (event_key)
-  LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} ar USING (terms_annual_rate_key)
-  LEFT JOIN ${ref("dim_credit_facility_events_terms_accrual_interval_type")} it USING (terms_accrual_interval_type_key)
-  LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_type")} dt USING (terms_duration_type_key)
-  LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_value")} dv USING (terms_duration_value_key)
   WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
   AND terms_accrual_interval_type = 'end_of_month'
 ), projections AS (
@@ -105,7 +101,7 @@ WITH terms_and_disbursal AS (
   FROM projected_payment_data
 ), projected_payment AS (
   SELECT
-      customer_id_key
+      customer_id
     , event_key
     , idx AS disbursal_idx
     , credit_facility_start_date
@@ -130,7 +126,7 @@ WITH terms_and_disbursal AS (
   WHERE days_from_now >= 0
 ), grouped AS (
   SELECT
-      customer_id_key
+      customer_id
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -148,7 +144,7 @@ WITH terms_and_disbursal AS (
     , SUM(projected_amount_in_cents) AS projected_amount_in_cents
   FROM projected_payment
   GROUP BY
-      customer_id_key
+      customer_id
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -165,7 +161,7 @@ WITH terms_and_disbursal AS (
   ORDER BY days_from_now
 ), arrayed AS (
   SELECT
-      customer_id_key
+      customer_id
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -183,7 +179,7 @@ WITH terms_and_disbursal AS (
     , ARRAY_AGG(projected_amount_in_cents) AS cash_flows
   FROM grouped
   GROUP BY
-      customer_id_key
+      customer_id
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -229,9 +225,9 @@ WITH terms_and_disbursal AS (
 
 -- ORDER BY order_by
 
-select * from with_risk order by customer_id_key, event_key, disbursal_idx
--- select * from arrayed order by customer_id_key, event_key, disbursal_idx
--- select * from grouped order by customer_id_key, event_key, disbursal_idx
+select * from with_risk order by customer_id, event_key, disbursal_idx
+-- select * from arrayed order by customer_id, event_key, disbursal_idx
+-- select * from grouped order by customer_id, event_key, disbursal_idx
 
 -- TODO: need to add disbursal cashflows: projected_disbursal
 -- TODO: fix float64, numeric, bignumeric

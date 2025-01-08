@@ -21,12 +21,11 @@ WITH value_approved_cf AS (
   SELECT
       cfe.event_key
     , 5.53 AS bench_mark              	      -- TODO get from proper source
-    , ar.terms_annual_rate
+    , cfe.terms_annual_rate
     , COALESCE(de.amount, 0) AS disbursal_amount_in_cents
     , facility AS credit_facility_limit_in_cents
   FROM ${ref("fct_credit_facility_events")} cfe
   LEFT JOIN ${ref("fct_credit_facility_disbursal_events")} de USING (event_key)
-  LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} ar USING (terms_annual_rate_key)
   WHERE approval_process_concluded_approved
   AND facility > 0
 ), breakeven_by_cf AS (
