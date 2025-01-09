@@ -30,7 +30,7 @@ WITH collateral_updated AS (
         , JSON_VALUE(event, "$.action") AS action
         , CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC) AS abs_diff
         , CAST(JSON_VALUE(event, "$.total_collateral") AS NUMERIC) AS total_collateral
-        , t2.transaction_key
+        , transaction_key
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
     LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t0 ON t0.event_id = cfe.id
     LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
