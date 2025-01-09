@@ -2,7 +2,7 @@ config {
     type: "table",
     description: "Each row represents a unique 'combo-event'/fact? of the collateralization [collateral_updated -> collateralization_changed] of the credit facility.",
     assertions: {
-        uniqueKey: ["event_key"],
+        uniqueKey: ["event_key", "transaction_key"],
         nonNull: [
             "recorded_at_date_key",
             "recorded_at",
@@ -30,9 +30,11 @@ WITH collateral_updated AS (
         , JSON_VALUE(event, "$.action") AS action
         , CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC) AS abs_diff
         , CAST(JSON_VALUE(event, "$.total_collateral") AS NUMERIC) AS total_collateral
+        , t2.transaction_key
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
     LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t0 ON t0.event_id = cfe.id
     LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
+    LEFT JOIN ${ref("int_transactions")} AS t2 ON t2.transaction_id = JSON_VALUE(event, "$.tx_id")
     WHERE cfe.event_type = "collateral_updated"
     AND JSON_VALUE(event, "$.tx_id") IS NOT NULL
 
