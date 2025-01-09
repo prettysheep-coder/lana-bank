@@ -101,7 +101,7 @@ WITH terms_and_disbursal AS (
   FROM projected_payment_data
 ), projected_payment AS (
   SELECT
-      customer_id
+      customer_key
     , event_key
     , idx AS disbursal_idx
     , credit_facility_start_date
@@ -126,7 +126,7 @@ WITH terms_and_disbursal AS (
   WHERE days_from_now >= 0
 ), grouped AS (
   SELECT
-      customer_id
+      customer_key
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -144,7 +144,7 @@ WITH terms_and_disbursal AS (
     , SUM(projected_amount_in_cents) AS projected_amount_in_cents
   FROM projected_payment
   GROUP BY
-      customer_id
+      customer_key
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -161,7 +161,7 @@ WITH terms_and_disbursal AS (
   ORDER BY days_from_now
 ), arrayed AS (
   SELECT
-      customer_id
+      customer_key
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -179,7 +179,7 @@ WITH terms_and_disbursal AS (
     , ARRAY_AGG(projected_amount_in_cents) AS cash_flows
   FROM grouped
   GROUP BY
-      customer_id
+      customer_key
     , event_key
     , disbursal_idx
     , credit_facility_start_date
@@ -225,9 +225,9 @@ WITH terms_and_disbursal AS (
 
 -- ORDER BY order_by
 
-select * from with_risk order by customer_id, event_key, disbursal_idx
--- select * from arrayed order by customer_id, event_key, disbursal_idx
--- select * from grouped order by customer_id, event_key, disbursal_idx
+select * from with_risk order by customer_key, event_key, disbursal_idx
+-- select * from arrayed order by customer_key, event_key, disbursal_idx
+-- select * from grouped order by customer_key, event_key, disbursal_idx
 
 -- TODO: need to add disbursal cashflows: projected_disbursal
 -- TODO: fix float64, numeric, bignumeric

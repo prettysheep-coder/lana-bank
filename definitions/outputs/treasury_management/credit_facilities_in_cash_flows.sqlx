@@ -112,7 +112,7 @@ WITH terms_and_disbursal AS (
   FROM projected_payment_data
 ), projected_payment AS (
   SELECT
-      customer_id
+      customer_key
     , event_key
     , idx AS disbursal_idx
     , credit_facility_start_date

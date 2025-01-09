@@ -7,7 +7,7 @@ config {
             "recorded_at_date_key",
             "recorded_at",
             "event_type_key",
-            "customer_id",
+            "customer_key",
             "terms_accrual_interval_type",
             "terms_annual_rate",
             "terms_duration_type",
@@ -34,7 +34,7 @@ WITH initialized AS (
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
         , event_type_key
-        , JSON_VALUE(event, "$.customer_id") AS customer_id
+        , customer_key
         , JSON_VALUE(event, "$.terms.accrual_interval.type") AS terms_accrual_interval_type
         , CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS terms_annual_rate
         , JSON_VALUE(event, "$.terms.duration.type") AS terms_duration_type
@@ -47,6 +47,7 @@ WITH initialized AS (
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
     LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t0 ON t0.event_id = cfe.id
     LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
+    LEFT JOIN ${ref("int_customers")} AS t2 ON t2.customer_id = JSON_VALUE(event, "$.customer_id")
     WHERE cfe.event_type = "initialized"
 
 ), approval_process_started AS (
