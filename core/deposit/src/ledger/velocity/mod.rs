@@ -1,3 +1,3 @@
-mod withdrawal_limit;
+mod overdraft_prevention;
 
-pub use withdrawal_limit::*;
+pub use overdraft_prevention::*;
