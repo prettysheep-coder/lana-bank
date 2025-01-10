@@ -1,5 +1,6 @@
 pub mod error;
 mod templates;
+mod velocity;
 
 use cala_ledger::{
     account::{error::AccountError, *},
@@ -31,6 +32,8 @@ impl DepositLedger {
         templates::InitiateWithdraw::init(cala).await?;
         templates::CancelWithdraw::init(cala).await?;
         templates::ConfirmWithdraw::init(cala).await?;
+
+        let _withdrawal_limit_id = velocity::WithdrawalLimit::init(cala).await?;
 
         Ok(Self {
             cala: cala.clone(),
@@ -181,5 +184,17 @@ impl DepositLedger {
             settled: UsdCents::try_from_usd(balances.settled())?,
             pending: UsdCents::try_from_usd(balances.pending())?,
         })
+    }
+
+    pub async fn _attach_control_to_account(
+        &self,
+        _op: es_entity::DbOp<'_>,
+        _account_id: impl Into<AccountId>,
+    ) -> Result<(), DepositLedgerError> {
+        unimplemented!()
+        // let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        // add params
+        // self.cala.velocities().attach_control_to_account(control, account_id, params)
     }
 }
