@@ -1,8 +1,11 @@
 pub mod error;
 mod templates;
+mod velocity;
 
 use cala_ledger::{
     account::{error::AccountError, *},
+    tx_template::Params,
+    velocity::{NewVelocityControl, VelocityControlId},
     CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
@@ -16,6 +19,7 @@ pub struct DepositLedger {
     journal_id: JournalId,
     deposit_omnibus_account_id: AccountId,
     usd: Currency,
+    deposit_control_id: VelocityControlId,
 }
 
 impl DepositLedger {
@@ -32,10 +36,19 @@ impl DepositLedger {
         templates::CancelWithdraw::init(cala).await?;
         templates::ConfirmWithdraw::init(cala).await?;
 
+        let overdraft_prevention_id = velocity::OverdraftPrevention::init(cala).await?;
+
+        let deposit_control_id = Self::create_deposit_control(cala).await?;
+
+        cala.velocities()
+            .add_limit_to_control(deposit_control_id, overdraft_prevention_id)
+            .await?;
+
         Ok(Self {
             cala: cala.clone(),
             journal_id,
             deposit_omnibus_account_id,
+            deposit_control_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
         })
     }
@@ -186,5 +199,37 @@ impl DepositLedger {
             }
             Err(e) => Err(e.into()),
         }
+    }
+
+    pub async fn create_deposit_control(
+        cala: &CalaLedger,
+    ) -> Result<VelocityControlId, DepositLedgerError> {
+        let control = NewVelocityControl::builder()
+            .id(VelocityControlId::new())
+            .name("Deposit Control")
+            .description("Velocity Control for Deposits")
+            .build()
+            .expect("build control");
+        let control = cala.velocities().create_control(control).await?;
+
+        Ok(control.id())
+    }
+
+    pub async fn add_deposit_control_to_account(
+        &self,
+        op: &mut cala_ledger::LedgerOperation<'_>,
+        account_id: impl Into<AccountId>,
+    ) -> Result<(), DepositLedgerError> {
+        self.cala
+            .velocities()
+            .attach_control_to_account_in_op(
+                op,
+                self.deposit_control_id,
+                account_id.into(),
+                Params::default(),
+            )
+            .await?;
+
+        Ok(())
     }
 }
