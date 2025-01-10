@@ -174,7 +174,7 @@ where
             .await?;
 
         self.ledger
-            .attach_control_to_account(&mut op, account_id)
+            .add_deposit_control_to_account(&mut op, account_id)
             .await?;
 
         op.commit().await?;

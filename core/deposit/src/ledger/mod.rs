@@ -210,7 +210,7 @@ impl DepositLedger {
         Ok(control.id())
     }
 
-    pub async fn attach_control_to_account(
+    pub async fn add_deposit_control_to_account(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         account_id: impl Into<AccountId>,
