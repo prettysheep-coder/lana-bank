@@ -25,8 +25,8 @@ local_resource(
     readiness_probe=probe(
         period_secs=5,
         http_get=http_get_action(
-            path="/admin/graphql",
-            port=4455,
+            path="/graphql",
+            port=5253,
         ),
     ),
     allow_parallel=True,
