@@ -17,6 +17,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
 import { env } from "@/env"
+import { CommandMenu } from "./command-menu"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
@@ -56,7 +57,10 @@ export default async function RootLayout({
               <SidebarProvider>
                 <AppSidebar appVersion={appVersion} />
                 <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
-                  <AppLayout>{children}</AppLayout>
+                  <AppLayout>
+                    <CommandMenu />
+                    {children}
+                  </AppLayout>
                 </SidebarInset>
               </SidebarProvider>
             )}
