@@ -9,6 +9,8 @@ import { AuthSessionProvider } from "./session-provider"
 
 import { AppLayout } from "./app-layout"
 
+import { CommandMenu } from "./command-menu"
+
 import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 import { Toast } from "@/components/toast"
 import { SidebarProvider, SidebarInset } from "@/ui/sidebar"
@@ -17,7 +19,6 @@ import { AppSidebar } from "@/components/app-sidebar"
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
 import { env } from "@/env"
-import { CommandMenu } from "./command-menu"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
