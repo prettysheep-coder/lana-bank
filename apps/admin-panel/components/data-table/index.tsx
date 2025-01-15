@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
@@ -10,6 +10,7 @@ import { Button } from "@/ui/button"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
 import { Card } from "@/ui/card"
+import { useRouter } from "next/navigation"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -47,6 +48,9 @@ const DataTable = <T,>({
   navigateTo,
 }: DataTableProps<T>) => {
   const isMobile = useBreakpointDown("md")
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
+  const tableRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   const getNavigationUrl = (item: T): string | null => {
     return navigateTo ? navigateTo(item) : null
@@ -57,6 +61,68 @@ const DataTable = <T,>({
     const url = getNavigationUrl(item)
     return url !== null && url !== ""
   }
+
+  const focusRow = (index: number) => {
+    if (index < 0 || !data.length) return
+    const validIndex = Math.min(Math.max(0, index), data.length - 1)
+    const row = document.querySelector(
+      `[data-testid="table-row-${validIndex}"]`,
+    ) as HTMLElement
+    if (row) {
+      row.focus({ preventScroll: true })
+      row.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      setFocusedRowIndex(validIndex)
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "SELECT" ||
+        document.activeElement?.tagName === "BUTTON"
+      ) {
+        return
+      }
+
+      if (!data.length) return
+
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault()
+          focusRow(focusedRowIndex - 1)
+          break
+        case "ArrowDown":
+          e.preventDefault()
+          focusRow(focusedRowIndex + 1)
+          break
+        case "Enter":
+          e.preventDefault()
+          if (focusedRowIndex >= 0) {
+            const item = data[focusedRowIndex]
+            if (onRowClick) {
+              onRowClick(item)
+            } else if (navigateTo) {
+              const url = getNavigationUrl(item)
+              if (url) {
+                router.push(url)
+              }
+            }
+          }
+          break
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [data, focusedRowIndex, onRowClick, navigateTo])
+
+  useEffect(() => {
+    if (data.length && focusedRowIndex === -1) {
+      focusRow(0)
+    }
+  }, [data.length])
 
   if (loading) {
     return isMobile ? (
@@ -186,7 +252,12 @@ const DataTable = <T,>({
   }
 
   return (
-    <div className="w-full overflow-x-auto border rounded-md">
+    <div
+      ref={tableRef}
+      className="w-full overflow-x-auto border rounded-md"
+      tabIndex={-1}
+      role="grid"
+    >
       <Table className={className}>
         <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
           <TableRow className={headerClassName}>
@@ -211,12 +282,18 @@ const DataTable = <T,>({
               data-testid={`table-row-${rowIndex}`}
               key={rowIndex}
               onClick={() => onRowClick?.(item)}
+              tabIndex={0}
               className={cn(
                 typeof rowClassName === "function"
                   ? rowClassName(item, rowIndex)
                   : rowClassName,
                 onRowClick && "cursor-pointer",
+                focusedRowIndex === rowIndex && "bg-muted",
+                "hover:bg-muted/50 transition-colors outline-none",
               )}
+              onFocus={() => setFocusedRowIndex(rowIndex)}
+              role="row"
+              aria-selected={focusedRowIndex === rowIndex}
             >
               {columns.map((column, colIndex) => (
                 <TableCell
