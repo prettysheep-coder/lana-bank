@@ -43,9 +43,15 @@ impl DepositLedger {
 
         let deposit_control_id = Self::create_deposit_control(cala).await?;
 
-        cala.velocities()
+        match cala
+            .velocities()
             .add_limit_to_control(deposit_control_id, overdraft_prevention_id)
-            .await?;
+            .await
+        {
+            Ok(_)
+            | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
+            Err(e) => return Err(e.into()),
+        }
 
         Ok(Self {
             cala: cala.clone(),

@@ -6,11 +6,13 @@ use crate::ledger::error::*;
 
 pub struct OverdraftPrevention;
 
+const OVERDRAFT_PREVENTION_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000001");
+
 impl OverdraftPrevention {
     #[instrument(name = "ledger.overdraft_prevention.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<VelocityLimitId, DepositLedgerError> {
         let limit = NewVelocityLimit::builder()
-            .id(VelocityLimitId::new())
+            .id(OVERDRAFT_PREVENTION_ID)
             .name("Overdraft Prevention")
             .description("Prevent overdraft on withdrawals")
             .window(vec![])
@@ -28,8 +30,12 @@ impl OverdraftPrevention {
             .build()
             .expect("velocity limit");
 
-        let created_limit = ledger.velocities().create_limit(limit).await?;
-
-        Ok(created_limit.id())
+        match ledger.velocities().create_limit(limit).await {
+            Err(cala_ledger::velocity::error::VelocityError::LimitIdAlreadyExists) => {
+                Ok(OVERDRAFT_PREVENTION_ID.into())
+            }
+            Err(e) => Err(e.into()),
+            Ok(limit) => Ok(limit.id()),
+        }
     }
 }
