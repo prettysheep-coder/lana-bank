@@ -10,7 +10,7 @@ use crate::{
     primitives::{
         ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountId, LedgerAccountSetId,
     },
-    NewChartAccountDetails,
+    ControlSubAccountDetails,
 };
 
 pub use super::error::*;
@@ -136,11 +136,20 @@ impl Chart {
     pub fn find_control_sub_account_by_reference(
         &self,
         reference_to_check: String,
-    ) -> Option<ControlSubAccountPath> {
+    ) -> Option<ControlSubAccountDetails> {
         self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::ControlSubAccountAdded {
-                path, reference, ..
-            } if reference_to_check == *reference => Some(*path),
+                path,
+                id: account_set_id,
+                name,
+                reference,
+                ..
+            } if reference_to_check == *reference => Some(ControlSubAccountDetails {
+                path: *path,
+                account_set_id: *account_set_id,
+                name: name.to_string(),
+                reference: reference.to_string(),
+            }),
             _ => None,
         })
     }
@@ -152,7 +161,7 @@ impl Chart {
         name: String,
         reference: String,
         audit_info: AuditInfo,
-    ) -> Result<NewChartAccountDetails, ChartError> {
+    ) -> Result<ControlSubAccountDetails, ChartError> {
         if self
             .find_control_sub_account_by_reference(reference.to_string())
             .is_some()
@@ -170,7 +179,7 @@ impl Chart {
             audit_info,
         });
 
-        Ok(NewChartAccountDetails {
+        Ok(ControlSubAccountDetails {
             path,
             account_set_id: id,
             name,
@@ -371,7 +380,7 @@ mod tests {
             )
             .unwrap();
 
-        let NewChartAccountDetails {
+        let ControlSubAccountDetails {
             path:
                 ControlSubAccountPath {
                     category,
@@ -527,7 +536,7 @@ mod tests {
             )
             .unwrap();
 
-        let NewChartAccountDetails {
+        let ControlSubAccountDetails {
             path:
                 ControlSubAccountPath {
                     category,

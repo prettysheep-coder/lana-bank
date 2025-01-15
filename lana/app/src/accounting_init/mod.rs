@@ -4,7 +4,7 @@ mod seed;
 
 pub mod error;
 
-use chart_of_accounts::{ChartId, ControlSubAccountPath};
+use chart_of_accounts::ChartId;
 
 use crate::chart_of_accounts::ChartOfAccounts;
 

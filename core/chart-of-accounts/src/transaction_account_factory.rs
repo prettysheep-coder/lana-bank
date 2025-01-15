@@ -2,18 +2,18 @@ use audit::AuditInfo;
 use cala_ledger::{account::*, CalaLedger, LedgerOperation};
 
 use crate::{
-    chart_of_accounts::ChartRepo,
     error::CoreChartOfAccountsError,
-    path::ControlSubAccountPath,
     primitives::{ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountId},
 };
+
+use super::{ChartRepo, ControlSubAccountDetails};
 
 #[derive(Clone)]
 pub struct TransactionAccountFactory {
     repo: ChartRepo,
     cala: CalaLedger,
     chart_id: ChartId,
-    control_sub_account: ControlSubAccountPath,
+    control_sub_account: ControlSubAccountDetails,
 }
 
 impl TransactionAccountFactory {
@@ -21,7 +21,7 @@ impl TransactionAccountFactory {
         repo: &ChartRepo,
         cala: &CalaLedger,
         chart_id: ChartId,
-        control_sub_account: ControlSubAccountPath,
+        control_sub_account: ControlSubAccountDetails,
     ) -> Self {
         Self {
             repo: repo.clone(),
@@ -47,7 +47,7 @@ impl TransactionAccountFactory {
         let account_details = chart.add_transaction_account(
             ChartCreationDetails {
                 account_id: account_id.into(),
-                control_sub_account: self.control_sub_account,
+                control_sub_account: self.control_sub_account.path,
                 name: name.to_string(),
                 description: description.to_string(),
             },

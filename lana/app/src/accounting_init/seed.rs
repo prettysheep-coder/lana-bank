@@ -1,4 +1,4 @@
-use chart_of_accounts::ChartCategory;
+use chart_of_accounts::{ChartCategory, ControlSubAccountDetails};
 
 use crate::primitives::LedgerAccountSetId;
 
@@ -91,7 +91,7 @@ async fn create_control_sub_account(
     control_reference: String,
     sub_name: String,
     sub_reference: String,
-) -> Result<ControlSubAccountPath, AccountingInitError> {
+) -> Result<ControlSubAccountDetails, AccountingInitError> {
     let control_path = match chart_of_accounts
         .find_control_account_by_reference(chart_id, control_reference.clone())
         .await?
@@ -104,11 +104,11 @@ async fn create_control_sub_account(
         }
     };
 
-    let control_sub_path = match chart_of_accounts
+    let control_sub_account = match chart_of_accounts
         .find_control_sub_account_by_reference(chart_id, sub_reference.clone())
         .await?
     {
-        Some(path) => path,
+        Some(account_details) => account_details,
         None => {
             chart_of_accounts
                 .create_control_sub_account(id, chart_id, control_path, sub_name, sub_reference)
@@ -116,7 +116,7 @@ async fn create_control_sub_account(
         }
     };
 
-    Ok(control_sub_path)
+    Ok(control_sub_account)
 }
 
 async fn create_deposits_account_paths(

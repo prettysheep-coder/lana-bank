@@ -72,7 +72,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
         )
         .await?;
     assert_eq!(
-        control_sub_account_code.control_account(),
+        control_sub_account_code.path.control_account(),
         control_account_code
     );
 

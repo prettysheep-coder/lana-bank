@@ -69,7 +69,7 @@ where
     pub fn transaction_account_factory(
         &self,
         chart_id: ChartId,
-        control_sub_account: ControlSubAccountPath,
+        control_sub_account: ControlSubAccountDetails,
     ) -> TransactionAccountFactory {
         TransactionAccountFactory::new(&self.repo, &self.cala, chart_id, control_sub_account)
     }
@@ -213,7 +213,7 @@ where
         &self,
         chart_id: impl Into<ChartId>,
         reference: String,
-    ) -> Result<Option<ControlSubAccountPath>, CoreChartOfAccountsError> {
+    ) -> Result<Option<ControlSubAccountDetails>, CoreChartOfAccountsError> {
         let chart_id = chart_id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -239,7 +239,7 @@ where
         control_account: ControlAccountPath,
         name: String,
         reference: String,
-    ) -> Result<ControlSubAccountPath, CoreChartOfAccountsError> {
+    ) -> Result<ControlSubAccountDetails, CoreChartOfAccountsError> {
         let id = id.into();
         let chart_id = chart_id.into();
 
@@ -279,6 +279,6 @@ where
 
         op.commit().await?;
 
-        Ok(account_set_details.path)
+        Ok(account_set_details)
     }
 }
