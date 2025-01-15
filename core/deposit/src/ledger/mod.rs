@@ -13,6 +13,9 @@ use crate::{primitives::UsdCents, DepositAccountBalance};
 
 use error::*;
 
+pub const DEPOSITS_VELOCITY_CONTROL_ID: uuid::Uuid =
+    uuid::uuid!("00000000-0000-0000-0000-000000000001");
+
 #[derive(Clone)]
 pub struct DepositLedger {
     cala: CalaLedger,
@@ -205,14 +208,19 @@ impl DepositLedger {
         cala: &CalaLedger,
     ) -> Result<VelocityControlId, DepositLedgerError> {
         let control = NewVelocityControl::builder()
-            .id(VelocityControlId::new())
+            .id(DEPOSITS_VELOCITY_CONTROL_ID)
             .name("Deposit Control")
             .description("Velocity Control for Deposits")
             .build()
             .expect("build control");
-        let control = cala.velocities().create_control(control).await?;
 
-        Ok(control.id())
+        match cala.velocities().create_control(control).await {
+            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists) => {
+                Ok(DEPOSITS_VELOCITY_CONTROL_ID.into())
+            }
+            Err(e) => Err(e.into()),
+            Ok(control) => Ok(control.id()),
+        }
     }
 
     pub async fn add_deposit_control_to_account(
