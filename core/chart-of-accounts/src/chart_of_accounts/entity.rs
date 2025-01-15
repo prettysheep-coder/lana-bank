@@ -211,29 +211,6 @@ impl Chart {
             description: creation_details.description,
         })
     }
-
-    pub fn find_account_by_encoded_path(
-        &self,
-        encoded_path: String,
-    ) -> Option<ChartAccountDetails> {
-        self.events.iter_all().rev().find_map(|event| match event {
-            ChartEvent::TransactionAccountAdded {
-                id,
-                encoded_path: encoded_path_from_event,
-                path,
-                name,
-                description,
-                ..
-            } if *encoded_path_from_event == encoded_path => Some(ChartAccountDetails {
-                account_id: *id,
-                path: *path,
-                encoded_path: encoded_path_from_event.to_string(),
-                name: name.to_string(),
-                description: description.to_string(),
-            }),
-            _ => None,
-        })
-    }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
@@ -603,50 +580,5 @@ mod tests {
         assert_eq!(control_index, AccountIdx::FIRST);
         assert_eq!(control_sub_index, AccountIdx::FIRST);
         assert_eq!(index, AccountIdx::FIRST.next());
-    }
-
-    #[test]
-    fn test_find_account() {
-        let mut chart = init_chart_of_events();
-        let audit_info = dummy_audit_info();
-
-        let category = ChartCategory::Assets;
-        let control_account = chart
-            .create_control_account(
-                category,
-                "Assets".to_string(),
-                "assets".to_string(),
-                audit_info.clone(),
-            )
-            .unwrap();
-        let control_sub_account = chart
-            .create_control_sub_account(
-                control_account,
-                "Current Assets".to_string(),
-                "current-assets".to_string(),
-                audit_info.clone(),
-            )
-            .unwrap();
-        let transaction_account = chart
-            .add_transaction_account(
-                ChartCreationDetails {
-                    account_id: LedgerAccountId::new(),
-                    control_sub_account,
-                    name: "Cash".to_string(),
-                    description: "Cash account".to_string(),
-                },
-                audit_info,
-            )
-            .unwrap();
-
-        let found = chart
-            .find_account_by_encoded_path(transaction_account.encoded_path)
-            .unwrap();
-        assert_eq!(found.path, transaction_account.path);
-        assert_eq!(found.name, "Cash");
-
-        assert!(chart
-            .find_account_by_encoded_path("20101001".to_string())
-            .is_none());
     }
 }
