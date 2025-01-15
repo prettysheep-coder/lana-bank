@@ -225,7 +225,11 @@ const CreateButton = () => {
                 }}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button data-testid="global-create-button" disabled={disabled}>
+                  <Button
+                    data-testid="global-create-button"
+                    disabled={disabled}
+                    tabIndex={-1}
+                  >
                     <HiPlus className="h-4 w-4" />
                     Create
                   </Button>
