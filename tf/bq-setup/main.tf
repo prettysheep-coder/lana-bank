@@ -27,7 +27,7 @@ locals {
   gcp_region             = var.gcp_region
   dataform_dev_user      = var.dataform_dev_user
   dataform_execution_env = local.dataform_dev_user == "prod" ? local.name_prefix : "lana-dev"
-  dataform_location      = "EU"
+  dataform_location      = local.name_prefix == "galoy-staging" ? "US" : "EU"
 
   additional_owners = var.additional_owners
 
