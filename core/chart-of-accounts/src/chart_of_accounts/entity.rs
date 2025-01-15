@@ -10,6 +10,7 @@ use crate::{
     primitives::{
         ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountId, LedgerAccountSetId,
     },
+    NewChartAccountDetails,
 };
 
 pub use super::error::*;
@@ -151,7 +152,7 @@ impl Chart {
         name: String,
         reference: String,
         audit_info: AuditInfo,
-    ) -> Result<ControlSubAccountPath, ChartError> {
+    ) -> Result<NewChartAccountDetails, ChartError> {
         if self
             .find_control_sub_account_by_reference(reference.to_string())
             .is_some()
@@ -164,12 +165,17 @@ impl Chart {
             id,
             encoded_path: path.path_encode(self.id),
             path,
-            name,
-            reference,
+            name: name.to_string(),
+            reference: reference.to_string(),
             audit_info,
         });
 
-        Ok(path)
+        Ok(NewChartAccountDetails {
+            path,
+            account_set_id: id,
+            name,
+            reference,
+        })
     }
 
     fn next_transaction_account(
@@ -365,10 +371,14 @@ mod tests {
             )
             .unwrap();
 
-        let ControlSubAccountPath {
-            category,
-            control_index,
-            index,
+        let NewChartAccountDetails {
+            path:
+                ControlSubAccountPath {
+                    category,
+                    control_index,
+                    index,
+                },
+            ..
         } = chart
             .create_control_sub_account(
                 LedgerAccountSetId::new(),
@@ -457,7 +467,7 @@ mod tests {
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    control_sub_account,
+                    control_sub_account: control_sub_account.path,
                     name: "Cash".to_string(),
                     description: "Cash account".to_string(),
                 },
@@ -517,10 +527,14 @@ mod tests {
             )
             .unwrap();
 
-        let ControlSubAccountPath {
-            category,
-            control_index,
-            index,
+        let NewChartAccountDetails {
+            path:
+                ControlSubAccountPath {
+                    category,
+                    control_index,
+                    index,
+                },
+            ..
         } = chart
             .create_control_sub_account(
                 LedgerAccountSetId::new(),
@@ -560,7 +574,7 @@ mod tests {
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    control_sub_account,
+                    control_sub_account: control_sub_account.path,
                     name: "First".to_string(),
                     description: "First transaction account".to_string(),
                 },
@@ -581,7 +595,7 @@ mod tests {
             .add_transaction_account(
                 ChartCreationDetails {
                     account_id: LedgerAccountId::new(),
-                    control_sub_account,
+                    control_sub_account: control_sub_account.path,
                     name: "Second".to_string(),
                     description: "Second transaction account".to_string(),
                 },

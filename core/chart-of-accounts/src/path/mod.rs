@@ -153,6 +153,13 @@ impl ControlSubAccountPath {
         format!("{}::{}", chart_id, self)
     }
 
+    pub fn normal_balance_type(&self) -> DebitOrCredit {
+        match self.category {
+            ChartCategory::Assets | ChartCategory::Expenses => DebitOrCredit::Debit,
+            _ => DebitOrCredit::Credit,
+        }
+    }
+
     pub fn control_account(&self) -> ControlAccountPath {
         ControlAccountPath {
             category: self.category,

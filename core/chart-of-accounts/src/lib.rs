@@ -7,7 +7,7 @@ mod path;
 mod primitives;
 mod transaction_account_factory;
 
-use cala_ledger::CalaLedger;
+use cala_ledger::{account_set::NewAccountSet, CalaLedger};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -253,14 +253,27 @@ where
 
         let mut chart = self.repo.find_by_id(chart_id).await?;
 
-        let path =
+        let account_set_details =
             chart.create_control_sub_account(id, control_account, name, reference, audit_info)?;
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let new_account_set = NewAccountSet::builder()
+            .id(account_set_details.account_set_id)
+            .name(account_set_details.name.to_string())
+            .description(account_set_details.name.to_string())
+            .normal_balance_type(account_set_details.path.normal_balance_type())
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(&mut op, new_account_set)
+            .await?;
+
         op.commit().await?;
 
-        Ok(path)
+        Ok(account_set_details.path)
     }
 }

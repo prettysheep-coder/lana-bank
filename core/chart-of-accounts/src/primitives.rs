@@ -140,3 +140,11 @@ pub struct ChartCreationDetails {
     pub name: String,
     pub description: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewChartAccountDetails {
+    pub path: ControlSubAccountPath,
+    pub account_set_id: LedgerAccountSetId,
+    pub name: String,
+    pub reference: String,
+}
