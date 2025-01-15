@@ -1,5 +1,7 @@
 use chart_of_accounts::ChartCategory;
 
+use crate::primitives::LedgerAccountSetId;
+
 use super::{constants::*, *};
 
 pub(super) async fn execute(
@@ -79,8 +81,10 @@ async fn create_charts_of_accounts(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn create_control_sub_account(
     chart_of_accounts: &ChartOfAccounts,
+    id: LedgerAccountSetId,
     chart_id: ChartId,
     category: ChartCategory,
     control_name: String,
@@ -107,7 +111,7 @@ async fn create_control_sub_account(
         Some(path) => path,
         None => {
             chart_of_accounts
-                .create_control_sub_account(chart_id, control_path, sub_name, sub_reference)
+                .create_control_sub_account(id, chart_id, control_path, sub_name, sub_reference)
                 .await?
         }
     };
@@ -121,6 +125,7 @@ async fn create_deposits_account_paths(
 ) -> Result<DepositsAccountPaths, AccountingInitError> {
     let deposits = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.primary,
         chart_of_accounts::ChartCategory::Liabilities,
         DEPOSITS_CONTROL_ACCOUNT_NAME.to_string(),
@@ -139,6 +144,7 @@ async fn create_credit_facilities_account_paths(
 ) -> Result<CreditFacilitiesAccountPaths, AccountingInitError> {
     let collateral = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.off_balance_sheet,
         chart_of_accounts::ChartCategory::Liabilities,
         CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_NAME.to_string(),
@@ -150,6 +156,7 @@ async fn create_credit_facilities_account_paths(
 
     let facility = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.off_balance_sheet,
         chart_of_accounts::ChartCategory::Assets,
         CREDIT_FACILITIES_FACILITY_CONTROL_ACCOUNT_NAME.to_string(),
@@ -161,6 +168,7 @@ async fn create_credit_facilities_account_paths(
 
     let disbursed_receivable = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.primary,
         chart_of_accounts::ChartCategory::Assets,
         CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
@@ -172,6 +180,7 @@ async fn create_credit_facilities_account_paths(
 
     let interest_receivable = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.primary,
         chart_of_accounts::ChartCategory::Assets,
         CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_NAME.to_string(),
@@ -183,6 +192,7 @@ async fn create_credit_facilities_account_paths(
 
     let interest_income = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.primary,
         chart_of_accounts::ChartCategory::Revenues,
         CREDIT_FACILITIES_INTEREST_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
@@ -194,6 +204,7 @@ async fn create_credit_facilities_account_paths(
 
     let fee_income = create_control_sub_account(
         chart_of_accounts,
+        LedgerAccountSetId::new(),
         chart_ids.primary,
         chart_of_accounts::ChartCategory::Revenues,
         CREDIT_FACILITIES_FEE_INCOME_CONTROL_ACCOUNT_NAME.to_string(),
