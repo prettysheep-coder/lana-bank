@@ -4,13 +4,14 @@ import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
+import { useRouter } from "next/navigation"
+
 import { useBreakpointDown } from "@/hooks/use-media-query"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { Button } from "@/ui/button"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
 import { Card } from "@/ui/card"
-import { useRouter } from "next/navigation"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -116,12 +117,14 @@ const DataTable = <T,>({
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, focusedRowIndex, onRowClick, navigateTo])
 
   useEffect(() => {
     if (data.length && focusedRowIndex === -1) {
       focusRow(0)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.length])
 
   if (loading) {
