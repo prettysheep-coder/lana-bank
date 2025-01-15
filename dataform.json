@@ -3,7 +3,7 @@
   "assertionSchema": "dataform_assertions",
   "warehouse": "bigquery",
   "defaultDatabase": "lana-dev-440721",
-  "defaultLocation": "EU",
+  "defaultLocation": "US",
   "vars": {
     "executionEnv": "lana-dev"
   }
