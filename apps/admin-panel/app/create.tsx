@@ -98,7 +98,7 @@ const CreateButton = () => {
   }
 
   const isButtonDisabled = () => {
-    if (pathName.includes("credit-facilities")) {
+    if (PATH_CONFIGS.CREDIT_FACILITY_DETAILS.test(pathName)) {
       return !facility || facility.status !== CreditFacilityStatus.Active
     }
     return false

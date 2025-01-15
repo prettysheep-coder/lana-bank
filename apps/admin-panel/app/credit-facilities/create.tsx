@@ -360,6 +360,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           {useTemplateTerms ? (
             <>
               <button
+                type="button"
                 onClick={() => setUseTemplateTerms(false)}
                 className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
               >
