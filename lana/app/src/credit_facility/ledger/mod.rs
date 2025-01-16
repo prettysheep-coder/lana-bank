@@ -1,9 +1,12 @@
 mod credit_facility_accounts;
 pub mod error;
 mod templates;
+mod velocity;
 
 use cala_ledger::{
     account::{error::AccountError, NewAccount},
+    tx_template::Params,
+    velocity::{NewVelocityControl, VelocityControlId},
     AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
@@ -14,6 +17,8 @@ use error::*;
 
 pub(super) const BANK_COLLATERAL_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
 pub(super) const CREDIT_OMNIBUS_ACCOUNT_CODE: &str = "CREDIT.OMNIBUS";
+pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
+    uuid::uuid!("00000000-0000-0000-0000-000000000001");
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
@@ -29,6 +34,7 @@ pub struct CreditLedger {
     journal_id: JournalId,
     credit_omnibus_account: AccountId,
     bank_collateral_account_id: AccountId,
+    credit_facility_control_id: VelocityControlId,
     usd: Currency,
     btc: Currency,
 }
@@ -51,11 +57,26 @@ impl CreditLedger {
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityDisbursal::init(cala).await?;
 
+        let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
+
+        let credit_facility_control_id = Self::create_credit_facility_control(cala).await?;
+
+        match cala
+            .velocities()
+            .add_limit_to_control(credit_facility_control_id, disbursal_limit_id)
+            .await
+        {
+            Ok(_)
+            | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
+            Err(e) => return Err(e.into()),
+        }
+
         Ok(Self {
             cala: cala.clone(),
             journal_id,
             bank_collateral_account_id,
             credit_omnibus_account,
+            credit_facility_control_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
@@ -417,5 +438,42 @@ impl CreditLedger {
             Err(e) => Err(e.into()),
             Ok(account) => Ok(account.id),
         }
+    }
+
+    pub async fn create_credit_facility_control(
+        cala: &CalaLedger,
+    ) -> Result<VelocityControlId, CreditLedgerError> {
+        let control = NewVelocityControl::builder()
+            .id(CREDIT_FACILITY_VELOCITY_CONTROL_ID)
+            .name("Credit Facility Control")
+            .description("Velocity Control for Deposits")
+            .build()
+            .expect("build control");
+
+        match cala.velocities().create_control(control).await {
+            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists) => {
+                Ok(CREDIT_FACILITY_VELOCITY_CONTROL_ID.into())
+            }
+            Err(e) => Err(e.into()),
+            Ok(control) => Ok(control.id()),
+        }
+    }
+
+    pub async fn add_credit_facility_control_to_account(
+        &self,
+        op: &mut cala_ledger::LedgerOperation<'_>,
+        account_id: impl Into<AccountId>,
+    ) -> Result<(), CreditLedgerError> {
+        self.cala
+            .velocities()
+            .attach_control_to_account_in_op(
+                op,
+                self.credit_facility_control_id,
+                account_id.into(),
+                Params::default(),
+            )
+            .await?;
+
+        Ok(())
     }
 }
