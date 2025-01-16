@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use super::primitives::{ChartId, DebitOrCredit};
 use error::*;
 
-const ENCODED_PATH_WIDTH: usize = 8;
+const ENCODED_PATH_WIDTH: usize = 5;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Hash, Deserialize)]
 pub struct AccountIdx(u64);
@@ -25,7 +25,6 @@ impl From<u32> for AccountIdx {
 impl AccountIdx {
     pub const FIRST: Self = Self(1);
     pub const MAX_TWO_DIGIT: Self = Self(99);
-    pub const MAX_THREE_DIGIT: Self = Self(999);
 
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)
@@ -178,7 +177,7 @@ mod tests {
         #[test]
         fn test_category_formatting() {
             let path = ChartCategory::Assets;
-            assert_eq!(path.to_string(), "10000000");
+            assert_eq!(path.to_string(), "10000");
         }
 
         #[test]
@@ -187,7 +186,7 @@ mod tests {
                 category: ChartCategory::Liabilities,
                 index: 1.into(),
             };
-            assert_eq!(path.to_string(), "20100000");
+            assert_eq!(path.to_string(), "20100");
         }
 
         #[test]
@@ -197,7 +196,7 @@ mod tests {
                 control_index: 1.into(),
                 index: 2.into(),
             };
-            assert_eq!(path.to_string(), "30102000");
+            assert_eq!(path.to_string(), "30102");
         }
     }
 
