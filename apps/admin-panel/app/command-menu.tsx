@@ -92,21 +92,19 @@ const CommandMenu = () => {
         setPages("main")
         setOpen((open) => !open)
       }
-      if (e.key === "n" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setPages("navigation")
-        setOpen((open) => !open)
+      if (e.shiftKey && e.key === "N") {
+        const activeElement = document.activeElement?.tagName?.toLowerCase()
+        const ignoredElements = ["input", "textarea", "select"]
+        if (activeElement && !ignoredElements.includes(activeElement)) {
+          e.preventDefault()
+          setOpen((open) => !open)
+          setPages("navigation")
+        }
       }
     }
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
   }, [])
-
-  React.useEffect(() => {
-    if (!open) {
-      setPages("main")
-    }
-  }, [open])
 
   const menuItems = [
     {
@@ -244,7 +242,7 @@ const CommandMenu = () => {
                     <div className="flex items-center justify-between">
                       <span>Navigation</span>
                       <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-                        <span className="text-xs">Ctrl +</span>N
+                        <span className="text-xs">Shift +</span>N
                       </kbd>
                     </div>
                   }
