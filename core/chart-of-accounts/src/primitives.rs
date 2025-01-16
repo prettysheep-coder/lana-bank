@@ -9,7 +9,7 @@ pub use cala_ledger::{
 };
 
 pub use crate::path::ChartCategory;
-use crate::path::{ControlSubAccountPath, TransactionAccountPath};
+use crate::path::ControlSubAccountPath;
 
 es_entity::entity_id! {
     ChartId,
@@ -78,8 +78,6 @@ impl CoreChartOfAccountsAction {
         CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlSubAccount);
     pub const CHART_FIND_CONTROL_SUB_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::FindControlSubAccount);
-    pub const CHART_FIND_TRANSACTION_ACCOUNT: Self =
-        CoreChartOfAccountsAction::ChartAction(ChartAction::FindTransactionAccount);
 }
 
 impl Display for CoreChartOfAccountsAction {
@@ -115,7 +113,6 @@ pub enum ChartAction {
     FindControlAccount,
     CreateControlSubAccount,
     FindControlSubAccount,
-    FindTransactionAccount,
 }
 
 impl From<ChartAction> for CoreChartOfAccountsAction {
@@ -127,7 +124,6 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartAccountDetails {
     pub account_id: LedgerAccountId,
-    pub path: TransactionAccountPath,
     pub encoded_path: String,
     pub name: String,
     pub description: String,

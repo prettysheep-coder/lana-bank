@@ -7,9 +7,7 @@ use es_entity::*;
 
 use crate::{
     path::*,
-    primitives::{
-        ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountId, LedgerAccountSetId,
-    },
+    primitives::{ChartAccountDetails, ChartCreationDetails, ChartId, LedgerAccountSetId},
     ControlSubAccountDetails,
 };
 
@@ -37,14 +35,6 @@ pub enum ChartEvent {
         path: ControlSubAccountPath,
         name: String,
         reference: String,
-        audit_info: AuditInfo,
-    },
-    TransactionAccountAdded {
-        id: LedgerAccountId,
-        encoded_path: String,
-        path: TransactionAccountPath,
-        name: String,
-        description: String,
         audit_info: AuditInfo,
     },
 }
@@ -187,46 +177,19 @@ impl Chart {
         })
     }
 
-    fn next_transaction_account(
-        &self,
-        control_sub_account: ControlSubAccountPath,
-    ) -> Result<TransactionAccountPath, ChartError> {
-        Ok(self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                ChartEvent::TransactionAccountAdded { path, .. }
-                    if path.category == control_sub_account.category
-                        && path.control_account() == control_sub_account.control_account()
-                        && path.control_sub_account() == control_sub_account =>
-                {
-                    Some(path.next())
-                }
-                _ => None,
-            })
-            .unwrap_or(Ok(control_sub_account.first_transaction_account()))?)
-    }
-
     pub fn add_transaction_account(
         &mut self,
         creation_details: ChartCreationDetails,
-        audit_info: AuditInfo,
+        _audit_info: AuditInfo,
     ) -> Result<ChartAccountDetails, ChartError> {
-        let path = self.next_transaction_account(creation_details.control_sub_account)?;
-        self.events.push(ChartEvent::TransactionAccountAdded {
-            id: creation_details.account_id,
-            encoded_path: path.path_encode(self.id),
-            path,
-            name: creation_details.name.clone(),
-            description: creation_details.description.clone(),
-            audit_info,
-        });
+        // TODO: implement by potentially adding account to ControlSubAccount nested entity
 
         Ok(ChartAccountDetails {
             account_id: creation_details.account_id,
-            encoded_path: path.path_encode(self.id),
-            path,
+            encoded_path: format!(
+                "{}.{}",
+                creation_details.control_sub_account, creation_details.account_id
+            ),
             name: creation_details.name,
             description: creation_details.description,
         })
@@ -243,7 +206,6 @@ impl TryFromEvents<ChartEvent> for Chart {
                 }
                 ChartEvent::ControlAccountAdded { .. } => (),
                 ChartEvent::ControlSubAccountAdded { .. } => (),
-                ChartEvent::TransactionAccountAdded { .. } => (),
             }
         }
         builder.events(events).build()
@@ -443,53 +405,6 @@ mod tests {
     }
 
     #[test]
-    fn test_create_transaction_account() {
-        let mut chart = init_chart_of_events();
-        let control_account = chart
-            .create_control_account(
-                ChartCategory::Assets,
-                "Assets".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        let control_sub_account = chart
-            .create_control_sub_account(
-                LedgerAccountSetId::new(),
-                control_account,
-                "Current Assets".to_string(),
-                "current-assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        let ChartAccountDetails {
-            path:
-                TransactionAccountPath {
-                    category,
-                    control_index,
-                    control_sub_index,
-                    index,
-                },
-            ..
-        } = chart
-            .add_transaction_account(
-                ChartCreationDetails {
-                    account_id: LedgerAccountId::new(),
-                    control_sub_account: control_sub_account.path,
-                    name: "Cash".to_string(),
-                    description: "Cash account".to_string(),
-                },
-                dummy_audit_info(),
-            )
-            .unwrap();
-        assert_eq!(category, ChartCategory::Assets);
-        assert_eq!(control_index, AccountIdx::FIRST);
-        assert_eq!(control_sub_index, AccountIdx::FIRST);
-        assert_eq!(index, AccountIdx::FIRST);
-    }
-
-    #[test]
     fn test_create_sequential_control_accounts() {
         let mut chart = init_chart_of_events();
 
@@ -555,65 +470,6 @@ mod tests {
             .unwrap();
         assert_eq!(category, ChartCategory::Assets);
         assert_eq!(control_index, AccountIdx::FIRST);
-        assert_eq!(index, AccountIdx::FIRST.next());
-    }
-
-    #[test]
-    fn test_create_sequential_transaction_accounts() {
-        let mut chart = init_chart_of_events();
-        let control_account = chart
-            .create_control_account(
-                ChartCategory::Assets,
-                "Assets".to_string(),
-                "assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-        let control_sub_account = chart
-            .create_control_sub_account(
-                LedgerAccountSetId::new(),
-                control_account,
-                "Current Assets".to_string(),
-                "current-assets".to_string(),
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        chart
-            .add_transaction_account(
-                ChartCreationDetails {
-                    account_id: LedgerAccountId::new(),
-                    control_sub_account: control_sub_account.path,
-                    name: "First".to_string(),
-                    description: "First transaction account".to_string(),
-                },
-                dummy_audit_info(),
-            )
-            .unwrap();
-
-        let ChartAccountDetails {
-            path:
-                TransactionAccountPath {
-                    category,
-                    control_index,
-                    control_sub_index,
-                    index,
-                },
-            ..
-        } = chart
-            .add_transaction_account(
-                ChartCreationDetails {
-                    account_id: LedgerAccountId::new(),
-                    control_sub_account: control_sub_account.path,
-                    name: "Second".to_string(),
-                    description: "Second transaction account".to_string(),
-                },
-                dummy_audit_info(),
-            )
-            .unwrap();
-        assert_eq!(category, ChartCategory::Assets);
-        assert_eq!(control_index, AccountIdx::FIRST);
-        assert_eq!(control_sub_index, AccountIdx::FIRST);
         assert_eq!(index, AccountIdx::FIRST.next());
     }
 }

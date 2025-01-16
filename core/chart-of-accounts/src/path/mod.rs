@@ -166,87 +166,6 @@ impl ControlSubAccountPath {
             index: self.control_index,
         }
     }
-
-    pub fn first_transaction_account(&self) -> TransactionAccountPath {
-        TransactionAccountPath {
-            category: self.category,
-            control_index: self.control_index,
-            control_sub_index: self.index,
-            index: AccountIdx::FIRST,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct TransactionAccountPath {
-    pub category: ChartCategory,
-    pub control_index: AccountIdx,
-    pub control_sub_index: AccountIdx,
-    pub index: AccountIdx,
-}
-
-impl std::fmt::Display for TransactionAccountPath {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:0<ENCODED_PATH_WIDTH$}",
-            format!(
-                "{:01}{:02}{:02}{:03}",
-                self.category.index(),
-                self.control_index,
-                self.control_sub_index,
-                self.index
-            )
-        )
-    }
-}
-
-impl TransactionAccountPath {
-    pub fn next(&self) -> Result<Self, ChartPathError> {
-        let next_index = self.index.next();
-        if next_index > AccountIdx::MAX_THREE_DIGIT {
-            Err(
-                ChartPathError::TransactionIndexOverflowForControlSubAccount(
-                    self.category,
-                    self.control_index,
-                    self.control_sub_index,
-                ),
-            )
-        } else {
-            Ok(Self {
-                category: self.category,
-                control_index: self.control_index,
-                control_sub_index: self.control_sub_index,
-                index: next_index,
-            })
-        }
-    }
-
-    pub fn path_encode(&self, chart_id: ChartId) -> String {
-        format!("{}::{}", chart_id, self)
-    }
-
-    pub fn normal_balance_type(&self) -> DebitOrCredit {
-        match self.category {
-            ChartCategory::Assets | ChartCategory::Expenses => DebitOrCredit::Debit,
-            _ => DebitOrCredit::Credit,
-        }
-    }
-
-    pub fn control_account(&self) -> ControlAccountPath {
-        ControlAccountPath {
-            category: self.category,
-            index: self.control_index,
-        }
-    }
-
-    pub fn control_sub_account(&self) -> ControlSubAccountPath {
-        ControlSubAccountPath {
-            category: self.category,
-            control_index: self.control_index,
-            index: self.control_index,
-        }
-    }
 }
 
 #[cfg(test)]
@@ -280,17 +199,6 @@ mod tests {
             };
             assert_eq!(path.to_string(), "30102000");
         }
-
-        #[test]
-        fn test_transaction_account_formatting() {
-            let path = TransactionAccountPath {
-                category: ChartCategory::Revenues,
-                control_index: 1.into(),
-                control_sub_index: 2.into(),
-                index: 3.into(),
-            };
-            assert_eq!(path.to_string(), "40102003");
-        }
     }
 
     mod control_account_extraction_tests {
@@ -304,18 +212,6 @@ mod tests {
         };
 
         #[test]
-        fn test_control_account_from_transaction_account() {
-            let transaction = TransactionAccountPath {
-                category: CATEGORY,
-                control_index: CONTROL_INDEX,
-                control_sub_index: 2.into(),
-                index: 3.into(),
-            };
-
-            assert_eq!(transaction.control_account(), EXPECTED);
-        }
-
-        #[test]
         fn test_control_account_from_control_sub_account() {
             let sub_account = ControlSubAccountPath {
                 category: CATEGORY,
@@ -324,31 +220,6 @@ mod tests {
             };
 
             assert_eq!(sub_account.control_account(), EXPECTED);
-        }
-    }
-
-    mod control_sub_account_extraction_tests {
-        use super::*;
-
-        const CATEGORY: ChartCategory = ChartCategory::Assets;
-        const CONTROL_INDEX: AccountIdx = AccountIdx::FIRST;
-        const SUB_INDEX: AccountIdx = AccountIdx::FIRST;
-        const EXPECTED: ControlSubAccountPath = ControlSubAccountPath {
-            category: CATEGORY,
-            control_index: CONTROL_INDEX,
-            index: SUB_INDEX,
-        };
-
-        #[test]
-        fn test_control_sub_account_from_transaction_account() {
-            let transaction = TransactionAccountPath {
-                category: CATEGORY,
-                control_index: CONTROL_INDEX,
-                control_sub_index: SUB_INDEX,
-                index: 3.into(),
-            };
-
-            assert_eq!(transaction.control_sub_account(), EXPECTED);
         }
     }
 
@@ -382,26 +253,6 @@ mod tests {
                 ControlSubAccountPath {
                     category: ChartCategory::Assets,
                     control_index: AccountIdx::FIRST,
-                    index: AccountIdx::FIRST,
-                }
-            );
-        }
-
-        #[test]
-        fn test_first_transaction_account_creation() {
-            let sub_account = ControlSubAccountPath {
-                category: ChartCategory::Assets,
-                control_index: AccountIdx::FIRST,
-                index: AccountIdx::FIRST,
-            };
-
-            let transaction = sub_account.first_transaction_account();
-            assert_eq!(
-                transaction,
-                TransactionAccountPath {
-                    category: ChartCategory::Assets,
-                    control_index: AccountIdx::FIRST,
-                    control_sub_index: AccountIdx::FIRST,
                     index: AccountIdx::FIRST,
                 }
             );
@@ -464,38 +315,6 @@ mod tests {
                 index: AccountIdx::MAX_TWO_DIGIT,
             };
             assert!(max_sub.next().is_err());
-        }
-
-        #[test]
-        fn test_next_transaction_account_success() {
-            let transaction = TransactionAccountPath {
-                category: ChartCategory::Assets,
-                control_index: 1.into(),
-                control_sub_index: 1.into(),
-                index: 1.into(),
-            };
-
-            let next_transaction = transaction.next().unwrap();
-            assert_eq!(
-                next_transaction,
-                TransactionAccountPath {
-                    category: ChartCategory::Assets,
-                    control_index: 1.into(),
-                    control_sub_index: 1.into(),
-                    index: 2.into(),
-                }
-            );
-        }
-
-        #[test]
-        fn test_next_transaction_account_overflow() {
-            let max_transaction = TransactionAccountPath {
-                category: ChartCategory::Assets,
-                control_index: 1.into(),
-                control_sub_index: 1.into(),
-                index: AccountIdx::MAX_THREE_DIGIT,
-            };
-            assert!(max_transaction.next().is_err());
         }
     }
 }
