@@ -4,28 +4,7 @@ use crate::primitives::LedgerAccountSetId;
 
 use super::{constants::*, *};
 
-pub(super) async fn execute(
-    cala: &CalaLedger,
-    chart_of_accounts: &ChartOfAccounts,
-) -> Result<AccountingInit, AccountingInitError> {
-    let journal_id = create_journal(cala).await?;
-
-    let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
-
-    let deposits = create_deposits_account_paths(chart_of_accounts, chart_ids).await?;
-
-    let credit_facilities =
-        create_credit_facilities_account_paths(chart_of_accounts, chart_ids).await?;
-
-    Ok(AccountingInit {
-        journal_id,
-        chart_ids: *chart_ids,
-        deposits,
-        credit_facilities,
-    })
-}
-
-async fn create_journal(cala: &CalaLedger) -> Result<JournalId, AccountingInitError> {
+pub(super) async fn journal(cala: &CalaLedger) -> Result<JournalInit, AccountingInitError> {
     use cala_ledger::journal::*;
 
     let new_journal = NewJournal::builder()
@@ -42,11 +21,32 @@ async fn create_journal(cala: &CalaLedger) -> Result<JournalId, AccountingInitEr
                 .journals()
                 .find_by_code(LANA_JOURNAL_CODE.to_string())
                 .await?;
-            Ok(journal.id)
+            Ok(JournalInit {
+                journal_id: journal.id,
+            })
         }
         Err(e) => Err(e.into()),
-        Ok(journal) => Ok(journal.id),
+        Ok(journal) => Ok(JournalInit {
+            journal_id: journal.id,
+        }),
     }
+}
+
+pub(super) async fn charts_of_accounts(
+    chart_of_accounts: &ChartOfAccounts,
+) -> Result<ChartsInit, AccountingInitError> {
+    let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
+
+    let deposits = create_deposits_account_paths(chart_of_accounts, chart_ids).await?;
+
+    let credit_facilities =
+        create_credit_facilities_account_paths(chart_of_accounts, chart_ids).await?;
+
+    Ok(ChartsInit {
+        chart_ids: *chart_ids,
+        deposits,
+        credit_facilities,
+    })
 }
 
 async fn create_charts_of_accounts(

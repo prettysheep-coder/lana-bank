@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 pub use cala_ledger::{
     primitives::AccountId as LedgerAccountId, primitives::AccountSetId as LedgerAccountSetId,
-    DebitOrCredit,
+    primitives::JournalId as LedgerJournalId, DebitOrCredit,
 };
 
 pub use crate::path::ChartCategory;

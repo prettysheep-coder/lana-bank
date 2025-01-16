@@ -1,3 +1,5 @@
+pub use cala_ledger::primitives::JournalId as LedgerJournalId;
+
 use chart_of_accounts::{ChartId, ControlSubAccountPath};
 
 #[derive(Clone, Copy)]

@@ -27,6 +27,7 @@ where
     repo: ChartRepo,
     cala: CalaLedger,
     authz: Perms,
+    journal_id: LedgerJournalId,
 }
 
 impl<Perms> Clone for CoreChartOfAccounts<Perms>
@@ -38,6 +39,7 @@ where
             repo: self.repo.clone(),
             cala: self.cala.clone(),
             authz: self.authz.clone(),
+            journal_id: self.journal_id,
         }
     }
 }
@@ -52,12 +54,14 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
+        journal_id: LedgerJournalId,
     ) -> Result<Self, CoreChartOfAccountsError> {
         let chart_of_account = ChartRepo::new(pool);
         let res = Self {
             repo: chart_of_account,
             cala: cala.clone(),
             authz: authz.clone(),
+            journal_id,
         };
         Ok(res)
     }
@@ -262,6 +266,7 @@ where
         let mut op = self.cala.ledger_operation_from_db_op(op);
         let new_account_set = NewAccountSet::builder()
             .id(account_set_details.account_set_id)
+            .journal_id(self.journal_id)
             .name(account_set_details.name.to_string())
             .description(account_set_details.name.to_string())
             .normal_balance_type(account_set_details.path.normal_balance_type())
