@@ -2493,6 +2493,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-utils",
+ "user-onboarding",
  "uuid",
 ]
 
@@ -5290,6 +5291,30 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+]
+
+[[package]]
+name = "user-onboarding"
+version = "0.3.1-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "chrono",
+ "core-user",
+ "es-entity",
+ "futures",
+ "job",
+ "lana-events",
+ "ory-kratos-client",
+ "outbox",
+ "serde",
+ "serde_json",
+ "sim-time",
+ "strum",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

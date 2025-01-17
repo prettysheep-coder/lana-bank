@@ -31,12 +31,12 @@
 - id: admin-panel-ui # apps/admin-panel
   upstream:
     url: http://dockerhost-alias:3001
-    strip_path: /admin
+    # strip_path: /admin # nextjs base path will handle this
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin<(?!\/sessions|\/self-service|\/graphql).*>
     methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
   authenticators:
-    - handler: cookie_session
+    - handler: noop
   authorizer:
     handler: allow
   mutators:
