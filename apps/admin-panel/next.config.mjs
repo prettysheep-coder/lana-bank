@@ -8,7 +8,7 @@ const nextConfig = {
     return config
   },
   experimental: {
-    instrumentationHook: true,
+    missingSuspenseWithCSRBailout: false,
   },
   output: "standalone",
   basePath: process.env.NEXT_PUBLIC_BASE_PATH,
