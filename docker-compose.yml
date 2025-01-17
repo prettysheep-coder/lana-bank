@@ -1,4 +1,16 @@
 services:
+  integration-deps:
+    image: busybox
+    command: sh -c "while :; do sleep 10; done"
+    depends_on:
+      - core-pg
+      - cala-pg
+      - cala
+      - otel-agent
+      - kratos
+      - kratos-pg
+      - oathkeeper
+      - mailhog
   core-pg:
     image: postgres:16.4
     ports:
