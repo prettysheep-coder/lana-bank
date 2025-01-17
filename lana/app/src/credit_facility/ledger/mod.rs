@@ -5,7 +5,6 @@ mod velocity;
 
 use cala_ledger::{
     account::{error::AccountError, NewAccount},
-    tx_template::Params,
     velocity::{NewVelocityControl, VelocityControlId},
     AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
@@ -18,7 +17,7 @@ use error::*;
 pub(super) const BANK_COLLATERAL_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
 pub(super) const CREDIT_OMNIBUS_ACCOUNT_CODE: &str = "CREDIT.OMNIBUS";
 pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
-    uuid::uuid!("00000000-0000-0000-0000-000000000001");
+    uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
@@ -463,6 +462,7 @@ impl CreditLedger {
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         account_id: impl Into<AccountId>,
+        disbursal_limit: UsdCents,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .velocities()
@@ -470,7 +470,9 @@ impl CreditLedger {
                 op,
                 self.credit_facility_control_id,
                 account_id.into(),
-                Params::default(),
+                velocity::DisbursalLimitParams {
+                    disbursal_limit: disbursal_limit.to_usd(),
+                },
             )
             .await?;
 
