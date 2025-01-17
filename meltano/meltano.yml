@@ -27,7 +27,6 @@ plugins:
     pip_url: git+https://github.com/z3z1ma/target-bigquery.git
     config:
       project: lana-dev-440721
-      dataset: jcarter_dataset
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
