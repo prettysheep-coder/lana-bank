@@ -31,3 +31,6 @@ plugins:
   - name: dbt-bigquery
     variant: dbt-labs
     pip_url: dbt-core~=1.3.0 dbt-bigquery~=1.3.0
+    config:
+      auth_method: service-account
+      project: lana-dev-440721
