@@ -129,9 +129,8 @@ impl ApproveDisbursal {
                     use sqlx::Acquire;
                     es_entity::DbOp::new(tx.begin().await?, now)
                 };
-
                 self.ledger
-                    .record_disbursal(sub_op, disbursal_data.clone())
+                    .confirm_disbursal(sub_op, disbursal_data.clone())
                     .await?;
 
                 let mut db = es_entity::DbOp::new(tx, now);
@@ -151,6 +150,20 @@ impl ApproveDisbursal {
                     executed_at,
                     audit_info.clone(),
                 );
+                let (now, mut tx) = (db.now(), db.into_tx());
+                let sub_op = {
+                    use sqlx::Acquire;
+                    es_entity::DbOp::new(tx.begin().await?, now)
+                };
+                self.ledger
+                    .cancel_disbursal(
+                        sub_op,
+                        disbursal.amount,
+                        disbursal.account_ids,
+                        disbursal.deposit_account_id,
+                    )
+                    .await?;
+                let mut db = es_entity::DbOp::new(tx, now);
                 self.credit_facility_repo
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;

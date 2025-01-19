@@ -54,7 +54,9 @@ impl CreditLedger {
         templates::RecordPayment::init(cala).await?;
         templates::CreditFacilityIncurInterest::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
-        templates::CreditFacilityDisbursal::init(cala).await?;
+        templates::InitiateDisbursal::init(cala).await?;
+        templates::CancelDisbursal::init(cala).await?;
+        templates::ConfirmDisbursal::init(cala).await?;
 
         let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
 
@@ -362,7 +364,7 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_disbursal(
+    pub async fn confirm_disbursal(
         &self,
         op: es_entity::DbOp<'_>,
         DisbursalData {
@@ -378,8 +380,8 @@ impl CreditLedger {
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::CREDIT_FACILITY_DISBURSAL_CODE,
-                templates::CreditFacilityDisbursalParams {
+                templates::CONFIRM_DISBURSAL_CODE,
+                templates::ConfirmDisbursalParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.credit_omnibus_account,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
@@ -388,6 +390,65 @@ impl CreditLedger {
                     checking_account: debit_account_id,
                     disbursed_amount: amount.to_usd(),
                     external_id: tx_ref,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn cancel_disbursal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        amount: UsdCents,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        debit_account_id: impl Into<AccountId>,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        let tx_id = cala_ledger::TransactionId::new();
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::CANCEL_DISBURSAL_CODE,
+                templates::CancelDisbursalParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.credit_omnibus_account,
+                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    facility_disbursed_receivable_account: credit_facility_account_ids
+                        .disbursed_receivable_account_id,
+                    checking_account: debit_account_id.into(),
+                    disbursed_amount: amount.to_usd(),
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn initiate_disbursal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<TransactionId>,
+        amount: UsdCents,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        debit_account_id: impl Into<AccountId>,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id.into(),
+                templates::INITIATE_DISBURSAL_CODE,
+                templates::InitiateDisbursalParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.credit_omnibus_account,
+                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    facility_disbursed_receivable_account: credit_facility_account_ids
+                        .disbursed_receivable_account_id,
+                    checking_account: debit_account_id.into(),
+                    disbursed_amount: amount.to_usd(),
                 },
             )
             .await?;

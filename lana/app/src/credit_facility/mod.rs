@@ -369,7 +369,16 @@ impl CreditFacilities {
             .create_in_op(&mut db, new_disbursal)
             .await?;
 
-        db.commit().await?;
+        self.ledger
+            .initiate_disbursal(
+                db,
+                disbursal.id,
+                disbursal.amount,
+                disbursal.account_ids,
+                disbursal.deposit_account_id,
+            )
+            .await?;
+
         Ok(disbursal)
     }
 
