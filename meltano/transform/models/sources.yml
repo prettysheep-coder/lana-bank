@@ -1,0 +1,7 @@
+version: 2
+
+sources:
+  - name: lana
+    dataset: jireva_dataset
+    tables:
+      - name: public_credit_facility_events_view
