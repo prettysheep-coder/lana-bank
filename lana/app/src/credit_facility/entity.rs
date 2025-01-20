@@ -2017,15 +2017,17 @@ mod test {
             disbursal
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();
-            let disbursal_data = disbursal
-                .record(facility_activated_at, dummy_audit_info())
-                .unwrap();
-            credit_facility.confirm_disbursal(
-                &disbursal,
-                Some(disbursal_data.tx_id),
-                facility_activated_at,
-                dummy_audit_info(),
-            );
+
+            if let Ok(DisbursalResult::Confirmed(data)) =
+                disbursal.record(facility_activated_at, dummy_audit_info())
+            {
+                credit_facility.confirm_disbursal(
+                    &disbursal,
+                    Some(data.tx_id),
+                    facility_activated_at,
+                    dummy_audit_info(),
+                );
+            }
 
             let mut accrual_data: Option<InterestAccrualData> = None;
             while accrual_data.is_none() {

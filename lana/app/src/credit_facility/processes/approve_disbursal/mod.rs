@@ -7,8 +7,8 @@ use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        disbursal::error::DisbursalError, error::CreditFacilityError, ledger::CreditLedger,
-        repo::CreditFacilityRepo, Disbursal, DisbursalRepo,
+        error::CreditFacilityError, ledger::CreditLedger, repo::CreditFacilityRepo, Disbursal,
+        DisbursalRepo, DisbursalResult,
     },
     governance::Governance,
     primitives::DisbursalId,
@@ -114,8 +114,14 @@ impl ApproveDisbursal {
             )
             .await?;
 
-        match disbursal.record(executed_at, disbursal_audit_info.clone()) {
-            Ok(disbursal_data) => {
+        let (now, mut tx) = (db.now(), db.into_tx());
+        let sub_op = {
+            use sqlx::Acquire;
+            es_entity::DbOp::new(tx.begin().await?, now)
+        };
+
+        match disbursal.record(executed_at, disbursal_audit_info.clone())? {
+            DisbursalResult::Confirmed(disbursal_data) => {
                 span.record("disbursal_executed", true);
                 credit_facility.confirm_disbursal(
                     &disbursal,
@@ -124,11 +130,6 @@ impl ApproveDisbursal {
                     disbursal_audit_info,
                 );
 
-                let (now, mut tx) = (db.now(), db.into_tx());
-                let sub_op = {
-                    use sqlx::Acquire;
-                    es_entity::DbOp::new(tx.begin().await?, now)
-                };
                 self.ledger
                     .confirm_disbursal(sub_op, disbursal_data.clone())
                     .await?;
@@ -142,30 +143,25 @@ impl ApproveDisbursal {
                     .await?;
                 db.commit().await?;
             }
-            Err(DisbursalError::Denied) => {
+            DisbursalResult::Cancelled(data) => {
                 span.record("disbursal_executed", false);
                 credit_facility.confirm_disbursal(
                     &disbursal,
                     None,
                     executed_at,
-                    audit_info.clone(),
+                    disbursal_audit_info,
                 );
-                let (now, mut tx) = (db.now(), db.into_tx());
-                let sub_op = {
-                    use sqlx::Acquire;
-                    es_entity::DbOp::new(tx.begin().await?, now)
-                };
-                self.ledger
-                    .cancel_disbursal(sub_op, disbursal.amount, disbursal.account_ids)
-                    .await?;
+
+                self.ledger.cancel_disbursal(sub_op, data).await?;
+
                 let mut db = es_entity::DbOp::new(tx, now);
+                self.disbursal_repo
+                    .update_in_op(&mut db, &mut disbursal)
+                    .await?;
                 self.credit_facility_repo
                     .update_in_op(&mut db, &mut credit_facility)
                     .await?;
                 db.commit().await?;
-            }
-            Err(e) => {
-                return Err(e.into());
             }
         }
 

@@ -6,7 +6,7 @@ use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
         error::CreditFacilityError, interest_accruals, interest_incurrences, ledger::CreditLedger,
-        CreditFacility, CreditFacilityRepo, DisbursalRepo,
+        CreditFacility, CreditFacilityRepo, DisbursalRepo, DisbursalResult,
     },
     job::{error::JobError, Jobs},
     price::Price,
@@ -94,13 +94,15 @@ impl ActivateCreditFacility {
         disbursal
             .approval_process_concluded(true, audit_info.clone())
             .did_execute();
-        let disbursal_data = disbursal.record(now, audit_info.clone())?;
-        credit_facility.confirm_disbursal(
-            &disbursal,
-            Some(disbursal_data.tx_id),
-            now,
-            audit_info.clone(),
-        );
+
+        if let Ok(DisbursalResult::Confirmed(data)) = disbursal.record(now, audit_info.clone()) {
+            credit_facility.confirm_disbursal(
+                &disbursal,
+                Some(data.tx_id),
+                now,
+                audit_info.clone(),
+            );
+        }
 
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)

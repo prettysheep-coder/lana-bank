@@ -12,6 +12,8 @@ pub enum DisbursalError {
     JobError(#[from] crate::job::error::JobError),
     #[error("DisbursalError - AlreadyConfirmed")]
     AlreadyConfirmed,
+    #[error("DisbursalError - AlreadyCancelled")]
+    AlreadyCancelled,
     #[error("DisbursalError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("DisbursalError - Denied")]

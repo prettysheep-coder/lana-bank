@@ -36,6 +36,10 @@ pub enum DisbursalEvent {
         audit_info: AuditInfo,
         confirmed_at: DateTime<Utc>,
     },
+    Cancelled {
+        ledger_tx_id: LedgerTxId,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -77,10 +81,16 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                 }
                 DisbursalEvent::ApprovalProcessConcluded { .. } => (),
                 DisbursalEvent::Confirmed { .. } => (),
+                DisbursalEvent::Cancelled { .. } => (),
             }
         }
         builder.events(events).build()
     }
+}
+
+pub enum DisbursalResult {
+    Confirmed(DisbursalData),
+    Cancelled(DisbursalData),
 }
 
 impl Disbursal {
@@ -132,10 +142,20 @@ impl Disbursal {
         }
         None
     }
+
     pub(super) fn is_confirmed(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
                 DisbursalEvent::Confirmed { .. } => return true,
+                _ => continue,
+            }
+        }
+        false
+    }
+    pub(super) fn is_cancelled(&self) -> bool {
+        for event in self.events.iter_all() {
+            match event {
+                DisbursalEvent::Cancelled { .. } => return true,
                 _ => continue,
             }
         }
@@ -146,32 +166,43 @@ impl Disbursal {
         &mut self,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) -> Result<DisbursalData, DisbursalError> {
+    ) -> Result<DisbursalResult, DisbursalError> {
         if self.is_confirmed() {
             return Err(DisbursalError::AlreadyConfirmed);
         }
 
-        match self.is_approved() {
-            None => return Err(DisbursalError::ApprovalInProgress),
-            Some(false) => return Err(DisbursalError::Denied),
-            _ => (),
+        if self.is_cancelled() {
+            return Err(DisbursalError::AlreadyCancelled);
         }
 
         let tx_id = LedgerTxId::new();
-
-        self.events.push(DisbursalEvent::Confirmed {
-            ledger_tx_id: tx_id,
-            confirmed_at: executed_at,
-            audit_info,
-        });
-
-        Ok(DisbursalData {
+        let data = DisbursalData {
             tx_ref: format!("disbursal-{}", self.id),
             tx_id,
             amount: self.amount,
             credit_facility_account_ids: self.account_ids,
             debit_account_id: self.deposit_account_id.into(),
-        })
+        };
+        match self.is_approved() {
+            None => Err(DisbursalError::ApprovalInProgress),
+            Some(false) => {
+                self.events.push(DisbursalEvent::Cancelled {
+                    ledger_tx_id: LedgerTxId::new(),
+                    audit_info,
+                });
+
+                Ok(DisbursalResult::Cancelled(data))
+            }
+            Some(true) => {
+                self.events.push(DisbursalEvent::Confirmed {
+                    ledger_tx_id: LedgerTxId::new(),
+                    confirmed_at: executed_at,
+                    audit_info,
+                });
+
+                Ok(DisbursalResult::Confirmed(data))
+            }
+        }
     }
 }
 
@@ -256,7 +287,7 @@ mod test {
     }
 
     #[test]
-    fn errors_if_denied() {
+    fn returns_cancelled_disbursal_result_when_denied() {
         let mut events = initial_events();
         events.push(DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: ApprovalProcessId::new(),
@@ -266,8 +297,8 @@ mod test {
         let mut disbursal = disbursal_from(events);
 
         assert!(matches!(
-            disbursal.record(Utc::now(), dummy_audit_info()),
-            Err(DisbursalError::Denied)
+            disbursal.record(Utc::now(), dummy_audit_info()).unwrap(),
+            DisbursalResult::Cancelled(_)
         ));
     }
 

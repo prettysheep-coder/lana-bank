@@ -400,12 +400,15 @@ impl CreditLedger {
     pub async fn cancel_disbursal(
         &self,
         op: es_entity::DbOp<'_>,
-        amount: UsdCents,
-        credit_facility_account_ids: CreditFacilityAccountIds,
+        DisbursalData {
+            tx_id,
+            amount,
+            credit_facility_account_ids,
+            ..
+        }: DisbursalData,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let tx_id = cala_ledger::TransactionId::new();
         self.cala
             .post_transaction_in_op(
                 &mut op,
