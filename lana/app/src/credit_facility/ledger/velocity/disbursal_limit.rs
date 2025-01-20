@@ -47,7 +47,7 @@ impl DisbursalLimit {
                     .balance(vec![NewBalanceLimit::builder()
                         .layer("SETTLED")
                         .amount("params.disbursal_limit")
-                        .enforcement_direction("DEBIT")
+                        .enforcement_direction("CREDIT")
                         .build()
                         .expect("balance limit")])
                     .build()

@@ -13,8 +13,6 @@ pub struct CancelDisbursalParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
-    pub facility_disbursed_receivable_account: AccountId,
-    pub checking_account: AccountId,
     pub disbursed_amount: Decimal,
 }
 
@@ -33,16 +31,6 @@ impl CancelDisbursalParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("credit_facility_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("facility_disbursed_receivable_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("checking_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -66,8 +54,6 @@ impl From<CancelDisbursalParams> for Params {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
-            facility_disbursed_receivable_account,
-            checking_account,
             disbursed_amount,
         }: CancelDisbursalParams,
     ) -> Self {
@@ -75,11 +61,6 @@ impl From<CancelDisbursalParams> for Params {
         params.insert("journal_id", journal_id);
         params.insert("credit_omnibus_account", credit_omnibus_account);
         params.insert("credit_facility_account", credit_facility_account);
-        params.insert(
-            "facility_disbursed_receivable_account",
-            facility_disbursed_receivable_account,
-        );
-        params.insert("checking_account", checking_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", chrono::Utc::now().date_naive());
         params
@@ -118,24 +99,6 @@ impl CancelDisbursal {
                 .units("params.disbursed_amount")
                 .build()
                 .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .entry_type("'CANCEL_DISBURSAL_PENDING_DR'")
-                .currency("'USD'")
-                .account_id("params.facility_disbursed_receivable_account")
-                .direction("DEBIT")
-                .layer("PENDING")
-                .units("params.disbursed_amount")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .entry_type("'CANCEL_DISBURSAL_PENDING_CR'")
-                .currency("'USD'")
-                .account_id("params.checking_account")
-                .direction("CREDIT")
-                .layer("PENDING")
-                .units("params.disbursed_amount")
-                .build()
-                .expect("Couldn't build entry"),
             // Reverse settled entries
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_CR'")
@@ -150,24 +113,6 @@ impl CancelDisbursal {
                 .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_DR'")
                 .currency("'USD'")
                 .account_id("params.credit_facility_account")
-                .direction("DEBIT")
-                .layer("SETTLED")
-                .units("params.disbursed_amount")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .entry_type("'CANCEL_DISBURSAL_SETTLED_CR'")
-                .currency("'USD'")
-                .account_id("params.facility_disbursed_receivable_account")
-                .direction("CREDIT")
-                .layer("SETTLED")
-                .units("params.disbursed_amount")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .entry_type("'CANCEL_DISBURSAL_SETTLED_DR'")
-                .currency("'USD'")
-                .account_id("params.checking_account")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .units("params.disbursed_amount")

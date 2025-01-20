@@ -13,8 +13,6 @@ pub struct InitiateDisbursalParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
-    pub facility_disbursed_receivable_account: AccountId,
-    pub checking_account: AccountId,
     pub disbursed_amount: Decimal,
 }
 
@@ -33,16 +31,6 @@ impl InitiateDisbursalParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("credit_facility_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("facility_disbursed_receivable_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("checking_account")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -66,8 +54,6 @@ impl From<InitiateDisbursalParams> for Params {
         InitiateDisbursalParams {
             journal_id,
             credit_facility_account,
-            facility_disbursed_receivable_account,
-            checking_account,
             disbursed_amount,
             credit_omnibus_account,
         }: InitiateDisbursalParams,
@@ -76,11 +62,6 @@ impl From<InitiateDisbursalParams> for Params {
         params.insert("journal_id", journal_id);
         params.insert("credit_omnibus_account", credit_omnibus_account);
         params.insert("credit_facility_account", credit_facility_account);
-        params.insert(
-            "facility_disbursed_receivable_account",
-            facility_disbursed_receivable_account,
-        );
-        params.insert("checking_account", checking_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", chrono::Utc::now().date_naive());
         params
@@ -120,25 +101,6 @@ impl InitiateDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.facility_disbursed_receivable_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'INITIATE_CREDIT_FACILITY_DISBURSAL_SETTLED_DR'")
-                .direction("DEBIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.checking_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'INITIATE_CREDIT_FACILITY_DISBURSAL_SETTLED_CR'")
-                .direction("CREDIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            // PENDING layer entries
-            NewTxTemplateEntry::builder()
                 .account_id("params.credit_omnibus_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
@@ -152,24 +114,6 @@ impl InitiateDisbursal {
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'INITIATE_DISBURSAL_DRAWDOWN_PENDING_DR'")
-                .direction("DEBIT")
-                .layer("PENDING")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.facility_disbursed_receivable_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'INITIATE_CREDIT_FACILITY_DISBURSAL_PENDING_CR'")
-                .direction("CREDIT")
-                .layer("PENDING")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.checking_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'INITIATE_CREDIT_FACILITY_DISBURSAL_PENDING_DR'")
                 .direction("DEBIT")
                 .layer("PENDING")
                 .build()

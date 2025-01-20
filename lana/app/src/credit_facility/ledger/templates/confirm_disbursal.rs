@@ -126,22 +126,23 @@ impl ConfirmDisbursal {
                 .units("params.disbursed_amount")
                 .build()
                 .expect("Couldn't build entry"),
+            // SETTLED LAYER
             NewTxTemplateEntry::builder()
-                .entry_type("'CONFIRM_DISBURSAL_PENDING_DR'")
-                .currency("'USD'")
                 .account_id("params.facility_disbursed_receivable_account")
-                .direction("DEBIT")
-                .layer("PENDING")
                 .units("params.disbursed_amount")
+                .currency("'USD'")
+                .entry_type("'CONFIRM_DISBURSAL_SETTLED_DR'")
+                .direction("DEBIT")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'CONFIRM_DISBURSAL_PENDING_CR'")
-                .currency("'USD'")
                 .account_id("params.checking_account")
-                .direction("CREDIT")
-                .layer("PENDING")
                 .units("params.disbursed_amount")
+                .currency("'USD'")
+                .entry_type("'CONFIRM_DISBURSAL_SETTLED_CR'")
+                .direction("CREDIT")
+                .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
         ];

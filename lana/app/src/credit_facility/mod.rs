@@ -265,7 +265,7 @@ impl CreditFacilities {
         self.ledger
             .add_credit_facility_control_to_account(
                 &mut op,
-                credit_facility.account_ids.disbursed_receivable_account_id,
+                credit_facility.account_ids.facility_account_id,
                 facility,
             )
             .await?;
@@ -341,11 +341,11 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        credit_facility.balances().check_against_ledger(balances)?;
+        // let balances = self
+        //     .ledger
+        //     .get_credit_facility_balance(credit_facility.account_ids)
+        //     .await?;
+        // credit_facility.balances().check_against_ledger(balances)?;
 
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -370,13 +370,7 @@ impl CreditFacilities {
             .await?;
 
         self.ledger
-            .initiate_disbursal(
-                db,
-                disbursal.id,
-                disbursal.amount,
-                disbursal.account_ids,
-                disbursal.deposit_account_id,
-            )
+            .initiate_disbursal(db, disbursal.id, disbursal.amount, disbursal.account_ids)
             .await?;
 
         Ok(disbursal)

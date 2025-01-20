@@ -156,12 +156,7 @@ impl ApproveDisbursal {
                     es_entity::DbOp::new(tx.begin().await?, now)
                 };
                 self.ledger
-                    .cancel_disbursal(
-                        sub_op,
-                        disbursal.amount,
-                        disbursal.account_ids,
-                        disbursal.deposit_account_id,
-                    )
+                    .cancel_disbursal(sub_op, disbursal.amount, disbursal.account_ids)
                     .await?;
                 let mut db = es_entity::DbOp::new(tx, now);
                 self.credit_facility_repo

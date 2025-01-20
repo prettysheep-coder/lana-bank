@@ -402,7 +402,6 @@ impl CreditLedger {
         op: es_entity::DbOp<'_>,
         amount: UsdCents,
         credit_facility_account_ids: CreditFacilityAccountIds,
-        debit_account_id: impl Into<AccountId>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
@@ -416,9 +415,6 @@ impl CreditLedger {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.credit_omnibus_account,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
-                    facility_disbursed_receivable_account: credit_facility_account_ids
-                        .disbursed_receivable_account_id,
-                    checking_account: debit_account_id.into(),
                     disbursed_amount: amount.to_usd(),
                 },
             )
@@ -433,7 +429,6 @@ impl CreditLedger {
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_facility_account_ids: CreditFacilityAccountIds,
-        debit_account_id: impl Into<AccountId>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
@@ -445,9 +440,6 @@ impl CreditLedger {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.credit_omnibus_account,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
-                    facility_disbursed_receivable_account: credit_facility_account_ids
-                        .disbursed_receivable_account_id,
-                    checking_account: debit_account_id.into(),
                     disbursed_amount: amount.to_usd(),
                 },
             )
