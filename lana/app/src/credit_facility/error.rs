@@ -50,8 +50,6 @@ pub enum CreditFacilityError {
     InterestAccrualNotCompletedYet,
     #[error("CreditFacilityError - NoDisbursalInProgress")]
     NoDisbursalInProgress,
-    #[error("CreditFacilityError - DisbursalInProgress")]
-    DisbursalInProgress,
     #[error("CreditFacilityError - CollateralNotUpdated: before({0}), after({1})")]
     CollateralNotUpdated(Satoshis, Satoshis),
     #[error("CreditFacilityError - NoCollateral")]

@@ -92,12 +92,9 @@ impl ActivateCreditFacility {
             .did_execute();
 
         if let Ok(DisbursalResult::Confirmed(data)) = disbursal.record(now, audit_info.clone()) {
-            credit_facility.confirm_disbursal(
-                &disbursal,
-                Some(data.tx_id),
-                now,
-                audit_info.clone(),
-            );
+            credit_facility
+                .disbursal_concluded(&disbursal, Some(data.tx_id), now, audit_info.clone())
+                .did_execute();
         }
 
         self.disbursal_repo

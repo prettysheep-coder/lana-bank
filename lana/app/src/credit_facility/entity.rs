@@ -53,6 +53,7 @@ pub enum CreditFacilityEvent {
     DisbursalConcluded {
         idx: DisbursalIdx,
         tx_id: Option<LedgerTxId>,
+        canceled: bool,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -571,10 +572,6 @@ impl CreditFacility {
             }
         }
 
-        if self.is_disbursal_in_progress() {
-            return Err(CreditFacilityError::DisbursalInProgress);
-        }
-
         self.projected_cvl_data_for_disbursal(amount)
             .cvl(price)
             .check_disbursal_allowed(self.terms)?;
@@ -612,32 +609,29 @@ impl CreditFacility {
             .expect("could not build new disbursal"))
     }
 
-    pub(super) fn confirm_disbursal(
+    pub(super) fn disbursal_concluded(
         &mut self,
         disbursal: &Disbursal,
         tx_id: Option<LedgerTxId>,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) {
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events().iter_all(),
+            CreditFacilityEvent::DisbursalConcluded {
+                idx,
+                ..
+            } if idx == &disbursal.idx
+        );
+
         self.events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: disbursal.idx,
             recorded_at: executed_at,
             tx_id,
+            canceled: tx_id.is_none(),
             audit_info,
         });
-    }
-
-    fn is_disbursal_in_progress(&self) -> bool {
-        for event in self.events.iter_all().rev() {
-            if let CreditFacilityEvent::DisbursalInitiated { .. } = event {
-                return true;
-            }
-            if let CreditFacilityEvent::DisbursalConcluded { .. } = event {
-                return false;
-            }
-        }
-
-        false
+        Idempotent::Executed(())
     }
 
     fn next_interest_accrual_period(&self) -> Result<Option<InterestPeriod>, CreditFacilityError> {
@@ -1325,20 +1319,11 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        assert!(matches!(
-            facility_from(events.clone()).initiate_disbursal(
-                UsdCents::ONE,
-                Utc::now(),
-                default_price(),
-                None,
-                dummy_audit_info()
-            ),
-            Err(CreditFacilityError::DisbursalInProgress)
-        ));
 
         events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: first_idx,
             tx_id: Some(LedgerTxId::new()),
+            canceled: false,
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
@@ -1394,6 +1379,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: Some(LedgerTxId::new()),
+                canceled: false,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -1430,6 +1416,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: Some(LedgerTxId::new()),
+                canceled: false,
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
@@ -1463,6 +1450,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: Some(LedgerTxId::new()),
+                canceled: false,
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
@@ -1554,6 +1542,7 @@ mod test {
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
                 tx_id: Some(LedgerTxId::new()),
+                canceled: false,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -2007,12 +1996,14 @@ mod test {
             if let Ok(DisbursalResult::Confirmed(data)) =
                 disbursal.record(facility_activated_at, dummy_audit_info())
             {
-                credit_facility.confirm_disbursal(
-                    &disbursal,
-                    Some(data.tx_id),
-                    facility_activated_at,
-                    dummy_audit_info(),
-                );
+                credit_facility
+                    .disbursal_concluded(
+                        &disbursal,
+                        Some(data.tx_id),
+                        facility_activated_at,
+                        dummy_audit_info(),
+                    )
+                    .did_execute();
             }
 
             let mut accrual_data: Option<InterestAccrualData> = None;

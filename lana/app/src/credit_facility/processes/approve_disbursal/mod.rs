@@ -104,7 +104,7 @@ impl ApproveDisbursal {
             .find_by_id(disbursal.facility_id)
             .await?;
 
-        let executed_at = crate::time::now();
+        let executed_at = db.now();
         let disbursal_audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -123,12 +123,14 @@ impl ApproveDisbursal {
         match disbursal.record(executed_at, disbursal_audit_info.clone())? {
             DisbursalResult::Confirmed(disbursal_data) => {
                 span.record("disbursal_executed", true);
-                credit_facility.confirm_disbursal(
-                    &disbursal,
-                    Some(disbursal_data.tx_id),
-                    executed_at,
-                    disbursal_audit_info,
-                );
+                credit_facility
+                    .disbursal_concluded(
+                        &disbursal,
+                        Some(disbursal_data.tx_id),
+                        executed_at,
+                        disbursal_audit_info,
+                    )
+                    .did_execute();
 
                 self.ledger
                     .confirm_disbursal(sub_op, disbursal_data.clone())
@@ -145,12 +147,9 @@ impl ApproveDisbursal {
             }
             DisbursalResult::Cancelled(data) => {
                 span.record("disbursal_executed", false);
-                credit_facility.confirm_disbursal(
-                    &disbursal,
-                    None,
-                    executed_at,
-                    disbursal_audit_info,
-                );
+                credit_facility
+                    .disbursal_concluded(&disbursal, None, executed_at, disbursal_audit_info)
+                    .did_execute();
 
                 self.ledger.cancel_disbursal(sub_op, data).await?;
 
