@@ -1,0 +1,7 @@
+version: 2
+
+sources:
+  - name: lana
+    dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
+    tables:
+      - name: public_credit_facility_events_view
