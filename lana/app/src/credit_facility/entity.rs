@@ -505,12 +505,15 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn activation_data(
-        &self,
+    pub(super) fn activate(
+        &mut self,
+        activated_at: DateTime<Utc>,
         price: PriceOfOneBTC,
-    ) -> Result<CreditFacilityActivation, CreditFacilityError> {
+        audit_info: AuditInfo,
+    ) -> Result<Idempotent<(CreditFacilityActivation, NewAccrualPeriods)>, CreditFacilityError>
+    {
         if self.is_activated() {
-            return Err(CreditFacilityError::AlreadyActivated);
+            return Ok(Idempotent::AlreadyApplied);
         }
 
         if !self.is_approval_process_concluded() {
@@ -529,29 +532,9 @@ impl CreditFacility {
             .cvl(price)
             .check_approval_allowed(self.terms)?;
 
-        Ok(CreditFacilityActivation {
-            tx_id: LedgerTxId::new(),
-            tx_ref: format!("{}-activate", self.id),
-            credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.deposit_account_id.into(),
-            facility_amount: self.initial_facility(),
-            structuring_fee_amount: self.structuring_fee(),
-        })
-    }
-
-    pub(super) fn activate(
-        &mut self,
-        CreditFacilityActivation { tx_id, .. }: CreditFacilityActivation,
-        activated_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    ) -> Idempotent<NewAccrualPeriods> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            CreditFacilityEvent::Activated { .. }
-        );
-
         self.activated_at = Some(activated_at);
         self.expires_at = Some(self.terms.duration.expiration_date(activated_at));
+        let tx_id = LedgerTxId::new();
         self.events.push(CreditFacilityEvent::Activated {
             ledger_tx_id: tx_id,
             activated_at,
@@ -562,8 +545,16 @@ impl CreditFacility {
             .start_interest_accrual(audit_info)
             .expect("first accrual")
             .expect("first accrual");
+        let activation = CreditFacilityActivation {
+            tx_id,
+            tx_ref: format!("{}-activate", self.id),
+            credit_facility_account_ids: self.account_ids,
+            debit_account_id: self.deposit_account_id.into(),
+            facility_amount: self.initial_facility(),
+            structuring_fee_amount: self.structuring_fee(),
+        };
 
-        Idempotent::Executed(periods)
+        Ok(Idempotent::Executed((activation, periods)))
     }
 
     pub(super) fn initiate_disbursal(
@@ -1749,10 +1740,10 @@ mod test {
         credit_facility
             .approval_process_concluded(true, dummy_audit_info())
             .unwrap();
-        let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
 
         assert!(credit_facility
-            .activate(credit_facility_approval, approval_time, dummy_audit_info())
+            .activate(approval_time, default_price(), dummy_audit_info())
+            .unwrap()
             .did_execute());
         assert_eq!(credit_facility.activated_at, Some(approval_time));
         assert!(credit_facility.expires_at.is_some())
@@ -1768,9 +1759,9 @@ mod test {
                 audit_info: dummy_audit_info(),
             }
         });
-        let credit_facility = facility_from(events);
-
-        let res = credit_facility.activation_data(default_price());
+        let mut credit_facility = facility_from(events);
+        let approval_time = Utc::now();
+        let res = credit_facility.activate(approval_time, default_price(), dummy_audit_info());
         assert!(matches!(res, Err(CreditFacilityError::NoCollateral)));
     }
 
@@ -1790,11 +1781,9 @@ mod test {
         credit_facility
             .approval_process_concluded(true, dummy_audit_info())
             .unwrap();
-        let first_approval = credit_facility.activation_data(default_price());
-        assert!(matches!(
-            first_approval,
-            Err(CreditFacilityError::BelowMarginLimit)
-        ));
+        let approval_time = Utc::now();
+        let res = credit_facility.activate(approval_time, default_price(), dummy_audit_info());
+        assert!(matches!(res, Err(CreditFacilityError::BelowMarginLimit)));
     }
 
     #[test]
@@ -1820,9 +1809,9 @@ mod test {
         credit_facility
             .approval_process_concluded(true, dummy_audit_info())
             .unwrap();
-        let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
         assert!(credit_facility
-            .activate(credit_facility_approval, Utc::now(), dummy_audit_info())
+            .activate(Utc::now(), default_price(), dummy_audit_info())
+            .unwrap()
             .did_execute());
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
     }
@@ -1834,14 +1823,14 @@ mod test {
         assert_eq!(credit_facility.structuring_fee(), expected_fee);
     }
 
-    mod activation_data {
+    mod activate {
         use super::*;
 
         #[test]
         fn errors_when_not_approved_yet() {
-            let credit_facility = facility_from(initial_events());
+            let mut credit_facility = facility_from(initial_events());
             assert!(matches!(
-                credit_facility.activation_data(default_price()),
+                credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
                 Err(CreditFacilityError::ApprovalInProgress)
             ));
         }
@@ -1854,10 +1843,10 @@ mod test {
                 approved: false,
                 audit_info: dummy_audit_info(),
             });
-            let credit_facility = facility_from(events);
+            let mut credit_facility = facility_from(events);
 
             assert!(matches!(
-                credit_facility.activation_data(default_price()),
+                credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
                 Err(CreditFacilityError::Denied)
             ));
         }
@@ -1870,10 +1859,10 @@ mod test {
                 approved: true,
                 audit_info: dummy_audit_info(),
             });
-            let credit_facility = facility_from(events);
+            let mut credit_facility = facility_from(events);
 
             assert!(matches!(
-                credit_facility.activation_data(default_price()),
+                credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
                 Err(CreditFacilityError::NoCollateral)
             ));
         }
@@ -1896,10 +1885,10 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
             ]);
-            let credit_facility = facility_from(events);
+            let mut credit_facility = facility_from(events);
 
             assert!(matches!(
-                credit_facility.activation_data(default_price()),
+                credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
                 Err(CreditFacilityError::BelowMarginLimit)
             ));
         }
@@ -1927,11 +1916,11 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
             ]);
-            let credit_facility = facility_from(events);
+            let mut credit_facility = facility_from(events);
 
             assert!(matches!(
-                credit_facility.activation_data(default_price()),
-                Err(CreditFacilityError::AlreadyActivated)
+                credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
+                Ok(Idempotent::AlreadyApplied)
             ));
         }
 
@@ -1954,9 +1943,11 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
             ]);
-            let credit_facility = facility_from(events);
+            let mut credit_facility = facility_from(events);
 
-            assert!(credit_facility.activation_data(default_price()).is_ok(),);
+            assert!(credit_facility
+                .activate(Utc::now(), default_price(), dummy_audit_info())
+                .is_ok());
         }
     }
 
@@ -1993,14 +1984,9 @@ mod test {
             credit_facility
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();
-            let credit_facility_approval =
-                credit_facility.activation_data(default_price()).unwrap();
             assert!(credit_facility
-                .activate(
-                    credit_facility_approval,
-                    facility_activated_at,
-                    dummy_audit_info(),
-                )
+                .activate(facility_activated_at, default_price(), dummy_audit_info(),)
+                .unwrap()
                 .did_execute());
             hydrate_accruals_in_facility(&mut credit_facility);
 

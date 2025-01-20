@@ -38,8 +38,6 @@ pub enum CreditFacilityError {
     CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("CreditFacilityError - UserError: '{0}'")]
     UserError(#[from] crate::user::error::UserError),
-    #[error("CreditFacilityError - AlreadyActivated")]
-    AlreadyActivated,
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
