@@ -21,12 +21,17 @@ plugins:
     pip_url: git+https://github.com/MeltanoLabs/tap-postgres.git
     select:
     - public-*.*
+    config:
+      json_as_object: true
+      flattening_enabled: true
+      flattening_max_depth: 10
   loaders:
   - name: target-bigquery
     variant: z3z1ma
     pip_url: git+https://github.com/z3z1ma/target-bigquery.git
     config:
       project: lana-dev-440721
+      generate_view: true
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
