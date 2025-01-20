@@ -515,7 +515,6 @@ impl CreditLedger {
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         account_id: impl Into<AccountId>,
-        disbursal_limit: UsdCents,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .velocities()
@@ -523,9 +522,7 @@ impl CreditLedger {
                 op,
                 self.credit_facility_control_id,
                 account_id.into(),
-                velocity::DisbursalLimitParams {
-                    disbursal_limit: disbursal_limit.to_usd(),
-                },
+                cala_ledger::tx_template::Params::default(),
             )
             .await?;
 
