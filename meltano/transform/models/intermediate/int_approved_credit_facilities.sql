@@ -1,151 +1,210 @@
-WITH approved AS (
+with approved as (
 
-	SELECT DISTINCT id AS credit_facility_id
+    select distinct id as credit_facility_id
 
-	FROM {{ ref('stg_credit_facility_events') }}
+    from {{ ref('stg_credit_facility_events') }}
 
-	WHERE event_type = "approval_process_concluded"
-	AND JSON_VALUE(event, "$.approved") = 'true'
+    where
+        event_type = "approval_process_concluded"
+        and json_value(event, "$.approved") = "true"
 
-), initial AS (
+),
 
-	SELECT DISTINCT id AS credit_facility_id
-		, CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
-		, recorded_at AS initialized_at
-		, CASE
-			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
-			THEN TIMESTAMP_ADD(
-				DATE(recorded_at),
-				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
-			)
-		END AS end_date
-		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
-		, JSON_VALUE(event, "$.terms.incurrence_interval.type") AS incurrence_interval
-		, JSON_VALUE(event, "$.terms.accrual_interval.type") AS accrual_interval
-		, JSON_VALUE(event, "$.customer_id") AS customer_id
-		, JSON_VALUE(event, "$.customer_account_ids.on_balance_sheet_deposit_account_id") AS on_balance_sheet_deposit_account_id
-		, JSON_VALUE(event, "$.account_ids.collateral_account_id") AS collateral_account_id
-		, JSON_VALUE(event, "$.account_ids.disbursed_receivable_account_id") AS disbursed_receivable_account_id
-		, JSON_VALUE(event, "$.account_ids.facility_account_id") AS facility_account_id
-		, JSON_VALUE(event, "$.account_ids.fee_income_account_id") AS fee_income_account_id
-		, JSON_VALUE(event, "$.account_ids.interest_account_id") AS interest_account_id
-		, JSON_VALUE(event, "$.account_ids.interest_receivable_account_id") AS interest_receivable_account_id
+initial as (
 
-	FROM {{ ref('stg_credit_facility_events') }}
+    select distinct
+        id as credit_facility_id,
+        cast(json_value(event, "$.facility") as numeric) as facility,
+        recorded_at as initialized_at,
+        cast(json_value(event, "$.terms.annual_rate") as numeric)
+            as annual_rate,
+        case
+            when json_value(event, "$.terms.duration.type") = "months"
+                then timestamp_add(
+                    date(recorded_at),
+                    interval cast(
+                        json_value(event, "$.terms.duration.value") as integer
+                    ) month
+                )
+        end as end_date,
+        json_value(event, "$.terms.incurrence_interval.type")
+            as incurrence_interval,
+        json_value(event, "$.terms.accrual_interval.type") as accrual_interval,
+        json_value(event, "$.customer_id") as customer_id,
+        json_value(
+            event, "$.customer_account_ids.on_balance_sheet_deposit_account_id"
+        ) as on_balance_sheet_deposit_account_id,
+        json_value(event, "$.account_ids.collateral_account_id")
+            as collateral_account_id,
+        json_value(event, "$.account_ids.disbursed_receivable_account_id")
+            as disbursed_receivable_account_id,
+        json_value(event, "$.account_ids.facility_account_id")
+            as facility_account_id,
+        json_value(event, "$.account_ids.fee_income_account_id")
+            as fee_income_account_id,
+        json_value(event, "$.account_ids.interest_account_id")
+            as interest_account_id,
+        json_value(event, "$.account_ids.interest_receivable_account_id")
+            as interest_receivable_account_id
 
-	WHERE event_type = "initialized"
+    from {{ ref('stg_credit_facility_events') }}
 
-), payments AS (
+    where event_type = "initialized"
 
-	SELECT id AS credit_facility_id
-		, SUM(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC)) AS total_interest_paid
-		, SUM(CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC)) AS total_disbursement_paid
-		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_interest_payment_timestamp
-		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_disbursement_payment_timestamp
+),
 
-	FROM {{ ref('stg_credit_facility_events') }}
+payments as (
 
-	WHERE event_type = "payment_recorded"
+    select
+        id as credit_facility_id,
+        sum(cast(json_value(event, "$.interest_amount") as numeric))
+            as total_interest_paid,
+        sum(cast(json_value(event, "$.disbursement_amount") as numeric))
+            as total_disbursement_paid,
+        max(
+            if(
+                coalesce(
+                    cast(json_value(event, "$.interest_amount") as numeric), 0
+                )
+                > 0,
+                recorded_at,
+                null
+            )
+        ) as most_recent_interest_payment_timestamp,
+        max(
+            if(
+                coalesce(
+                    cast(json_value(event, "$.disbursement_amount") as numeric),
+                    0
+                )
+                > 0,
+                recorded_at,
+                null
+            )
+        ) as most_recent_disbursement_payment_timestamp
 
-	GROUP BY credit_facility_id
+    from {{ ref('stg_credit_facility_events') }}
 
-), interest AS (
+    where event_type = "payment_recorded"
 
-	SELECT id AS credit_facility_id
-		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_interest_incurred
+    group by credit_facility_id
 
-	FROM {{ ref('stg_credit_facility_events') }}
+),
 
-	WHERE event_type = "interest_accrual_concluded"
+interest as (
 
-	GROUP BY credit_facility_id
+    select
+        id as credit_facility_id,
+        sum(cast(json_value(event, "$.amount") as numeric))
+            as total_interest_incurred
 
-), collateral AS (
+    from {{ ref('stg_credit_facility_events') }}
 
-	SELECT id AS credit_facility_id
-		, CAST(
-			JSON_VALUE(
-				ANY_VALUE(event HAVING MAX recorded_at),
-				"$.total_collateral"
-			)
-		AS NUMERIC) AS total_collateral
+    where event_type = "interest_accrual_concluded"
 
-	FROM {{ ref('stg_credit_facility_events') }}
+    group by credit_facility_id
 
-	WHERE event_type = "collateral_updated"
+),
 
-	GROUP BY credit_facility_id
+collateral as (
 
-), collateral_deposits AS (
+    select
+        id as credit_facility_id,
+        cast(
+            json_value(
+                any_value(event having max recorded_at),
+                "$.total_collateral"
+            )
+            as numeric
+        ) as total_collateral
 
-	SELECT id AS credit_facility_id
-		, PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E6SZ',
-			JSON_VALUE(
-				ANY_VALUE(event HAVING MAX recorded_at),
-				"$.recorded_at"
-			),
-			"UTC"
-		) AS most_recent_collateral_deposit
+    from {{ ref('stg_credit_facility_events') }}
 
-	FROM {{ ref('stg_credit_facility_events') }}
+    where event_type = "collateral_updated"
 
-	WHERE event_type = "collateral_updated"
-		AND JSON_VALUE(event, "$.action") = "Add"
+    group by credit_facility_id
 
-	GROUP BY credit_facility_id
+),
 
-), disbursements AS (
+collateral_deposits as (
 
-	SELECT id AS credit_facility_id
-		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_disbursed
+    select
+        id as credit_facility_id,
+        parse_timestamp(
+            "%Y-%m-%dT%H:%M:%E6SZ",
+            json_value(
+                any_value(event having max recorded_at),
+                "$.recorded_at"
+            ),
+            "UTC"
+        ) as most_recent_collateral_deposit
 
-	FROM {{ ref('stg_credit_facility_events') }}
+    from {{ ref('stg_credit_facility_events') }}
 
-	WHERE event_type = "disbursal_initiated"
+    where
+        event_type = "collateral_updated"
+        and json_value(event, "$.action") = "Add"
 
-	GROUP BY credit_facility_id
+    group by credit_facility_id
 
-), completed AS (
+),
 
-	SELECT DISTINCT id AS credit_facility_id,
+disbursements as (
 
-	FROM {{ ref('stg_credit_facility_events') }}
+    select
+        id as credit_facility_id,
+        sum(cast(json_value(event, "$.amount") as numeric)) as total_disbursed
 
-	WHERE event_type = "completed"
+    from {{ ref('stg_credit_facility_events') }}
+
+    where event_type = "disbursal_initiated"
+
+    group by credit_facility_id
+
+),
+
+completed as (
+
+    select distinct id as credit_facility_id
+
+    from {{ ref('stg_credit_facility_events') }}
+
+    where event_type = "completed"
 
 )
 
-SELECT credit_facility_id
-	, ROW_NUMBER() OVER() AS credit_facility_key
-	, initialized_at
-	, end_date
-	, incurrence_interval
-	, accrual_interval
-	, most_recent_interest_payment_timestamp
-	, most_recent_disbursement_payment_timestamp
-	, annual_rate
-	, COALESCE(facility, 0) AS facility
-	, COALESCE(total_interest_paid, 0) AS total_interest_paid
-	, COALESCE(total_disbursement_paid, 0) AS total_disbursement_paid
-	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
-	, COALESCE(total_collateral, 0) AS total_collateral
-	, customer_id
-	, on_balance_sheet_deposit_account_id
-	, collateral_account_id
-	, disbursed_receivable_account_id
-	, facility_account_id
-	, fee_income_account_id
-	, interest_account_id
-	, interest_receivable_account_id
-	, most_recent_collateral_deposit
-	, COALESCE(total_disbursed, 0) AS total_disbursed
-	, completed.credit_facility_id IS NOT NULL AS completed
+select
+    credit_facility_id,
+    initialized_at,
+    end_date,
+    incurrence_interval,
+    accrual_interval,
+    most_recent_interest_payment_timestamp,
+    most_recent_disbursement_payment_timestamp,
+    annual_rate,
+    customer_id,
+    on_balance_sheet_deposit_account_id,
+    collateral_account_id,
+    disbursed_receivable_account_id,
+    facility_account_id,
+    fee_income_account_id,
+    interest_account_id,
+    interest_receivable_account_id,
+    most_recent_collateral_deposit,
+    row_number() over () as credit_facility_key,
+    coalesce(facility, 0) as facility,
+    coalesce(total_interest_paid, 0) as total_interest_paid,
+    coalesce(total_disbursement_paid, 0) as total_disbursement_paid,
+    coalesce(total_interest_incurred, 0) as total_interest_incurred,
+    coalesce(total_collateral, 0) as total_collateral,
+    coalesce(total_disbursed, 0) as total_disbursed,
+    completed.credit_facility_id is not null as completed
 
-FROM approved
-	JOIN initial USING (credit_facility_id)
-	LEFT JOIN payments USING (credit_facility_id)
-	LEFT JOIN interest USING (credit_facility_id)
-	LEFT JOIN collateral USING (credit_facility_id)
-	LEFT JOIN collateral_deposits USING (credit_facility_id)
-	LEFT JOIN disbursements USING (credit_facility_id)
-	LEFT JOIN completed USING (credit_facility_id)
+from approved
+inner join initial on approved.credit_facility_id = initial.credit_facility_id
+left join payments using (credit_facility_id)
+left join interest using (credit_facility_id)
+left join collateral using (credit_facility_id)
+left join collateral_deposits using (credit_facility_id)
+left join disbursements using (credit_facility_id)
+left join completed using (credit_facility_id)

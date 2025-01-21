@@ -1,7 +1,6 @@
+select
+    id as account_set_id,
+    set_name,
+    row_number() over () as set_key
 
-SELECT
-	id AS account_set_id,
-	ROW_NUMBER() OVER() AS set_key,
-	name AS set_name,
-
-FROM {{ ref('stg_account_sets') }}
+from {{ ref('stg_account_sets') }}

@@ -1,14 +1,15 @@
+select
+    account_set_id,
+    member_account_id as member_id,
+    "Account" as member_type
 
-SELECT account_set_id,
-	member_account_id AS member_id,
-	"Account" AS member_type
+from {{ ref('stg_account_set_member_accounts') }}
 
-FROM {{ ref('stg_account_set_member_accounts') }}
+union all
 
-UNION ALL
+select
+    account_set_id,
+    member_account_id as member_id,
+    "AccountSet" as member_type
 
-SELECT account_set_id,
-	member_account_id AS member_id,
-	"AccountSet" AS member_type
-
-FROM {{ ref('stg_account_set_member_accounts') }}
+from {{ ref('stg_account_set_member_accounts') }}

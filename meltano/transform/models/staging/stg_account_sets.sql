@@ -1,8 +1,7 @@
+select
+    id,
+    journal_id,
+    name as account_name,
+    created_at
 
-SELECT
-	id,
-	journal_id
-	name,
-	created_at,
-
-FROM {{ source("lana", "public_cala_account_sets_view") }}
+from {{ source("lana", "public_cala_account_sets_view") }}

@@ -1,34 +1,46 @@
-WITH RECURSIVE account_set_members AS (
+with recursive account_set_members as (
 
-	SELECT DISTINCT
-		account_set_id,
-		member_id,
-		member_type,
+    select distinct
+        account_set_id,
+        member_id,
+        member_type
 
-	FROM {{ ref('int_account_set_members') }}
+    from {{ ref('int_account_set_members') }}
 
-), account_set_members_expanded AS (
+),
 
-	SELECT account_set_id, member_id, member_type,
-		[account_set_id] AS set_hierarchy,
-	FROM account_set_members
+account_set_members_expanded as (
 
-	UNION ALL
+    select
+        account_set_id,
+        member_id,
+        member_type,
+        [account_set_id] as set_hierarchy
+    from account_set_members
 
-	SELECT l.account_set_id, r.member_id, r.member_type,
-		ARRAY_CONCAT(l.set_hierarchy, [r.account_set_id]) AS set_hierarchy,
-	FROM account_set_members_expanded l
-		LEFT JOIN	account_set_members r
-			ON l.member_id = r.account_set_id
-	WHERE l.member_type = 'AccountSet'
+    union all
+
+    select
+        l.account_set_id,
+        r.member_id,
+        r.member_type,
+        array_concat(l.set_hierarchy, [r.account_set_id]) as set_hierarchy
+    from account_set_members_expanded as l
+    left join account_set_members as r
+        on l.member_id = r.account_set_id
+    where l.member_type = 'AccountSet'
 
 )
 
-SELECT account_set_id, member_id, member_type,
-	ANY_VALUE(set_hierarchy HAVING MAX ARRAY_LENGTH(set_hierarchy)) AS set_hierarchy,
+select
+    account_set_id,
+    member_id,
+    member_type,
+    any_value(set_hierarchy having max array_length(set_hierarchy))
+        as set_hierarchy
 
-FROM account_set_members_expanded
+from account_set_members_expanded
 
-WHERE member_id IS NOT NULL
+where member_id is not null
 
-GROUP BY account_set_id, member_id, member_type
+group by account_set_id, member_id, member_type

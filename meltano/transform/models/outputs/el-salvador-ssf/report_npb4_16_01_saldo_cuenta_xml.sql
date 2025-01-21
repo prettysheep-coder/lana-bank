@@ -1,6 +1,6 @@
-SELECT
-		RIGHT(id_codigo_cuenta, 10) AS id_codigo_cuenta,
-		LEFT(nom_cuenta, 80) AS nom_cuenta,
-		FORMAT('%.2f', ROUND(valor, 2)) AS valor,
+select
+    right(id_codigo_cuenta, 10) as id_codigo_cuenta,
+    left(nom_cuenta, 80) as nom_cuenta,
+    format('%.2f', round(valor, 2)) as valor
 
-FROM {{ ref('int_npb4_16_01_saldo_cuenta_xml_raw') }}
+from {{ ref('int_npb4_16_01_saldo_cuenta_xml_raw') }}

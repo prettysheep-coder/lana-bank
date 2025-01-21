@@ -1,73 +1,94 @@
-WITH all_accounts AS (
+with all_accounts as (
 
-	SELECT
-		id AS account_id,
-		name AS account_name,
-		normal_balance_type,
-		code AS account_code,
-		LAX_BOOL(PARSE_JSON(JSON_VALUE(latest_values, "$.config.is_account_set"))) AS is_account_set,
+    select
+        id as account_id,
+        name as account_name,
+        normal_balance_type,
+        code as account_code,
+        lax_bool(
+            parse_json(json_value(latest_values, "$.config.is_account_set"))
+        ) as is_account_set
 
-	FROM {{ ref('stg_accounts') }}
+    from {{ ref('stg_accounts') }}
 
-), credit_facilities AS (
+),
 
-	SELECT DISTINCT credit_facility_key,
-		collateral_account_id,
-		disbursed_receivable_account_id,
-		facility_account_id,
-		fee_income_account_id,
-		interest_account_id,
-		interest_receivable_account_id,
+credit_facilities as (
 
-	FROM {{ ref('int_approved_credit_facilities') }}
+    select distinct
+        credit_facility_key,
+        collateral_account_id,
+        disbursed_receivable_account_id,
+        facility_account_id,
+        fee_income_account_id,
+        interest_account_id,
+        interest_receivable_account_id
 
-), credit_facility_accounts AS (
+    from {{ ref('int_approved_credit_facilities') }}
 
-	SELECT DISTINCT credit_facility_key,
-		collateral_account_id AS account_id,
-		"collateral_account" AS account_type,
-	FROM credit_facilities
+),
 
-	UNION DISTINCT
+credit_facility_accounts as (
 
-	SELECT DISTINCT credit_facility_key,
-		disbursed_receivable_account_id AS account_id,
-		"disbursed_receivable_account" AS account_type,
-	FROM credit_facilities
+    select distinct
+        credit_facility_key,
+        collateral_account_id as account_id,
+        "collateral_account" as account_type
+    from credit_facilities
 
-	UNION DISTINCT
+    union distinct
 
-	SELECT DISTINCT credit_facility_key,
-		facility_account_id AS account_id,
-		"facility_account" AS account_type,
-	FROM credit_facilities
+    select distinct
+        credit_facility_key,
+        disbursed_receivable_account_id as account_id,
+        "disbursed_receivable_account" as account_type
+    from credit_facilities
 
-	UNION DISTINCT
+    union distinct
 
-	SELECT DISTINCT credit_facility_key,
-		fee_income_account_id AS account_id,
-		"fee_income_account" AS account_type,
-	FROM credit_facilities
+    select distinct
+        credit_facility_key,
+        facility_account_id as account_id,
+        "facility_account" as account_type
+    from credit_facilities
 
-	UNION DISTINCT
+    union distinct
 
-	SELECT DISTINCT credit_facility_key,
-		interest_account_id AS account_id,
-		"interest_account" AS account_type,
-	FROM credit_facilities
+    select distinct
+        credit_facility_key,
+        fee_income_account_id as account_id,
+        "fee_income_account" as account_type
+    from credit_facilities
 
-	UNION DISTINCT
+    union distinct
 
-	SELECT DISTINCT credit_facility_key,
-		interest_receivable_account_id AS account_id,
-		"interest_receivable_account" AS account_type,
-	FROM credit_facilities
+    select distinct
+        credit_facility_key,
+        interest_account_id as account_id,
+        "interest_account" as account_type
+    from credit_facilities
+
+    union distinct
+
+    select distinct
+        credit_facility_key,
+        interest_receivable_account_id as account_id,
+        "interest_receivable_account" as account_type
+    from credit_facilities
 
 )
 
-SELECT account_id, account_name, normal_balance_type, account_code, is_account_set,
-	credit_facility_key, account_type,
-	ROW_NUMBER() OVER() AS account_key,
+select
+    account_id,
+    account_name,
+    normal_balance_type,
+    account_code,
+    is_account_set,
+    credit_facility_key,
+    account_type,
+    row_number() over () as account_key
 
-FROM all_accounts
-LEFT JOIN credit_facility_accounts USING (account_id)
+from all_accounts
+left join
+    credit_facility_accounts
+    on all_accounts.account_id = credit_facility_accounts.account_id

@@ -1,9 +1,17 @@
-SELECT
-	JSON_VALUE(values, "$.account_id") AS account_id,
-	JSON_VALUE(values, "$.currency") AS currency,
-	CAST(JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.settled.cr_balance") AS NUMERIC) AS settled_cr,
-	CAST(JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.settled.dr_balance") AS NUMERIC) AS settled_dr,
+select
+    cast(
+        json_value(
+            any_value(values having max recorded_at), "$.settled.cr_balance"
+        ) as numeric
+    ) as settled_cr,
+    cast(
+        json_value(
+            any_value(values having max recorded_at), "$.settled.dr_balance"
+        ) as numeric
+    ) as settled_dr,
+    json_value(values, "$.account_id") as account_id,
+    json_value(values, "$.currency") as currency
 
-FROM {{ ref('stg_account_balances') }}
+from {{ ref('stg_account_balances') }}
 
-GROUP BY account_id, currency
+group by account_id, currency
