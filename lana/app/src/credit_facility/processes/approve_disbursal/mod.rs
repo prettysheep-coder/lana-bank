@@ -120,28 +120,25 @@ impl ApproveDisbursal {
             es_entity::DbOp::new(tx.begin().await?, now)
         };
 
-        credit_facility
-            .disbursal_concluded(
-                &disbursal,
-                Some(disbursal_data.tx_id),
-                executed_at,
-                disbursal_audit_info,
-            )
-            .did_execute();
+        if let Idempotent::Executed(_) = credit_facility.disbursal_concluded(
+            &disbursal,
+            Some(disbursal_data.tx_id),
+            executed_at,
+            disbursal_audit_info,
+        ) {
+            self.ledger
+                .conclude_disbursal(sub_op, disbursal_data)
+                .await?;
 
-        self.ledger
-            .conclude_disbursal(sub_op, disbursal_data)
-            .await?;
-
-        let mut db = es_entity::DbOp::new(tx, now);
-        self.disbursal_repo
-            .update_in_op(&mut db, &mut disbursal)
-            .await?;
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-        db.commit().await?;
-
+            let mut db = es_entity::DbOp::new(tx, now);
+            self.disbursal_repo
+                .update_in_op(&mut db, &mut disbursal)
+                .await?;
+            self.credit_facility_repo
+                .update_in_op(&mut db, &mut credit_facility)
+                .await?;
+            db.commit().await?;
+        }
         Ok(disbursal)
     }
 }
