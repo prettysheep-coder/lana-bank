@@ -6,10 +6,10 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-pub const CONFIRM_DISBURSAL_CODE: &str = "CONFIRM_DISBURSAL_CODE";
+pub const SETTLE_DISBURSAL_CODE: &str = "SETTLE_DISBURSAL_CODE";
 
 #[derive(Debug)]
-pub struct ConfirmDisbursalParams {
+pub struct SettleDisbursalParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
@@ -19,7 +19,7 @@ pub struct ConfirmDisbursalParams {
     pub external_id: String,
 }
 
-impl ConfirmDisbursalParams {
+impl SettleDisbursalParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -66,9 +66,9 @@ impl ConfirmDisbursalParams {
     }
 }
 
-impl From<ConfirmDisbursalParams> for Params {
+impl From<SettleDisbursalParams> for Params {
     fn from(
-        ConfirmDisbursalParams {
+        SettleDisbursalParams {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -76,7 +76,7 @@ impl From<ConfirmDisbursalParams> for Params {
             checking_account,
             disbursed_amount,
             external_id,
-        }: ConfirmDisbursalParams,
+        }: SettleDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -94,22 +94,22 @@ impl From<ConfirmDisbursalParams> for Params {
     }
 }
 
-pub struct ConfirmDisbursal;
+pub struct SettleDisbursal;
 
-impl ConfirmDisbursal {
-    #[instrument(name = "ledger.confirm_disbursal.init", skip_all)]
+impl SettleDisbursal {
+    #[instrument(name = "ledger.settle_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .description("'Confirm a disbursal'")
+            .description("'Settle a disbursal'")
             .build()
             .expect("Couldn't build TxInput");
 
         let entries = vec![
             // Reverse pending entries
             NewTxTemplateEntry::builder()
-                .entry_type("'CONFIRM_DISBURSAL_DRAWDOWN_PENDING_DR'")
+                .entry_type("'SETTLE_DISBURSAL_DRAWDOWN_PENDING_DR'")
                 .currency("'USD'")
                 .account_id("params.credit_omnibus_account")
                 .direction("DEBIT")
@@ -118,7 +118,7 @@ impl ConfirmDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'CONFIRM_DISBURSAL_DRAWDOWN_PENDING_CR'")
+                .entry_type("'SETTLE_DISBURSAL_DRAWDOWN_PENDING_CR'")
                 .currency("'USD'")
                 .account_id("params.credit_facility_account")
                 .direction("CREDIT")
@@ -131,7 +131,7 @@ impl ConfirmDisbursal {
                 .account_id("params.facility_disbursed_receivable_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
-                .entry_type("'CONFIRM_DISBURSAL_SETTLED_DR'")
+                .entry_type("'SETTLE_DISBURSAL_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .build()
@@ -140,17 +140,17 @@ impl ConfirmDisbursal {
                 .account_id("params.checking_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
-                .entry_type("'CONFIRM_DISBURSAL_SETTLED_CR'")
+                .entry_type("'SETTLE_DISBURSAL_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
         ];
 
-        let params = ConfirmDisbursalParams::defs();
+        let params = SettleDisbursalParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(CONFIRM_DISBURSAL_CODE)
+            .code(SETTLE_DISBURSAL_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

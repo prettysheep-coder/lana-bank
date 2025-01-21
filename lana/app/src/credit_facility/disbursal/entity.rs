@@ -10,8 +10,6 @@ use crate::{
     primitives::*,
 };
 
-use super::DisbursalError;
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DisbursalId")]
@@ -31,10 +29,9 @@ pub enum DisbursalEvent {
         approved: bool,
         audit_info: AuditInfo,
     },
-    Confirmed {
+    Settled {
         ledger_tx_id: LedgerTxId,
         audit_info: AuditInfo,
-        confirmed_at: DateTime<Utc>,
     },
     Cancelled {
         ledger_tx_id: LedgerTxId,
@@ -80,17 +77,12 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .deposit_account_id(*deposit_account_id)
                 }
                 DisbursalEvent::ApprovalProcessConcluded { .. } => (),
-                DisbursalEvent::Confirmed { .. } => (),
+                DisbursalEvent::Settled { .. } => (),
                 DisbursalEvent::Cancelled { .. } => (),
             }
         }
         builder.events(events).build()
     }
-}
-
-pub enum DisbursalResult {
-    Confirmed(DisbursalData),
-    Cancelled(DisbursalData),
 }
 
 impl Disbursal {
@@ -121,7 +113,7 @@ impl Disbursal {
         &mut self,
         approved: bool,
         audit_info: AuditInfo,
-    ) -> Idempotent<()> {
+    ) -> Idempotent<DisbursalData> {
         idempotency_guard!(
             self.events.iter_all(),
             DisbursalEvent::ApprovalProcessConcluded { .. }
@@ -129,9 +121,29 @@ impl Disbursal {
         self.events.push(DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: self.approval_process_id,
             approved,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
-        Idempotent::Executed(())
+        let tx_id = LedgerTxId::new();
+        let data = DisbursalData {
+            tx_ref: format!("disbursal-{}", self.id),
+            tx_id,
+            amount: self.amount,
+            cancelled: !approved,
+            credit_facility_account_ids: self.account_ids,
+            debit_account_id: self.deposit_account_id.into(),
+        };
+        if approved {
+            self.events.push(DisbursalEvent::Settled {
+                ledger_tx_id: tx_id,
+                audit_info,
+            });
+        } else {
+            self.events.push(DisbursalEvent::Cancelled {
+                ledger_tx_id: tx_id,
+                audit_info,
+            });
+        }
+        Idempotent::Executed(data)
     }
 
     pub(super) fn is_approved(&self) -> Option<bool> {
@@ -146,63 +158,11 @@ impl Disbursal {
     pub(super) fn is_confirmed(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
-                DisbursalEvent::Confirmed { .. } => return true,
+                DisbursalEvent::Settled { .. } => return true,
                 _ => continue,
             }
         }
         false
-    }
-    pub(super) fn is_cancelled(&self) -> bool {
-        for event in self.events.iter_all() {
-            match event {
-                DisbursalEvent::Cancelled { .. } => return true,
-                _ => continue,
-            }
-        }
-        false
-    }
-
-    pub fn record(
-        &mut self,
-        executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    ) -> Result<DisbursalResult, DisbursalError> {
-        if self.is_confirmed() {
-            return Err(DisbursalError::AlreadyConfirmed);
-        }
-
-        if self.is_cancelled() {
-            return Err(DisbursalError::AlreadyCancelled);
-        }
-
-        let tx_id = LedgerTxId::new();
-        let data = DisbursalData {
-            tx_ref: format!("disbursal-{}", self.id),
-            tx_id,
-            amount: self.amount,
-            credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.deposit_account_id.into(),
-        };
-        match self.is_approved() {
-            None => Err(DisbursalError::ApprovalInProgress),
-            Some(false) => {
-                self.events.push(DisbursalEvent::Cancelled {
-                    ledger_tx_id: LedgerTxId::new(),
-                    audit_info,
-                });
-
-                Ok(DisbursalResult::Cancelled(data))
-            }
-            Some(true) => {
-                self.events.push(DisbursalEvent::Confirmed {
-                    ledger_tx_id: LedgerTxId::new(),
-                    confirmed_at: executed_at,
-                    audit_info,
-                });
-
-                Ok(DisbursalResult::Confirmed(data))
-            }
-        }
     }
 }
 
@@ -243,98 +203,5 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 audit_info: self.audit_info,
             }],
         )
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::audit::AuditEntryId;
-
-    use super::*;
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
-
-    fn disbursal_from(events: Vec<DisbursalEvent>) -> Disbursal {
-        Disbursal::try_from_events(EntityEvents::init(DisbursalId::new(), events)).unwrap()
-    }
-
-    fn initial_events() -> Vec<DisbursalEvent> {
-        let id = DisbursalId::new();
-        vec![DisbursalEvent::Initialized {
-            id,
-            approval_process_id: id.into(),
-            facility_id: CreditFacilityId::new(),
-            idx: DisbursalIdx::FIRST,
-            amount: UsdCents::from(100_000),
-            account_ids: CreditFacilityAccountIds::new(),
-            deposit_account_id: DepositAccountId::new(),
-            audit_info: dummy_audit_info(),
-        }]
-    }
-
-    #[test]
-    fn errors_when_not_confirmed_yet() {
-        let mut disbursal = disbursal_from(initial_events());
-        assert!(matches!(
-            disbursal.record(Utc::now(), dummy_audit_info()),
-            Err(DisbursalError::ApprovalInProgress)
-        ));
-    }
-
-    #[test]
-    fn returns_cancelled_disbursal_result_when_denied() {
-        let mut events = initial_events();
-        events.push(DisbursalEvent::ApprovalProcessConcluded {
-            approval_process_id: ApprovalProcessId::new(),
-            approved: false,
-            audit_info: dummy_audit_info(),
-        });
-        let mut disbursal = disbursal_from(events);
-
-        assert!(matches!(
-            disbursal.record(Utc::now(), dummy_audit_info()).unwrap(),
-            DisbursalResult::Cancelled(_)
-        ));
-    }
-
-    #[test]
-    fn errors_if_already_confirmed() {
-        let mut events = initial_events();
-        events.extend([
-            DisbursalEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-                audit_info: dummy_audit_info(),
-            },
-            DisbursalEvent::Confirmed {
-                ledger_tx_id: LedgerTxId::new(),
-                confirmed_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-        let mut disbursal = disbursal_from(events);
-
-        assert!(matches!(
-            disbursal.record(Utc::now(), dummy_audit_info()),
-            Err(DisbursalError::AlreadyConfirmed)
-        ));
-    }
-
-    #[test]
-    fn can_confirm() {
-        let mut events = initial_events();
-        events.extend([DisbursalEvent::ApprovalProcessConcluded {
-            approval_process_id: ApprovalProcessId::new(),
-            approved: true,
-            audit_info: dummy_audit_info(),
-        }]);
-        let mut disbursal = disbursal_from(events);
-
-        assert!(disbursal.record(Utc::now(), dummy_audit_info()).is_ok(),);
     }
 }

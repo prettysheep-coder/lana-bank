@@ -1989,22 +1989,17 @@ mod test {
                 )
                 .unwrap();
             let mut disbursal = Disbursal::try_from_events(new_disbursal.into_events()).unwrap();
-            disbursal
+            let data = disbursal
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();
-
-            if let Ok(DisbursalResult::Confirmed(data)) =
-                disbursal.record(facility_activated_at, dummy_audit_info())
-            {
-                credit_facility
-                    .disbursal_concluded(
-                        &disbursal,
-                        Some(data.tx_id),
-                        facility_activated_at,
-                        dummy_audit_info(),
-                    )
-                    .did_execute();
-            }
+            credit_facility
+                .disbursal_concluded(
+                    &disbursal,
+                    Some(data.tx_id),
+                    facility_activated_at,
+                    dummy_audit_info(),
+                )
+                .unwrap();
 
             let mut accrual_data: Option<InterestAccrualData> = None;
             while accrual_data.is_none() {
