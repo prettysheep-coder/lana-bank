@@ -4,4 +4,9 @@ sources:
   - name: lana
     dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
+      - name: public_cala_balance_history_view
+      - name: public_cala_accounts_view
+      - name: public_cala_account_sets_view
+      - name: public_cala_account_set_member_accounts_view
+      - name: public_cala_account_set_member_account_sets_view
       - name: public_credit_facility_events_view
