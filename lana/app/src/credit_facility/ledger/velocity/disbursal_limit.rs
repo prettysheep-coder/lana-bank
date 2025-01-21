@@ -7,7 +7,7 @@ pub struct DisbursalLimit;
 const DISBURSAL_LIMIT_ID: uuid::Uuid = uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
 impl DisbursalLimit {
-    #[instrument(name = "ledger.overdraft_prevention.init", skip_all)]
+    #[instrument(name = "ledger.disbursal_limit.init", skip_all)]
     pub async fn init(
         ledger: &CalaLedger,
     ) -> Result<VelocityLimitId, crate::credit_facility::ledger::CreditLedgerError> {

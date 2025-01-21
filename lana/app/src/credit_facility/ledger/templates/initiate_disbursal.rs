@@ -71,7 +71,7 @@ impl From<InitiateDisbursalParams> for Params {
 pub struct InitiateDisbursal;
 
 impl InitiateDisbursal {
-    #[instrument(name = "ledger.initiate_credit_facility_disbursal.init", skip_all)]
+    #[instrument(name = "ledger.initiate_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
