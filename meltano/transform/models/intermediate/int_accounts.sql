@@ -91,4 +91,4 @@ select
 from all_accounts
 left join
     credit_facility_accounts
-    on all_accounts.account_id = credit_facility_accounts.account_id
+    using (account_id)

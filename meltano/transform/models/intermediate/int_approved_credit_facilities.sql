@@ -201,7 +201,7 @@ select
     completed.credit_facility_id is not null as completed
 
 from approved
-inner join initial on approved.credit_facility_id = initial.credit_facility_id
+inner join initial using (credit_facility_id)
 left join payments using (credit_facility_id)
 left join interest using (credit_facility_id)
 left join collateral using (credit_facility_id)
