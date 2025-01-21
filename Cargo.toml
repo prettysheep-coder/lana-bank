@@ -25,7 +25,7 @@ members = [
 
 [workspace.dependencies]
 es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
+sim-time =  { path = "../cala/lib/sim-time/" }
 cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # es-entity = "0.3.1"
 # sim-time = "0.3.1"
