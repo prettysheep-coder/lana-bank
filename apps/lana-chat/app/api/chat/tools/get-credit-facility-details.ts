@@ -1,90 +1,12 @@
+import { z } from "zod";
+import { tool } from "ai";
 import { gql } from "@apollo/client";
-
+import { getClient } from "../client";
 import {
-  CreditFacilitiesSort,
-  CreditFacilitiesFilter,
-  CreditFacilitiesQueryVariables,
-  CreditFacilitiesQuery,
-  CreditFacilitiesDocument,
-  GetCreditFacilityDetailsQueryVariables,
-  GetCreditFacilityDetailsQuery,
   GetCreditFacilityDetailsDocument,
+  GetCreditFacilityDetailsQuery,
+  GetCreditFacilityDetailsQueryVariables,
 } from "@/lib/graphql/generated";
-import { getClient } from "./client";
-
-gql`
-  query CreditFacilities(
-    $first: Int!
-    $after: String
-    $sort: CreditFacilitiesSort
-    $filter: CreditFacilitiesFilter
-  ) {
-    creditFacilities(
-      first: $first
-      after: $after
-      sort: $sort
-      filter: $filter
-    ) {
-      edges {
-        cursor
-        node {
-          id
-          creditFacilityId
-          collateralizationState
-          createdAt
-          status
-          facilityAmount
-          collateral
-          currentCvl {
-            disbursed
-            total
-          }
-          balance {
-            collateral {
-              btcBalance
-            }
-            outstanding {
-              usdBalance
-            }
-          }
-          customer {
-            customerId
-            email
-          }
-        }
-      }
-      pageInfo {
-        endCursor
-        hasNextPage
-      }
-    }
-  }
-`;
-
-export const getCreditFacilities = async (
-  variables: CreditFacilitiesQueryVariables
-) => {
-  try {
-    const response = await getClient().query<
-      CreditFacilitiesQuery,
-      CreditFacilitiesQueryVariables
-    >({
-      query: CreditFacilitiesDocument,
-      variables,
-    });
-
-    if (!response.data) {
-      return { error: "Data not found" };
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-};
 
 gql`
   query GetCreditFacilityDetails($id: UUID!) {
@@ -224,3 +146,19 @@ export const getCreditFacilityById = async (
     return { error: "An unknown error occurred" };
   }
 };
+
+export const getCreditFacilityDetailsTool = tool({
+  type: "function",
+  description: `Retrieve comprehensive details for a single credit facility. USE ONLY: when complete facility details are asked.`,
+  parameters: z.object({
+    id: z
+      .string()
+      .uuid()
+      .describe(
+        "UUID of the credit facility to fetch detailed information for"
+      ),
+  }),
+  execute: async ({ id }) => {
+    return getCreditFacilityById({ id });
+  },
+});

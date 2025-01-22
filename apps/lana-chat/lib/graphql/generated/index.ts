@@ -1589,20 +1589,6 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
 
-export type GetCustomerByEmailQueryVariables = Exact<{
-  email: Scalars['String']['input'];
-}>;
-
-
-export type GetCustomerByEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, applicantId?: string | null, depositAccount: { __typename?: 'DepositAccount', depositAccountId: any, balance: { __typename?: 'DepositAccountBalance', pending: any, settled: any }, withdrawals: Array<{ __typename?: 'Withdrawal', amount: any, createdAt: any, reference: string, status: WithdrawalStatus, withdrawalId: any }>, deposits: Array<{ __typename?: 'Deposit', amount: any, createdAt: any, reference: string, depositId: any }> }, documents: Array<{ __typename?: 'Document', documentId: any, status: DocumentStatus, filename: string }> } | null };
-
-export type GetCustomerCreditFacilityByEmailQueryVariables = Exact<{
-  email: Scalars['String']['input'];
-}>;
-
-
-export type GetCustomerCreditFacilityByEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: any, creditFacilities: Array<{ __typename?: 'CreditFacility', creditFacilityId: any, activatedAt?: any | null, expiresAt?: any | null, createdAt: any, collateralizationState: CollateralizationState, facilityAmount: any, collateral: any, canBeCompleted: boolean, status: CreditFacilityStatus, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus }>, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } } }> } | null };
-
 export type CreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -1620,215 +1606,21 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 
 export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', creditFacilityId: any, activatedAt?: any | null, expiresAt?: any | null, createdAt: any, collateralizationState: CollateralizationState, facilityAmount: any, collateral: any, status: CreditFacilityStatus, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', email: string } } | null };
 
+export type GetCustomerCreditFacilityByEmailQueryVariables = Exact<{
+  email: Scalars['String']['input'];
+}>;
 
-export const GetCustomerByEmailDocument = gql`
-    query GetCustomerByEmail($email: String!) {
-  customerByEmail(email: $email) {
-    customerId
-    status
-    level
-    createdAt
-    email
-    telegramId
-    applicantId
-    depositAccount {
-      depositAccountId
-      balance {
-        pending
-        settled
-      }
-      withdrawals {
-        amount
-        createdAt
-        reference
-        status
-        withdrawalId
-      }
-      deposits {
-        amount
-        createdAt
-        reference
-        depositId
-      }
-    }
-    documents {
-      documentId
-      status
-      filename
-    }
-  }
-}
-    `;
 
-/**
- * __useGetCustomerByEmailQuery__
- *
- * To run a query within a React component, call `useGetCustomerByEmailQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerByEmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerByEmailQuery({
- *   variables: {
- *      email: // value for 'email'
- *   },
- * });
- */
-export function useGetCustomerByEmailQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>(GetCustomerByEmailDocument, options);
-      }
-export function useGetCustomerByEmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>(GetCustomerByEmailDocument, options);
-        }
-export type GetCustomerByEmailQueryHookResult = ReturnType<typeof useGetCustomerByEmailQuery>;
-export type GetCustomerByEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByEmailLazyQuery>;
-export type GetCustomerByEmailQueryResult = Apollo.QueryResult<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>;
-export const GetCustomerCreditFacilityByEmailDocument = gql`
-    query GetCustomerCreditFacilityByEmail($email: String!) {
-  customerByEmail(email: $email) {
-    customerId
-    creditFacilities {
-      creditFacilityId
-      activatedAt
-      expiresAt
-      createdAt
-      collateralizationState
-      facilityAmount
-      collateral
-      canBeCompleted
-      status
-      transactions {
-        ... on CreditFacilityIncrementalPayment {
-          cents
-          recordedAt
-          txId
-        }
-        ... on CreditFacilityCollateralUpdated {
-          satoshis
-          recordedAt
-          action
-          txId
-        }
-        ... on CreditFacilityOrigination {
-          cents
-          recordedAt
-          txId
-        }
-        ... on CreditFacilityCollateralizationUpdated {
-          state
-          collateral
-          outstandingInterest
-          outstandingDisbursal
-          recordedAt
-          price
-        }
-        ... on CreditFacilityDisbursalExecuted {
-          cents
-          recordedAt
-          txId
-        }
-        ... on CreditFacilityInterestAccrued {
-          cents
-          recordedAt
-          txId
-          days
-        }
-      }
-      disbursals {
-        disbursalId
-        amount
-        createdAt
-        status
-      }
-      currentCvl {
-        total
-        disbursed
-      }
-      creditFacilityTerms {
-        annualRate
-        accrualInterval
-        incurrenceInterval
-        oneTimeFeeRate
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        duration {
-          period
-          units
-        }
-      }
-      balance {
-        facilityRemaining {
-          usdBalance
-        }
-        disbursed {
-          total {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
-          dueOutstanding {
-            usdBalance
-          }
-        }
-        interest {
-          total {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
-          dueOutstanding {
-            usdBalance
-          }
-        }
-        outstanding {
-          usdBalance
-        }
-        dueOutstanding {
-          usdBalance
-        }
-        collateral {
-          btcBalance
-        }
-      }
-    }
-  }
-}
-    `;
+export type GetCustomerCreditFacilityByEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: any, creditFacilities: Array<{ __typename?: 'CreditFacility', creditFacilityId: any, activatedAt?: any | null, expiresAt?: any | null, createdAt: any, collateralizationState: CollateralizationState, facilityAmount: any, collateral: any, canBeCompleted: boolean, status: CreditFacilityStatus, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus }>, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } } }> } | null };
 
-/**
- * __useGetCustomerCreditFacilityByEmailQuery__
- *
- * To run a query within a React component, call `useGetCustomerCreditFacilityByEmailQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerCreditFacilityByEmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerCreditFacilityByEmailQuery({
- *   variables: {
- *      email: // value for 'email'
- *   },
- * });
- */
-export function useGetCustomerCreditFacilityByEmailQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>(GetCustomerCreditFacilityByEmailDocument, options);
-      }
-export function useGetCustomerCreditFacilityByEmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>(GetCustomerCreditFacilityByEmailDocument, options);
-        }
-export type GetCustomerCreditFacilityByEmailQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilityByEmailQuery>;
-export type GetCustomerCreditFacilityByEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilityByEmailLazyQuery>;
-export type GetCustomerCreditFacilityByEmailQueryResult = Apollo.QueryResult<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>;
+export type GetCustomerByEmailQueryVariables = Exact<{
+  email: Scalars['String']['input'];
+}>;
+
+
+export type GetCustomerByEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, applicantId?: string | null, depositAccount: { __typename?: 'DepositAccount', depositAccountId: any, balance: { __typename?: 'DepositAccountBalance', pending: any, settled: any }, withdrawals: Array<{ __typename?: 'Withdrawal', amount: any, createdAt: any, reference: string, status: WithdrawalStatus, withdrawalId: any }>, deposits: Array<{ __typename?: 'Deposit', amount: any, createdAt: any, reference: string, depositId: any }> }, documents: Array<{ __typename?: 'Document', documentId: any, status: DocumentStatus, filename: string }> } | null };
+
+
 export const CreditFacilitiesDocument = gql`
     query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort, $filter: CreditFacilitiesFilter) {
   creditFacilities(first: $first, after: $after, sort: $sort, filter: $filter) {
@@ -2039,3 +1831,211 @@ export function useGetCreditFacilityDetailsLazyQuery(baseOptions?: Apollo.LazyQu
 export type GetCreditFacilityDetailsQueryHookResult = ReturnType<typeof useGetCreditFacilityDetailsQuery>;
 export type GetCreditFacilityDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityDetailsLazyQuery>;
 export type GetCreditFacilityDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>;
+export const GetCustomerCreditFacilityByEmailDocument = gql`
+    query GetCustomerCreditFacilityByEmail($email: String!) {
+  customerByEmail(email: $email) {
+    customerId
+    creditFacilities {
+      creditFacilityId
+      activatedAt
+      expiresAt
+      createdAt
+      collateralizationState
+      facilityAmount
+      collateral
+      canBeCompleted
+      status
+      transactions {
+        ... on CreditFacilityIncrementalPayment {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityCollateralUpdated {
+          satoshis
+          recordedAt
+          action
+          txId
+        }
+        ... on CreditFacilityOrigination {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityCollateralizationUpdated {
+          state
+          collateral
+          outstandingInterest
+          outstandingDisbursal
+          recordedAt
+          price
+        }
+        ... on CreditFacilityDisbursalExecuted {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityInterestAccrued {
+          cents
+          recordedAt
+          txId
+          days
+        }
+      }
+      disbursals {
+        disbursalId
+        amount
+        createdAt
+        status
+      }
+      currentCvl {
+        total
+        disbursed
+      }
+      creditFacilityTerms {
+        annualRate
+        accrualInterval
+        incurrenceInterval
+        oneTimeFeeRate
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+      balance {
+        facilityRemaining {
+          usdBalance
+        }
+        disbursed {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+          dueOutstanding {
+            usdBalance
+          }
+        }
+        interest {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+          dueOutstanding {
+            usdBalance
+          }
+        }
+        outstanding {
+          usdBalance
+        }
+        dueOutstanding {
+          usdBalance
+        }
+        collateral {
+          btcBalance
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerCreditFacilityByEmailQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerCreditFacilityByEmailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerCreditFacilityByEmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerCreditFacilityByEmailQuery({
+ *   variables: {
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useGetCustomerCreditFacilityByEmailQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>(GetCustomerCreditFacilityByEmailDocument, options);
+      }
+export function useGetCustomerCreditFacilityByEmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>(GetCustomerCreditFacilityByEmailDocument, options);
+        }
+export type GetCustomerCreditFacilityByEmailQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilityByEmailQuery>;
+export type GetCustomerCreditFacilityByEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilityByEmailLazyQuery>;
+export type GetCustomerCreditFacilityByEmailQueryResult = Apollo.QueryResult<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>;
+export const GetCustomerByEmailDocument = gql`
+    query GetCustomerByEmail($email: String!) {
+  customerByEmail(email: $email) {
+    customerId
+    status
+    level
+    createdAt
+    email
+    telegramId
+    applicantId
+    depositAccount {
+      depositAccountId
+      balance {
+        pending
+        settled
+      }
+      withdrawals {
+        amount
+        createdAt
+        reference
+        status
+        withdrawalId
+      }
+      deposits {
+        amount
+        createdAt
+        reference
+        depositId
+      }
+    }
+    documents {
+      documentId
+      status
+      filename
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerByEmailQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerByEmailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerByEmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerByEmailQuery({
+ *   variables: {
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useGetCustomerByEmailQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>(GetCustomerByEmailDocument, options);
+      }
+export function useGetCustomerByEmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>(GetCustomerByEmailDocument, options);
+        }
+export type GetCustomerByEmailQueryHookResult = ReturnType<typeof useGetCustomerByEmailQuery>;
+export type GetCustomerByEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByEmailLazyQuery>;
+export type GetCustomerByEmailQueryResult = Apollo.QueryResult<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>;

@@ -1,77 +1,12 @@
+import { z } from "zod";
+import { tool } from "ai";
 import { gql } from "@apollo/client";
-import { getClient } from "./client";
+import { getClient } from "../client";
 import {
-  GetCustomerByEmailDocument,
-  GetCustomerByEmailQuery,
-  GetCustomerByEmailQueryVariables,
   GetCustomerCreditFacilityByEmailDocument,
   GetCustomerCreditFacilityByEmailQuery,
   GetCustomerCreditFacilityByEmailQueryVariables,
 } from "@/lib/graphql/generated";
-
-gql`
-  query GetCustomerByEmail($email: String!) {
-    customerByEmail(email: $email) {
-      customerId
-      status
-      level
-      createdAt
-      email
-      telegramId
-      applicantId
-      depositAccount {
-        depositAccountId
-        balance {
-          pending
-          settled
-        }
-        withdrawals {
-          amount
-          createdAt
-          reference
-          status
-          withdrawalId
-        }
-        deposits {
-          amount
-          createdAt
-          reference
-          depositId
-        }
-      }
-      documents {
-        documentId
-        status
-        filename
-      }
-    }
-  }
-`;
-
-export const getCustomerDetails = async (
-  variables: GetCustomerByEmailQueryVariables
-) => {
-  try {
-    const response = await getClient().query<
-      GetCustomerByEmailQuery,
-      GetCustomerByEmailQueryVariables
-    >({
-      query: GetCustomerByEmailDocument,
-      variables,
-    });
-
-    if (!response.data?.customerByEmail) {
-      return { error: "Customer not found" };
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-};
 
 gql`
   query GetCustomerCreditFacilityByEmail($email: String!) {
@@ -212,3 +147,19 @@ export const getCustomerCreditFacility = async (
     return { error: "An unknown error occurred" };
   }
 };
+
+export const getCustomerCreditFacilitiesTool = tool({
+  type: "function",
+  description:
+    "Retrieve details about the customer's credit facility, including the facility amount, transactions, balance information, collateral, and associated terms. Use this tool to get credit-specific information about the customer.",
+  parameters: z.object({
+    email: z
+      .string()
+      .describe(
+        "The email address of the customer whose credit facility details are being requested."
+      ),
+  }),
+  execute: async ({ email }) => {
+    return getCustomerCreditFacility({ email });
+  },
+});
