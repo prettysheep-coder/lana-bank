@@ -4166,6 +4166,7 @@ dependencies = [
  "lana-events",
  "rust_decimal",
  "rust_decimal_macros",
+ "serde",
  "sim-time",
  "tokio",
 ]

@@ -1,8 +1,12 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod config;
+
 use futures::StreamExt;
 use rust_decimal_macros::dec;
+
+use std::collections::HashSet;
 
 use lana_app::{
     app::LanaApp,
@@ -11,48 +15,70 @@ use lana_app::{
 };
 use lana_events::*;
 
-pub async fn run(superuser_email: String, app: &LanaApp) -> anyhow::Result<()> {
+pub use config::*;
+
+const CUSTOMER_EMAIL: &'static str = "bootstrap-lana@galoy.io";
+const CUSTOMER_TELEGRAM: &'static str = "bootstrap-lana";
+
+pub async fn run(
+    superuser_email: String,
+    app: &LanaApp,
+    config: BootstrapConfig,
+) -> anyhow::Result<()> {
+    dbg!(&config);
     let sub = superuser_subject(&superuser_email, app).await?;
-    initial_setup(&sub, app).await?;
-    let id = bootstrap_credit_facility(&sub, app).await?;
+    initial_setup(&sub, app, &config).await?;
+
+    let mut facility_ids = HashSet::new();
+    for _ in 0..config.num_facilities {
+        let id = bootstrap_credit_facility(&sub, app).await?;
+        facility_ids.insert(id);
+    }
 
     let spawned_app = app.clone();
     let _handle = tokio::spawn(async move {
-        let _ = process_repayment(sub, id, spawned_app).await;
+        let _ = process_repayment(sub, facility_ids, spawned_app).await;
     });
 
     println!("waiting for real time");
     sim_time::wait_until_realtime().await;
     println!("done");
+
     Ok(())
 }
 
-async fn process_repayment(sub: Subject, id: CreditFacilityId, app: LanaApp) -> anyhow::Result<()> {
+async fn process_repayment(
+    sub: Subject,
+    facility_ids: HashSet<CreditFacilityId>,
+    app: LanaApp,
+) -> anyhow::Result<()> {
     let mut stream = app.outbox().listen_persisted(None).await?;
 
     while let Some(msg) = stream.next().await {
         match &msg.payload {
             Some(LanaEvent::Credit(CreditEvent::AccrualExecuted {
                 id: cf_id, amount, ..
-            })) if *cf_id == id && amount > &UsdCents::ZERO => {
+            })) if facility_ids.contains(cf_id) && amount > &UsdCents::ZERO => {
                 let _ = app
                     .credit_facilities()
-                    .record_payment(&sub, id, *amount)
+                    .record_payment(&sub, *cf_id, *amount)
                     .await;
                 let mut cf = app
                     .credit_facilities()
-                    .find_by_id(&sub, id)
+                    .find_by_id(&sub, *cf_id)
                     .await?
                     .expect("cf exists");
                 if cf.interest_accrual_in_progress().is_none() {
                     app.credit_facilities()
-                        .record_payment(&sub, id, cf.outstanding().total())
+                        .record_payment(&sub, cf.id, cf.outstanding().total())
                         .await?;
-                    app.credit_facilities().complete_facility(&sub, id).await?;
+                    app.credit_facilities()
+                        .complete_facility(&sub, cf.id)
+                        .await?;
                 }
             }
             Some(LanaEvent::Credit(CreditEvent::FacilityCompleted { id: cf_id, .. }))
-                if *cf_id == id =>
+                if facility_ids.contains(cf_id) =>
             {
                 break;
             }
@@ -63,63 +89,58 @@ async fn process_repayment(sub: Subject, id: CreditFacilityId, app: LanaApp) -> 
     Ok(())
 }
 
-pub async fn initial_setup(sub: &Subject, app: &LanaApp) -> anyhow::Result<()> {
-    let values = std_terms();
-    let _ = app
-        .terms_templates()
-        .create_terms_template(sub, "bootstrap".to_string(), values)
-        .await;
-
-    let _ = app
+async fn initial_setup(
+    sub: &Subject,
+    app: &LanaApp,
+    config: &BootstrapConfig,
+) -> anyhow::Result<()> {
+    if app
         .customers()
-        .create(
-            sub,
-            "bootstrap@lana.com".to_string(),
-            "bootstrap-telegram".to_string(),
-        )
-        .await;
-    let _ = app
-        .customers()
-        .create(
-            sub,
-            "bootstrap-whale@lana.com".to_string(),
-            "bootstrap-whale".to_string(),
-        )
-        .await;
-    let customer = app
-        .customers()
-        .find_by_email(sub, "bootstrap@lana.com".to_string())
+        .find_by_email(sub, CUSTOMER_EMAIL.to_string())
         .await?
-        .expect("Customer not found");
+        .is_none()
+    {
+        let customer = app
+            .customers()
+            .create(
+                sub,
+                CUSTOMER_EMAIL.to_string(),
+                CUSTOMER_TELEGRAM.to_string(),
+            )
+            .await?;
 
-    let deposit_account_id = app
-        .deposits()
-        .list_account_by_created_at_for_account_holder(
-            sub,
-            customer.id,
-            Default::default(),
-            es_entity::ListDirection::Descending,
-        )
-        .await?
-        .entities
-        .into_iter()
-        .next()
-        .expect("Deposit account not found")
-        .id;
+        let deposit_account_id = app
+            .deposits()
+            .list_account_by_created_at_for_account_holder(
+                sub,
+                customer.id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities
+            .into_iter()
+            .next()
+            .expect("Deposit account not found")
+            .id;
 
-    let _ = app
-        .deposits()
-        .record_deposit(
-            sub,
-            deposit_account_id,
-            UsdCents::try_from_usd(dec!(1_000_000))?,
-            None,
-        )
-        .await?;
+        let _ = app
+            .deposits()
+            .record_deposit(
+                sub,
+                deposit_account_id,
+                UsdCents::try_from_usd(
+                    rust_decimal::Decimal::from(config.num_facilities) * dec!(1_000_000),
+                )?,
+                None,
+            )
+            .await?;
+    }
+
     Ok(())
 }
 
-pub async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::Result<Subject> {
+async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::Result<Subject> {
     let superuser = app
         .users()
         .find_by_email(None, superuser_email)
@@ -128,17 +149,18 @@ pub async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyho
     Ok(Subject::from(superuser.id))
 }
 
-pub async fn bootstrap_credit_facility(
+async fn bootstrap_credit_facility(
     sub: &Subject,
     app: &LanaApp,
 ) -> anyhow::Result<CreditFacilityId> {
-    let customer_email = "bootstrap@lana.com".to_string();
     let customer = app
         .customers()
-        .find_by_email(sub, customer_email)
+        .find_by_email(sub, CUSTOMER_EMAIL.to_string())
         .await?
-        .expect("Superuser not found");
+        .expect("customer not found");
+
     let terms = std_terms();
+
     let cf = app
         .credit_facilities()
         .initiate(
@@ -150,11 +172,17 @@ pub async fn bootstrap_credit_facility(
         .await?;
 
     let id = cf.id;
+
+    // hack to ensure that credit facility is activated
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
     app.credit_facilities()
         .update_collateral(sub, id, Satoshis::try_from_btc(dec!(230))?)
         .await?;
+
+    // hack to ensure that credit facility is activated
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
     app.credit_facilities()
         .initiate_disbursal(sub, id, UsdCents::try_from_usd(dec!(1_000_000))?)
         .await?;
