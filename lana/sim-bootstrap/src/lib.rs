@@ -5,6 +5,7 @@ mod config;
 
 use futures::StreamExt;
 use rust_decimal_macros::dec;
+use std::sync::{Arc, Mutex};
 
 use std::collections::HashSet;
 
@@ -17,23 +18,25 @@ use lana_events::*;
 
 pub use config::*;
 
-const CUSTOMER_EMAIL: &'static str = "bootstrap-lana@galoy.io";
-const CUSTOMER_TELEGRAM: &'static str = "bootstrap-lana";
+const CUSTOMER_EMAIL: &str = "bootstrap-lana@galoy.io";
+const CUSTOMER_TELEGRAM: &str = "bootstrap-lana";
 
 pub async fn run(
     superuser_email: String,
-    app: &LanaApp,
+    app: LanaApp,
     config: BootstrapConfig,
 ) -> anyhow::Result<()> {
     dbg!(&config);
-    let sub = superuser_subject(&superuser_email, app).await?;
-    initial_setup(&sub, app, &config).await?;
+    let sub = superuser_subject(&superuser_email, &app).await?;
+    initial_setup(&sub, &app, &config).await?;
 
     let mut facility_ids = HashSet::new();
     for _ in 0..config.num_facilities {
-        let id = bootstrap_credit_facility(&sub, app).await?;
+        let id = bootstrap_credit_facility(&sub, &app).await?;
         facility_ids.insert(id);
     }
+
+    let facility_ids = Arc::new(Mutex::new(facility_ids));
 
     let spawned_app = app.clone();
     let _handle = tokio::spawn(async move {
@@ -49,7 +52,7 @@ pub async fn run(
 
 async fn process_repayment(
     sub: Subject,
-    facility_ids: HashSet<CreditFacilityId>,
+    facility_ids: Arc<Mutex<HashSet<CreditFacilityId>>>,
     app: LanaApp,
 ) -> anyhow::Result<()> {
     let mut stream = app.outbox().listen_persisted(None).await?;
@@ -58,7 +61,11 @@ async fn process_repayment(
         match &msg.payload {
             Some(LanaEvent::Credit(CreditEvent::AccrualExecuted {
                 id: cf_id, amount, ..
-            })) if facility_ids.contains(cf_id) && amount > &UsdCents::ZERO => {
+            })) if {
+                let ids = facility_ids.lock().unwrap();
+                ids.contains(cf_id) && amount > &UsdCents::ZERO
+            } =>
+            {
                 let _ = app
                     .credit_facilities()
                     .record_payment(&sub, *cf_id, *amount)
@@ -77,10 +84,11 @@ async fn process_repayment(
                         .await?;
                 }
             }
-            Some(LanaEvent::Credit(CreditEvent::FacilityCompleted { id: cf_id, .. }))
-                if facility_ids.contains(cf_id) =>
-            {
-                break;
+            Some(LanaEvent::Credit(CreditEvent::FacilityCompleted { id: cf_id, .. })) => {
+                let mut ids = facility_ids.lock().unwrap();
+                if ids.remove(cf_id) && ids.is_empty() {
+                    break;
+                }
             }
             _ => {}
         }
