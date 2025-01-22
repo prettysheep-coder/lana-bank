@@ -21,6 +21,7 @@
     methods: [ GET, POST, OPTIONS ]
   authenticators:
     - handler: cookie_session
+    - handler: bearer_token
   authorizer:
     handler: allow
   mutators:

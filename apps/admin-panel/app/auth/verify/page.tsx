@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { loginUserWithOtp } from "../ory"
@@ -56,4 +56,10 @@ const Verify: React.FC = () => {
   )
 }
 
-export default Verify
+const VerifyPage: React.FC = () => (
+  <Suspense>
+    <Verify />
+  </Suspense>
+)
+
+export default VerifyPage
