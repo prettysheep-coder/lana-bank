@@ -148,6 +148,7 @@ pub async fn bootstrap_credit_facility(
             terms,
         )
         .await?;
+
     let id = cf.id;
     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
     app.credit_facilities()
