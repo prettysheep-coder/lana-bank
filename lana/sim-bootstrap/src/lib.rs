@@ -11,15 +11,12 @@ use std::collections::HashSet;
 
 use lana_app::{
     app::LanaApp,
-    primitives::{CreditFacilityId, Satoshis, Subject, UsdCents},
+    primitives::*,
     terms::{Duration, InterestInterval, TermValues},
 };
 use lana_events::*;
 
 pub use config::*;
-
-const CUSTOMER_EMAIL: &str = "bootstrap-lana@galoy.io";
-const CUSTOMER_TELEGRAM: &str = "bootstrap-lana";
 
 pub async fn run(
     superuser_email: String,
@@ -28,12 +25,18 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     dbg!(&config);
     let sub = superuser_subject(&superuser_email, &app).await?;
-    initial_setup(&sub, &app, &config).await?;
+
+    let customer_ids = create_customers(&sub, &app, &config).await?;
+
+    make_deposit(&sub, &app, &customer_ids, &config).await?;
 
     let mut facility_ids = HashSet::new();
-    for _ in 0..config.num_facilities {
-        let id = bootstrap_credit_facility(&sub, &app).await?;
-        facility_ids.insert(id);
+
+    for customer_id in customer_ids {
+        for _ in 0..config.num_facilities {
+            let id = create_facility_for_customer(&sub, &app, customer_id).await?;
+            facility_ids.insert(id);
+        }
     }
 
     let facility_ids = Arc::new(Mutex::new(facility_ids));
@@ -97,31 +100,48 @@ async fn process_repayment(
     Ok(())
 }
 
-async fn initial_setup(
+async fn create_customers(
     sub: &Subject,
     app: &LanaApp,
     config: &BootstrapConfig,
-) -> anyhow::Result<()> {
-    if app
-        .customers()
-        .find_by_email(sub, CUSTOMER_EMAIL.to_string())
-        .await?
-        .is_none()
-    {
-        let customer = app
-            .customers()
-            .create(
-                sub,
-                CUSTOMER_EMAIL.to_string(),
-                CUSTOMER_TELEGRAM.to_string(),
-            )
-            .await?;
+) -> anyhow::Result<Vec<CustomerId>> {
+    let mut customer_ids = Vec::new();
 
+    for i in 1..=config.num_customers {
+        let customer_email = format!("customer{}@example.com", i);
+        let telegram = format!("customer{}", i);
+
+        let customer = match app
+            .customers()
+            .find_by_email(sub, customer_email.clone())
+            .await?
+        {
+            Some(existing_customer) => existing_customer,
+            None => {
+                app.customers()
+                    .create(sub, customer_email.clone(), telegram)
+                    .await?
+            }
+        };
+
+        customer_ids.push(customer.id);
+    }
+
+    Ok(customer_ids)
+}
+
+async fn make_deposit(
+    sub: &Subject,
+    app: &LanaApp,
+    customer_ids: &Vec<CustomerId>,
+    config: &BootstrapConfig,
+) -> anyhow::Result<()> {
+    for customer_id in customer_ids {
         let deposit_account_id = app
             .deposits()
             .list_account_by_created_at_for_account_holder(
                 sub,
-                customer.id,
+                *customer_id,
                 Default::default(),
                 es_entity::ListDirection::Descending,
             )
@@ -157,23 +177,18 @@ async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::R
     Ok(Subject::from(superuser.id))
 }
 
-async fn bootstrap_credit_facility(
+async fn create_facility_for_customer(
     sub: &Subject,
     app: &LanaApp,
+    customer_id: CustomerId,
 ) -> anyhow::Result<CreditFacilityId> {
-    let customer = app
-        .customers()
-        .find_by_email(sub, CUSTOMER_EMAIL.to_string())
-        .await?
-        .expect("customer not found");
-
     let terms = std_terms();
 
     let cf = app
         .credit_facilities()
         .initiate(
             sub,
-            customer.id,
+            customer_id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
         )
