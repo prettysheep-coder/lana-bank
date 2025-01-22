@@ -18,6 +18,15 @@ import {
   getCreditFacilityById,
 } from "./get-facility-details";
 
+const systemPrompt = ` 
+    You are an assistant exclusively designed to help users explore and understand data from a banking and Bitcoin-focused application. 
+    You must:
+    1. Focus solely on the banking and functions/tools response and there data, including accounts, credit facilities, transactions, approvals, and Bitcoin.
+    2. Use tables to present lists and structured data clearly, when applicable.
+    4. Highlight Bitcoin amounts in satoshis and USD when relevant.
+    5. Support users in queries, pagination, filtering, and sorting based on the schema.
+    You must not answer questions or provide assistance unrelated to this schema or the app.`;
+
 const CollateralizationStateSchema = z
   .nativeEnum(CollateralizationState)
   .describe(`Collateralization states`);
@@ -38,15 +47,28 @@ const SortDirectionSchema = z
   .nativeEnum(SortDirection)
   .describe(`Sort directions`);
 
-const CreditFacilitiesFilterSchema = z.object({
-  collateralizationState: CollateralizationStateSchema.optional(),
-  field: CreditFacilitiesFilterBySchema,
-  status: CreditFacilityStatusSchema.optional(),
-});
+const CreditFacilitiesFilterSchema = z
+  .object({
+    collateralizationState: CollateralizationStateSchema.optional().describe(
+      "Filter facilities by collateralization state"
+    ),
+    field: CreditFacilitiesFilterBySchema.describe(
+      "Required field to filter facilities by"
+    ),
+    status: CreditFacilityStatusSchema.optional().describe(
+      "Filter facilities by status"
+    ),
+  })
+  .nullish()
+  .describe("Optional filters for credit facilities query");
 
 const CreditFacilitiesSortSchema = z.object({
-  by: CreditFacilitiesSortBySchema.optional(),
-  direction: SortDirectionSchema.optional(),
+  by: CreditFacilitiesSortBySchema.optional().describe(
+    "Field to sort facilities by"
+  ),
+  direction: SortDirectionSchema.optional().describe(
+    "Sort direction (ascending/descending)"
+  ),
 });
 
 export async function POST(req: Request) {
@@ -54,6 +76,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: openai("gpt-4o-mini"),
+    system: systemPrompt,
     messages,
     maxSteps: 5,
     tools: {
@@ -90,7 +113,7 @@ export async function POST(req: Request) {
       getCreditFacilities: tool({
         type: "function",
         description:
-          "Retrieve list of credit facilities with filtering and sorting. Returns facility details including customer info, balances, and CVL data. Limited to 5 facilities per request.",
+          "Retrieve list of credit facilities with filtering and sorting. When using filter with status or collateralizationState, you must also specify field as 'STATUS' or 'COLLATERALIZATION_STATE' respectively. Limited to 5 facilities per request.",
         parameters: z.object({
           first: z
             .number()
@@ -133,5 +156,10 @@ export async function POST(req: Request) {
     },
   });
 
-  return result.toDataStreamResponse();
+  return result.toDataStreamResponse({
+    getErrorMessage: (err) => {
+      console.error(err);
+      return "An error occurred while processing the request.";
+    },
+  });
 }
