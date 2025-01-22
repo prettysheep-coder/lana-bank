@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import {
   Table,
   TableBody,
@@ -7,7 +5,7 @@ import {
   TableHeader,
   TableRow,
   TableCell,
-} from "./ui/table";
+} from "../ui/table";
 import Link from "next/link";
 import { useState } from "react";
 import { Components } from "react-markdown";
@@ -15,82 +13,83 @@ import { Components } from "react-markdown";
 export const components: Partial<Components> = {
   code: CodeBlock,
   pre: ({ children }) => <>{children}</>,
-  ol: ({ node, children, ...props }) => {
+  ol: ({ children, ...props }) => {
     return (
       <ol className="list-decimal list-outside ml-4" {...props}>
         {children}
       </ol>
     );
   },
-  li: ({ node, children, ...props }) => {
+  li: ({ children, ...props }) => {
     return (
       <li className="py-1" {...props}>
         {children}
       </li>
     );
   },
-  ul: ({ node, children, ...props }) => {
+  ul: ({ children, ...props }) => {
     return (
       <ul className="list-decimal list-outside ml-4" {...props}>
         {children}
       </ul>
     );
   },
-  strong: ({ node, children, ...props }) => {
+  strong: ({ children, ...props }) => {
     return (
       <span className="font-semibold" {...props}>
         {children}
       </span>
     );
   },
-  a: ({ node, children, ...props }) => {
+  a: ({ children, href = "", ...props }) => {
     return (
       <Link
         className="text-blue-500 hover:underline"
         target="_blank"
         rel="noreferrer"
+        href={href}
         {...props}
       >
         {children}
       </Link>
     );
   },
-  h1: ({ node, children, ...props }) => {
+  h1: ({ children, ...props }) => {
     return (
       <h1 className="text-3xl font-semibold mt-6 mb-2" {...props}>
         {children}
       </h1>
     );
   },
-  h2: ({ node, children, ...props }) => {
+  h2: ({ children, ...props }) => {
     return (
       <h2 className="text-2xl font-semibold mt-6 mb-2" {...props}>
         {children}
       </h2>
     );
   },
-  h3: ({ node, children, ...props }) => {
+  h3: ({ children, ...props }) => {
     return (
       <h3 className="text-xl font-semibold mt-6 mb-2" {...props}>
         {children}
       </h3>
     );
   },
-  h4: ({ node, children, ...props }) => {
+  h4: ({ children, ...props }) => {
     return (
       <h4 className="text-lg font-semibold mt-6 mb-2" {...props}>
         {children}
       </h4>
     );
   },
-  h5: ({ node, children, ...props }) => {
+  h5: ({ children, ...props }) => {
     return (
       <h5 className="text-base font-semibold mt-6 mb-2" {...props}>
         {children}
       </h5>
     );
   },
-  h6: ({ node, children, ...props }) => {
+  h6: ({ children, ...props }) => {
     return (
       <h6 className="text-sm font-semibold mt-6 mb-2" {...props}>
         {children}
@@ -122,25 +121,14 @@ export const components: Partial<Components> = {
 };
 
 interface CodeBlockProps {
-  node: any;
-  inline: boolean;
-  className: string;
-  children: any;
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
 }
 
-function CodeBlock({
-  node,
-  inline,
-  className,
-  children,
-  ...props
-}: CodeBlockProps) {
-  const [output, setOutput] = useState<string | null>(null);
-  const [pyodide, setPyodide] = useState<any>(null);
-  const match = /language-(\w+)/.exec(className || "");
-  const isPython = match && match[1] === "python";
-  const codeContent = String(children).replace(/\n$/, "");
-  const [tab, setTab] = useState<"code" | "run">("code");
+function CodeBlock({ inline, className, children, ...props }: CodeBlockProps) {
+  const [output] = useState<string | null>(null);
+  const [tab] = useState<"code" | "run">("code");
 
   if (!inline) {
     return (

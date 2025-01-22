@@ -1,47 +1,51 @@
-import OpenAI from "openai";
-import { tools, runFunction } from "./functions";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { openai } from "@ai-sdk/openai";
+import { streamText, tool } from "ai";
+import { z } from "zod";
+import {
+  getCustomerCreditFacility,
+  getCustomerDetails,
+} from "./get-customer-details";
 
 export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const messages = body.messages as ChatCompletionMessageParam[];
+  const { messages } = await req.json();
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-      tools,
-    });
+  const result = streamText({
+    model: openai("gpt-4o-mini"),
+    messages,
+    maxSteps: 5,
+    tools: {
+      getCustomerDetails: tool({
+        type: "function",
+        description:
+          "Retrieve general information about a customer by their email address. This includes account balances, deposit history, withdrawal history, KYC document statuses, and basic customer information. **Note**: This does not include any details about the customer's credit facility (if they have one).",
+        parameters: z.object({
+          email: z
+            .string()
+            .describe(
+              "The email address of the customer whose general details (excluding credit facility) are being requested."
+            ),
+        }),
+        execute: async ({ email }) => {
+          return getCustomerDetails({ email });
+        },
+      }),
+      getCustomerCreditFacility: tool({
+        type: "function",
+        description:
+          "Retrieve details about the customer's credit facility, including the facility amount, transactions, balance information, collateral, and associated terms. Use this tool to get credit-specific information about the customer.",
+        parameters: z.object({
+          email: z
+            .string()
+            .describe(
+              "The email address of the customer whose credit facility details are being requested."
+            ),
+        }),
+        execute: async ({ email }) => {
+          return getCustomerCreditFacility({ email });
+        },
+      }),
+    },
+  });
 
-    const choice = completion.choices[0];
-    if (choice.message.tool_calls?.[0]) {
-      const toolCall = choice.message.tool_calls[0];
-      const args = JSON.parse(toolCall.function.arguments);
-
-      const functionResult = await runFunction(toolCall.function.name, args);
-      messages.push(choice.message);
-      messages.push({
-        role: "tool",
-        tool_call_id: toolCall.id,
-        content: JSON.stringify(functionResult),
-      });
-
-      const secondCompletion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages,
-        tools,
-      });
-
-      return Response.json(secondCompletion.choices[0].message);
-    }
-
-    return Response.json(choice.message);
-  } catch (error) {
-    console.error("Error:", error);
-    return new Response("Error processing request", { status: 500 });
-  }
+  return result.toDataStreamResponse();
 }
