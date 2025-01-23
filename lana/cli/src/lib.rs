@@ -76,18 +76,10 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let superuser_email = config.app.user.superuser_email.clone().expect("super user");
 
     let admin_app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
-    let bootstrap_admin_app = admin_app.clone();
 
     #[cfg(feature = "sim-bootstrap")]
     {
-        handles.push(tokio::spawn(async move {
-            let _ = sim_bootstrap::run(
-                superuser_email.to_string(),
-                bootstrap_admin_app,
-                config.bootstrap,
-            )
-            .await;
-        }));
+        let _ = sim_bootstrap::run(superuser_email.to_string(), &admin_app, config.bootstrap).await;
     }
 
     let admin_send = send.clone();
