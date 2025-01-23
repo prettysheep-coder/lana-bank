@@ -33,7 +33,7 @@ pub async fn run(
             let spawned_app = app.clone();
 
             let handle = tokio::spawn(async move {
-                create_and_process_facility(sub.clone(), customer_id.clone(), spawned_app).await
+                create_and_process_facility(sub, customer_id, spawned_app).await
             });
             handles.push(handle);
         }
@@ -53,6 +53,8 @@ async fn create_and_process_facility(
 ) -> anyhow::Result<()> {
     let terms = std_terms();
 
+    let mut stream = app.outbox().listen_persisted(None).await?;
+
     let cf = app
         .credit_facilities()
         .initiate(
@@ -62,8 +64,6 @@ async fn create_and_process_facility(
             terms,
         )
         .await?;
-
-    let mut stream = app.outbox().listen_persisted(None).await?;
 
     while let Some(msg) = stream.next().await {
         match &msg.payload {
