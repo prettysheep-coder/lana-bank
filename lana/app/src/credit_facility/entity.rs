@@ -709,7 +709,6 @@ impl CreditFacility {
             .interest_accrual_in_progress()
             .expect("accrual not found")
             .accrual_data();
-        dbg!(&accrual_data);
         let interest_accrual = accrual_data
             .map(|data| CreditFacilityInterestAccrual::from((data, self.account_ids)))
             .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;

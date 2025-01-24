@@ -158,10 +158,8 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
 
         let mut db = es_entity::DbOp::new(tx, now);
         if let Some(period) = next_incurrence_period {
-            dbg!("incurrence rescheduled");
             Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
-            dbg!("accrual scheduled");
             self.jobs
                 .create_and_spawn_in_op(
                     &mut db,
