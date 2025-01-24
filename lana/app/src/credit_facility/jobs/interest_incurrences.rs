@@ -163,7 +163,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             self.jobs
                 .create_and_spawn_in_op(
                     &mut db,
-                    self.config.credit_facility_id,
+                    uuid::Uuid::new_v4(),
                     super::interest_accruals::CreditFacilityJobConfig {
                         credit_facility_id: self.config.credit_facility_id,
                     },

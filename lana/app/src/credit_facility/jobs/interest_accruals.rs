@@ -150,13 +150,14 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
+        let accrual_id = credit_facility
+            .interest_accrual_in_progress()
+            .expect("First accrual not found")
+            .id;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
-                credit_facility
-                    .interest_accrual_in_progress()
-                    .expect("Expected accrual missing")
-                    .id,
+                accrual_id,
                 interest_incurrences::CreditFacilityJobConfig {
                     credit_facility_id: credit_facility.id,
                 },
