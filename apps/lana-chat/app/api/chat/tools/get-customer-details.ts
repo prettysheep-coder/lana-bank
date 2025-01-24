@@ -1,11 +1,9 @@
 import { z } from "zod";
 import { tool } from "ai";
 import { gql } from "@apollo/client";
-import { getClient } from "../client";
 import {
-  GetCustomerByEmailDocument,
-  GetCustomerByEmailQuery,
   GetCustomerByEmailQueryVariables,
+  getCustomerByEmail,
 } from "@/lib/graphql/generated";
 
 gql`
@@ -47,31 +45,6 @@ gql`
   }
 `;
 
-export const getCustomerDetails = async (
-  variables: GetCustomerByEmailQueryVariables
-) => {
-  try {
-    const response = await getClient().query<
-      GetCustomerByEmailQuery,
-      GetCustomerByEmailQueryVariables
-    >({
-      query: GetCustomerByEmailDocument,
-      variables,
-    });
-
-    if (!response.data?.customerByEmail) {
-      return { error: "Customer not found" };
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-};
-
 export const getCustomerDetailsTool = tool({
   type: "function",
   description:
@@ -84,6 +57,6 @@ export const getCustomerDetailsTool = tool({
       ),
   }),
   execute: async ({ email }) => {
-    return getCustomerDetails({ email });
+    return getCustomerByEmail({ email });
   },
 });

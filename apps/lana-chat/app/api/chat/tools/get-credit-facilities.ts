@@ -1,16 +1,14 @@
 import { z } from "zod";
 import { tool } from "ai";
 import { gql } from "@apollo/client";
-import { getClient } from "../client";
 import {
-  CreditFacilitiesDocument,
-  CreditFacilitiesQuery,
   CreditFacilitiesQueryVariables,
   CreditFacilitiesFilterBy,
   CreditFacilitiesSortBy,
   CollateralizationState,
   CreditFacilityStatus,
   SortDirection,
+  creditFacilities,
 } from "@/lib/graphql/generated";
 
 const CollateralizationStateSchema = z
@@ -106,31 +104,6 @@ gql`
   }
 `;
 
-export const getCreditFacilities = async (
-  variables: CreditFacilitiesQueryVariables
-) => {
-  try {
-    const response = await getClient().query<
-      CreditFacilitiesQuery,
-      CreditFacilitiesQueryVariables
-    >({
-      query: CreditFacilitiesDocument,
-      variables,
-    });
-
-    if (!response.data) {
-      return { error: "Data not found" };
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-};
-
 export const getCreditFacilitiesTool = tool({
   type: "function",
   description:
@@ -149,7 +122,7 @@ export const getCreditFacilitiesTool = tool({
     filter: CreditFacilitiesFilterSchema.optional(),
   }),
   execute: async ({ first, after, sort, filter }) => {
-    return getCreditFacilities({
+    return creditFacilities({
       first,
       after,
       sort,

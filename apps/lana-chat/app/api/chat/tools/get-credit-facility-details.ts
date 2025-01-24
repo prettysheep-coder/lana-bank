@@ -1,10 +1,8 @@
 import { z } from "zod";
 import { tool } from "ai";
 import { gql } from "@apollo/client";
-import { getClient } from "../client";
 import {
-  GetCreditFacilityDetailsDocument,
-  GetCreditFacilityDetailsQuery,
+  getCreditFacilityDetails,
   GetCreditFacilityDetailsQueryVariables,
 } from "@/lib/graphql/generated";
 
@@ -122,31 +120,6 @@ gql`
   }
 `;
 
-export const getCreditFacilityById = async (
-  variables: GetCreditFacilityDetailsQueryVariables
-) => {
-  try {
-    const response = await getClient().query<
-      GetCreditFacilityDetailsQuery,
-      GetCreditFacilityDetailsQueryVariables
-    >({
-      query: GetCreditFacilityDetailsDocument,
-      variables,
-    });
-
-    if (!response.data) {
-      return { error: "Data not found" };
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-};
-
 export const getCreditFacilityDetailsTool = tool({
   type: "function",
   description: `Retrieve comprehensive details for a single credit facility. USE ONLY: when complete facility details are asked.`,
@@ -159,6 +132,6 @@ export const getCreditFacilityDetailsTool = tool({
       ),
   }),
   execute: async ({ id }) => {
-    return getCreditFacilityById({ id });
+    return getCreditFacilityDetails({ id });
   },
 });

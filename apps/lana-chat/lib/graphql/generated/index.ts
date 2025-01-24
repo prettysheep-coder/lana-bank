@@ -2039,3 +2039,65 @@ export function useGetCustomerByEmailLazyQuery(baseOptions?: Apollo.LazyQueryHoo
 export type GetCustomerByEmailQueryHookResult = ReturnType<typeof useGetCustomerByEmailQuery>;
 export type GetCustomerByEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByEmailLazyQuery>;
 export type GetCustomerByEmailQueryResult = Apollo.QueryResult<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>;
+import { getClient } from "../../client";
+
+
+export async function creditFacilities(variables: CreditFacilitiesQueryVariables) {
+  try {
+    const response = await getClient().query<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>({
+      query: CreditFacilitiesDocument,
+      variables,
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "An unknown error occurred" };
+  }
+}
+
+export async function getCreditFacilityDetails(variables: GetCreditFacilityDetailsQueryVariables) {
+  try {
+    const response = await getClient().query<GetCreditFacilityDetailsQuery, GetCreditFacilityDetailsQueryVariables>({
+      query: GetCreditFacilityDetailsDocument,
+      variables,
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "An unknown error occurred" };
+  }
+}
+
+export async function getCustomerCreditFacilityByEmail(variables: GetCustomerCreditFacilityByEmailQueryVariables) {
+  try {
+    const response = await getClient().query<GetCustomerCreditFacilityByEmailQuery, GetCustomerCreditFacilityByEmailQueryVariables>({
+      query: GetCustomerCreditFacilityByEmailDocument,
+      variables,
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "An unknown error occurred" };
+  }
+}
+
+export async function getCustomerByEmail(variables: GetCustomerByEmailQueryVariables) {
+  try {
+    const response = await getClient().query<GetCustomerByEmailQuery, GetCustomerByEmailQueryVariables>({
+      query: GetCustomerByEmailDocument,
+      variables,
+    });
+    return response;
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
+    return { error: "An unknown error occurred" };
+  }
+}

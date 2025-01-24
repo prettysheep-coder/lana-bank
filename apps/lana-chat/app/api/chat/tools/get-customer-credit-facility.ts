@@ -1,10 +1,8 @@
 import { z } from "zod";
 import { tool } from "ai";
 import { gql } from "@apollo/client";
-import { getClient } from "../client";
 import {
-  GetCustomerCreditFacilityByEmailDocument,
-  GetCustomerCreditFacilityByEmailQuery,
+  getCustomerCreditFacilityByEmail,
   GetCustomerCreditFacilityByEmailQueryVariables,
 } from "@/lib/graphql/generated";
 
@@ -123,31 +121,6 @@ gql`
   }
 `;
 
-export const getCustomerCreditFacility = async (
-  variables: GetCustomerCreditFacilityByEmailQueryVariables
-) => {
-  try {
-    const response = await getClient().query<
-      GetCustomerCreditFacilityByEmailQuery,
-      GetCustomerCreditFacilityByEmailQueryVariables
-    >({
-      query: GetCustomerCreditFacilityByEmailDocument,
-      variables,
-    });
-
-    if (!response.data?.customerByEmail) {
-      return { error: "Customer not found" };
-    }
-
-    return response;
-  } catch (error) {
-    if (error instanceof Error) {
-      return { error: error.message };
-    }
-    return { error: "An unknown error occurred" };
-  }
-};
-
 export const getCustomerCreditFacilitiesTool = tool({
   type: "function",
   description:
@@ -160,6 +133,6 @@ export const getCustomerCreditFacilitiesTool = tool({
       ),
   }),
   execute: async ({ email }) => {
-    return getCustomerCreditFacility({ email });
+    return getCustomerCreditFacilityByEmail({ email });
   },
 });
