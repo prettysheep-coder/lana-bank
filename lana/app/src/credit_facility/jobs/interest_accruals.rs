@@ -9,7 +9,7 @@ use crate::{
         interest_incurrences, ledger::*, repo::*, CreditFacilityError,
         CreditFacilityInterestAccrual,
     },
-    job::{error::*, *},
+    job::*,
     primitives::CreditFacilityId,
 };
 
@@ -80,15 +80,18 @@ impl CreditFacilityProcessingJobRunner {
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
     ) -> Result<CreditFacilityInterestAccrual, CreditFacilityError> {
+        dbg!("record interest accrual");
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
         let interest_accrual = credit_facility.record_interest_accrual(audit_info.clone())?;
+        dbg!("post command");
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
+        dbg!("post update_in_op");
 
         Ok(interest_accrual)
     }
@@ -107,8 +110,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
+        dbg!("run attempt: {}", current_job.attempt());
 
         let mut db = self.credit_facility_repo.begin_op().await?;
+        dbg!("now", db.now());
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
@@ -150,8 +155,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        match self
-            .jobs
+        self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
                 credit_facility
@@ -163,16 +167,12 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                 },
                 periods.incurrence.end,
             )
-            .await
-        {
-            Ok(_) | Err(JobError::DuplicateId) => (),
-            Err(err) => Err(err)?,
-        };
+            .await?;
 
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        return Ok(JobCompletion::RescheduleAtWithOp(db, periods.accrual.end));
+        return Ok(JobCompletion::CompleteWithOp(db));
     }
 }

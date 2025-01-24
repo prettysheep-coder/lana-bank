@@ -22,5 +22,5 @@ fn default_num_facilities() -> u32 {
 }
 
 fn default_num_customers() -> u32 {
-    2
+    1
 }

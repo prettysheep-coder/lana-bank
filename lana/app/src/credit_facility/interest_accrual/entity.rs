@@ -210,6 +210,8 @@ impl InterestAccrual {
             None => return None,
         };
 
+        dbg!("last_incurrence_period", last_incurrence_period);
+        dbg!("accrues_at", self.accrues_at());
         match last_incurrence_period.next().truncate(self.accrues_at()) {
             Some(_) => None,
             None => {
