@@ -10,6 +10,8 @@ use crate::statement::*;
 
 use error::*;
 
+use super::{ProfitAndLossStatementIds, EXPENSES_NAME, REVENUE_NAME};
+
 #[derive(Clone)]
 pub struct ProfitAndLossStatementLedger {
     cala: CalaLedger,
@@ -29,15 +31,16 @@ impl ProfitAndLossStatementLedger {
         op: es_entity::DbOp<'_>,
         statement_id: impl Into<AccountSetId>,
         name: &str,
-    ) -> Result<(), ProfitAndLossStatementLedgerError> {
+    ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
+        let statement_id = statement_id.into();
         let new_account_set = NewAccountSet::builder()
             .id(statement_id)
             .journal_id(self.journal_id)
             .name(name)
             .description(name)
-            .normal_balance_type(DebitOrCredit::Debit)
+            .normal_balance_type(DebitOrCredit::Credit)
             .build()
             .expect("Could not build new account set");
         self.cala
@@ -45,8 +48,49 @@ impl ProfitAndLossStatementLedger {
             .create_in_op(&mut op, new_account_set)
             .await?;
 
+        let revenue_id = AccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(revenue_id)
+            .journal_id(self.journal_id)
+            .name(REVENUE_NAME)
+            .description(REVENUE_NAME)
+            .normal_balance_type(DebitOrCredit::Credit)
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(&mut op, new_account_set)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, statement_id, revenue_id)
+            .await?;
+
+        let expenses_id = AccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(expenses_id)
+            .journal_id(self.journal_id)
+            .name(EXPENSES_NAME)
+            .description(EXPENSES_NAME)
+            .normal_balance_type(DebitOrCredit::Credit)
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(&mut op, new_account_set)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, statement_id, expenses_id)
+            .await?;
+
         op.commit().await?;
-        Ok(())
+
+        Ok(ProfitAndLossStatementIds {
+            id: statement_id.into(),
+            revenue: revenue_id,
+            expenses: expenses_id,
+        })
     }
 
     pub async fn list_for_name(
@@ -78,7 +122,7 @@ impl ProfitAndLossStatementLedger {
         Ok(())
     }
 
-    async fn get_account_set(
+    async fn get_account_set_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
@@ -122,7 +166,22 @@ impl ProfitAndLossStatementLedger {
         })
     }
 
-    async fn get_member_account_sets(
+    async fn get_account_set(
+        &self,
+        id: impl Into<AccountSetId> + Copy,
+    ) -> Result<StatementAccountSetDetails, ProfitAndLossStatementLedgerError> {
+        let id = id.into();
+
+        let values = self.cala.account_sets().find(id).await?.into_values();
+
+        Ok(StatementAccountSetDetails {
+            id: values.id,
+            name: values.name,
+            description: values.description,
+        })
+    }
+
+    async fn get_member_account_sets_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
@@ -144,7 +203,34 @@ impl ProfitAndLossStatementLedger {
 
         let mut accounts: Vec<StatementAccountSet> = vec![];
         for id in member_ids {
-            accounts.push(self.get_account_set(op, id).await?);
+            accounts.push(self.get_account_set_in_op(op, id).await?);
+        }
+
+        Ok(accounts)
+    }
+
+    pub async fn get_member_account_sets(
+        &self,
+        id: impl Into<AccountSetId> + Copy,
+    ) -> Result<Vec<StatementAccountSetDetails>, ProfitAndLossStatementLedgerError> {
+        let id = id.into();
+
+        let member_ids = self
+            .cala
+            .account_sets()
+            .list_members(id, Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|m| match m.id {
+                AccountSetMemberId::AccountSet(id) => Ok(id),
+                _ => Err(ProfitAndLossStatementLedgerError::NonAccountSetMemberTypeFound),
+            })
+            .collect::<Result<Vec<AccountSetId>, ProfitAndLossStatementLedgerError>>()?;
+
+        let mut accounts: Vec<StatementAccountSetDetails> = vec![];
+        for id in member_ids {
+            accounts.push(self.get_account_set(id).await?);
         }
 
         Ok(accounts)
@@ -156,9 +242,9 @@ impl ProfitAndLossStatementLedger {
     ) -> Result<StatementAccountSetWithAccounts, ProfitAndLossStatementLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
-        let pl_statement_set = self.get_account_set(&mut op, id).await?;
+        let pl_statement_set = self.get_account_set_in_op(&mut op, id).await?;
 
-        let accounts = self.get_member_account_sets(&mut op, id).await?;
+        let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
 
         op.commit().await?;
 

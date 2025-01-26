@@ -22,6 +22,7 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::Subject,
+    profit_and_loss::ProfitAndLossStatements,
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
@@ -79,11 +80,14 @@ impl LanaApp {
         let journal_init = JournalInit::journal(&cala).await?;
         let trial_balances =
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        StatementsInit::statements(&trial_balances).await?;
+        let pl_statements =
+            ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        StatementsInit::statements(&trial_balances, &pl_statements).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let charts_init =
-            ChartsInit::charts_of_accounts(&trial_balances, &chart_of_accounts).await?;
+            ChartsInit::charts_of_accounts(&trial_balances, &pl_statements, &chart_of_accounts)
+                .await?;
 
         let deposits_factory =
             chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);

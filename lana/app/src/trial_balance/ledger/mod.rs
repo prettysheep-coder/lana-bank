@@ -78,7 +78,7 @@ impl TrialBalanceLedger {
         Ok(())
     }
 
-    async fn get_account_set(
+    async fn get_account_set_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
@@ -122,7 +122,7 @@ impl TrialBalanceLedger {
         })
     }
 
-    async fn get_member_account_sets(
+    async fn get_member_account_sets_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
         id: impl Into<AccountSetId> + Copy,
@@ -144,7 +144,7 @@ impl TrialBalanceLedger {
 
         let mut accounts: Vec<StatementAccountSet> = vec![];
         for id in member_ids {
-            accounts.push(self.get_account_set(op, id).await?);
+            accounts.push(self.get_account_set_in_op(op, id).await?);
         }
 
         Ok(accounts)
@@ -156,9 +156,9 @@ impl TrialBalanceLedger {
     ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
-        let trial_balance_set = self.get_account_set(&mut op, id).await?;
+        let trial_balance_set = self.get_account_set_in_op(&mut op, id).await?;
 
-        let accounts = self.get_member_account_sets(&mut op, id).await?;
+        let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
 
         op.commit().await?;
 
