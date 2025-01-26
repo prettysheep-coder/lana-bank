@@ -5,6 +5,7 @@ import {
   GetCustomerByEmailQueryVariables,
   getCustomerByEmail,
 } from "@/lib/graphql/generated";
+import { centsToUSD } from "@/lib/utils/currency";
 
 gql`
   query GetCustomerByEmail($email: String!) {
@@ -57,6 +58,37 @@ export const getCustomerDetailsTool = tool({
       ),
   }),
   execute: async ({ email }) => {
-    return getCustomerByEmail({ email });
+    const response = await getCustomerByEmail({ email });
+
+    if ("error" in response) {
+      return response;
+    }
+
+    const customer = response.data.customerByEmail;
+    if (!customer) return response;
+
+    return {
+      ...response,
+      data: {
+        customerByEmail: {
+          ...customer,
+          depositAccount: {
+            ...customer.depositAccount,
+            balance: {
+              pendingUSD: centsToUSD(customer.depositAccount.balance.pending),
+              settledUSD: centsToUSD(customer.depositAccount.balance.settled),
+            },
+            withdrawals: customer.depositAccount.withdrawals.map((w) => ({
+              ...w,
+              amountUSD: centsToUSD(w.amount),
+            })),
+            deposits: customer.depositAccount.deposits.map((d) => ({
+              ...d,
+              amountUSD: centsToUSD(d.amount),
+            })),
+          },
+        },
+      },
+    };
   },
 });

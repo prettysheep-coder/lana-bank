@@ -1,6 +1,6 @@
 module.exports = {
   plugin: (_, documents) => {
-    const imports = `import { getClient } from "../../client";`;
+    const imports = `import { getClient } from "../../client";`
 
     const functions = documents
       .filter((doc) => doc.document?.definitions?.length > 0)
@@ -34,6 +34,7 @@ export async function ${functionName}(variables: ${operationName}QueryVariables)
     return response;
   } catch (error) {
     if (error instanceof Error) {
+      console.error("error in ${functionName}", error);
       return { error: error.message };
     }
     return { error: "An unknown error occurred" };

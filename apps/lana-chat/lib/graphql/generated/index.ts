@@ -1597,7 +1597,7 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, customer: { __typename?: 'Customer', customerId: any, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', creditFacilityId: any, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, customer: { __typename?: 'Customer', customerId: any, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type GetCreditFacilityDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1627,7 +1627,6 @@ export const CreditFacilitiesDocument = gql`
     edges {
       cursor
       node {
-        id
         creditFacilityId
         collateralizationState
         createdAt
@@ -2051,6 +2050,7 @@ export async function creditFacilities(variables: CreditFacilitiesQueryVariables
     return response;
   } catch (error) {
     if (error instanceof Error) {
+      console.error("error in creditFacilities", error);
       return { error: error.message };
     }
     return { error: "An unknown error occurred" };
@@ -2066,6 +2066,7 @@ export async function getCreditFacilityDetails(variables: GetCreditFacilityDetai
     return response;
   } catch (error) {
     if (error instanceof Error) {
+      console.error("error in getCreditFacilityDetails", error);
       return { error: error.message };
     }
     return { error: "An unknown error occurred" };
@@ -2081,6 +2082,7 @@ export async function getCustomerCreditFacilityByEmail(variables: GetCustomerCre
     return response;
   } catch (error) {
     if (error instanceof Error) {
+      console.error("error in getCustomerCreditFacilityByEmail", error);
       return { error: error.message };
     }
     return { error: "An unknown error occurred" };
@@ -2096,6 +2098,7 @@ export async function getCustomerByEmail(variables: GetCustomerByEmailQueryVaria
     return response;
   } catch (error) {
     if (error instanceof Error) {
+      console.error("error in getCustomerByEmail", error);
       return { error: error.message };
     }
     return { error: "An unknown error occurred" };

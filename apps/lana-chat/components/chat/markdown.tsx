@@ -7,11 +7,9 @@ import {
   TableCell,
 } from "../ui/table";
 import Link from "next/link";
-import { useState } from "react";
 import { Components } from "react-markdown";
 
 export const components: Partial<Components> = {
-  code: CodeBlock,
   pre: ({ children }) => <>{children}</>,
   ol: ({ children, ...props }) => {
     return (
@@ -119,37 +117,3 @@ export const components: Partial<Components> = {
     return <TableCell>{children}</TableCell>;
   },
 };
-
-interface CodeBlockProps {
-  inline?: boolean;
-  className?: string;
-  children?: React.ReactNode;
-}
-
-function CodeBlock({ inline, className, children, ...props }: CodeBlockProps) {
-  const [output] = useState<string | null>(null);
-  const [tab] = useState<"code" | "run">("code");
-
-  if (!inline) {
-    return (
-      <div className="not-prose flex flex-col">
-        {tab === "code" && (
-          <pre {...props} className={`text-sm w-full overflow-x-auto `}>
-            <code className="whitespace-pre-wrap break-words">{children}</code>
-          </pre>
-        )}
-        {tab === "run" && output && (
-          <div className="text-sm w-full overflow-x-auto ">
-            <code>{output}</code>
-          </div>
-        )}
-      </div>
-    );
-  } else {
-    return (
-      <code className={`${className} text-sm  rounded-md`} {...props}>
-        {children}
-      </code>
-    );
-  }
-}

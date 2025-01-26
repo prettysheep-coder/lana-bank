@@ -5,6 +5,7 @@ import {
   getCustomerCreditFacilityByEmail,
   GetCustomerCreditFacilityByEmailQueryVariables,
 } from "@/lib/graphql/generated";
+import { centsToUSD, satoshisToBTC, toPercentage } from "@/lib/utils/currency";
 
 gql`
   query GetCustomerCreditFacilityByEmail($email: String!) {
@@ -133,6 +134,97 @@ export const getCustomerCreditFacilitiesTool = tool({
       ),
   }),
   execute: async ({ email }) => {
-    return getCustomerCreditFacilityByEmail({ email });
+    const response = await getCustomerCreditFacilityByEmail({ email });
+
+    if ("error" in response) {
+      return response;
+    }
+
+    const customer = response.data.customerByEmail;
+    if (!customer) return response;
+
+    return {
+      ...response,
+      data: {
+        customerByEmail: {
+          ...customer,
+          creditFacilities: customer.creditFacilities.map((facility) => ({
+            ...facility,
+            facilityAmountUSD: centsToUSD(facility.facilityAmount),
+            collateralBTC: satoshisToBTC(facility.collateral),
+            creditFacilityTerms: {
+              ...facility.creditFacilityTerms,
+              annualRate: toPercentage(facility.creditFacilityTerms.annualRate),
+              oneTimeFeeRate: toPercentage(facility.creditFacilityTerms.oneTimeFeeRate),
+              liquidationCvl: toPercentage(facility.creditFacilityTerms.liquidationCvl),
+              marginCallCvl: toPercentage(facility.creditFacilityTerms.marginCallCvl),
+              initialCvl: toPercentage(facility.creditFacilityTerms.initialCvl),
+            },
+            currentCvl: {
+              total: toPercentage(facility.currentCvl.total),
+              disbursed: toPercentage(facility.currentCvl.disbursed),
+            },
+            transactions: facility.transactions.map((tx) => {
+              if ("cents" in tx) {
+                return { ...tx, amountUSD: centsToUSD(tx.cents) };
+              }
+              if ("satoshis" in tx) {
+                return { ...tx, amountBTC: satoshisToBTC(tx.satoshis) };
+              }
+              if ("outstandingInterest" in tx) {
+                return {
+                  ...tx,
+                  collateralBTC: satoshisToBTC(tx.collateral),
+                  outstandingInterestUSD: centsToUSD(tx.outstandingInterest),
+                  outstandingDisbursalUSD: centsToUSD(tx.outstandingDisbursal),
+                  priceUSD: centsToUSD(tx.price),
+                };
+              }
+              return tx;
+            }),
+            disbursals: facility.disbursals.map((d) => ({
+              ...d,
+              amountUSD: centsToUSD(d.amount),
+            })),
+            balance: {
+              facilityRemaining: {
+                usdBalance: centsToUSD(facility.balance.facilityRemaining.usdBalance),
+              },
+              disbursed: {
+                total: {
+                  usdBalance: centsToUSD(facility.balance.disbursed.total.usdBalance),
+                },
+                outstanding: {
+                  usdBalance: centsToUSD(facility.balance.disbursed.outstanding.usdBalance),
+                },
+                dueOutstanding: {
+                  usdBalance: centsToUSD(facility.balance.disbursed.dueOutstanding.usdBalance),
+                },
+              },
+              interest: {
+                total: {
+                  usdBalance: centsToUSD(facility.balance.interest.total.usdBalance),
+                },
+                outstanding: {
+                  usdBalance: centsToUSD(facility.balance.interest.outstanding.usdBalance),
+                },
+                dueOutstanding: {
+                  usdBalance: centsToUSD(facility.balance.interest.dueOutstanding.usdBalance),
+                },
+              },
+              outstanding: {
+                usdBalance: centsToUSD(facility.balance.outstanding.usdBalance),
+              },
+              dueOutstanding: {
+                usdBalance: centsToUSD(facility.balance.dueOutstanding.usdBalance),
+              },
+              collateral: {
+                btcBalance: satoshisToBTC(facility.balance.collateral.btcBalance),
+              },
+            },
+          })),
+        },
+      },
+    };
   },
 });

@@ -10,6 +10,7 @@ import {
   SortDirection,
   creditFacilities,
 } from "@/lib/graphql/generated";
+import { centsToUSD, satoshisToBTC, toPercentage } from "@/lib/utils/currency";
 
 const CollateralizationStateSchema = z
   .nativeEnum(CollateralizationState)
@@ -71,7 +72,6 @@ gql`
       edges {
         cursor
         node {
-          id
           creditFacilityId
           collateralizationState
           createdAt
@@ -122,11 +122,44 @@ export const getCreditFacilitiesTool = tool({
     filter: CreditFacilitiesFilterSchema.optional(),
   }),
   execute: async ({ first, after, sort, filter }) => {
-    return creditFacilities({
-      first,
-      after,
-      sort,
-      filter,
-    });
+    const response = await creditFacilities({ first, after, sort, filter });
+
+    if ("error" in response) {
+      return response;
+    }
+
+    //  temporary fix for currency conversion this should happen from backend.
+    return {
+      edges: response.data.creditFacilities?.edges?.map((edge) => ({
+        cursor: edge.cursor,
+        node: {
+          creditFacilityId: edge.node.creditFacilityId,
+          collateralizationState: edge.node.collateralizationState,
+          createdAt: edge.node.createdAt,
+          status: edge.node.status,
+          facilityAmountUSD: centsToUSD(edge.node.facilityAmount),
+          collateralBTC: satoshisToBTC(edge.node.collateral),
+          currentCvl: {
+            disbursed: toPercentage(edge.node.currentCvl.disbursed),
+            total: toPercentage(edge.node.currentCvl.total),
+          },
+          balance: {
+            collateral: {
+              btcBalance: satoshisToBTC(
+                edge.node.balance.collateral.btcBalance
+              ),
+            },
+            outstanding: {
+              usdBalance: centsToUSD(edge.node.balance.outstanding.usdBalance),
+            },
+          },
+          customer: {
+            customerId: edge.node.customer.customerId,
+            email: edge.node.customer.email,
+          },
+        },
+      })),
+      pageInfo: response.data.creditFacilities?.pageInfo,
+    };
   },
 });
