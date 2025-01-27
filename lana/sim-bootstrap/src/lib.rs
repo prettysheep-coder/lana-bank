@@ -193,7 +193,7 @@ fn std_terms() -> TermValues {
         .initial_cvl(dec!(140))
         .margin_call_cvl(dec!(125))
         .liquidation_cvl(dec!(105))
-        .duration(Duration::Months(1))
+        .duration(Duration::Months(3))
         .incurrence_interval(InterestInterval::EndOfDay)
         .accrual_interval(InterestInterval::EndOfMonth)
         .one_time_fee_rate(dec!(0.01))
