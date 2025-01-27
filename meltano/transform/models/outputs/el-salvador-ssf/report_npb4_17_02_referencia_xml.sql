@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 select
     cast(`dias_mora_k` as string) as `dias_mora_k`,
     cast(`dias_mora_i` as string) as `dias_mora_i`,
