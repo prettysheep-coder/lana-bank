@@ -192,12 +192,10 @@ impl ProfitAndLossStatements {
             .await?
             .ok_or(ProfitAndLossStatementError::NotFound(name))?;
 
-        let pl_statement_details = self
+        Ok(self
             .pl_statement_ledger
-            .get_pl_statement(pl_statement_ids.id)
-            .await?;
-
-        Ok(ProfitAndLossStatement::from(pl_statement_details))
+            .get_pl_statement(pl_statement_ids)
+            .await?)
     }
 }
 
@@ -208,18 +206,5 @@ pub struct ProfitAndLossStatement {
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalance,
     pub usd_balance: UsdStatementAccountSetBalance,
-    pub accounts: Vec<StatementAccountSet>,
-}
-
-impl From<StatementAccountSetWithAccounts> for ProfitAndLossStatement {
-    fn from(details: StatementAccountSetWithAccounts) -> Self {
-        Self {
-            id: details.id.into(),
-            name: details.name,
-            description: details.description,
-            btc_balance: details.btc_balance,
-            usd_balance: details.usd_balance,
-            accounts: details.accounts,
-        }
-    }
+    pub categories: Vec<StatementAccountSetWithAccounts>,
 }

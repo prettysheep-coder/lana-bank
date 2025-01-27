@@ -10,7 +10,7 @@ use crate::statement::*;
 
 use error::*;
 
-use super::{ProfitAndLossStatementIds, EXPENSES_NAME, REVENUE_NAME};
+use super::{ProfitAndLossStatement, ProfitAndLossStatementIds, EXPENSES_NAME, REVENUE_NAME};
 
 #[derive(Clone)]
 pub struct ProfitAndLossStatementLedger {
@@ -238,26 +238,48 @@ impl ProfitAndLossStatementLedger {
 
     pub async fn get_pl_statement(
         &self,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<StatementAccountSetWithAccounts, ProfitAndLossStatementLedgerError> {
+        ids: ProfitAndLossStatementIds,
+    ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
-        let pl_statement_set = self.get_account_set_in_op(&mut op, id).await?;
+        let pl_statement_set = self.get_account_set_in_op(&mut op, ids.id).await?;
 
-        let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
+        let revenue_account_set = self.get_account_set_in_op(&mut op, ids.revenue).await?;
+        let revenue_accounts = self
+            .get_member_account_sets_in_op(&mut op, ids.revenue)
+            .await?;
+
+        let expenses_account_set = self.get_account_set_in_op(&mut op, ids.expenses).await?;
+        let expenses_accounts = self
+            .get_member_account_sets_in_op(&mut op, ids.expenses)
+            .await?;
 
         op.commit().await?;
 
-        Ok(StatementAccountSetWithAccounts {
-            id: pl_statement_set.id,
+        Ok(ProfitAndLossStatement {
+            id: pl_statement_set.id.into(),
             name: pl_statement_set.name,
             description: pl_statement_set.description,
             btc_balance: pl_statement_set.btc_balance,
             usd_balance: pl_statement_set.usd_balance,
-            accounts: accounts
-                .into_iter()
-                .map(StatementAccountSet::from)
-                .collect(),
+            categories: vec![
+                StatementAccountSetWithAccounts {
+                    id: revenue_account_set.id,
+                    name: revenue_account_set.name,
+                    description: revenue_account_set.description,
+                    btc_balance: revenue_account_set.btc_balance,
+                    usd_balance: revenue_account_set.usd_balance,
+                    accounts: revenue_accounts,
+                },
+                StatementAccountSetWithAccounts {
+                    id: expenses_account_set.id,
+                    name: expenses_account_set.name,
+                    description: expenses_account_set.description,
+                    btc_balance: expenses_account_set.btc_balance,
+                    usd_balance: expenses_account_set.usd_balance,
+                    accounts: expenses_accounts,
+                },
+            ],
         })
     }
 }

@@ -46,6 +46,7 @@ pub struct LanaApp {
     users: Users,
     credit_facilities: CreditFacilities,
     trial_balances: TrialBalances,
+    profit_and_loss_statements: ProfitAndLossStatements,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -141,6 +142,7 @@ impl LanaApp {
             report,
             credit_facilities,
             trial_balances,
+            profit_and_loss_statements: pl_statements,
             terms_templates,
             documents,
             _outbox: outbox,
@@ -206,6 +208,10 @@ impl LanaApp {
 
     pub fn trial_balances(&self) -> &TrialBalances {
         &self.trial_balances
+    }
+
+    pub fn profit_and_loss_statements(&self) -> &ProfitAndLossStatements {
+        &self.profit_and_loss_statements
     }
 
     pub fn users(&self) -> &Users {
