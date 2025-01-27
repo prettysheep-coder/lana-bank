@@ -7,7 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    accounting_init::{ChartsInit, JournalInit},
+    accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -25,6 +25,7 @@ use crate::{
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
+    trial_balance::TrialBalances,
     user::Users,
 };
 
@@ -43,6 +44,7 @@ pub struct LanaApp {
     applicants: Applicants,
     users: Users,
     credit_facilities: CreditFacilities,
+    trial_balances: TrialBalances,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -75,12 +77,18 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_init = JournalInit::journal(&cala).await?;
+        let trial_balances =
+            TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        StatementsInit::statements(&trial_balances).await?;
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let charts_init = ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
+        let charts_init =
+            ChartsInit::charts_of_accounts(&trial_balances, &chart_of_accounts).await?;
 
         let deposits_factory =
             chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits);
+        let deposits_omnibus_factory =
+            chart_of_accounts.transaction_account_factory(charts_init.deposits.deposits_omnibus);
         let deposits = Deposits::init(
             &pool,
             &authz,
@@ -88,9 +96,9 @@ impl LanaApp {
             &governance,
             &jobs,
             deposits_factory,
+            deposits_omnibus_factory,
             &cala,
             journal_init.journal_id,
-            String::from("OMNIBUS_ACCOUNT_ID"),
         )
         .await?;
         let customers = Customers::new(&pool, &config.customer, &deposits, &authz);
@@ -128,6 +136,7 @@ impl LanaApp {
             price,
             report,
             credit_facilities,
+            trial_balances,
             terms_templates,
             documents,
             _outbox: outbox,
@@ -189,6 +198,10 @@ impl LanaApp {
 
     pub fn credit_facilities(&self) -> &CreditFacilities {
         &self.credit_facilities
+    }
+
+    pub fn trial_balances(&self) -> &TrialBalances {
+        &self.trial_balances
     }
 
     pub fn users(&self) -> &Users {

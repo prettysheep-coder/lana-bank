@@ -108,6 +108,7 @@ pub enum AppAction {
     Audit(AuditAction),
     Ledger(LedgerAction),
     CreditFacility(CreditFacilityAction),
+    TrialBalance(TrialBalanceAction),
     Document(DocumentAction),
 }
 
@@ -122,6 +123,7 @@ impl Display for AppAction {
             Audit(action) => action.fmt(f),
             Ledger(action) => action.fmt(f),
             CreditFacility(action) => action.fmt(f),
+            TrialBalance(action) => action.fmt(f),
             Document(action) => action.fmt(f),
         }
     }
@@ -142,6 +144,7 @@ impl FromStr for AppAction {
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Ledger => AppAction::from(action.parse::<LedgerAction>()?),
             CreditFacility => AppAction::from(action.parse::<CreditFacilityAction>()?),
+            TrialBalance => AppAction::from(action.parse::<TrialBalanceAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
@@ -168,6 +171,16 @@ pub enum CreditFacilityAction {
 }
 
 impl_trivial_action!(CreditFacilityAction, CreditFacility);
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum TrialBalanceAction {
+    Create,
+    Update,
+    Read,
+}
+
+impl_trivial_action!(TrialBalanceAction, TrialBalance);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]

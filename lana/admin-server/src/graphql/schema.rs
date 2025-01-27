@@ -1,7 +1,9 @@
 use async_graphql::{types::connection::*, Context, Object};
 
 use lana_app::{
-    accounting_init::constants::{CHART_REF, OBS_CHART_REF},
+    accounting_init::constants::{
+        CHART_REF, OBS_CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
+    },
     app::LanaApp,
 };
 
@@ -390,6 +392,7 @@ impl Query {
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
     }
 
+    // TODO: remove Option from return type
     #[allow(unused_variables)]
     async fn trial_balance(
         &self,
@@ -397,13 +400,12 @@ impl Query {
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let account_summary = app
-        //     .ledger()
-        //     .trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
-        //     .await?;
-        // Ok(account_summary.map(TrialBalance::from))
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let account_summary = app
+            .trial_balances()
+            .trial_balance(sub, TRIAL_BALANCE_STATEMENT_NAME.to_string())
+            .await?;
+        Ok(Some(TrialBalance::from(account_summary)))
     }
 
     #[allow(unused_variables)]
@@ -413,13 +415,12 @@ impl Query {
         from: Timestamp,
         until: Option<Timestamp>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let account_summary = app
-        //     .ledger()
-        //     .obs_trial_balance(sub, from.into_inner(), until.map(|t| t.into_inner()))
-        //     .await?;
-        // Ok(account_summary.map(TrialBalance::from))
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let account_summary = app
+            .trial_balances()
+            .trial_balance(sub, OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
+            .await?;
+        Ok(Some(TrialBalance::from(account_summary)))
     }
 
     async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
