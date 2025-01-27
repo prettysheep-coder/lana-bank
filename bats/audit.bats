@@ -4,6 +4,7 @@ load "helpers"
 
 setup_file() {
   start_server
+  login_superadmin
 }
 
 teardown_file() {
@@ -14,6 +15,8 @@ teardown_file() {
   exec_admin_graphql 'audit-logs' '{"first": 1}'
   exec_admin_graphql 'audit-logs' '{"first": 1}'
   exec_admin_graphql 'audit-logs' '{"first": 1}'
+
+  graphql_output
 
   edges_length=$(graphql_output '.data.audit.edges | length')
   [[ "$edges_length" -eq 1 ]] || exit 1

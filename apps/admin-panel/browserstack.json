@@ -7,7 +7,9 @@
         {
             "os": "Windows 11",
             "browser": "chrome",
-            "versions": ["latest"]
+            "versions": [
+                "latest"
+            ]
         }
     ],
     "run_settings": {
