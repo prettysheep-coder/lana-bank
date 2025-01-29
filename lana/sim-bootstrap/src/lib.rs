@@ -168,7 +168,7 @@ async fn make_deposit(
                 sub,
                 deposit_account_id,
                 UsdCents::try_from_usd(
-                    rust_decimal::Decimal::from(config.num_facilities) * dec!(1_000_000),
+                    rust_decimal::Decimal::from(config.num_facilities) * dec!(10_000_000),
                 )?,
                 None,
             )
