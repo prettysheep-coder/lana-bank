@@ -4,19 +4,13 @@ import { Inter_Tight } from "next/font/google"
 
 import { ApolloProvider } from "@apollo/client"
 
-import { AppLayout } from "./app-layout"
-
-import { CommandMenu } from "./command-menu"
 import { Authenticated } from "./auth/session"
-import { BreadcrumbProvider } from "./breadcrumb-provider"
 
 import { makeClient } from "@/lib/apollo-client/client"
 import { Toast } from "@/components/toast"
-import { SidebarProvider, SidebarInset } from "@/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { env } from "@/env"
 
 // eslint-disable-next-line import/no-unassigned-import
-import { env } from "@/env"
 import "./globals.css"
 
 const inter = Inter_Tight({
