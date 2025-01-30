@@ -119,10 +119,10 @@ bq-pipeline-run:
 	meltano run dbt-bigquery:run
 
 check-code-pipeline:
-	meltano invoke sqlfluff:fix
+	meltano invoke sqlfluff:lint
 
 lint-code-pipeline:
-	meltano invoke sqlfluff:lint
+	meltano invoke sqlfluff:fix
 
 bitfinex-run:
 	meltano run tap-bitfinexapi target-bigquery
