@@ -1,6 +1,5 @@
 "use client"
 
-import { BreadcrumbProvider } from "./breadcrumb-provider"
 import { CommandMenu } from "./command-menu"
 import CreateButton, { CreateContextProvider } from "./create"
 import { DynamicBreadcrumb } from "./dynamic-breadcrumb"

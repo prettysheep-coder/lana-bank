@@ -62,7 +62,6 @@ pub struct UserOnboardingJobRunner {
 }
 #[async_trait]
 impl JobRunner for UserOnboardingJobRunner {
-    #[allow(clippy::single_match)]
     async fn run(
         &self,
         current_job: CurrentJob,
@@ -76,10 +75,6 @@ impl JobRunner for UserOnboardingJobRunner {
             if let Some(LanaEvent::User(CoreUserEvent::UserCreated { id, email })) =
                 &message.payload
             {
-                println!(
-                    "UserOnboardingJobRunner: User created: {:?} {:?}",
-                    id, email
-                );
                 self.kratos_admin.create_user(*id, email.clone()).await?;
             }
         }
