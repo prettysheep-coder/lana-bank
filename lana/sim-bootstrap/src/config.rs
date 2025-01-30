@@ -18,9 +18,9 @@ impl Default for BootstrapConfig {
 }
 
 fn default_num_facilities() -> u32 {
-    2
+    1
 }
 
 fn default_num_customers() -> u32 {
-    2
+    25
 }
