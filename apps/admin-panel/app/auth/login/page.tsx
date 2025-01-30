@@ -44,7 +44,7 @@ const Login: React.FC = () => {
           onChange={setEmail}
         />
         <Button type="submit">Submit</Button>
-        {error && <div className="text-red-500">{error}</div>}
+        {error && <div className="text-destructive">{error}</div>}
       </form>
     </>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, Suspense } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { loginUserWithOtp } from "../ory"
@@ -14,9 +14,10 @@ const Verify: React.FC = () => {
 
   const [otp, setOtp] = useState("")
   const [error, setError] = useState("")
+  const formRef = useRef<HTMLFormElement>(null)
 
-  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const onSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    if (event) event.preventDefault()
 
     try {
       const flowId = searchParams.get("flow") || ""
@@ -27,6 +28,12 @@ const Verify: React.FC = () => {
     }
   }
 
+  useEffect(() => {
+    if (otp.length === 6) {
+      formRef.current?.requestSubmit()
+    }
+  }, [otp])
+
   return (
     <>
       <h1 className="font-semibold leading-none tracking-tight text-xl">
@@ -35,31 +42,24 @@ const Verify: React.FC = () => {
       <div className="space-y-[10px]">
         <div className="text-md">Enter the 6 digit OTP</div>
         <div className="text-md font-light">
-          Check your email address to continue. We&apos;ve sent a six digit OTP to your
+          Check your email address to continue. We&apos;ve sent a six-digit OTP to your
           inbox. Enter the exact digits in the box below to continue.
         </div>
       </div>
-      <form className="space-y-[20px] w-full" onSubmit={onSubmit}>
+      <form ref={formRef} className="space-y-[20px] w-full" onSubmit={onSubmit}>
         <Input
           label="One Time Code"
           type="text"
           name="otp"
-          autofocus
           placeholder="Please enter the OTP sent to your email"
           defaultValue={otp}
           onChange={setOtp}
         />
         <Button type="submit">Submit</Button>
-        {error && <div className="text-red-500">{error}</div>}
+        {error && <div className="text-destructive">{error}</div>}
       </form>
     </>
   )
 }
 
-const VerifyPage: React.FC = () => (
-  <Suspense>
-    <Verify />
-  </Suspense>
-)
-
-export default VerifyPage
+export default Verify

@@ -52,7 +52,6 @@ describe("Users", () => {
   })
 
   it("Can update user roles", () => {
-    cy.wait(500)
     cy.visit(`/users/${userId}`)
     cy.wait(1000)
     cy.takeScreenshot("8_manage_roles")
