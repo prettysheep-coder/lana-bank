@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, Suspense, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 import { loginUserWithOtp } from "../ory"
@@ -14,10 +14,10 @@ const Verify: React.FC = () => {
 
   const [otp, setOtp] = useState("")
   const [error, setError] = useState("")
-  const formRef = useRef<HTMLFormElement>(null)
+  const formRef = React.useRef<HTMLFormElement>(null)
 
-  const onSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
-    if (event) event.preventDefault()
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
     try {
       const flowId = searchParams.get("flow") || ""
@@ -42,7 +42,7 @@ const Verify: React.FC = () => {
       <div className="space-y-[10px]">
         <div className="text-md">Enter the 6 digit OTP</div>
         <div className="text-md font-light">
-          Check your email address to continue. We&apos;ve sent a six-digit OTP to your
+          Check your email address to continue. We&apos;ve sent a six digit OTP to your
           inbox. Enter the exact digits in the box below to continue.
         </div>
       </div>
@@ -51,6 +51,7 @@ const Verify: React.FC = () => {
           label="One Time Code"
           type="text"
           name="otp"
+          autofocus
           placeholder="Please enter the OTP sent to your email"
           defaultValue={otp}
           onChange={setOtp}
@@ -62,4 +63,10 @@ const Verify: React.FC = () => {
   )
 }
 
-export default Verify
+const VerifyPage: React.FC = () => (
+  <Suspense>
+    <Verify />
+  </Suspense>
+)
+
+export default VerifyPage
