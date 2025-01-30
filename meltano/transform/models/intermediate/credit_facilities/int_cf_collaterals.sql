@@ -1,53 +1,93 @@
-WITH collateral_updated AS (
+with collateral_updated as (
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , event_type
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_in_ledger_at"), "UTC")) as INT64) AS recorded_in_ledger_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_in_ledger_at"), "UTC") AS recorded_in_ledger_at
-        , JSON_VALUE(event, "$.action") AS action
-        , CAST(JSON_VALUE(event, "$.audit_info.audit_entry_id") AS INTEGER) AS audit_entry_id
-        , CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC) AS abs_diff
-        , CAST(JSON_VALUE(event, "$.total_collateral") AS NUMERIC) AS total_collateral
-    FROM {{ ref('stg_credit_facility_events') }} AS cfe
-    WHERE cfe.event_type = "collateral_updated"
-    AND JSON_VALUE(event, "$.tx_id") IS NOT NULL
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        event_type,
+        cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ',
+                    json_value(event, '$.recorded_in_ledger_at'),
+                    'UTC'
+                )
+            ) as int64
+        ) as recorded_in_ledger_at_date_key,
+        cast(json_value(event, '$.audit_info.audit_entry_id') as integer)
+            as audit_entry_id,
+        cast(json_value(event, '$.abs_diff') as numeric) as abs_diff,
+        cast(json_value(event, '$.total_collateral') as numeric)
+            as total_collateral,
+        parse_timestamp(
+            '%Y-%m-%dT%H:%M:%E*SZ',
+            json_value(event, '$.recorded_in_ledger_at'),
+            'UTC'
+        ) as recorded_in_ledger_at,
+        json_value(event, '$.action') as action
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where
+        cfe.event_type = 'collateral_updated'
+        and json_value(event, '$.tx_id') is not null
 
-), collateralization_changed AS (
+),
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_at"), "UTC")) as INT64) AS event_recorded_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_at"), "UTC") AS event_recorded_at
-        , JSON_VALUE(event, "$.state") AS state
-        , CAST(JSON_VALUE(event, "$.audit_info.audit_entry_id") AS INTEGER) AS audit_entry_id
-        , CAST(JSON_VALUE(event, "$.collateral") AS NUMERIC) AS collateral
-        , CAST(JSON_VALUE(event, "$.price") AS NUMERIC) AS price
-        , CAST(JSON_VALUE(event, "$.outstanding.disbursed") AS NUMERIC) AS outstanding_disbursed
-        , CAST(JSON_VALUE(event, "$.outstanding.interest") AS NUMERIC) AS outstanding_interest
-    FROM {{ ref('stg_credit_facility_events') }} cfe
-    WHERE cfe.event_type = "collateralization_changed"
+collateralization_changed as (
+
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ',
+                    json_value(event, '$.recorded_at'),
+                    'UTC'
+                )
+            ) as int64
+        ) as event_recorded_at_date_key,
+        cast(json_value(event, '$.audit_info.audit_entry_id') as integer)
+            as audit_entry_id,
+        cast(json_value(event, '$.collateral') as numeric) as collateral,
+        cast(json_value(event, '$.price') as numeric) as price,
+        cast(json_value(event, '$.outstanding.disbursed') as numeric)
+            as outstanding_disbursed,
+        cast(json_value(event, '$.outstanding.interest') as numeric)
+            as outstanding_interest,
+        parse_timestamp(
+            '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.recorded_at'), 'UTC'
+        ) as event_recorded_at,
+        json_value(event, '$.state') as state
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'collateralization_changed'
 
 )
 
 
-SELECT
-      cu.* EXCEPT (abs_diff, total_collateral)
+select
+    cu.* except (abs_diff, total_collateral),
 
-    , COALESCE(cc.event_recorded_at_date_key, 19000101) AS collateralization_changed_event_recorded_at_date_key
-    , cc.event_recorded_at AS collateralization_changed_event_recorded_at
-    , state AS collateralization_changed_state
+    cc.event_recorded_at as collateralization_changed_event_recorded_at,
+    state as collateralization_changed_state,
+    cu.total_collateral,
 
-    , CASE WHEN LOWER(action) = 'add' THEN cu.abs_diff ELSE SAFE_NEGATE(cu.abs_diff) END as diff
-    , cu.total_collateral
+    cc.price,
+    coalesce(cc.event_recorded_at_date_key, 19000101)
+        as collateralization_changed_event_recorded_at_date_key,
 
-    , COALESCE(cc.collateral, 0) AS collateral
-    , cc.price
-    , COALESCE(cc.outstanding_disbursed, 0) AS outstanding_disbursed
-    , COALESCE(cc.outstanding_interest, 0) AS outstanding_interest
-FROM collateral_updated AS cu
-LEFT JOIN collateralization_changed cc ON cc.event_id = cu.event_id AND cc.audit_entry_id = cu.audit_entry_id
+    case
+        when lower(action) = 'add' then cu.abs_diff else
+            safe_negate(cu.abs_diff)
+    end as diff,
+    coalesce(cc.collateral, 0) as collateral,
+    coalesce(cc.outstanding_disbursed, 0) as outstanding_disbursed,
+    coalesce(cc.outstanding_interest, 0) as outstanding_interest
+from collateral_updated as cu
+left join
+    collateralization_changed as cc
+    on cu.event_id = cc.event_id and cu.audit_entry_id = cc.audit_entry_id

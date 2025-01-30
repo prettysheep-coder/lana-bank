@@ -1,28 +1,35 @@
-WITH projected_cash_flows_common AS (
-    SELECT
-          *
-    FROM {{ ref('int_cf_projected_cash_flows_common') }}
-    WHERE credit_facility_end_date >= now_ts
-), grouped AS (
-    SELECT
-          now_ts
-        , days_per_year
-        , bench_mark_daily_interest_rate
-        , SUM(projected_disbursal_amount_in_cents) AS projected_disbursal_amount_in_cents
-        , days_from_now
-        , SUM(projected_payment_amount_in_cents) AS projected_payment_amount_in_cents
-    FROM projected_cash_flows_common
-    GROUP BY
-          now_ts
-        , days_per_year
-        , bench_mark_daily_interest_rate
-        , days_from_now
-    ORDER BY days_from_now
+with projected_cash_flows_common as (
+    select *
+    from {{ ref('int_cf_projected_cash_flows_common') }}
+    where credit_facility_end_date >= now_ts
+),
+
+grouped as (
+    select
+        now_ts,
+        days_per_year,
+        bench_mark_daily_interest_rate,
+        days_from_now,
+        sum(projected_disbursal_amount_in_cents)
+            as projected_disbursal_amount_in_cents,
+        sum(projected_payment_amount_in_cents)
+            as projected_payment_amount_in_cents
+    from projected_cash_flows_common
+    group by
+        now_ts,
+        days_per_year,
+        bench_mark_daily_interest_rate,
+        days_from_now
+    order by days_from_now
 )
 
-SELECT
-      *
-    , TIMESTAMP(TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(days_from_now AS INT64) DAY)) as date_from_now
-    , SAFE_DIVIDE(projected_disbursal_amount_in_cents, 100.0) as projected_disbursal_amount_in_usd
-    , SAFE_DIVIDE(projected_payment_amount_in_cents, 100.0) as projected_payment_amount_in_usd
-FROM grouped
+select
+    *,
+    timestamp(
+        timestamp_add(date(now_ts), interval cast(days_from_now as int64) day)
+    ) as date_from_now,
+    safe_divide(projected_disbursal_amount_in_cents, 100.0)
+        as projected_disbursal_amount_in_usd,
+    safe_divide(projected_payment_amount_in_cents, 100.0)
+        as projected_payment_amount_in_usd
+from grouped

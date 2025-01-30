@@ -1,37 +1,56 @@
+with total_customers as (
+    select count(distinct customer_id) as value
+    from {{ ref("int_credit_facilities") }}
+),
 
-WITH total_customers AS (
-  SELECT
-    COUNT(DISTINCT customer_id) AS value
-  FROM {{ref("int_credit_facilities")}}
-), total_active_customers AS (
-  SELECT
-    COUNT(DISTINCT customer_id) AS value
-  FROM {{ref("int_credit_facilities")}}
-  WHERE completed_recorded_at IS NULL
-), approved_cf AS (
-  SELECT
-    COUNT(DISTINCT customer_id) AS value
-  FROM {{ref("int_credit_facilities")}}
-  WHERE approval_process_concluded_approved
-), activated_cf AS (
-  SELECT
-    COUNT(DISTINCT customer_id) AS value
-  FROM {{ref("int_credit_facilities")}}
-  WHERE activated_recorded_at_date_key != 19000101
-), disbursed_cf AS (
-  SELECT
-    COUNT(DISTINCT customer_id) AS value
-  FROM {{ref("int_cf_denormalized")}}
-  WHERE disbursal_concluded_event_recorded_at_date_key != 19000101
+total_active_customers as (
+    select count(distinct customer_id) as value
+    from {{ ref("int_credit_facilities") }}
+    where completed_recorded_at is null
+),
+
+approved_cf as (
+    select count(distinct customer_id) as value
+    from {{ ref("int_credit_facilities") }}
+    where approval_process_concluded_approved
+),
+
+activated_cf as (
+    select count(distinct customer_id) as value
+    from {{ ref("int_credit_facilities") }}
+    where activated_recorded_at_date_key != 19000101
+),
+
+disbursed_cf as (
+    select count(distinct customer_id) as value
+    from {{ ref("int_cf_denormalized") }}
+    where disbursal_concluded_event_recorded_at_date_key != 19000101
 )
 
 
-SELECT 1 AS order_by, CAST(value AS STRING) AS value, 'Total Number of Customers' AS name FROM total_customers
-  UNION ALL
-SELECT 1 AS order_by, CAST(value AS STRING) AS value, 'Total Number of Active Customers' AS name FROM total_active_customers
-  UNION ALL
-SELECT 2 AS order_by, CAST(value AS STRING) AS value, 'Total Number of Customers with Approved Credit Facilities' AS name FROM approved_cf
-  UNION ALL
-SELECT 3 AS order_by, CAST(value AS STRING) AS value, 'Total Number of Customers with Disbursed Approved Credit Facilities' AS name FROM disbursed_cf
+select
+    1 as order_by,
+    cast(value as string) as value,
+    'Total Number of Customers' as name
+from total_customers
+union all
+select
+    1 as order_by,
+    cast(value as string) as value,
+    'Total Number of Active Customers' as name
+from total_active_customers
+union all
+select
+    2 as order_by,
+    cast(value as string) as value,
+    'Total Number of Customers with Approved Credit Facilities' as name
+from approved_cf
+union all
+select
+    3 as order_by,
+    cast(value as string) as value,
+    'Total Number of Customers with Disbursed Approved Credit Facilities'
+        as name
+from disbursed_cf
 
-ORDER BY order_by
+order by order_by

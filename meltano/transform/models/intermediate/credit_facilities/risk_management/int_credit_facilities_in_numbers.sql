@@ -1,20 +1,31 @@
+with approved as (
+    select count(distinct event_id) as value
+    from {{ ref("int_credit_facilities") }}
+    where approval_process_concluded_approved
+),
 
-WITH approved AS (
-  SELECT
-    COUNT(DISTINCT event_id)  AS value
-  FROM {{ref("int_credit_facilities")}}
-  WHERE approval_process_concluded_approved
-), total AS (
-  SELECT
-    COUNT(DISTINCT event_id)  AS value
-  FROM {{ref("int_credit_facilities")}}
+total as (
+    select count(distinct event_id) as value
+    from {{ ref("int_credit_facilities") }}
 )
 
 
-SELECT 1 AS order_by, CAST(value AS STRING) AS value, 'Number of Approved Credit Facilities' AS name FROM approved
-  UNION ALL
-SELECT 2 AS order_by, CAST(value AS STRING) AS value, 'Number of Total Credit Facilities' FROM total
-  UNION ALL
-SELECT 3 AS order_by, CAST(a.value / t.value AS STRING) AS value, 'Approved Rate' FROM approved a, total t
+select
+    1 as order_by,
+    cast(value as string) as value,
+    'Number of Approved Credit Facilities' as name
+from approved
+union all
+select
+    2 as order_by,
+    cast(value as string) as value,
+    'Number of Total Credit Facilities'
+from total
+union all
+select
+    3 as order_by,
+    cast(a.value / t.value as string) as value,
+    'Approved Rate'
+from approved as a, total as t
 
-ORDER BY order_by
+order by order_by

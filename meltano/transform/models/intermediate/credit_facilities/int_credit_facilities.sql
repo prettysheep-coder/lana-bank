@@ -1,90 +1,134 @@
-WITH initialized AS (
+with initialized as (
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , event_type
-        , JSON_VALUE(event, "$.customer_id") AS customer_id
-        , JSON_VALUE(event, "$.terms.accrual_interval.type") AS terms_accrual_interval_type
-        , CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS terms_annual_rate
-        , JSON_VALUE(event, "$.terms.duration.type") AS terms_duration_type
-        , CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) AS terms_duration_value
-        , JSON_VALUE(event, "$.terms.incurrence_interval.type") AS terms_incurrence_interval_type
-        , CAST(JSON_VALUE(event, "$.terms.initial_cvl") AS NUMERIC) AS terms_initial_cvl
-        , CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC) AS terms_liquidation_cvl
-        , CAST(JSON_VALUE(event, "$.terms.margin_call_cvl") AS NUMERIC) AS terms_margin_call_cvl
-        , CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
-    FROM {{ ref('stg_credit_facility_events') }} AS cfe
-    WHERE cfe.event_type = "initialized"
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        event_type,
+        cast(json_value(event, '$.terms.annual_rate') as numeric)
+            as terms_annual_rate,
+        cast(json_value(event, '$.terms.duration.value') as integer)
+            as terms_duration_value,
+        cast(json_value(event, '$.terms.initial_cvl') as numeric)
+            as terms_initial_cvl,
+        cast(json_value(event, '$.terms.liquidation_cvl') as numeric)
+            as terms_liquidation_cvl,
+        cast(json_value(event, '$.terms.margin_call_cvl') as numeric)
+            as terms_margin_call_cvl,
+        cast(json_value(event, '$.facility') as numeric) as facility,
+        json_value(event, '$.customer_id') as customer_id,
+        json_value(event, '$.terms.accrual_interval.type')
+            as terms_accrual_interval_type,
+        json_value(event, '$.terms.duration.type') as terms_duration_type,
+        json_value(event, '$.terms.incurrence_interval.type')
+            as terms_incurrence_interval_type
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'initialized'
 
-), approval_process_started AS (
+),
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-    FROM {{ ref('stg_credit_facility_events') }} cfe
-    WHERE cfe.event_type = "approval_process_started"
+approval_process_started as (
 
-), approval_process_concluded AS (
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'approval_process_started'
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , CAST(JSON_VALUE(event, "$.approved") AS BOOLEAN) AS approved
-    FROM {{ ref('stg_credit_facility_events') }} cfe
-    WHERE cfe.event_type = "approval_process_concluded"
+),
 
-), activated AS (
+approval_process_concluded as (
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at")), "UTC") as INT64) AS activated_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at"), "UTC") AS activated_at
-    FROM {{ ref('stg_credit_facility_events') }} cfe
-    WHERE cfe.event_type = "activated"
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        cast(json_value(event, '$.approved') as boolean) as approved
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'approval_process_concluded'
 
-), completed AS (
+),
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.completed_at")), "UTC") as INT64) AS completed_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.completed_at"), "UTC") AS completed_at
-    FROM {{ ref('stg_credit_facility_events') }} cfe
-    WHERE cfe.event_type = "completed"
+activated as (
+
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.activated_at')
+                ),
+                'UTC'
+            ) as int64
+        ) as activated_at_date_key,
+        parse_timestamp(
+            '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.activated_at'), 'UTC'
+        ) as activated_at
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'activated'
+
+),
+
+completed as (
+
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.completed_at')
+                ),
+                'UTC'
+            ) as int64
+        ) as completed_at_date_key,
+        parse_timestamp(
+            '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.completed_at'), 'UTC'
+        ) as completed_at
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'completed'
 
 )
 
 
-SELECT
-      i.* EXCEPT (facility)
+select
+    i.* except (facility),
 
-    , COALESCE(aps.recorded_at_date_key, 19000101) AS approval_process_started_recorded_at_date_key
-    , aps.recorded_at AS approval_process_started_recorded_at
+    aps.recorded_at as approval_process_started_recorded_at,
+    apc.recorded_at as approval_process_concluded_recorded_at,
 
-    , COALESCE(apc.recorded_at_date_key, 19000101) AS approval_process_concluded_recorded_at_date_key
-    , apc.recorded_at AS approval_process_concluded_recorded_at
-    , COALESCE(apc.approved, FALSE) AS approval_process_concluded_approved
+    a.recorded_at as activated_recorded_at,
+    a.activated_at,
+    c.recorded_at as completed_recorded_at,
 
-    , COALESCE(a.recorded_at_date_key, 19000101) AS activated_recorded_at_date_key
-    , a.recorded_at AS activated_recorded_at
-    , COALESCE(a.activated_at_date_key, 19000101) AS activated_at_date_key
-    , a.activated_at
+    c.completed_at,
+    i.facility,
+    coalesce(aps.recorded_at_date_key, 19000101)
+        as approval_process_started_recorded_at_date_key,
+    coalesce(apc.recorded_at_date_key, 19000101)
+        as approval_process_concluded_recorded_at_date_key,
 
-    , COALESCE(c.recorded_at_date_key, 19000101) AS completed_recorded_at_date_key
-    , c.recorded_at AS completed_recorded_at
-    , COALESCE(c.completed_at_date_key, 19000101) AS completed_at_date_key
-    , c.completed_at
+    coalesce(apc.approved, false) as approval_process_concluded_approved,
+    coalesce(a.recorded_at_date_key, 19000101)
+        as activated_recorded_at_date_key,
+    coalesce(a.activated_at_date_key, 19000101) as activated_at_date_key,
+    coalesce(c.recorded_at_date_key, 19000101)
+        as completed_recorded_at_date_key,
 
-    , i.facility
-FROM initialized AS i
-LEFT JOIN approval_process_started aps ON aps.event_id = i.event_id
-LEFT JOIN approval_process_concluded apc ON apc.event_id = i.event_id
-LEFT JOIN activated a ON a.event_id = i.event_id
-LEFT JOIN completed c ON c.event_id = i.event_id
+    coalesce(c.completed_at_date_key, 19000101) as completed_at_date_key
+from initialized as i
+left join approval_process_started as aps on i.event_id = aps.event_id
+left join approval_process_concluded as apc on i.event_id = apc.event_id
+left join activated as a on i.event_id = a.event_id
+left join completed as c on i.event_id = c.event_id

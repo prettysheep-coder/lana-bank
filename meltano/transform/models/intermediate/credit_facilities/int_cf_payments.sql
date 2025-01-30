@@ -1,21 +1,37 @@
-WITH payment_recorded AS (
+with payment_recorded as (
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , event_type
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_in_ledger_at"), "UTC")) as INT64) AS recorded_in_ledger_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_in_ledger_at"), "UTC") AS recorded_in_ledger_at
-        , CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC) AS disbursement_amount
-        , CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC) AS interest_amount
-    FROM {{ ref('stg_credit_facility_events') }} AS cfe
-    WHERE cfe.event_type = "payment_recorded"
-    AND JSON_VALUE(event, "$.tx_id") IS NOT NULL
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        event_type,
+        cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ',
+                    json_value(event, '$.recorded_in_ledger_at'),
+                    'UTC'
+                )
+            ) as int64
+        ) as recorded_in_ledger_at_date_key,
+        cast(json_value(event, '$.disbursement_amount') as numeric)
+            as disbursement_amount,
+        cast(json_value(event, '$.interest_amount') as numeric)
+            as interest_amount,
+        parse_timestamp(
+            '%Y-%m-%dT%H:%M:%E*SZ',
+            json_value(event, '$.recorded_in_ledger_at'),
+            'UTC'
+        ) as recorded_in_ledger_at
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where
+        cfe.event_type = 'payment_recorded'
+        and json_value(event, '$.tx_id') is not null
 
 )
 
 
-SELECT
-      *
-FROM payment_recorded
+select *
+from payment_recorded

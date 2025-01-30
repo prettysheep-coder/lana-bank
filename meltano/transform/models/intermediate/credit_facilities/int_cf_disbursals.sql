@@ -1,37 +1,56 @@
-WITH disbursal_initiated AS (
+with disbursal_initiated as (
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , event_type
-        , CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS amount
-        , CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
-    FROM {{ ref('stg_credit_facility_events') }} AS cfe
-    WHERE cfe.event_type = "disbursal_initiated"
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        event_type,
+        cast(json_value(event, '$.amount') as numeric) as amount,
+        cast(json_value(event, '$.idx') as integer) as idx
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where cfe.event_type = 'disbursal_initiated'
 
-), disbursal_concluded AS (
+),
 
-    SELECT
-          id AS event_id
-        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
-        , recorded_at
-        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_at"), "UTC")) as INT64) AS event_recorded_at_date_key
-        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.recorded_at"), "UTC") AS event_recorded_at
-        , CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
-    FROM {{ ref('stg_credit_facility_events') }} cfe
-    WHERE cfe.event_type = "disbursal_concluded"
-    AND JSON_VALUE(event, "$.tx_id") IS NOT NULL
+disbursal_concluded as (
+
+    select
+        id as event_id,
+        cast(format_date('%Y%m%d', recorded_at) as int64)
+            as recorded_at_date_key,
+        recorded_at,
+        cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ',
+                    json_value(event, '$.recorded_at'),
+                    'UTC'
+                )
+            ) as int64
+        ) as event_recorded_at_date_key,
+        cast(json_value(event, '$.idx') as integer) as idx,
+        parse_timestamp(
+            '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.recorded_at'), 'UTC'
+        ) as event_recorded_at
+    from {{ ref('stg_credit_facility_events') }} as cfe
+    where
+        cfe.event_type = 'disbursal_concluded'
+        and json_value(event, '$.tx_id') is not null
 
 )
 
 
-SELECT
-      di.* EXCEPT (amount)
+select
+    di.* except (amount),
 
-    , COALESCE(dc.event_recorded_at_date_key, 19000101) AS disbursal_concluded_event_recorded_at_date_key
-    , dc.event_recorded_at AS disbursal_concluded_event_recorded_at
+    dc.event_recorded_at as disbursal_concluded_event_recorded_at,
+    di.amount,
 
-    , di.amount
-FROM disbursal_initiated AS di
-LEFT JOIN disbursal_concluded dc ON dc.event_id = di.event_id AND di.idx = dc.idx
+    coalesce(dc.event_recorded_at_date_key, 19000101)
+        as disbursal_concluded_event_recorded_at_date_key
+from disbursal_initiated as di
+left join
+    disbursal_concluded as dc
+    on di.event_id = dc.event_id and di.idx = dc.idx
