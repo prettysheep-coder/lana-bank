@@ -45,18 +45,12 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
     })()
   }, [pathName, router])
 
-  // If we know the user is authenticated or is marked authenticated in localStorage:
-  if (isAuthenticated && isAuthSetInLocalStorage) {
-    return <AppLayout>{children}</AppLayout>
-  }
-  // If the user is not authenticated but was previously marked in localStorage:
-  else if (!isAuthenticated && isAuthSetInLocalStorage) {
+  // If we know the user is authenticated or is marked authenticated in localStorage
+  if (isAuthenticated || isAuthSetInLocalStorage) {
     return <AppLayout>{children}</AppLayout>
   }
   // Otherwise, just render the children (loading states, or unauthenticated routes)
-  else {
-    return <main className="h-screen w-full flex flex-col">{children}</main>
-  }
+  return <main className="h-screen w-full flex flex-col">{children}</main>
 }
 
 export const useLogout = () => {
