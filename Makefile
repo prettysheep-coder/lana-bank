@@ -111,3 +111,12 @@ tilt-in-ci:
 
 test-cypress-in-ci-through-browserstack:
 	cd apps/admin-panel && pnpm cypress:run browserstack
+
+pg2bq-run:
+	meltano run tap-postgres target-bigquery
+
+bq-pipeline-run:
+	meltano run dbt-bigquery:run
+
+bitfinex-run:
+	meltano run tap-bitfinexapi target-bigquery
