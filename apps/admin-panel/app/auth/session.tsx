@@ -15,27 +15,48 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
   const router = useRouter()
   const pathName = usePathname()
 
-  const isAuthSetInLocalStorage = localStorage.getItem("isAuthenticated")
-
+  const [isAuthSetInLocalStorage, setIsAuthSetInLocalStorage] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const authFromLocalStorage = localStorage.getItem("isAuthenticated")
+      setIsAuthSetInLocalStorage(!!authFromLocalStorage)
+    }
+  }, [])
+
   useEffect(() => {
     ;(async () => {
       try {
         await getSession()
         setIsAuthenticated(true)
-        localStorage.setItem("isAuthenticated", "true")
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("isAuthenticated", "true")
+        }
         if (pathName === "/") router.push("/dashboard")
       } catch (error) {
         setIsAuthenticated(false)
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("isAuthenticated")
+        }
         if (!pathName.startsWith("/auth")) router.push("/auth/login")
       }
     })()
   }, [pathName, router])
 
-  if (isAuthenticated && isAuthSetInLocalStorage) return <AppLayout>{children}</AppLayout>
-  else if (!isAuthenticated && isAuthSetInLocalStorage)
+  // If we know the user is authenticated or is marked authenticated in localStorage:
+  if (isAuthenticated && isAuthSetInLocalStorage) {
     return <AppLayout>{children}</AppLayout>
-  else return <main className="h-screen w-full flex flex-col">{children}</main>
+  }
+  // If the user is not authenticated but was previously marked in localStorage:
+  else if (!isAuthenticated && isAuthSetInLocalStorage) {
+    return <AppLayout>{children}</AppLayout>
+  }
+  // Otherwise, just render the children (loading states, or unauthenticated routes)
+  else {
+    return <main className="h-screen w-full flex flex-col">{children}</main>
+  }
 }
 
 export const useLogout = () => {
@@ -43,7 +64,9 @@ export const useLogout = () => {
 
   const logout = useCallback(async () => {
     await logoutUser()
-    localStorage.removeItem("isAuthenticated")
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("isAuthenticated")
+    }
     router.push("/")
   }, [router])
 
