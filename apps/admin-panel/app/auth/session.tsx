@@ -3,16 +3,19 @@
 import { useEffect, useState, useCallback } from "react"
 import { usePathname, useRouter } from "next/navigation"
 
+import { AppLayout } from "../app-layout"
+
 import { getSession, logoutUser } from "./ory"
 
 type Props = {
-  appChildren: React.ReactNode
   children: React.ReactNode
 }
 
-export const Authenticated: React.FC<Props> = ({ appChildren, children }) => {
+export const Authenticated: React.FC<Props> = ({ children }) => {
   const router = useRouter()
   const pathName = usePathname()
+
+  const isAuthSetInLocalStorage = localStorage.getItem("isAuthenticated")
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   useEffect(() => {
@@ -20,6 +23,7 @@ export const Authenticated: React.FC<Props> = ({ appChildren, children }) => {
       try {
         await getSession()
         setIsAuthenticated(true)
+        localStorage.setItem("isAuthenticated", "true")
         if (pathName === "/") router.push("/dashboard")
       } catch (error) {
         setIsAuthenticated(false)
@@ -28,9 +32,10 @@ export const Authenticated: React.FC<Props> = ({ appChildren, children }) => {
     })()
   }, [pathName, router])
 
-  if (!isAuthenticated)
-    return <main className="h-screen w-full flex flex-col">{appChildren}</main>
-  else return <>{children}</>
+  if (isAuthenticated && isAuthSetInLocalStorage) return <AppLayout>{children}</AppLayout>
+  else if (!isAuthenticated && isAuthSetInLocalStorage)
+    return <AppLayout>{children}</AppLayout>
+  else return <main className="h-screen w-full flex flex-col">{children}</main>
 }
 
 export const useLogout = () => {
@@ -38,6 +43,7 @@ export const useLogout = () => {
 
   const logout = useCallback(async () => {
     await logoutUser()
+    localStorage.removeItem("isAuthenticated")
     router.push("/")
   }, [router])
 
