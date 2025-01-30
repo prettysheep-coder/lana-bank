@@ -4,6 +4,7 @@ import { Inter_Tight } from "next/font/google"
 
 import { ApolloProvider } from "@apollo/client"
 
+import { BreadcrumbProvider } from "./breadcrumb-provider"
 import { Authenticated } from "./auth/session"
 
 import { makeClient } from "@/lib/apollo-client/client"
@@ -27,10 +28,12 @@ const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased bg-background`}>
-        <ApolloProvider client={client}>
-          <Toast />
-          <Authenticated>{children}</Authenticated>
-        </ApolloProvider>
+        <BreadcrumbProvider>
+          <ApolloProvider client={client}>
+            <Toast />
+            <Authenticated>{children}</Authenticated>
+          </ApolloProvider>
+        </BreadcrumbProvider>
       </body>
     </html>
   )
