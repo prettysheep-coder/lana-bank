@@ -118,5 +118,11 @@ pg2bq-run:
 bq-pipeline-run:
 	meltano run dbt-bigquery:run
 
+check-code-pipeline:
+	meltano invoke sqlfluff:fix
+
+lint-code-pipeline:
+	meltano invoke sqlfluff:lint
+
 bitfinex-run:
 	meltano run tap-bitfinexapi target-bigquery
