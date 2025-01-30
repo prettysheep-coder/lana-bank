@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import dynamic from "next/dynamic"
 
 import { AppLayout } from "../app-layout"
 
@@ -11,7 +12,7 @@ type Props = {
   children: React.ReactNode
 }
 
-export const Authenticated: React.FC<Props> = ({ children }) => {
+const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   const router = useRouter()
   const pathName = usePathname()
 
@@ -52,6 +53,10 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
   // Otherwise, just render the children (loading states, or unauthenticated routes)
   return <main className="h-screen w-full flex flex-col">{children}</main>
 }
+
+export const Authenticated = dynamic(() => Promise.resolve(AuthenticatedGuard), {
+  ssr: false,
+})
 
 export const useLogout = () => {
   const router = useRouter()
