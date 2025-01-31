@@ -133,6 +133,10 @@ where
         Ok(res)
     }
 
+    pub fn for_subject() -> CoreDepositForSubject {
+        &self.for_subject
+    }
+
     #[instrument(name = "deposit.create_account", skip(self))]
     pub async fn create_account(
         &self,
