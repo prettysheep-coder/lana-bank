@@ -1,12 +1,17 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, createContext, useContext } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 
 import { AppLayout } from "../app-layout"
 
 import { getSession, logoutUser } from "./ory"
+
+const AuthenticatedStore = createContext({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty-function
+  updateAuthState: (_: boolean) => {},
+})
 
 type Props = {
   children: React.ReactNode
@@ -18,6 +23,11 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
 
   const [isAuthSetInLocalStorage, setIsAuthSetInLocalStorage] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+
+  const updateAuthState = (state: boolean) => {
+    setIsAuthSetInLocalStorage(state)
+    setIsAuthenticated(state)
+  }
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -46,12 +56,20 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
     })()
   }, [pathName, router])
 
-  // If we know the user is authenticated or is marked authenticated in localStorage
-  if (isAuthenticated || isAuthSetInLocalStorage) {
-    return <AppLayout>{children}</AppLayout>
-  }
-  // Otherwise, just render the children (loading states, or unauthenticated routes)
-  return <main className="h-screen w-full flex flex-col">{children}</main>
+  const Stack =
+    isAuthenticated || isAuthSetInLocalStorage ? (
+      // If we know the user is authenticated or is marked authenticated in localStorage
+      <AppLayout>{children}</AppLayout>
+    ) : (
+      // Otherwise, just render the children (loading states, or unauthenticated routes)
+      <main className="h-screen w-full flex flex-col">{children}</main>
+    )
+
+  return (
+    <AuthenticatedStore.Provider value={{ updateAuthState }}>
+      {Stack}
+    </AuthenticatedStore.Provider>
+  )
 }
 
 export const Authenticated = dynamic(() => Promise.resolve(AuthenticatedGuard), {
@@ -60,14 +78,16 @@ export const Authenticated = dynamic(() => Promise.resolve(AuthenticatedGuard), 
 
 export const useLogout = () => {
   const router = useRouter()
+  const { updateAuthState } = useContext(AuthenticatedStore)
 
   const logout = useCallback(async () => {
     await logoutUser()
     if (typeof window !== "undefined") {
       localStorage.removeItem("isAuthenticated")
+      updateAuthState(false)
     }
     router.push("/")
-  }, [router])
+  }, [router, updateAuthState])
 
   return { logout }
 }
