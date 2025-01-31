@@ -1128,6 +1128,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "customer-server"
+version = "0.3.32-dev"
+dependencies = [
+ "async-graphql",
+ "async-graphql-axum",
+ "lana-app",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
