@@ -8,8 +8,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui"
+import { Button } from "@lana/web/ui/button"
+
 import {
   ApprovalProcessType,
   GetCreditFacilityBasicDetailsDocument,

@@ -7,8 +7,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui/dropdown-menu"
+import { Button } from "@lana/web/ui/button"
+
 import { WithdrawalStatus } from "@/lib/graphql/generated"
 
 interface WithdrawalDropdownProps {
