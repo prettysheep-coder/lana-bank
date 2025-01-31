@@ -1131,11 +1131,20 @@ dependencies = [
 name = "customer-server"
 version = "0.3.32-dev"
 dependencies = [
+ "anyhow",
  "async-graphql",
  "async-graphql-axum",
+ "axum",
+ "axum-extra",
+ "jwks-utils",
  "lana-app",
  "serde",
  "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-utils",
+ "uuid",
 ]
 
 [[package]]
@@ -2544,6 +2553,7 @@ dependencies = [
  "admin-server",
  "anyhow",
  "clap",
+ "customer-server",
  "lana-app",
  "serde",
  "serde_json",
