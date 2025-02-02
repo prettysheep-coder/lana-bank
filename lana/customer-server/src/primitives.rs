@@ -2,13 +2,13 @@ pub use lana_app::primitives::{CustomerId, Subject};
 
 #[derive(Debug, Clone)]
 pub struct CustomerAuthContext {
-    pub sub: Subject,
+    pub _sub: Subject,
 }
 
 impl CustomerAuthContext {
     pub fn new(sub: impl Into<CustomerId>) -> Self {
         Self {
-            sub: Subject::Customer(sub.into()),
+            _sub: Subject::Customer(sub.into()),
         }
     }
 }

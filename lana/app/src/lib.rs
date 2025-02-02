@@ -7,7 +7,7 @@ pub mod applicant;
 pub mod authorization;
 pub mod balance_sheet;
 pub mod credit_facility;
-pub mod customer;
+// pub mod customer;
 pub mod document;
 pub mod price;
 pub mod primitives;
@@ -40,6 +40,14 @@ pub mod user {
     pub type Users = core_user::Users<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod customer {
+    pub use core_customer::{
+        error, AccountStatus, Customer, CustomersCursor, CustomersSortBy, FindManyCustomers,
+        KycLevel, Sort,
+    };
+    pub type Customers = core_customer::Customers<crate::audit::Audit, lana_events::LanaEvent>;
+}
+
 pub mod job {
     pub use job::*;
 }
@@ -48,8 +56,7 @@ pub mod governance {
     use crate::authorization::Authorization;
     use lana_events::LanaEvent;
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
-    pub use crate::credit_facility::APPROVE_CREDIT_FACILITY_PROCESS;
-    pub use crate::credit_facility::APPROVE_DISBURSAL_PROCESS;
+    pub use crate::credit_facility::{APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS};
     pub use deposit::APPROVE_WITHDRAWAL_PROCESS;
 }
 

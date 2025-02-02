@@ -1,92 +1,106 @@
-mod config;
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
 mod entity;
 pub mod error;
-mod kratos;
+mod event;
+mod primitives;
 mod repo;
 
 use std::collections::HashMap;
 use tracing::instrument;
 
-use authz::PermissionCheck;
+use audit::AuditSvc;
+use authz::{Authorization, PermissionCheck};
+use core_user::Role;
+use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{
-    audit::{AuditInfo, AuditSvc},
-    authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
-    deposit::Deposits,
-    primitives::{CustomerId, KycLevel, Subject},
-};
-
-pub use config::*;
-pub use entity::*;
-use error::CustomerError;
-use kratos::*;
+pub use entity::Customer;
+use entity::*;
+use error::*;
+pub use event::*;
+pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
-#[derive(Clone)]
-pub struct Customers {
+pub struct Customers<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    authz: Authorization<Audit, Role>,
+    outbox: Outbox<E>,
     repo: CustomerRepo,
-    deposit: Deposits,
-    _kratos: KratosClient,
-    authz: Authorization,
 }
 
-impl Customers {
-    pub fn new(
-        pool: &sqlx::PgPool,
-        config: &CustomerConfig,
-        deposits: &Deposits,
-        authz: &Authorization,
-    ) -> Self {
-        let repo = CustomerRepo::new(pool);
-        let kratos = KratosClient::new(&config.kratos);
+impl<Audit, E> Clone for Customers<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    fn clone(&self) -> Self {
         Self {
-            repo,
-            _kratos: kratos,
-            authz: authz.clone(),
-            deposit: deposits.clone(),
+            authz: self.authz.clone(),
+            outbox: self.outbox.clone(),
+            repo: self.repo.clone(),
         }
     }
+}
 
-    pub fn repo(&self) -> &CustomerRepo {
-        &self.repo
+impl<Audit, E> Customers<Audit, E>
+where
+    Audit: AuditSvc,
+    <Audit as AuditSvc>::Subject: From<CustomerId>,
+    <Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Authorization<Audit, Role>,
+        outbox: &Outbox<E>,
+    ) -> Self {
+        let repo = CustomerRepo::new(pool);
+        Self {
+            repo,
+            authz: authz.clone(),
+            outbox: outbox.clone(),
+        }
     }
 
     pub async fn subject_can_create_customer(
         &self,
-        sub: &Subject,
+        sub: &<Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CustomerError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::Create,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_CREATE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "lana.customer.create", skip(self), err)]
+    #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn create(
         &self,
-        sub: &Subject,
-        email: String,
-        telegram_id: String,
+        sub: &<Audit as AuditSvc>::Subject,
+        email: impl Into<String> + std::fmt::Debug,
+        telegram_id: impl Into<String> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
-        let customer_id = CustomerId::new();
-        let account_name = &format!("Deposit Account for Customer {}", customer_id);
-        self.deposit
-            .create_account(sub, customer_id, account_name, account_name)
-            .await?;
+
+        let email = email.into();
+        let telegram_id = telegram_id.into();
 
         let new_customer = NewCustomer::builder()
-            .id(customer_id)
-            .email(email)
+            .id(CustomerId::new())
+            .email(email.clone())
             .telegram_id(telegram_id)
             .audit_info(audit_info)
             .build()
@@ -94,6 +108,17 @@ impl Customers {
 
         let mut db = self.repo.begin_op().await?;
         let customer = self.repo.create_in_op(&mut db, new_customer).await?;
+
+        self.outbox
+            .publish_persisted(
+                db.tx(),
+                CoreCustomerEvent::CustomerCreated {
+                    id: customer.id,
+                    email,
+                },
+            )
+            .await?;
+
         db.commit().await?;
 
         Ok(customer)
@@ -102,17 +127,18 @@ impl Customers {
     #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: &Subject,
+        sub: &<Audit as AuditSvc>::Subject,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         let id = id.into();
         self.authz
             .enforce_permission(
                 sub,
-                Object::Customer(CustomerAllOrOne::ById(id)),
-                CustomerAction::Read,
+                CustomerObject::customer(id),
+                CoreCustomerAction::CUSTOMER_READ,
             )
             .await?;
+
         match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
             Err(e) if e.was_not_found() => Ok(None),
@@ -123,14 +149,14 @@ impl Customers {
     #[instrument(name = "customer.find_by_email", skip(self), err)]
     pub async fn find_by_email(
         &self,
-        sub: &Subject,
+        sub: &<Audit as AuditSvc>::Subject,
         email: String,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
             .enforce_permission(
                 sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::Read,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_READ,
             )
             .await?;
 
@@ -154,7 +180,7 @@ impl Customers {
 
     pub async fn list(
         &self,
-        sub: &Subject,
+        sub: &<Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CustomersCursor>,
         filter: FindManyCustomers,
         sort: impl Into<Sort<CustomersSortBy>>,
@@ -162,8 +188,8 @@ impl Customers {
         self.authz
             .enforce_permission(
                 sub,
-                Object::Customer(CustomerAllOrOne::All),
-                CustomerAction::List,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_LIST,
             )
             .await?;
         self.repo.find_many(filter, sort.into(), query).await
@@ -182,8 +208,8 @@ impl Customers {
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                Action::Customer(CustomerAction::StartKyc),
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_START_KYC,
             )
             .await?;
 
@@ -201,13 +227,14 @@ impl Customers {
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
+
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                Action::Customer(CustomerAction::ApproveKyc),
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
             .await?;
 
@@ -231,8 +258,8 @@ impl Customers {
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                Action::Customer(CustomerAction::DeclineKyc),
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )
             .await?;
 
@@ -252,7 +279,7 @@ impl Customers {
     #[instrument(name = "customer.update", skip(self), err)]
     pub async fn update(
         &self,
-        sub: &Subject,
+        sub: &<Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         new_telegram_id: String,
     ) -> Result<Customer, CustomerError> {
@@ -261,14 +288,13 @@ impl Customers {
             .authz
             .enforce_permission(
                 sub,
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                CustomerAction::Update,
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_UPDATE,
             )
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
         customer.update_telegram_id(new_telegram_id, audit_info);
-
         self.repo.update(&mut customer).await?;
 
         Ok(customer)

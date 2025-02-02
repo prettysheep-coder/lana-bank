@@ -142,11 +142,12 @@ impl Query {
         )
     }
 
-    async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
-        app.deposits().for_subject(sub).find_by_id(id).await
-    }
+    // async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
+    //     let (app, sub) = app_and_sub_from_ctx!(ctx);
+    //     // maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
+    //     app.deposits().for_subject(sub).find_by_id(id).await
+    // }
+    //
     async fn deposits(
         &self,
         ctx: &Context<'_>,

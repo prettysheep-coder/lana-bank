@@ -10,8 +10,10 @@ members = [
   "lana/ids",
   "lana/dashboard",
   "lana/user-onboarding",
+  "lana/customer-onboarding",
 
   "core/user",
+  "core/customer",
   "core/governance",
   "core/money",
   "core/chart-of-accounts",
