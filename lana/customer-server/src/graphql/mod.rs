@@ -1,6 +1,7 @@
 #[macro_use]
 pub mod macros;
 mod authenticated_subject;
+mod customer;
 mod schema;
 
 use async_graphql::*;
