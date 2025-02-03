@@ -1,3 +1,5 @@
+#[macro_use]
+pub mod macros;
 mod authenticated_subject;
 mod schema;
 

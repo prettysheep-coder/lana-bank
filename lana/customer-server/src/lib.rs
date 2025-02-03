@@ -48,7 +48,7 @@ pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<(
         .layer(Extension(app))
         .layer(cors);
 
-    println!("Starting admin server on port {}", port);
+    println!("Starting customer server on port {}", port);
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
     axum::serve(listener, app.into_make_service()).await?;
@@ -60,7 +60,7 @@ pub struct CustomerJwtClaims {
     pub sub: String,
 }
 
-#[instrument(name = "server_admin.graphql", skip_all, fields(error, error.level, error.message))]
+#[instrument(name = "customer_server.graphql", skip_all, fields(error, error.level, error.message))]
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, EmptyMutation, EmptySubscription>>,
@@ -86,7 +86,7 @@ pub async fn graphql_handler(
 
 async fn playground() -> impl axum::response::IntoResponse {
     axum::response::Html(async_graphql::http::playground_source(
-        async_graphql::http::GraphQLPlaygroundConfig::new("/admin/graphql")
+        async_graphql::http::GraphQLPlaygroundConfig::new("/customer/graphql")
             .with_setting("request.credentials", "include"),
     ))
 }
