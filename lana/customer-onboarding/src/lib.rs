@@ -36,7 +36,7 @@ impl CustomerOnboarding {
         let kratos_customer = KratosCustomer::init(config.kratos_customer);
 
         jobs.add_initializer_and_spawn_unique(
-            CustomerOnboardingJobInitializer::new(outbox, kratos_customer),
+            CustomerOnboardingJobInitializer::new(outbox, deposit, kratos_customer),
             CustomerOnboardingJobConfig,
         )
         .await?;

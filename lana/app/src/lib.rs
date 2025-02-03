@@ -48,6 +48,11 @@ pub mod customer {
     pub type Customers = core_customer::Customers<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod customer_onboarding {
+    pub use customer_onboarding::config::CustomerOnboardingConfig;
+    pub use customer_onboarding::*;
+}
+
 pub mod job {
     pub use job::*;
 }

@@ -42,4 +42,6 @@ pub enum ApplicationError {
     ChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("ApplicationError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
+    #[error("ApplicationError - CustomerOnboardingError: {0}")]
+    CustomerOnboardingError(#[from] crate::customer_onboarding::error::CustomerOnboardingError),
 }
