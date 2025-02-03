@@ -18,7 +18,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chart_of_accounts::TransactionAccountFactory;
-use governance::{Governance, GovernanceEvent};
+use governance::Governance;
+pub use governance::GovernanceEvent;
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 

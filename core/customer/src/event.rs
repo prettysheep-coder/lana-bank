@@ -6,5 +6,4 @@ use crate::primitives::CustomerId;
 #[serde(tag = "type")]
 pub enum CoreCustomerEvent {
     CustomerCreated { id: CustomerId, email: String },
-    CustomerRemoved { id: CustomerId },
 }

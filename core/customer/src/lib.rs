@@ -11,9 +11,13 @@ use std::collections::HashMap;
 use tracing::instrument;
 
 use audit::AuditSvc;
-use authz::{Authorization, PermissionCheck};
-use core_user::Role;
+use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
+
+use deposit::{
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
+    GovernanceEvent, GovernanceObject,
+};
 
 pub use entity::Customer;
 use entity::*;
@@ -22,54 +26,65 @@ pub use event::*;
 pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
-pub struct Customers<Audit, E>
+pub struct Customers<Perms, E>
 where
-    Audit: AuditSvc,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
-    authz: Authorization<Audit, Role>,
+    authz: Perms,
     outbox: Outbox<E>,
+    deposit: CoreDeposit<Perms, E>,
     repo: CustomerRepo,
 }
 
-impl<Audit, E> Clone for Customers<Audit, E>
+impl<Perms, E> Clone for Customers<Perms, E>
 where
-    Audit: AuditSvc,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
+            deposit: self.deposit.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
         }
     }
 }
 
-impl<Audit, E> Customers<Audit, E>
+impl<Perms, E> Customers<Perms, E>
 where
-    Audit: AuditSvc,
-    <Audit as AuditSvc>::Subject: From<CustomerId>,
-    <Audit as AuditSvc>::Action: From<CoreCustomerAction>,
-    <Audit as AuditSvc>::Object: From<CustomerObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>,
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, Role>,
+        deposit: &CoreDeposit<Perms, E>,
+        authz: &Perms,
         outbox: &Outbox<E>,
     ) -> Self {
         let repo = CustomerRepo::new(pool);
         Self {
             repo,
             authz: authz.clone(),
+            deposit: deposit.clone(),
             outbox: outbox.clone(),
         }
     }
 
     pub async fn subject_can_create_customer(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
     ) -> Result<Option<AuditInfo>, CustomerError> {
         Ok(self
@@ -86,7 +101,7 @@ where
     #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn create(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         email: impl Into<String> + std::fmt::Debug,
         telegram_id: impl Into<String> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
@@ -109,6 +124,11 @@ where
         let mut db = self.repo.begin_op().await?;
         let customer = self.repo.create_in_op(&mut db, new_customer).await?;
 
+        let account_name = &format!("Deposit Account for Customer {}", customer.id);
+        self.deposit
+            .create_account(customer.id, account_name, account_name)
+            .await?;
+
         self.outbox
             .publish_persisted(
                 db.tx(),
@@ -127,7 +147,7 @@ where
     #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         let id = id.into();
@@ -149,7 +169,7 @@ where
     #[instrument(name = "customer.find_by_email", skip(self), err)]
     pub async fn find_by_email(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         email: String,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
@@ -180,7 +200,7 @@ where
 
     pub async fn list(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CustomersCursor>,
         filter: FindManyCustomers,
         sort: impl Into<Sort<CustomersSortBy>>,
@@ -279,7 +299,7 @@ where
     #[instrument(name = "customer.update", skip(self), err)]
     pub async fn update(
         &self,
-        sub: &<Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         new_telegram_id: String,
     ) -> Result<Customer, CustomerError> {

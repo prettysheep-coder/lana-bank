@@ -5,7 +5,7 @@ use futures::StreamExt;
 use job::*;
 use lana_events::LanaEvent;
 
-use super::{kratos_customer::KratosCustomer, Deposits, Outbox};
+use super::{kratos_customer::KratosCustomer, Outbox};
 
 #[derive(serde::Serialize)]
 pub struct CustomerOnboardingJobConfig;
@@ -15,15 +15,13 @@ impl JobConfig for CustomerOnboardingJobConfig {
 
 pub struct CustomerOnboardingJobInitializer {
     outbox: Outbox,
-    deposit: Deposits,
     kratos_customer: KratosCustomer,
 }
 
 impl CustomerOnboardingJobInitializer {
-    pub fn new(outbox: &Outbox, deposit: &Deposits, kratos_customer: KratosCustomer) -> Self {
+    pub fn new(outbox: &Outbox, kratos_customer: KratosCustomer) -> Self {
         Self {
             outbox: outbox.clone(),
-            deposit: deposit.clone(),
             kratos_customer,
         }
     }
@@ -43,7 +41,6 @@ impl JobInitializer for CustomerOnboardingJobInitializer {
         Ok(Box::new(CustomerOnboardingJobRunner {
             outbox: self.outbox.clone(),
             kratos_customer: self.kratos_customer.clone(),
-            deposit: self.deposit.clone(),
         }))
     }
 
@@ -63,7 +60,6 @@ struct CustomerOnboardingJobData {
 pub struct CustomerOnboardingJobRunner {
     outbox: Outbox,
     kratos_customer: KratosCustomer,
-    deposit: Deposits,
 }
 #[async_trait]
 impl JobRunner for CustomerOnboardingJobRunner {
@@ -80,11 +76,6 @@ impl JobRunner for CustomerOnboardingJobRunner {
             if let Some(LanaEvent::Customer(CoreCustomerEvent::CustomerCreated { id, email })) =
                 &message.payload
             {
-                // how to ensure atomicity
-                let account_name = &format!("Deposit Account for Customer {}", id);
-                self.deposit
-                    .create_account(*id, account_name, account_name)
-                    .await?;
                 self.kratos_customer
                     .create_customer(*id, email.clone())
                     .await?;

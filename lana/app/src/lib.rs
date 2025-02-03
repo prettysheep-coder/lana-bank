@@ -45,7 +45,8 @@ pub mod customer {
         error, AccountStatus, Customer, CustomersCursor, CustomersSortBy, FindManyCustomers,
         KycLevel, Sort,
     };
-    pub type Customers = core_customer::Customers<crate::audit::Audit, lana_events::LanaEvent>;
+    pub type Customers =
+        core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod customer_onboarding {
