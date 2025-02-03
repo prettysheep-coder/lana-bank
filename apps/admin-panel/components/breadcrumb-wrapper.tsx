@@ -8,7 +8,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@lana/web"
+} from "@lana/web/ui/breadcrumb"
 
 interface BaseBreadcrumbLink {
   title: string

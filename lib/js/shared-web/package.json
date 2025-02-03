@@ -1,18 +1,11 @@
 {
   "name": "@lana/web",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
-  "files": [
-    "src",
-    "tailwind.config.ts",
-    "globals.css"
-  ],
   "exports": {
-    "./ui": "./src/ui/index.ts",
     "./tailwind.config": "./tailwind.config.ts",
-    "./globals.css": "./global.css"
+    "./globals.css": "./global.css",
+    "./*": "./src/*"
   },
   "scripts": {
     "lint": "eslint \"**/*.ts*\"",
@@ -45,7 +38,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "lucide-react": "^0.461.0",
-   "react-icons": "^5.2.1",
+    "react-icons": "^5.2.1",
     "classnames": "^2.5.1"
   },
   "devDependencies": {

@@ -1,9 +1,10 @@
 {
   "extends": "../../../apps/admin-panel/tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@lana/web/*": ["./*"]
+      "@repo/ui/*": ["./src/*"],
+      "@lana/web/*": ["../../lib/js/shared-web/src/*"]
     }
   },
   "exclude": ["node_modules/"]

@@ -8,7 +8,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@lana/web/ui"
+} from "@lana/web/ui/dialog"
+
 import { Button } from "@lana/web/ui/button"
 
 import {

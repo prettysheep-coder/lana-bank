@@ -7,17 +7,17 @@ import { PanelLeft } from "lucide-react";
 
 import { useIsMobile } from "@lana/web/hooks";
 import { cn } from "@lana/web/utils";
-import { Button } from "@lana/web/ui";
-import { Input } from "@lana/web/ui";
-import { Separator } from "@lana/web/ui";
-import { Sheet, SheetContent } from "@lana/web/ui";
-import { Skeleton } from "@lana/web/ui";
+import { Button } from "@lana/web/ui/button";
+import { Input } from "@lana/web/ui/input";
+import { Separator } from "@lana/web/ui/separator";
+import { Sheet, SheetContent } from "@lana/web/ui/sheet";
+import { Skeleton } from "@lana/web/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@lana/web/ui";
+} from "@lana/web/ui/tooltip";
 
 const SIDEBAR_COOKIE_NAME = "sidebar:state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

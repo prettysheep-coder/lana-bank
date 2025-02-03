@@ -18,10 +18,9 @@
       }
     ],
     "paths": {
+      "@lana/web/*": ["../../lib/js/shared-web/src/*"],
       "@/*": ["./*"],
-      "types": ["./types"],
-      "@lana/web": ["../../lib/js/shared-web/src"],
-      "@lana/web/*": ["../../lib/js/shared-web/src/*"]
+      "types": ["./types"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

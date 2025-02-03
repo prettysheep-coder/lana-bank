@@ -12,7 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-} from "@lana/web"
+} from "@lana/web/ui/sidebar"
 
 import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
