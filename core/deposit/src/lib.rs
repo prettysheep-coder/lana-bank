@@ -141,6 +141,7 @@ where
     #[instrument(name = "deposit.create_account", skip(self))]
     pub async fn create_account(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
         name: &str,
         description: &str,
@@ -148,7 +149,7 @@ where
         let audit_info = self
             .authz
             .enforce_permission(
-                &audit::SystemSubject::system(),
+                sub,
                 CoreDepositObject::all_deposit_accounts(),
                 CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
             )
