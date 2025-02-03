@@ -10,25 +10,16 @@ es_entity::entity_id! {
     CustomerId => deposit::DepositAccountHolderId,
 }
 
-#[derive(async_graphql::Enum, Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
+#[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum KycLevel {
     NotKyced,
     Basic,
     Advanced,
 }
 
-#[derive(
-    async_graphql::Enum,
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, strum::Display, strum::EnumString)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum AccountStatus {
     #[default]
     Inactive,
