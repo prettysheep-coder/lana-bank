@@ -9,10 +9,13 @@ fail-on-warnings = []
 
 [dependencies]
 lana-events = { path = "../events" }
+rbac-types = { path = "../rbac-types" }
 core-customer = { path = "../../core/customer" }
 deposit = { path = "../../core/deposit" }
+core-user = { path = "../../core/user" }
 
 outbox = { path = "../../lib/outbox" }
+audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 job = { path = "../../lib/job" }
 

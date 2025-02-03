@@ -95,7 +95,6 @@ async fn deposit() -> anyhow::Result<()> {
     let account_holder_id = DepositAccountHolderId::new();
     let account = deposit
         .create_account(
-            &DummySubject,
             account_holder_id,
             "Deposit for User #1",
             "Deposit checking account for user.",
