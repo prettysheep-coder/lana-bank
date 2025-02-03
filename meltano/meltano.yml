@@ -27,6 +27,9 @@ jobs:
 - name: poll-bitfinex
   tasks:
   - tap-bitfinexapi target-bigquery
+- name: sync-sumsub
+  tasks:
+  - tap-sumsubapi target-bigquery
 schedules:
 - name: postgres-to-bigquery-dbt
   interval: '*/5 * * * *'
@@ -34,6 +37,9 @@ schedules:
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
+- name: sync-sumsub-hourly
+  interval: '@hourly'
+  job: sync-sumsub
 plugins:
   extractors:
   - name: tap-postgres
