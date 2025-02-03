@@ -1,7 +1,6 @@
 import React from "react"
 import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
-
 import {
   Dialog,
   DialogContent,
@@ -9,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@lana/web/ui/dialog"
-
 import { Button } from "@lana/web/ui/button"
 
 import {
