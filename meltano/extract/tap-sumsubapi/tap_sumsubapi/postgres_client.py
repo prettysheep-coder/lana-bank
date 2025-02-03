@@ -31,7 +31,7 @@ class PostgresClient:
     def get_keys(self, starting_timestamp):
         with self.connection.cursor() as cursor:
             query = """
-                SELECT customer_id, recorded_at,
+                SELECT customer_id, recorded_at
                 FROM sumsub_callbacks
                 WHERE recorded_at > %s
             """

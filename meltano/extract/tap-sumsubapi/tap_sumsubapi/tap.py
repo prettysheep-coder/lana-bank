@@ -16,14 +16,60 @@ class TapSumsubApi(Tap):
     name = "tap-sumsubapi"
 
     config_jsonschema = th.PropertiesList(
-        th.Property("host", th.StringType, required=True),
-        th.Property("port", th.IntegerType, default=5432),
-        th.Property("database", th.StringType, required=True),
-        th.Property("user", th.StringType, required=True),
-        th.Property("password", th.StringType, required=True),
-        th.Property("sslmode", th.StringType, default="prefer"),
-        th.Property("sumsub_secret_key", th.StringType, required=True),
-        th.Property("sumsub_app_token", th.StringType, required=True),
+        th.Property(
+            "host",
+            th.StringType,
+            description=(
+                "Hostname for postgres instance. "
+                + "Note if sqlalchemy_url is set this will be ignored."
+            ),
+        ),
+        th.Property(
+            "port",
+            th.IntegerType,
+            default=5432,
+            description=(
+                "The port on which postgres is awaiting connection. "
+                + "Note if sqlalchemy_url is set this will be ignored."
+            ),
+        ),
+        th.Property(
+            "user",
+            th.StringType,
+            description=(
+                "User name used to authenticate. "
+                + "Note if sqlalchemy_url is set this will be ignored."
+            ),
+        ),
+        th.Property(
+            "password",
+            th.StringType,
+            secret=True,
+            description=(
+                "Password used to authenticate. "
+                "Note if sqlalchemy_url is set this will be ignored."
+            ),
+        ),
+        th.Property(
+            "database",
+            th.StringType,
+            description=(
+                "Database name. "
+                + "Note if sqlalchemy_url is set this will be ignored."
+            ),
+        ),
+        th.Property(
+            "key",
+            th.StringType,
+            description="Example: Hej2ch71kG2kTd1iIUDZFNsO5C1lh5Gq",
+            required=True,
+        ),
+        th.Property(
+            "secret",
+            th.StringType,
+            description="Example: sbx:uY0CgwELmgUAEyl4hNWxLngb.0WSeQeiYny4WEqmAALEAiK2qTC96fBad",
+            required=True,
+        ),
     ).to_dict()
 
     def discover_streams(self):
