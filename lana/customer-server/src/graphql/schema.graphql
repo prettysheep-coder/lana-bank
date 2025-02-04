@@ -12,6 +12,15 @@ type Customer {
 	createdAt: Timestamp!
 	email: String!
 	telegramId: String!
+	depositAccount: DepositAccount!
+}
+
+type DepositAccount {
+	id: ID!
+	depositAccountId: UUID!
+	customerId: UUID!
+	createdAt: Timestamp!
+	owner: Customer!
 }
 
 

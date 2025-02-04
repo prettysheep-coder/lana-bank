@@ -2,6 +2,7 @@
 pub mod macros;
 mod authenticated_subject;
 mod customer;
+mod deposit_account;
 mod schema;
 
 use async_graphql::*;

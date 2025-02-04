@@ -6,6 +6,16 @@ use core_customer::{AccountStatus, Customer as DomainCustomer, KycLevel};
 
 use crate::primitives::*;
 
+use super::deposit_account::*;
+
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum CustomerError {
+    #[error("CustomerError - DepositAccountNotFound")]
+    DepositAccountNotFound,
+}
+
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Customer {
@@ -40,5 +50,20 @@ impl Customer {
 
     async fn telegram_id(&self) -> &str {
         &self.entity.telegram_id
+    }
+
+    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        Ok(app
+            .deposits()
+            .for_subject(sub)?
+            .list_accounts_by_created_at(Default::default(), ListDirection::Descending)
+            .await?
+            .entities
+            .into_iter()
+            .map(DepositAccount::from)
+            .next()
+            .ok_or(CustomerError::DepositAccountNotFound)?)
     }
 }

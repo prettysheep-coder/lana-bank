@@ -1,9 +1,11 @@
 use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
-pub use lana_app::primitives::{CustomerId, Subject};
+pub use std::sync::Arc;
 
-pub use es_entity::graphql::UUID;
+pub use lana_app::primitives::{CustomerId, DepositAccountId, Subject, UsdCents};
+
+pub use es_entity::{graphql::UUID, ListDirection};
 
 #[derive(Debug, Clone)]
 pub struct CustomerAuthContext {
@@ -45,5 +47,6 @@ macro_rules! impl_to_global_id {
 }
 
 impl_to_global_id! {
-    CustomerId
+    CustomerId,
+    DepositAccountId
 }
