@@ -110,7 +110,9 @@ impl TryFromEvents<UserEvent> for User {
                 }
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
-                UserEvent::AuthenticationIdSet { .. } => (),
+                UserEvent::AuthenticationIdSet { authentication_id } => {
+                    builder = builder.authentication_id(Some(*authentication_id))
+                }
             }
         }
         builder.events(events).build()
