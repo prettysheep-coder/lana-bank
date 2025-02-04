@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub use std::sync::Arc;
 
-pub use lana_app::primitives::{CustomerId, DepositAccountId, Subject, UsdCents};
+pub use lana_app::primitives::{CustomerId, DepositAccountId, DepositId, Subject, UsdCents};
 
 pub use es_entity::{graphql::UUID, ListDirection};
 
@@ -48,5 +48,6 @@ macro_rules! impl_to_global_id {
 
 impl_to_global_id! {
     CustomerId,
-    DepositAccountId
+    DepositAccountId,
+    DepositId
 }

@@ -148,6 +148,7 @@ where
         Ok(DepositsForSubject::new(
             holder_id,
             &self.accounts,
+            &self.deposits,
             &self.ledger,
         ))
     }
@@ -196,6 +197,7 @@ where
             .add_deposit_control_to_account(&mut op, account_id)
             .await?;
 
+        // self.authz.assign_role_to_subject_in_scope(holder_id, self.account_holder_role, account_id).await?;
         op.commit().await?;
 
         Ok(account)
@@ -483,7 +485,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_deposits(),
+                CoreDepositObject::deposit_account(account_id),
                 CoreDepositAction::DEPOSIT_LIST,
             )
             .await?;

@@ -1,11 +1,12 @@
 use crate::{
-    account::*, deposit_account_balance::*,
+    account::*, deposit::*, deposit_account_balance::*,
     deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*, ledger::*, primitives::*,
 };
 
 pub struct DepositsForSubject<'a> {
     subject: DepositAccountHolderId,
     accounts: &'a DepositAccountRepo,
+    deposits: &'a DepositRepo,
     ledger: &'a DepositLedger,
 }
 
@@ -13,11 +14,13 @@ impl<'a> DepositsForSubject<'a> {
     pub(super) fn new(
         subject: DepositAccountHolderId,
         accounts: &'a DepositAccountRepo,
+        deposits: &'a DepositRepo,
         ledger: &'a DepositLedger,
     ) -> Self {
         Self {
             subject,
             accounts,
+            deposits,
             ledger,
         }
     }
@@ -41,7 +44,42 @@ impl<'a> DepositsForSubject<'a> {
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
     ) -> Result<DepositAccountBalance, CoreDepositError> {
         let account_id = account_id.into();
+
+        self.ensure_account_access(account_id).await?;
+
         let balance = self.ledger.balance(account_id).await?;
         Ok(balance)
+    }
+
+    pub async fn list_deposits_for_account(
+        &self,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Vec<Deposit>, CoreDepositError> {
+        let account_id = account_id.into();
+
+        self.ensure_account_access(account_id).await?;
+
+        Ok(self
+            .deposits
+            .list_for_deposit_account_id_by_created_at(
+                account_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    async fn ensure_account_access(
+        &self,
+        account_id: DepositAccountId,
+    ) -> Result<(), CoreDepositError> {
+        let account = self.accounts.find_by_id(account_id).await?;
+
+        if account.account_holder_id != self.subject {
+            return Err(CoreDepositError::DepositAccountNotFound);
+        }
+
+        Ok(())
     }
 }
