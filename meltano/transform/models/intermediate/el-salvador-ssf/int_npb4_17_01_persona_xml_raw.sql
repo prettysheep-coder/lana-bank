@@ -55,6 +55,7 @@ select
     country_of_residence_code as `pais_residencia`,
 
     -- Sum of the balances of the references that the person has plus the accrued interest
+    -- TODO: use real number
     7060.0 as `riesgo_consolidado`,
 
     gender as `sexo_persona`,
