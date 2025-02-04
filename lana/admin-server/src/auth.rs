@@ -16,10 +16,10 @@ pub async fn user_id_from_authentication_id(
     Extension(app): Extension<LanaApp>,
     Json(mut payload): Json<AuthenticationPayload>,
 ) -> impl IntoResponse {
-    let authentication_id = match uuid::Uuid::parse_str(&payload.subject) {
-        Ok(authentication_id) => core_user::AuthenticationId::from(authentication_id),
-        Err(error) => {
-            println!("Error parsing authentication id: {:?}", error);
+    let authentication_id = match payload.subject.parse::<core_user::AuthenticationId>() {
+        Ok(id) => id,
+        Err(e) => {
+            println!("Error parsing authentication id: {:?}", e);
             return StatusCode::BAD_REQUEST.into_response();
         }
     };
