@@ -135,10 +135,10 @@ where
         Ok(res)
     }
 
-    pub fn for_subject(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<DepositsForSubject, CoreDepositError>
+    pub fn for_subject<'s>(
+        &'s self,
+        sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<DepositsForSubject<'s, Perms>, CoreDepositError>
     where
         DepositAccountHolderId:
             for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
@@ -146,10 +146,12 @@ where
         let holder_id = DepositAccountHolderId::try_from(sub)
             .map_err(|_| CoreDepositError::SubjectIsNotDepositAccountHolder)?;
         Ok(DepositsForSubject::new(
+            sub,
             holder_id,
             &self.accounts,
             &self.deposits,
             &self.ledger,
+            &self.authz,
         ))
     }
 

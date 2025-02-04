@@ -1,27 +1,46 @@
+use audit::AuditSvc;
+use authz::PermissionCheck;
+
 use crate::{
     account::*, deposit::*, deposit_account_balance::*,
     deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*, ledger::*, primitives::*,
 };
 
-pub struct DepositsForSubject<'a> {
-    subject: DepositAccountHolderId,
+pub struct DepositsForSubject<'a, Perms>
+where
+    Perms: PermissionCheck,
+{
+    account_holder_id: DepositAccountHolderId,
+    sub: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     accounts: &'a DepositAccountRepo,
     deposits: &'a DepositRepo,
     ledger: &'a DepositLedger,
+    authz: &'a Perms,
 }
 
-impl<'a> DepositsForSubject<'a> {
+impl<'a, Perms> DepositsForSubject<'a, Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<GovernanceObject>,
+{
     pub(super) fn new(
-        subject: DepositAccountHolderId,
+        subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_holder_id: DepositAccountHolderId,
         accounts: &'a DepositAccountRepo,
         deposits: &'a DepositRepo,
         ledger: &'a DepositLedger,
+        authz: &'a Perms,
     ) -> Self {
         Self {
-            subject,
+            sub: subject,
+            account_holder_id,
             accounts,
             deposits,
             ledger,
+            authz,
         }
     }
 
@@ -33,9 +52,23 @@ impl<'a> DepositsForSubject<'a> {
         es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsByCreatedAtCursor>,
         CoreDepositError,
     > {
+        self.authz
+            .audit()
+            .record_entry(
+                self.sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_LIST,
+                true,
+            )
+            .await?;
+
         Ok(self
             .accounts
-            .list_for_account_holder_id_by_created_at(self.subject, query, direction.into())
+            .list_for_account_holder_id_by_created_at(
+                self.account_holder_id,
+                query,
+                direction.into(),
+            )
             .await?)
     }
 
@@ -45,7 +78,12 @@ impl<'a> DepositsForSubject<'a> {
     ) -> Result<DepositAccountBalance, CoreDepositError> {
         let account_id = account_id.into();
 
-        self.ensure_account_access(account_id).await?;
+        self.ensure_account_access(
+            account_id,
+            CoreDepositObject::deposit_account(account_id),
+            CoreDepositAction::DEPOSIT_ACCOUNT_READ_BALANCE,
+        )
+        .await?;
 
         let balance = self.ledger.balance(account_id).await?;
         Ok(balance)
@@ -57,7 +95,12 @@ impl<'a> DepositsForSubject<'a> {
     ) -> Result<Vec<Deposit>, CoreDepositError> {
         let account_id = account_id.into();
 
-        self.ensure_account_access(account_id).await?;
+        self.ensure_account_access(
+            account_id,
+            CoreDepositObject::all_deposits(),
+            CoreDepositAction::DEPOSIT_LIST,
+        )
+        .await?;
 
         Ok(self
             .deposits
@@ -73,12 +116,22 @@ impl<'a> DepositsForSubject<'a> {
     async fn ensure_account_access(
         &self,
         account_id: DepositAccountId,
+        object: CoreDepositObject,
+        action: CoreDepositAction,
     ) -> Result<(), CoreDepositError> {
         let account = self.accounts.find_by_id(account_id).await?;
 
-        if account.account_holder_id != self.subject {
+        if account.account_holder_id != self.account_holder_id {
+            self.authz
+                .audit()
+                .record_entry(self.sub, object, action, false)
+                .await?;
             return Err(CoreDepositError::DepositAccountNotFound);
         }
+        self.authz
+            .audit()
+            .record_entry(self.sub, object, action, true)
+            .await?;
 
         Ok(())
     }
