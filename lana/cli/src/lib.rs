@@ -97,7 +97,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         let _ = customer_send.try_send(
             customer_server::run(config.customer_server, customer_app)
                 .await
-                .context("Admin server error"),
+                .context("Customer server error"),
         );
     }));
 
