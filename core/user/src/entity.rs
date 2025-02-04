@@ -112,8 +112,7 @@ impl TryFromEvents<UserEvent> for User {
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
                 UserEvent::AuthenticationIdSet { authentication_id } => {
-                    let authentication_id = authentication_id.clone();
-                    builder = builder.authentication_id(Some(authentication_id));
+                    builder = builder.authentication_id(Some(*authentication_id));
                 }
             }
         }
