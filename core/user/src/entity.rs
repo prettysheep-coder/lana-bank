@@ -16,6 +16,9 @@ pub enum UserEvent {
         email: String,
         audit_info: AuditInfo,
     },
+    AuthenticationIdSet {
+        authentication_id: AuthenticationId,
+    },
     RoleAssigned {
         role: Role,
         audit_info: AuditInfo,
@@ -31,6 +34,7 @@ pub enum UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
+    pub authentication_id: Option<AuthenticationId>,
     events: EntityEvents<UserEvent>,
 }
 
@@ -100,6 +104,7 @@ impl TryFromEvents<UserEvent> for User {
                 }
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
+                UserEvent::AuthenticationIdSet { .. } => (),
             }
         }
         builder.events(events).build()
@@ -112,6 +117,8 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
+    #[builder(setter(into), default)]
+    pub(super) authentication_id: Option<AuthenticationId>,
     pub(super) audit_info: AuditInfo,
 }
 

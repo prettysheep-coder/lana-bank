@@ -9,6 +9,8 @@ mod time;
 mod kratos_admin;
 use kratos_admin::KratosAdmin;
 
+use core_user::Users;
+
 use config::*;
 use error::*;
 use job::*;

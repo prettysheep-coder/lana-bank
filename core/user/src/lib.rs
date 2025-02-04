@@ -167,6 +167,26 @@ where
         }
     }
 
+    #[instrument(name = "core_user.find_by_authentication_id", skip(self))]
+    pub async fn find_by_authentication_id(
+        &self,
+        sub: Option<&<Audit as AuditSvc>::Subject>,
+        authentication_id: &AuthenticationId,
+    ) -> Result<Option<User>, UserError> {
+        if let Some(sub) = sub {
+            self.authz
+                .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_READ)
+                .await?;
+        }
+
+        let authentication_id = Some(authentication_id.to_owned());
+        match self.repo.find_by_authentication_id(authentication_id).await {
+            Ok(user) => Ok(Some(user)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     #[instrument(name = "core_user.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,
