@@ -20,7 +20,12 @@ type DepositAccount {
 	depositAccountId: UUID!
 	customerId: UUID!
 	createdAt: Timestamp!
-	owner: Customer!
+	balance: DepositAccountBalance!
+}
+
+type DepositAccountBalance {
+	settled: UsdCents!
+	pending: UsdCents!
 }
 
 
@@ -44,6 +49,8 @@ type Subject {
 scalar Timestamp
 
 scalar UUID
+
+scalar UsdCents
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

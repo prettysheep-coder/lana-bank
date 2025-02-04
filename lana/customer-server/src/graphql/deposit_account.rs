@@ -4,8 +4,6 @@ use crate::primitives::*;
 
 pub use lana_app::deposit::DepositAccount as DomainDepositAccount;
 
-use super::customer::Customer;
-
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DepositAccount {
@@ -48,6 +46,16 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
 
 #[ComplexObject]
 impl DepositAccount {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let balance = app
+            .deposits()
+            .for_subject(sub)?
+            .account_balance(self.entity.id)
+            .await?;
+        Ok(DepositAccountBalance::from(balance))
+    }
+
     // async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
     //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
     //     let deposits = app
@@ -65,21 +73,4 @@ impl DepositAccount {
     //         .await?;
     //     Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
     // }
-
-    // async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccountBalance> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     let balance = app.deposits().account_balance(sub, self.entity.id).await?;
-    //     Ok(DepositAccountBalance::from(balance))
-    // }
-
-    async fn owner(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let customer = app
-            .customers()
-            .find_by_id(sub, self.entity.account_holder_id)
-            .await?
-            .expect("customer not found");
-
-        Ok(Customer::from(customer))
-    }
 }

@@ -145,7 +145,11 @@ where
     {
         let holder_id = DepositAccountHolderId::try_from(sub)
             .map_err(|_| CoreDepositError::SubjectIsNotDepositAccountHolder)?;
-        Ok(DepositsForSubject::new(holder_id, &self.accounts))
+        Ok(DepositsForSubject::new(
+            holder_id,
+            &self.accounts,
+            &self.ledger,
+        ))
     }
 
     #[instrument(name = "deposit.create_account", skip(self))]
