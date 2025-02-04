@@ -34,6 +34,7 @@ pub enum UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
+    #[builder(default)]
     pub authentication_id: Option<AuthenticationId>,
     events: EntityEvents<UserEvent>,
 }
@@ -122,7 +123,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
-    #[builder(setter(into), default)]
+    #[builder(default)]
     pub(super) authentication_id: Option<AuthenticationId>,
     pub(super) audit_info: AuditInfo,
 }
