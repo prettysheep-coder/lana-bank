@@ -167,7 +167,10 @@ where
         }
     }
 
-    #[instrument(name = "core_user.set_authentication_id_for_user", skip(self))]
+    #[instrument(
+        name = "core_user.set_authentication_id_for_user",
+        skip(self, authentication_id)
+    )]
     pub async fn set_authentication_id_for_user(
         &self,
         user_id: UserId,
@@ -187,7 +190,10 @@ where
         Ok(user)
     }
 
-    #[instrument(name = "core_user.find_by_authentication_id", skip(self))]
+    #[instrument(
+        name = "core_user.find_by_authentication_id",
+        skip(self, authentication_id)
+    )]
     pub async fn find_by_authentication_id(
         &self,
         authentication_id: AuthenticationId,
