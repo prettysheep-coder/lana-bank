@@ -88,6 +88,7 @@ impl User {
     }
 
     pub fn set_authentication_id(&mut self, authentication_id: AuthenticationId) {
+        self.authentication_id = Some(authentication_id);
         self.events
             .push(UserEvent::AuthenticationIdSet { authentication_id });
     }
@@ -111,10 +112,12 @@ impl TryFromEvents<UserEvent> for User {
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
                 UserEvent::AuthenticationIdSet { authentication_id } => {
-                    builder = builder.authentication_id(Some(*authentication_id))
+                    let authentication_id = authentication_id.clone();
+                    builder = builder.authentication_id(Some(authentication_id));
                 }
             }
         }
+
         builder.events(events).build()
     }
 }
