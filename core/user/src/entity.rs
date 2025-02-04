@@ -34,7 +34,7 @@ pub enum UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
-    #[builder(default)]
+    #[builder(setter(strip_option), default)]
     pub authentication_id: Option<AuthenticationId>,
     events: EntityEvents<UserEvent>,
 }
@@ -112,7 +112,7 @@ impl TryFromEvents<UserEvent> for User {
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
                 UserEvent::AuthenticationIdSet { authentication_id } => {
-                    builder = builder.authentication_id(Some(*authentication_id));
+                    builder = builder.authentication_id(*authentication_id);
                 }
             }
         }
