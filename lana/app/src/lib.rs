@@ -39,6 +39,11 @@ pub mod user {
     pub type Users = core_user::Users<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod customer_onboarding {
+    pub use customer_onboarding::config::CustomerOnboardingConfig;
+    pub use customer_onboarding::*;
+}
+
 pub mod customer {
     pub use core_customer::{
         error, AccountStatus, Customer, CustomerId, CustomersCursor, CustomersSortBy,
