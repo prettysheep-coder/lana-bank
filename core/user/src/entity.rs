@@ -16,7 +16,7 @@ pub enum UserEvent {
         email: String,
         audit_info: AuditInfo,
     },
-    AuthenticationIdSet {
+    AuthenticationIdUpdated {
         authentication_id: AuthenticationId,
     },
     RoleAssigned {
@@ -87,10 +87,18 @@ impl User {
         res
     }
 
-    pub fn set_authentication_id(&mut self, authentication_id: AuthenticationId) {
+    pub fn update_authentication_id(
+        &mut self,
+        authentication_id: AuthenticationId,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            UserEvent::AuthenticationIdUpdated { authentication_id: existing_id } if existing_id == &authentication_id
+        );
         self.authentication_id = Some(authentication_id);
         self.events
-            .push(UserEvent::AuthenticationIdSet { authentication_id });
+            .push(UserEvent::AuthenticationIdUpdated { authentication_id });
+        Idempotent::Executed(())
     }
 }
 
@@ -111,7 +119,7 @@ impl TryFromEvents<UserEvent> for User {
                 }
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
-                UserEvent::AuthenticationIdSet { authentication_id } => {
+                UserEvent::AuthenticationIdUpdated { authentication_id } => {
                     builder = builder.authentication_id(*authentication_id);
                 }
             }

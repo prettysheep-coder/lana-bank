@@ -127,7 +127,7 @@ where
             if let Some(CoreUserEvent::UserCreated { id, email }) = &message.as_ref().as_event() {
                 let authentication_id = self.kratos_admin.create_user(email.clone()).await?;
                 self.users
-                    .set_authentication_id_for_user(*id, authentication_id)
+                    .update_authentication_id_for_user(*id, authentication_id)
                     .await?;
             }
         }

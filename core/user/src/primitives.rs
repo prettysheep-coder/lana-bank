@@ -45,8 +45,8 @@ impl CoreUserAction {
     pub const USER_LIST: Self = CoreUserAction::User(UserEntityAction::List);
     pub const USER_ASSIGN_ROLE: Self = CoreUserAction::User(UserEntityAction::AssignRole);
     pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserEntityAction::RevokeRole);
-    pub const USER_SET_AUTHENTICATION_ID: Self =
-        CoreUserAction::User(UserEntityAction::SetAuthenticationId);
+    pub const USER_UPDATE_AUTHENTICATION_ID: Self =
+        CoreUserAction::User(UserEntityAction::UpdateAuthenticationId);
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
@@ -58,7 +58,7 @@ pub enum UserEntityAction {
     Update,
     AssignRole,
     RevokeRole,
-    SetAuthenticationId,
+    UpdateAuthenticationId,
 }
 
 impl Display for CoreUserAction {
