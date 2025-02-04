@@ -198,16 +198,10 @@ where
     pub async fn find_by_authentication_id(
         &self,
         authentication_id: AuthenticationId,
-    ) -> Result<Option<User>, UserError> {
-        match self
-            .repo
+    ) -> Result<User, UserError> {
+        self.repo
             .find_by_authentication_id(Some(authentication_id))
             .await
-        {
-            Ok(user) => Ok(Some(user)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
     }
 
     #[instrument(name = "core_user.find_all", skip(self))]

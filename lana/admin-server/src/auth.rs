@@ -29,7 +29,7 @@ pub async fn user_id_from_authentication_id(
         .find_by_authentication_id(authentication_id)
         .await
     {
-        Ok(Some(user)) => {
+        Ok(user) => {
             if let serde_json::Value::Object(ref mut extra) = payload.extra {
                 extra.insert(
                     "subject".to_string(),
@@ -42,7 +42,7 @@ pub async fn user_id_from_authentication_id(
             }
             Json(payload).into_response()
         }
-        Ok(None) => {
+        Err(e) if e.was_not_found() => {
             println!("User not found: {:?}", authentication_id);
             StatusCode::NOT_FOUND.into_response()
         }
