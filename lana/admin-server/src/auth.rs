@@ -26,7 +26,7 @@ pub async fn user_id_from_authentication_id(
 
     match app
         .users()
-        .find_by_authentication_id(None, &authentication_id)
+        .find_by_authentication_id(authentication_id)
         .await
     {
         Ok(Some(user)) => {
