@@ -5374,6 +5374,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "async-trait",
+ "audit",
  "chrono",
  "core-user",
  "es-entity",
