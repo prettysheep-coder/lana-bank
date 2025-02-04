@@ -85,6 +85,11 @@ impl User {
         }
         res
     }
+
+    pub fn set_authentication_id(&mut self, authentication_id: AuthenticationId) {
+        self.events
+            .push(UserEvent::AuthenticationIdSet { authentication_id });
+    }
 }
 
 impl core::fmt::Display for User {

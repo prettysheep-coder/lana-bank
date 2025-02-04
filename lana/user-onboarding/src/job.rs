@@ -125,7 +125,10 @@ where
 
         while let Some(message) = stream.next().await {
             if let Some(CoreUserEvent::UserCreated { id, email }) = &message.as_ref().as_event() {
-                self.kratos_admin.create_user(*id, email.clone()).await?;
+                let authentication_id = self.kratos_admin.create_user(email.clone()).await?;
+                self.users
+                    .set_authentication_id_for_user(*id, authentication_id)
+                    .await?;
             }
         }
 

@@ -167,6 +167,26 @@ where
         }
     }
 
+    #[instrument(name = "core_user.set_authentication_id_for_user", skip(self))]
+    pub async fn set_authentication_id_for_user(
+        &self,
+        user_id: UserId,
+        authentication_id: AuthenticationId,
+    ) -> Result<User, UserError> {
+        self.authz
+            .audit()
+            .record_system_entry(
+                UserObject::user(user_id),
+                CoreUserAction::USER_SET_AUTHENTICATION_ID,
+            )
+            .await?;
+
+        let mut user = self.repo.find_by_id(user_id).await?;
+        user.set_authentication_id(authentication_id);
+        self.repo.update(&mut user).await?;
+        Ok(user)
+    }
+
     #[instrument(name = "core_user.find_by_authentication_id", skip(self))]
     pub async fn find_by_authentication_id(
         &self,
