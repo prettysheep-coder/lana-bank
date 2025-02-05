@@ -3,12 +3,15 @@
 with approved as (
     select count(distinct event_id) as the_value
     from {{ ref("int_credit_facilities") }}
-    where approval_process_concluded_approved
+    where
+        approval_process_concluded_approved
+        and completed_recorded_at is null
 ),
 
 total as (
     select count(distinct event_id) as the_value
     from {{ ref("int_credit_facilities") }}
+    where completed_recorded_at is null
 )
 
 

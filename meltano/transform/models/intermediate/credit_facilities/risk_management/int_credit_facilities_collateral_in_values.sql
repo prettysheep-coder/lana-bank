@@ -7,26 +7,32 @@ with flatten_collateral as (
 
 collateral_quantity as (
     select safe_divide(sum(total_collateral), 100000000.0) as total_collateral_quantity_usd
-    from {{ ref('int_cf_collaterals') }}
+    from flatten_collateral
+    where completed_recorded_at is null
 ),
 
 collateral_value as (
     select
         sum(total_collateral_value_usd) as total_collateral_value_usd,
         sum(initial_collateral_value_usd) as initial_collateral_value_usd
-    from {{ ref('int_cf_collaterals') }}
+    from flatten_collateral
+    where completed_recorded_at is null
 ),
 
 value_approved_cf as (
     select safe_divide(sum(facility), 100.0) as total_value_approved_in_usd
-    from {{ ref('int_credit_facilities') }}
-    where approval_process_concluded_approved
+    from flatten_collateral
+    where
+        approval_process_concluded_approved
+        and completed_recorded_at is null
 ),
 
 value_disbursed as (
-    select safe_divide(sum(amount), 100.0) as total_value_disbursed_in_usd
-    from {{ ref('int_cf_disbursals') }}
-    where disbursal_concluded_event_recorded_at_date_key != 19000101
+    select safe_divide(sum(total_disbursed_amount), 100.0) as total_value_disbursed_in_usd
+    from flatten_collateral
+    where
+        disbursal_concluded_event_recorded_at_date_key != 19000101
+        and completed_recorded_at is null
 ),
 
 agg_facility_cvl as (

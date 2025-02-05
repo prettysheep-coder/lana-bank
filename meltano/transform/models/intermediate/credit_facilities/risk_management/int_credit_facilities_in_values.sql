@@ -3,13 +3,17 @@
 with value_approved_cf as (
     select safe_divide(sum(facility), 100.0) as amount_in_usd
     from {{ ref("int_credit_facilities") }}
-    where approval_process_concluded_approved
+    where
+        approval_process_concluded_approved
+        and completed_recorded_at is null
 ),
 
 disbursed as (
-    select safe_divide(sum(amount), 100.0) as amount_in_usd
-    from {{ ref("int_cf_disbursals") }}
-    where disbursal_concluded_event_recorded_at_date_key != 19000101
+    select safe_divide(sum(total_disbursed_amount), 100.0) as amount_in_usd
+    from {{ ref("int_cf_flatten") }}
+    where
+        disbursal_concluded_event_recorded_at_date_key != 19000101
+        and completed_recorded_at is null
 ),
 
 breakeven as (
@@ -22,6 +26,7 @@ breakeven as (
     from {{ ref("int_cf_flatten") }} as cfe
     where
         approval_process_concluded_approved
+        and completed_recorded_at is null
         and facility > 0
 ),
 
