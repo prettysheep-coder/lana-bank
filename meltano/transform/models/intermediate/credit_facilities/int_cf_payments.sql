@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with payment_recorded as (
 
     select

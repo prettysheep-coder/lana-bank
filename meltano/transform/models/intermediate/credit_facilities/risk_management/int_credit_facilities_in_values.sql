@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with value_approved_cf as (
     select safe_divide(sum(facility), 100.0) as amount_in_usd
     from {{ ref("int_credit_facilities") }}

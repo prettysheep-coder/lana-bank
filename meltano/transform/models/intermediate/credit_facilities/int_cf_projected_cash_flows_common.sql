@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with terms_and_disbursal as (
     select
         *,

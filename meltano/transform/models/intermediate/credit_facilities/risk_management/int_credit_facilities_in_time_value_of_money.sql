@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with final as (
     select * from {{ ref("int_cf_agg_projected_cash_flows_tvm_risk") }}
 )

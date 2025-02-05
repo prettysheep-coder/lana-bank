@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with approved as (
     select count(distinct event_id) as the_value
     from {{ ref("int_credit_facilities") }}

@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with total_customers as (
     select count(distinct customer_id) as the_value
     from {{ ref("int_credit_facilities") }}
