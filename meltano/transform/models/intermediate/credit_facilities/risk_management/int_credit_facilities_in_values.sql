@@ -18,8 +18,8 @@ breakeven as (
         5.53 as bench_mark,              	      -- TODO get from proper source
         cfe.terms_annual_rate,
         facility as credit_facility_limit_in_cents,
-        coalesce(amount, 0) as disbursal_amount_in_cents
-    from {{ ref("int_cf_denormalized") }} as cfe
+        coalesce(total_disbursed_amount, 0) as disbursal_amount_in_cents
+    from {{ ref("int_cf_flatten") }} as cfe
     where
         approval_process_concluded_approved
         and facility > 0

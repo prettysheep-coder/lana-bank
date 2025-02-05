@@ -19,7 +19,7 @@ approved_cf as (
 
 disbursed_cf as (
     select count(distinct customer_id) as the_value
-    from {{ ref("int_cf_denormalized") }}
+    from {{ ref("int_cf_flatten") }}
     where disbursal_concluded_event_recorded_at_date_key != 19000101
 )
 
