@@ -32,5 +32,6 @@ select
 
 from {{ ref('stg_sumsub_applicants') }}
 
-where parsed_content is not null
-	and parsed_content.errorCode is null
+where
+    parsed_content is not null
+    and parsed_content.errorCode is null
