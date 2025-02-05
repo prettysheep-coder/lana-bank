@@ -18,8 +18,8 @@ with payment_recorded as (
                 )
             ) as int64
         ) as recorded_in_ledger_at_date_key,
-        cast(json_value(event, '$.disbursement_amount') as numeric)
-            as disbursement_amount,
+        cast(json_value(event, '$.disbursal_amount') as numeric)
+            as disbursal_amount,
         cast(json_value(event, '$.interest_amount') as numeric)
             as interest_amount,
         parse_timestamp(

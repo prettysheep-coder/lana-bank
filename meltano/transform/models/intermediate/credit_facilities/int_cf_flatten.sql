@@ -84,7 +84,7 @@ int_cf_payments as (
         max(recorded_in_ledger_at_date_key)
             as payment_recorded_in_ledger_at_date_key,
         max(recorded_in_ledger_at) as payment_recorded_in_ledger_at,
-        sum(disbursement_amount) as disbursement_amount,
+        sum(disbursal_amount) as disbursal_amount,
         sum(interest_amount) as interest_amount
     from {{ ref('int_cf_payments') }}
     group by event_id
