@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with credit_facilities as (
 
     select * from {{ ref('int_credit_facilities') }}
@@ -27,6 +29,37 @@ select
 
     d.* except (event_id, recorded_at_date_key, recorded_at, event_type),
     c.* except (event_id, recorded_at_date_key, recorded_at, event_type),
+
+    safe_multiply(
+        safe_divide(c.total_collateral_value_usd, safe_divide(cfe.facility, 100.0)),
+        100.0
+    ) as facility_cvl,
+    safe_multiply(
+        safe_divide(c.initial_collateral_value_usd, safe_divide(cfe.facility, 100.0)),
+        100.0
+    ) as initial_facility_cvl,
+    safe_multiply(
+        safe_divide(c.total_collateral_value_usd, safe_divide(d.amount, 100.0)),
+        100.0
+    ) as disbursed_cvl,
+
+    safe_multiply(
+        safe_divide(safe_multiply(cfe.terms_margin_call_cvl, cfe.facility), c.total_collateral),
+        100000000.0 / (100.0 * 100.0)
+    ) as facility_margin_call_price_usd,
+    safe_multiply(
+        safe_divide(safe_multiply(cfe.terms_margin_call_cvl, d.amount), c.total_collateral),
+        100000000.0 / (100.0 * 100.0)
+    ) as disbursed_margin_call_price_usd,
+    safe_multiply(
+        safe_divide(safe_multiply(cfe.terms_liquidation_cvl, cfe.facility), c.total_collateral),
+        100000000.0 / (100.0 * 100.0)
+    ) as facility_liquidation_price_usd,
+    safe_multiply(
+        safe_divide(safe_multiply(cfe.terms_liquidation_cvl, d.amount), c.total_collateral),
+        100000000.0 / (100.0 * 100.0)
+    ) as disbursed_liquidation_price_usd,
+
     p.* except (
         event_id,
         recorded_at_date_key,
