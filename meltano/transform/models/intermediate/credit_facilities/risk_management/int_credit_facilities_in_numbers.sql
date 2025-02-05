@@ -14,19 +14,19 @@ total as (
 
 select
     1 as order_by,
-    cast(the_value as string) as the_value,
+    cast(the_value as numeric) as the_value,
     'Number of Approved Credit Facilities' as the_name
 from approved
 union all
 select
     2 as order_by,
-    cast(the_value as string) as the_value,
+    cast(the_value as numeric) as the_value,
     'Number of Total Credit Facilities' as the_name
 from total
 union all
 select
     3 as order_by,
-    cast(a.the_value / t.the_value as string) as the_value,
+    cast(a.the_value / t.the_value as numeric) as the_value,
     'Approved Rate' as the_name
 from approved as a, total as t
 

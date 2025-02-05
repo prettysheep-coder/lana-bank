@@ -135,72 +135,69 @@ agg_liquidation_cash_flows_tvm_risk as (
 )
 
 
-
 select
     10 as order_by,
-    cast(total_collateral_quantity_usd as string) as the_value,
+    cast(total_collateral_quantity_usd as numeric) as the_value,
     'Total Quantity of Collateral (BTC)' as the_name
 from collateral_quantity
 union all
 select
     20 as order_by,
-    cast(initial_collateral_value_usd as string) as the_value,
+    cast(initial_collateral_value_usd as numeric) as the_value,
     'Total Initial Value of Collateral (USD)' as the_name
 from collateral_value
 union all
 select
     30 as order_by,
-    cast(total_collateral_value_usd as string) as the_value,
+    cast(total_collateral_value_usd as numeric) as the_value,
     'Total Current Value of Collateral (USD)' as the_name
 from collateral_value
 union all
 select
     40 as order_by,
-    cast(total_value_approved_in_usd as string) as the_value,
+    cast(total_value_approved_in_usd as numeric) as the_value,
     'Total Value of Approved Credit Facilities (USD)' as the_name
 from value_approved_cf
 union all
 select
     50 as order_by,
-    cast(aggregated_initial_facility_cvl as string) as the_value,
+    cast(aggregated_initial_facility_cvl as numeric) as the_value,
     'Aggregated Initial Facility CVL (%)' as the_name
 from agg_facility_cvl
 union all
 select
     60 as order_by,
-    cast(aggregated_facility_cvl as string) as the_value,
+    cast(aggregated_facility_cvl as numeric) as the_value,
     'Aggregated Current Facility CVL (%)' as the_name
 from agg_facility_cvl
 union all
 select
     70 as order_by,
-    cast(total_value_disbursed_in_usd as string) as the_value,
+    cast(total_value_disbursed_in_usd as numeric) as the_value,
     'Total Value Disbursed from Approved Credit Facilities (USD)' as the_name
 from value_disbursed
 union all
 select
     80 as order_by,
-    cast(aggregated_disbursed_cvl as string) as the_value,
+    cast(aggregated_disbursed_cvl as numeric) as the_value,
     'Aggregated Disbursed CVL (%)' as the_name
 from agg_disbursed_cvl
 union all
-
 select
     85 as order_by,
-    cast(aggregated_average_initial_price_usd as string) as the_value,
+    cast(aggregated_average_initial_price_usd as numeric) as the_value,
     'Aggregated Average Initial Price (USD)' as the_name
 from cvl_implied_prices
 union all
 select
     86 as order_by,
-    cast(last_btc_price_usd as string) as the_value,
+    cast(last_btc_price_usd as numeric) as the_value,
     'Current Price (USD)' as the_name
 from cvl_implied_prices
 union all
-
 select
     90 as order_by,
-    cast(aggregated_facility_margin_call_price_usd as string) as the_value,
+    cast(aggregated_facility_margin_call_price_usd as numeric) as the_value,
     'Aggregated Facility Margin Call Price (USD)' as the_name
 from cvl_implied_prices
 union all
@@ -213,14 +210,14 @@ select
                 1.0
             ),
             100.0
-        ) as string
+        ) as numeric
     ) as the_value,
     'Aggregated Facility Margin Call Price (%)' as the_name
 from cvl_implied_prices
 union all
 select
     100 as order_by,
-    cast(aggregated_disbursed_margin_call_price_usd as string) as the_value,
+    cast(aggregated_disbursed_margin_call_price_usd as numeric) as the_value,
     'Aggregated Disbursed Margin Call Price (USD)' as the_name
 from cvl_implied_prices
 union all
@@ -233,14 +230,14 @@ select
                 1.0
             ),
             100.0
-        ) as string
+        ) as numeric
     ) as the_value,
     'Aggregated Disbursed Margin Call Price (*)' as the_name
 from cvl_implied_prices
 union all
 select
     110 as order_by,
-    cast(aggregated_facility_liquidation_price_usd as string) as the_value,
+    cast(aggregated_facility_liquidation_price_usd as numeric) as the_value,
     'Aggregated Facility Liquidation Price (USD)' as the_name
 from cvl_implied_prices
 union all
@@ -253,14 +250,14 @@ select
                 1.0
             ),
             100.0
-        ) as string
+        ) as numeric
     ) as the_value,
     'Aggregated Facility Liquidation Price (%)' as the_name
 from cvl_implied_prices
 union all
 select
     120 as order_by,
-    cast(aggregated_disbursed_liquidation_price_usd as string) as the_value,
+    cast(aggregated_disbursed_liquidation_price_usd as numeric) as the_value,
     'Aggregated Disbursed Liquidation Price (USD)' as the_name
 from cvl_implied_prices
 union all
@@ -273,205 +270,189 @@ select
                 1.0
             ),
             100.0
-        ) as string
+        ) as numeric
     ) as the_value,
     'Aggregated Disbursed Liquidation Price (%)' as the_name
 from cvl_implied_prices
-
-
 union all
 select
     124 as order_by,
-    cast(max_disbursed_liquidation_price_usd as string) as the_value,
+    cast(max_disbursed_liquidation_price_usd as numeric) as the_value,
     'Highest Single Disbursed Liquidation Price (USD)' as the_name
 from agg_liquidation_cash_flows_tvm_risk
 union all
 select
     125 as order_by,
-    cast(avg_disbursed_liquidation_price_usd as string) as the_value,
+    cast(avg_disbursed_liquidation_price_usd as numeric) as the_value,
     'Average Single Disbursed Liquidation Price (USD)' as the_name
 from agg_liquidation_cash_flows_tvm_risk
 union all
 select
     126 as order_by,
-    cast(min_disbursed_liquidation_price_usd as string) as the_value,
+    cast(min_disbursed_liquidation_price_usd as numeric) as the_value,
     'Lowest Single Disbursed Liquidation Price (USD)' as the_name
 from agg_liquidation_cash_flows_tvm_risk
 union all
 select
     127 as order_by,
-    cast(max_liquidation_pv_impact as string) as the_value,
+    cast(max_liquidation_pv_impact as numeric) as the_value,
     'Highest Price Liquidation Impact on PV (USD)' as the_name
 from agg_liquidation_cash_flows_tvm_risk
 union all
 select
     128 as order_by,
-    cast(avg_liquidation_pv_impact as string) as the_value,
+    cast(avg_liquidation_pv_impact as numeric) as the_value,
     'Average Price Liquidation Impact on PV (USD)' as the_name
 from agg_liquidation_cash_flows_tvm_risk
 union all
 select
     129 as order_by,
-    cast(min_liquidation_pv_impact as string) as the_value,
+    cast(min_liquidation_pv_impact as numeric) as the_value,
     'Lowest Price Liquidation Impact on PV (USD)' as the_name
 from agg_liquidation_cash_flows_tvm_risk
-
-
 union all
 select
     130 as order_by,
-    cast(period_1_day_loss as string) as the_value,
+    cast(period_1_day_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-day Price (USD)' as the_name
 from sim_4s_implied_prices
 union all
 select
     131 as order_by,
-    cast(safe_multiply(period_1_day_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_day_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-day Price (%)' as the_name
 from sim_4s_implied_prices
-
 union all
 select
     132 as order_by,
-    cast(period_1_day_loss as string) as the_value,
+    cast(period_1_day_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-day Price (USD)' as the_name
 from sim_5s_implied_prices
 union all
 select
     133 as order_by,
-    cast(safe_multiply(period_1_day_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_day_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-day Price (%)' as the_name
 from sim_5s_implied_prices
-
 union all
 select
     134 as order_by,
-    cast(period_1_day_loss as string) as the_value,
+    cast(period_1_day_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-day Price (USD)' as the_name
 from sim_6s_implied_prices
 union all
 select
     135 as order_by,
-    cast(safe_multiply(period_1_day_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_day_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-day Price (%)' as the_name
 from sim_6s_implied_prices
-
-
 union all
 select
     140 as order_by,
-    cast(period_3_day_loss as string) as the_value,
+    cast(period_3_day_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-day Price (USD)' as the_name
 from sim_4s_implied_prices
 union all
 select
     141 as order_by,
-    cast(safe_multiply(period_3_day_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_3_day_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-day Price (%)' as the_name
 from sim_4s_implied_prices
 union all
 select
     142 as order_by,
-    cast(period_3_day_loss as string) as the_value,
+    cast(period_3_day_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-day Price (USD)' as the_name
 from sim_5s_implied_prices
 union all
 select
     143 as order_by,
-    cast(safe_multiply(period_3_day_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_3_day_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-day Price (%)' as the_name
 from sim_5s_implied_prices
-
 union all
 select
     144 as order_by,
-    cast(period_3_day_loss as string) as the_value,
+    cast(period_3_day_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-day Price (USD)' as the_name
 from sim_6s_implied_prices
 union all
 select
     145 as order_by,
-    cast(safe_multiply(period_3_day_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_3_day_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-day Price (%)' as the_name
 from sim_6s_implied_prices
-
 union all
 select
     150 as order_by,
-    cast(period_1_week_loss as string) as the_value,
+    cast(period_1_week_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-week Price (USD)' as the_name
 from sim_4s_implied_prices
 union all
 select
     151 as order_by,
-    cast(safe_multiply(period_1_week_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_week_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-week Price (%)' as the_name
 from sim_4s_implied_prices
 union all
 select
     152 as order_by,
-    cast(period_1_week_loss as string) as the_value,
+    cast(period_1_week_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-week Price (USD)' as the_name
 from sim_5s_implied_prices
 union all
 select
     153 as order_by,
-    cast(safe_multiply(period_1_week_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_week_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-week Price (%)' as the_name
 from sim_5s_implied_prices
 union all
 select
     154 as order_by,
-    cast(period_1_week_loss as string) as the_value,
+    cast(period_1_week_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-week Price (USD)' as the_name
 from sim_6s_implied_prices
 union all
 select
     155 as order_by,
-    cast(safe_multiply(period_1_week_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_week_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-week Price (%)' as the_name
 from sim_6s_implied_prices
-
-
-
 union all
 select
     160 as order_by,
-    cast(period_2_week_loss as string) as the_value,
+    cast(period_2_week_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 2-week Price (USD)' as the_name
 from sim_4s_implied_prices
 union all
 select
     161 as order_by,
-    cast(safe_multiply(period_2_week_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_2_week_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 2-week Price (%)' as the_name
 from sim_4s_implied_prices
 union all
 select
     170 as order_by,
-    cast(period_3_week_loss as string) as the_value,
+    cast(period_3_week_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-week Price (USD)' as the_name
 from sim_4s_implied_prices
 union all
 select
     171 as order_by,
-    cast(safe_multiply(period_3_week_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_3_week_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 3-week Price (%)' as the_name
 from sim_4s_implied_prices
-
 union all
 select
     180 as order_by,
-    cast(period_1_month_loss as string) as the_value,
+    cast(period_1_month_loss as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-month Price (USD)' as the_name
 from sim_4s_implied_prices
 union all
 select
     181 as order_by,
-    cast(safe_multiply(period_1_month_loss_percent, 100.0) as string) as the_value,
+    cast(safe_multiply(period_1_month_loss_percent, 100.0) as numeric) as the_value,
     'Simulated ' || sigma_level || 'σ, 1-month Price (%)' as the_name
 from sim_4s_implied_prices
-
-
 
 order by order_by

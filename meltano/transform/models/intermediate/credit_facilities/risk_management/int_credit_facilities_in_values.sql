@@ -88,37 +88,37 @@ breakeven_sum as (
 
 select
     1 as order_by,
-    cast(amount_in_usd as string) as the_value,
+    cast(amount_in_usd as numeric) as the_value,
     'Total Value of Approved Credit Facilities' as the_name
 from value_approved_cf
 union all
 select
     2 as order_by,
-    cast(amount_in_usd as string) as the_value,
+    cast(amount_in_usd as numeric) as the_value,
     'Total Value Disbursed from Approved Credit Facilities' as the_name
 from disbursed
 union all
 select
     3 as order_by,
-    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as string) as the_value,
+    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as numeric) as the_value,
     'Total Value NOT-YET Disbursed from Approved Credit Facilities' as the_name
 from value_approved_cf as v, disbursed as d
 union all
 select
     4 as order_by,
-    cast(safe_divide(d.amount_in_usd, v.amount_in_usd) * 100 as string) as the_value,
+    cast(safe_divide(d.amount_in_usd, v.amount_in_usd) * 100 as numeric) as the_value,
     'Disbursed-to-Approved ratio (%)' as the_name
 from value_approved_cf as v, disbursed as d
 union all
 select
     5 as order_by,
-    cast(disbursal_ratio * 100 as string) as the_value,
+    cast(disbursal_ratio * 100 as numeric) as the_value,
     'Disbursal ratio (%) - proportional' as the_name
 from breakeven_sum
 union all
 select
     6 as order_by,
-    cast(breakeven_disbursal_ratio * 100 as string) as the_value,
+    cast(breakeven_disbursal_ratio * 100 as numeric) as the_value,
     'Breakeven ratio (%) - proportional @' || bench_mark || '% benchmark' as the_name
 from breakeven_sum
 

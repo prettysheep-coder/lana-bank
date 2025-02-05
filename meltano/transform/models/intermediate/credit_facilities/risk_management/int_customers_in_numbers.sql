@@ -26,25 +26,25 @@ disbursed_cf as (
 
 select
     1 as order_by,
-    cast(the_value as string) as the_value,
+    cast(the_value as numeric) as the_value,
     'Total Number of Customers' as the_name
 from total_customers
 union all
 select
     2 as order_by,
-    cast(the_value as string) as the_value,
+    cast(the_value as numeric) as the_value,
     'Total Number of Active Customers' as the_name
 from total_active_customers
 union all
 select
     3 as order_by,
-    cast(the_value as string) as the_value,
+    cast(the_value as numeric) as the_value,
     'Total Number of Customers with Approved Credit Facilities' as the_name
 from approved_cf
 union all
 select
     4 as order_by,
-    cast(the_value as string) as the_value,
+    cast(the_value as numeric) as the_value,
     'Total Number of Customers with Disbursed Approved Credit Facilities' as the_name
 from disbursed_cf
 
