@@ -69,7 +69,7 @@ int_cf_collaterals as (
             last_btc_price_usd
             order by recorded_at desc limit 1)[
             safe_ordinal(1)
-        ] as last_btc_price_usd,
+        ] as last_btc_price_usd
     from {{ ref('int_cf_collaterals') }}
     group by event_id
 
@@ -96,6 +96,7 @@ select
     d.* except (event_id),
     c.* except (event_id),
 
+    p.* except (event_id),
     safe_multiply(
         safe_divide(c.total_collateral_value_usd, safe_divide(cfe.facility, 100.0)),
         100.0
@@ -104,29 +105,32 @@ select
         safe_divide(c.initial_collateral_value_usd, safe_divide(cfe.facility, 100.0)),
         100.0
     ) as initial_facility_cvl,
+
     safe_multiply(
         safe_divide(c.total_collateral_value_usd, safe_divide(total_disbursed_amount, 100.0)),
         100.0
     ) as disbursed_cvl,
-
     safe_multiply(
         safe_divide(safe_multiply(cfe.terms_margin_call_cvl, cfe.facility), c.total_collateral),
         100000000.0 / (100.0 * 100.0)
     ) as facility_margin_call_price_usd,
     safe_multiply(
-        safe_divide(safe_multiply(cfe.terms_margin_call_cvl, d.total_disbursed_amount), c.total_collateral),
+        safe_divide(
+            safe_multiply(cfe.terms_margin_call_cvl, d.total_disbursed_amount), c.total_collateral
+        ),
         100000000.0 / (100.0 * 100.0)
     ) as disbursed_margin_call_price_usd,
     safe_multiply(
         safe_divide(safe_multiply(cfe.terms_liquidation_cvl, cfe.facility), c.total_collateral),
         100000000.0 / (100.0 * 100.0)
     ) as facility_liquidation_price_usd,
-    safe_multiply(
-        safe_divide(safe_multiply(cfe.terms_liquidation_cvl, d.total_disbursed_amount), c.total_collateral),
-        100000000.0 / (100.0 * 100.0)
-    ) as disbursed_liquidation_price_usd,
 
-    p.* except (event_id)
+    safe_multiply(
+        safe_divide(
+            safe_multiply(cfe.terms_liquidation_cvl, d.total_disbursed_amount), c.total_collateral
+        ),
+        100000000.0 / (100.0 * 100.0)
+    ) as disbursed_liquidation_price_usd
 from credit_facilities as cfe
 full join int_cf_disbursals as d on cfe.event_id = d.event_id
 full join int_cf_collaterals as c on cfe.event_id = c.event_id

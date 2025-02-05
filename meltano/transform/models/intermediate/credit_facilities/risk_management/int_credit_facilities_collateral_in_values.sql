@@ -2,43 +2,48 @@
 
 with flatten_collateral as (
     select *
-    from {{ref('int_cf_flatten')}}
+    from {{ ref('int_cf_flatten') }}
 ),
 
 collateral_quantity as (
     select safe_divide(sum(total_collateral), 100000000.0) as total_collateral_quantity_usd
-    from {{ref('int_cf_collaterals')}}
+    from {{ ref('int_cf_collaterals') }}
 ),
 
 collateral_value as (
     select
         sum(total_collateral_value_usd) as total_collateral_value_usd,
         sum(initial_collateral_value_usd) as initial_collateral_value_usd
-    from {{ref('int_cf_collaterals')}}
+    from {{ ref('int_cf_collaterals') }}
 ),
 
 value_approved_cf as (
     select safe_divide(sum(facility), 100.0) as total_value_approved_in_usd
-    from {{ref('int_credit_facilities')}}
+    from {{ ref('int_credit_facilities') }}
     where approval_process_concluded_approved
 ),
 
 value_disbursed as (
     select safe_divide(sum(amount), 100.0) as total_value_disbursed_in_usd
-    from {{ref('int_cf_disbursals')}}
+    from {{ ref('int_cf_disbursals') }}
     where disbursal_concluded_event_recorded_at_date_key != 19000101
 ),
 
 agg_facility_cvl as (
     select
-        safe_multiply(safe_divide(total_collateral_value_usd, total_value_approved_in_usd), 100.0) as aggregated_facility_cvl,
-        safe_multiply(safe_divide(initial_collateral_value_usd, total_value_approved_in_usd), 100.0) as aggregated_initial_facility_cvl
+        safe_multiply(safe_divide(total_collateral_value_usd, total_value_approved_in_usd), 100.0)
+            as aggregated_facility_cvl,
+        safe_multiply(
+            safe_divide(initial_collateral_value_usd, total_value_approved_in_usd), 100.0
+        ) as aggregated_initial_facility_cvl
     from collateral_value, value_approved_cf
 ),
 
 agg_disbursed_cvl as (
     select
-        safe_multiply(safe_divide(total_collateral_value_usd, total_value_disbursed_in_usd), 100.0) as aggregated_disbursed_cvl
+        safe_multiply(
+            safe_divide(total_collateral_value_usd, total_value_disbursed_in_usd), 100.0
+        ) as aggregated_disbursed_cvl
     from collateral_value, value_disbursed
 ),
 
@@ -76,18 +81,24 @@ cvl_implied_prices as (
 
 btc_price_simulation as (
     select *
-    from {{ref('int_btc_price_simulation')}}
+    from {{ ref('int_btc_price_simulation') }}
 ),
 
 sim_4s_implied_prices as (
     select
         sim.*,
-        safe_multiply(safe_add(1.0, sim.period_1_day_loss_percent), px.last_btc_price_usd) as period_1_day_loss,
-        safe_multiply(safe_add(1.0, sim.period_3_day_loss_percent), px.last_btc_price_usd) as period_3_day_loss,
-        safe_multiply(safe_add(1.0, sim.period_1_week_loss_percent), px.last_btc_price_usd) as period_1_week_loss,
-        safe_multiply(safe_add(1.0, sim.period_2_week_loss_percent), px.last_btc_price_usd) as period_2_week_loss,
-        safe_multiply(safe_add(1.0, sim.period_3_week_loss_percent), px.last_btc_price_usd) as period_3_week_loss,
-        safe_multiply(safe_add(1.0, sim.period_1_month_loss_percent), px.last_btc_price_usd) as period_1_month_loss
+        safe_multiply(safe_add(1.0, sim.period_1_day_loss_percent), px.last_btc_price_usd)
+            as period_1_day_loss,
+        safe_multiply(safe_add(1.0, sim.period_3_day_loss_percent), px.last_btc_price_usd)
+            as period_3_day_loss,
+        safe_multiply(safe_add(1.0, sim.period_1_week_loss_percent), px.last_btc_price_usd)
+            as period_1_week_loss,
+        safe_multiply(safe_add(1.0, sim.period_2_week_loss_percent), px.last_btc_price_usd)
+            as period_2_week_loss,
+        safe_multiply(safe_add(1.0, sim.period_3_week_loss_percent), px.last_btc_price_usd)
+            as period_3_week_loss,
+        safe_multiply(safe_add(1.0, sim.period_1_month_loss_percent), px.last_btc_price_usd)
+            as period_1_month_loss
     from btc_price_simulation as sim, cvl_implied_prices as px
     where sim.sigma_level = 4
 ),
@@ -95,9 +106,12 @@ sim_4s_implied_prices as (
 sim_5s_implied_prices as (
     select
         sim.*,
-        safe_multiply(safe_add(1.0, sim.period_1_day_loss_percent), px.last_btc_price_usd) as period_1_day_loss,
-        safe_multiply(safe_add(1.0, sim.period_3_day_loss_percent), px.last_btc_price_usd) as period_3_day_loss,
-        safe_multiply(safe_add(1.0, sim.period_1_week_loss_percent), px.last_btc_price_usd) as period_1_week_loss,
+        safe_multiply(safe_add(1.0, sim.period_1_day_loss_percent), px.last_btc_price_usd)
+            as period_1_day_loss,
+        safe_multiply(safe_add(1.0, sim.period_3_day_loss_percent), px.last_btc_price_usd)
+            as period_3_day_loss,
+        safe_multiply(safe_add(1.0, sim.period_1_week_loss_percent), px.last_btc_price_usd)
+            as period_1_week_loss
     from btc_price_simulation as sim, cvl_implied_prices as px
     where sim.sigma_level = 5
 ),
@@ -105,16 +119,19 @@ sim_5s_implied_prices as (
 sim_6s_implied_prices as (
     select
         sim.*,
-        safe_multiply(safe_add(1.0, sim.period_1_day_loss_percent), px.last_btc_price_usd) as period_1_day_loss,
-        safe_multiply(safe_add(1.0, sim.period_3_day_loss_percent), px.last_btc_price_usd) as period_3_day_loss,
-        safe_multiply(safe_add(1.0, sim.period_1_week_loss_percent), px.last_btc_price_usd) as period_1_week_loss,
+        safe_multiply(safe_add(1.0, sim.period_1_day_loss_percent), px.last_btc_price_usd)
+            as period_1_day_loss,
+        safe_multiply(safe_add(1.0, sim.period_3_day_loss_percent), px.last_btc_price_usd)
+            as period_3_day_loss,
+        safe_multiply(safe_add(1.0, sim.period_1_week_loss_percent), px.last_btc_price_usd)
+            as period_1_week_loss
     from btc_price_simulation as sim, cvl_implied_prices as px
     where sim.sigma_level = 6
 ),
 
 agg_liquidation_cash_flows_tvm_risk as (
-    select *,
-    from {{ref('int_cf_agg_liquidation_cash_flows_tvm_risk')}}
+    select *
+    from {{ ref('int_cf_agg_liquidation_cash_flows_tvm_risk') }}
 )
 
 
@@ -189,11 +206,14 @@ from cvl_implied_prices
 union all
 select
     91 as order_by,
-    cast(safe_multiply(
+    cast(
+        safe_multiply(
             safe_subtract(
                 safe_divide(aggregated_facility_margin_call_price_usd, last_btc_price_usd),
-                1.0),
-            100.0) as string
+                1.0
+            ),
+            100.0
+        ) as string
     ) as the_value,
     'Aggregated Facility Margin Call Price (%)' as the_name
 from cvl_implied_prices
@@ -206,11 +226,14 @@ from cvl_implied_prices
 union all
 select
     101 as order_by,
-    cast(safe_multiply(
+    cast(
+        safe_multiply(
             safe_subtract(
                 safe_divide(aggregated_disbursed_margin_call_price_usd, last_btc_price_usd),
-                1.0),
-            100.0) as string
+                1.0
+            ),
+            100.0
+        ) as string
     ) as the_value,
     'Aggregated Disbursed Margin Call Price (*)' as the_name
 from cvl_implied_prices
@@ -223,11 +246,14 @@ from cvl_implied_prices
 union all
 select
     111 as order_by,
-    cast(safe_multiply(
+    cast(
+        safe_multiply(
             safe_subtract(
                 safe_divide(aggregated_facility_liquidation_price_usd, last_btc_price_usd),
-                1.0),
-            100.0) as string
+                1.0
+            ),
+            100.0
+        ) as string
     ) as the_value,
     'Aggregated Facility Liquidation Price (%)' as the_name
 from cvl_implied_prices
@@ -240,11 +266,14 @@ from cvl_implied_prices
 union all
 select
     121 as order_by,
-    cast(safe_multiply(
+    cast(
+        safe_multiply(
             safe_subtract(
                 safe_divide(aggregated_disbursed_liquidation_price_usd, last_btc_price_usd),
-                1.0),
-            100.0) as string
+                1.0
+            ),
+            100.0
+        ) as string
     ) as the_value,
     'Aggregated Disbursed Liquidation Price (%)' as the_name
 from cvl_implied_prices
