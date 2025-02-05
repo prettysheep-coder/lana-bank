@@ -8,7 +8,12 @@ with collateral_updated as (
             as recorded_at_date_key,
         recorded_at,
         event_type,
-        cast(
+        cast(json_value(event, '$.audit_info.audit_entry_id') as integer)
+            as audit_entry_id,
+        cast(json_value(event, '$.abs_diff') as numeric) as abs_diff,
+        cast(json_value(event, '$.total_collateral') as numeric)
+            as total_collateral,
+        coalesce(cast(
             format_date(
                 '%Y%m%d',
                 parse_timestamp(
@@ -17,12 +22,7 @@ with collateral_updated as (
                     'UTC'
                 )
             ) as int64
-        ) as recorded_in_ledger_at_date_key,
-        cast(json_value(event, '$.audit_info.audit_entry_id') as integer)
-            as audit_entry_id,
-        cast(json_value(event, '$.abs_diff') as numeric) as abs_diff,
-        cast(json_value(event, '$.total_collateral') as numeric)
-            as total_collateral,
+        ), 19000101) as recorded_in_ledger_at_date_key,
         parse_timestamp(
             '%Y-%m-%dT%H:%M:%E*SZ',
             json_value(event, '$.recorded_in_ledger_at'),
@@ -43,16 +43,6 @@ collateralization_changed as (
         cast(format_date('%Y%m%d', recorded_at) as int64)
             as recorded_at_date_key,
         recorded_at,
-        cast(
-            format_date(
-                '%Y%m%d',
-                parse_timestamp(
-                    '%Y-%m-%dT%H:%M:%E*SZ',
-                    json_value(event, '$.recorded_at'),
-                    'UTC'
-                )
-            ) as int64
-        ) as event_recorded_at_date_key,
         cast(json_value(event, '$.audit_info.audit_entry_id') as integer)
             as audit_entry_id,
         cast(json_value(event, '$.collateral') as numeric) as collateral,
@@ -61,6 +51,16 @@ collateralization_changed as (
             as outstanding_disbursed,
         cast(json_value(event, '$.outstanding.interest') as numeric)
             as outstanding_interest,
+        coalesce(cast(
+            format_date(
+                '%Y%m%d',
+                parse_timestamp(
+                    '%Y-%m-%dT%H:%M:%E*SZ',
+                    json_value(event, '$.recorded_at'),
+                    'UTC'
+                )
+            ) as int64
+        ), 19000101) as event_recorded_at_date_key,
         parse_timestamp(
             '%Y-%m-%dT%H:%M:%E*SZ', json_value(event, '$.recorded_at'), 'UTC'
         ) as event_recorded_at,
@@ -86,8 +86,7 @@ select
     cu.total_collateral,
 
     cc.price,
-    coalesce(cc.event_recorded_at_date_key, 19000101)
-        as collateralization_changed_event_recorded_at_date_key,
+    cc.event_recorded_at_date_key as collateralization_changed_event_recorded_at_date_key,
 
     case
         when lower(action) = 'add' then cu.abs_diff else

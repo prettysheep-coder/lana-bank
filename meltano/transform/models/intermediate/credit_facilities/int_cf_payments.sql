@@ -8,7 +8,11 @@ with payment_recorded as (
             as recorded_at_date_key,
         recorded_at,
         event_type,
-        cast(
+        cast(json_value(event, '$.disbursal_amount') as numeric)
+            as disbursal_amount,
+        cast(json_value(event, '$.interest_amount') as numeric)
+            as interest_amount,
+        coalesce(cast(
             format_date(
                 '%Y%m%d',
                 parse_timestamp(
@@ -17,11 +21,7 @@ with payment_recorded as (
                     'UTC'
                 )
             ) as int64
-        ) as recorded_in_ledger_at_date_key,
-        cast(json_value(event, '$.disbursal_amount') as numeric)
-            as disbursal_amount,
-        cast(json_value(event, '$.interest_amount') as numeric)
-            as interest_amount,
+        ), 19000101) as recorded_in_ledger_at_date_key,
         parse_timestamp(
             '%Y-%m-%dT%H:%M:%E*SZ',
             json_value(event, '$.recorded_in_ledger_at'),
