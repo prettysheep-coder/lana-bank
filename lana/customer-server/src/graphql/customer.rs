@@ -5,7 +5,7 @@ use core_customer::{AccountStatus, Customer as DomainCustomer, KycLevel};
 
 use crate::primitives::*;
 
-use super::deposit_account::*;
+use super::{credit_facility::*, deposit_account::*};
 
 use thiserror::Error;
 
@@ -75,7 +75,7 @@ impl Customer {
         Ok(app
             .credit_facilities()
             .for_subject(sub)?
-            .list_by_created_at(Default::default(), ListDirection::Descending)
+            .list_credit_facilities_by_created_at(Default::default(), ListDirection::Descending)
             .await?
             .entities
             .into_iter()
