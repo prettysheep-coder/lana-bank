@@ -65,4 +65,21 @@ impl Customer {
             .next()
             .ok_or(CustomerError::DepositAccountNotFound)?)
     }
+
+    async fn credit_facilities(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacility>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        Ok(app
+            .credit_facilities()
+            .for_subject(sub)?
+            .list_by_created_at(Default::default(), ListDirection::Descending)
+            .await?
+            .entities
+            .into_iter()
+            .map(CreditFacility::from)
+            .collect())
+    }
 }
