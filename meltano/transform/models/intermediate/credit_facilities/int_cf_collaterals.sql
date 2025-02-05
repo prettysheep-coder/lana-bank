@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with collateral_updated as (
 
     select
@@ -66,6 +68,13 @@ collateralization_changed as (
     from {{ ref('stg_credit_facility_events') }} as cfe
     where cfe.event_type = 'collateralization_changed'
 
+),
+
+btc_price as (
+
+    select any_value(last_price_usd having max requested_at) as last_price_usd
+    from {{ ref('stg_bitfinex_ticker_price') }}
+
 )
 
 
@@ -86,7 +95,18 @@ select
     end as diff,
     coalesce(cc.collateral, 0) as collateral,
     coalesce(cc.outstanding_disbursed, 0) as outstanding_disbursed,
-    coalesce(cc.outstanding_interest, 0) as outstanding_interest
+    coalesce(cc.outstanding_interest, 0) as outstanding_interest,
+
+    safe_multiply(
+        safe_divide(total_collateral, 100000000.0),
+        safe_divide(cc.price, 100.0)
+    ) as initial_collateral_value_usd,
+
+    safe_multiply(
+        safe_divide(total_collateral, 100000000.0),
+        (select last_price_usd from btc_price)
+    ) as total_collateral_value_usd,
+    (select last_price_usd from btc_price) as last_btc_price_usd
 from collateral_updated as cu
 left join
     collateralization_changed as cc
