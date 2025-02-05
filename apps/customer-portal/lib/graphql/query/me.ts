@@ -10,6 +10,38 @@ gql`
       customer {
         id
         customerId
+        status
+        level
+        createdAt
+        email
+        telegramId
+        depositAccount {
+          id
+          depositAccountId
+          customerId
+          createdAt
+          balance {
+            settled
+            pending
+          }
+          deposits {
+            id
+            depositId
+            accountId
+            amount
+            createdAt
+            reference
+          }
+          withdrawals {
+            id
+            withdrawalId
+            accountId
+            amount
+            createdAt
+            reference
+            status
+          }
+        }
       }
     }
   }

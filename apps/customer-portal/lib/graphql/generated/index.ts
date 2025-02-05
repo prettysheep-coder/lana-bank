@@ -104,7 +104,7 @@ export enum WithdrawalStatus {
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> } } } };
 
 
 export const MeDocument = gql`
@@ -113,6 +113,38 @@ export const MeDocument = gql`
     customer {
       id
       customerId
+      status
+      level
+      createdAt
+      email
+      telegramId
+      depositAccount {
+        id
+        depositAccountId
+        customerId
+        createdAt
+        balance {
+          settled
+          pending
+        }
+        deposits {
+          id
+          depositId
+          accountId
+          amount
+          createdAt
+          reference
+        }
+        withdrawals {
+          id
+          withdrawalId
+          accountId
+          amount
+          createdAt
+          reference
+          status
+        }
+      }
     }
   }
 }
