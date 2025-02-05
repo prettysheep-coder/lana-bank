@@ -1,5 +1,4 @@
 use async_graphql::*;
-
 use std::sync::Arc;
 
 use core_customer::{AccountStatus, Customer as DomainCustomer, KycLevel};

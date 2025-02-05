@@ -4,6 +4,7 @@ use authz::PermissionCheck;
 use crate::{
     account::*, deposit::*, deposit_account_balance::*,
     deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*, ledger::*, primitives::*,
+    withdrawal::*,
 };
 
 pub struct DepositsForSubject<'a, Perms>
@@ -14,6 +15,7 @@ where
     sub: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     accounts: &'a DepositAccountRepo,
     deposits: &'a DepositRepo,
+    withdrawals: &'a WithdrawalRepo,
     ledger: &'a DepositLedger,
     authz: &'a Perms,
 }
@@ -31,6 +33,7 @@ where
         account_holder_id: DepositAccountHolderId,
         accounts: &'a DepositAccountRepo,
         deposits: &'a DepositRepo,
+        withdrawals: &'a WithdrawalRepo,
         ledger: &'a DepositLedger,
         authz: &'a Perms,
     ) -> Self {
@@ -39,6 +42,7 @@ where
             account_holder_id,
             accounts,
             deposits,
+            withdrawals,
             ledger,
             authz,
         }
@@ -104,6 +108,30 @@ where
 
         Ok(self
             .deposits
+            .list_for_deposit_account_id_by_created_at(
+                account_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    pub async fn list_withdrawals_for_account(
+        &self,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Vec<Withdrawal>, CoreDepositError> {
+        let account_id = account_id.into();
+
+        self.ensure_account_access(
+            account_id,
+            CoreDepositObject::all_withdrawals(),
+            CoreDepositAction::WITHDRAWAL_LIST,
+        )
+        .await?;
+
+        Ok(self
+            .withdrawals
             .list_for_deposit_account_id_by_created_at(
                 account_id,
                 Default::default(),

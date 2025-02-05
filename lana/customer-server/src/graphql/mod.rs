@@ -5,6 +5,7 @@ mod customer;
 mod deposit;
 mod deposit_account;
 mod schema;
+mod withdrawal;
 
 use async_graphql::*;
 

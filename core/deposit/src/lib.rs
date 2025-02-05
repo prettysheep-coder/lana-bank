@@ -150,6 +150,7 @@ where
             holder_id,
             &self.accounts,
             &self.deposits,
+            &self.withdrawals,
             &self.ledger,
             &self.authz,
         ))

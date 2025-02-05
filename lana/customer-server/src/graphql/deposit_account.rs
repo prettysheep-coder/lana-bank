@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 pub use lana_app::deposit::DepositAccount as DomainDepositAccount;
 
-use super::deposit::*;
+use super::{deposit::*, withdrawal::*};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -68,12 +68,13 @@ impl DepositAccount {
         Ok(deposits.into_iter().map(Deposit::from).collect())
     }
 
-    // async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     let withdrawals = app
-    //         .deposits()
-    //         .list_withdrawals_for_account(sub, self.entity.id)
-    //         .await?;
-    //     Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
-    // }
+    async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let withdrawals = app
+            .deposits()
+            .for_subject(sub)?
+            .list_withdrawals_for_account(self.entity.id)
+            .await?;
+        Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
+    }
 }
