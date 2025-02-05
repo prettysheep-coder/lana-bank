@@ -49,7 +49,7 @@ const AuthForm = () => {
   return (
     <Card className="md:w-2/5" variant="transparent">
       <CardHeader className="pt-4">
-        <CardTitle>Create an Account / Sign-in</CardTitle>
+        <CardTitle>Welcome Back</CardTitle>
         <CardDescription>
           Getting started is easy. Simply enter and confirm your email address.
         </CardDescription>
