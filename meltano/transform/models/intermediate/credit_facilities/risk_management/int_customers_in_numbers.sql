@@ -14,13 +14,17 @@ total_active_customers as (
 approved_cf as (
     select count(distinct customer_id) as the_value
     from {{ ref("int_credit_facilities") }}
-    where approval_process_concluded_approved
+    where
+        approval_process_concluded_approved
+        and completed_recorded_at is null
 ),
 
 disbursed_cf as (
     select count(distinct customer_id) as the_value
     from {{ ref("int_cf_flatten") }}
-    where disbursal_concluded_event_recorded_at_date_key != 19000101
+    where
+        disbursal_concluded_event_recorded_at_date_key != 19000101
+        and completed_recorded_at is null
 )
 
 
