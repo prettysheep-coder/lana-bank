@@ -31,7 +31,8 @@ pub mod dashboard {
 
 pub mod user_onboarding {
     pub use user_onboarding::config::UserOnboardingConfig;
-    pub use user_onboarding::*;
+    pub type UserOnboarding =
+        user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod user {
@@ -46,6 +47,14 @@ pub mod customer {
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
+
+pub mod customer_onboarding {
+    pub use customer_onboarding::config::CustomerOnboardingConfig;
+    pub type CustomerOnboarding = customer_onboarding::CustomerOnboarding<
+        crate::authorization::Authorization,
+        lana_events::LanaEvent,
+    >;
 }
 
 pub mod job {

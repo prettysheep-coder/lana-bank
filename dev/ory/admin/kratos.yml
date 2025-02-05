@@ -82,7 +82,7 @@ identity:
 courier:
   smtp:
     connection_uri: smtp://mailhog:1025?skip_ssl_verify=true&disable_starttls=true
-      
+
 session:
   lifespan: "10h"
 
