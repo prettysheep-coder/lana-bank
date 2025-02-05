@@ -9,6 +9,7 @@ export const env = createEnv({
     NEXT_PUBLIC_CORE_URL: z.string().url().default("http://localhost:4455"),
     NEXT_PUBLIC_KRATOS_PUBLIC_API: z.string().url().default("http://localhost:4455"),
     JWKS_URL: z.string().url().default("http://localhost:4456/.well-known/jwks.json"),
+    NEXT_PUBLIC_BASE_PATH: z.string().default("/"),
   },
   runtimeEnv: {
     KRATOS_ADMIN_API: process.env.KRATOS_ADMIN_API,
@@ -16,5 +17,8 @@ export const env = createEnv({
     NEXT_PUBLIC_CORE_URL: process.env.NEXT_PUBLIC_CORE_URL,
     NEXT_PUBLIC_KRATOS_PUBLIC_API: process.env.NEXT_PUBLIC_KRATOS_PUBLIC_API,
     JWKS_URL: process.env.JWKS_URL,
+    NEXT_PUBLIC_BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH,
   },
 })
+
+export const basePath = env.NEXT_PUBLIC_BASE_PATH === "/" ? "" : env.NEXT_PUBLIC_BASE_PATH

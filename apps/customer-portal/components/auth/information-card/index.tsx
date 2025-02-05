@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@lana/web/
 
 const InformationCard = () => {
   return (
-    <Card className="md:w-3/6 md:ml-8">
+    <Card className="md:w-3/6 md:ml-8" variant="transparent">
       <CardHeader className="pt-2">
         <CardTitle className="text-2xl">
           <div>Bitcoin backed loans. Based in Bitcoin Country.</div>

@@ -5,18 +5,11 @@ import { MeDocument, MeQuery, MeQueryVariables } from "../generated"
 import { executeQuery } from "."
 
 gql`
-  query Me {
+  query me {
     me {
-      customerId
-      email
-      applicantId
-      status
-      level
-      balance {
-        checking {
-          settled
-          pending
-        }
+      customer {
+        id
+        customerId
       }
     }
   }
