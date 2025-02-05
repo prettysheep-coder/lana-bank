@@ -1,3 +1,7 @@
-select *
+
+select customer_id,
+	recorded_at,
+	content,
+	safe.parse_json(content) as parsed_content
 
 from {{ source("lana", "applicants_view") }}
