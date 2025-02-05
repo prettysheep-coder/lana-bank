@@ -56,9 +56,23 @@ local_resource(
     allow_parallel=True,
     resource_deps=[
         "mailhog",
-        # "core",
+        "core",
     ],
     links = [
         link("http://localhost:4455/admin", "admin-panel"),
+    ]
+)
+
+local_resource(
+    "customer-portal",
+    labels=["apps"],
+    serve_cmd="cd ../apps/customer-portal && pnpm install && pnpm run dev",
+    allow_parallel=True,
+    resource_deps=[
+        "mailhog",
+        "core",
+    ],
+    links = [
+        link("http://localhost:3000", "customer-portal"),
     ]
 )
