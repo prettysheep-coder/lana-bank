@@ -4,4 +4,3 @@ transform/dbt_packages/
 transform/target/
 transform/dbt_modules/
 transform/macros/
-transform/models/intermediate/int_sumsub_applicants.sql
