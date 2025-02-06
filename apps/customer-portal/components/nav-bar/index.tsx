@@ -11,12 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@lana/web/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@lana/web/ui/avatar"
-import { Laptop, LogOut, Moon, Settings, Sun, User } from "lucide-react"
+import { Laptop, LogOut, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-
 import { Badge } from "@lana/web/ui/badge"
 
-import { KycLevel } from "@/lib/graphql/generated"
+import { useState, useCallback } from "react"
+
+import { KycLevel, MeQuery } from "@/lib/graphql/generated"
 
 import { useLogout } from "@/hooks/use-logout"
 
@@ -27,21 +28,13 @@ interface MenuItem {
   href?: string
 }
 
-function NavBar() {
+function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
   const { setTheme } = useTheme()
   const { logout } = useLogout()
+  const [isOpen, setIsOpen] = useState(false)
+  const avatarCallback = meQueryData.me.customer.email[0].toUpperCase()
 
   const menuItems: MenuItem[] = [
-    {
-      label: "Profile",
-      icon: <User className="mr-2 h-4 w-4" />,
-      href: "/profile",
-    },
-    {
-      label: "Settings",
-      icon: <Settings className="mr-2 h-4 w-4" />,
-      href: "/settings",
-    },
     {
       label: "Logout",
       icon: <LogOut className="mr-2 h-4 w-4" />,
@@ -49,37 +42,50 @@ function NavBar() {
     },
   ]
 
-  const handleMenuItemClick = (item: MenuItem) => {
+  const handleMenuItemClick = useCallback((item: MenuItem) => {
     if (item.onClick) {
       item.onClick()
     }
     if (item.href) {
       console.log(`Navigate to: ${item.href}`)
     }
-  }
+    setIsOpen(false)
+  }, [])
+
+  const handleThemeChange = useCallback(
+    (theme: string) => {
+      setTheme(theme)
+      setIsOpen(false)
+    },
+    [setTheme],
+  )
 
   return (
     <nav>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <div className="text-2xl font-semibold">Lana</div>
+            <div className="text-2xl font-semibold">Lana Bank.</div>
           </div>
           <div className="flex gap-2">
-            <KYCBadge level={KycLevel.NotKyced} />
-            <DropdownMenu>
-              <DropdownMenuTrigger className="focus:outline-none">
+            <KYCBadge level={meQueryData.me.customer.level} />
+            <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+              <DropdownMenuTrigger asChild>
                 <Avatar className="h-9 w-9 cursor-pointer rounded-md [&>span]:rounded-md">
-                  <AvatarFallback>LA</AvatarFallback>
+                  <AvatarFallback>{avatarCallback}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent
+                align="end"
+                className="w-48"
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
                 {menuItems.map((item, index) => (
                   <DropdownMenuItem
                     key={index}
+                    onSelect={() => handleMenuItemClick(item)}
                     className="flex items-center cursor-pointer"
-                    onClick={() => handleMenuItemClick(item)}
                   >
                     {item.icon}
                     <span>{item.label}</span>
@@ -93,15 +99,15 @@ function NavBar() {
                     <span>Theme</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
-                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                    <DropdownMenuItem onSelect={() => handleThemeChange("light")}>
                       <Sun className="mr-2 h-4 w-4" />
                       <span>Light</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    <DropdownMenuItem onSelect={() => handleThemeChange("dark")}>
                       <Moon className="mr-2 h-4 w-4" />
                       <span>Dark</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setTheme("system")}>
+                    <DropdownMenuItem onSelect={() => handleThemeChange("system")}>
                       <Laptop className="mr-2 h-4 w-4" />
                       <span>System</span>
                     </DropdownMenuItem>

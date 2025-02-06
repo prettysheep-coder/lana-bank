@@ -1,22 +1,14 @@
 "use client"
 
 import React from "react"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@lana/web/ui/card"
-
 import DataTable, { Column } from "@lana/web/components/data-table"
-
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
-import { MeQuery, WithdrawalStatus } from "@/lib/graphql/generated"
+import { ArrowUpCircle, ArrowDownCircle } from "lucide-react"
 
+import { MeQuery, WithdrawalStatus } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
+import Balance from "@/components/balance"
 
 type Deposit = NonNullable<
   MeQuery["me"]["customer"]
@@ -46,13 +38,26 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     {
       key: "reference",
       header: "Type",
-      render: (_: string, record: Transaction) =>
-        isWithdrawal(record) ? "Withdrawal" : "Deposit",
+      render: (_: string, record: Transaction) => (
+        <div className="flex items-center gap-2">
+          {isWithdrawal(record) ? (
+            <>
+              <span>Withdrawal</span>
+              <ArrowUpCircle className="w-4 h-4 text-destructive" />
+            </>
+          ) : (
+            <>
+              <span>Deposit</span>
+              <ArrowDownCircle className="w-4 h-4 text-success" />
+            </>
+          )}
+        </div>
+      ),
     },
     {
       key: "amount",
       header: "Amount",
-      render: (value) => value,
+      render: (value: number) => <Balance amount={value} currency="usd" />,
     },
     {
       key: "reference",
@@ -60,36 +65,20 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       render: (_: string, record: Transaction) =>
         isWithdrawal(record) ? <WithdrawalStatusBadge status={record.status} /> : "N/A",
     },
-  ] as const
-
-  const getNavigateUrl = (record: Transaction) => {
-    if (isWithdrawal(record)) {
-      return `/withdrawals/${record.withdrawalId}`
-    }
-    return null
-  }
+  ]
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Transactions</CardTitle>
-        <CardDescription>Your Past Withdraw and Deposits</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          data={transactions}
-          columns={columns}
-          emptyMessage={
-            <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
-              No transactions found
-            </div>
-          }
-          navigateTo={getNavigateUrl}
-          className="w-full table-fixed"
-          headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"
-        />
-      </CardContent>
-    </Card>
+    <DataTable
+      data={transactions}
+      columns={columns}
+      emptyMessage={
+        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+          No transactions found
+        </div>
+      }
+      className="w-full table-fixed"
+      headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"
+    />
   )
 }
 

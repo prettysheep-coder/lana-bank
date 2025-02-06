@@ -1,11 +1,9 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect, useRef } from "react"
-import Link from "next/link"
-import { ArrowRight } from "lucide-react"
-
-import { useRouter } from "next/navigation"
-
+import React from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -13,37 +11,34 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@lana/web/ui/table"
-import { Button } from "@lana/web/ui/button"
-
-import { Skeleton } from "@lana/web/ui/skeleton"
-import { Card } from "@lana/web/ui/card"
-
-import { useBreakpointDown } from "@lana/web/hooks"
-
+} from "@lana/web/ui/table";
+import { Button } from "@lana/web/ui/button";
+import { Skeleton } from "@lana/web/ui/skeleton";
+import { Card } from "@lana/web/ui/card";
+import { useBreakpointDown } from "@lana/web/hooks";
 import { cn } from "@lana/web/utils";
 
 export type Column<T> = {
   [K in keyof T]: {
-    key: K
-    header: string | React.ReactNode
-    width?: string
-    align?: "left" | "center" | "right"
-    render?: (value: T[K], record: T) => React.ReactNode
-  }
-}[keyof T]
+    key: K;
+    header: string | React.ReactNode;
+    width?: string;
+    align?: "left" | "center" | "right";
+    render?: (value: T[K], record: T) => React.ReactNode;
+  };
+}[keyof T];
 
 interface DataTableProps<T> {
-  data: T[]
-  columns: Column<T>[]
-  className?: string
-  headerClassName?: string
-  rowClassName?: string | ((item: T, index: number) => string)
-  cellClassName?: string | ((column: Column<T>, item: T) => string)
-  onRowClick?: (item: T) => void
-  emptyMessage?: React.ReactNode
-  loading?: boolean
-  navigateTo?: (record: T) => string | null
+  data: T[];
+  columns: Column<T>[];
+  className?: string;
+  headerClassName?: string;
+  rowClassName?: string | ((item: T, index: number) => string);
+  cellClassName?: string | ((column: Column<T>, item: T) => string);
+  onRowClick?: (item: T) => void;
+  emptyMessage?: React.ReactNode;
+  loading?: boolean;
+  navigateTo?: (record: T) => string | null;
 }
 
 const DataTable = <T,>({
@@ -58,148 +53,18 @@ const DataTable = <T,>({
   loading = false,
   navigateTo,
 }: DataTableProps<T>) => {
-  const isMobile = useBreakpointDown("md")
-  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
-  const [isTableFocused, setIsTableFocused] = useState(false)
-  const tableRef = useRef<HTMLDivElement>(null)
-  const focusTimeoutRef = useRef<NodeJS.Timeout>()
-  const router = useRouter()
+  const isMobile = useBreakpointDown("md");
+  const router = useRouter();
 
   const getNavigationUrl = (item: T): string | null => {
-    return navigateTo ? navigateTo(item) : null
-  }
+    return navigateTo ? navigateTo(item) : null;
+  };
 
   const shouldShowNavigation = (item: T): boolean => {
-    if (!navigateTo) return false
-    const url = getNavigationUrl(item)
-    return url !== null && url !== ""
-  }
-
-  const isNoFocusActive = () => {
-    const activeElement = document.activeElement
-    const isBaseElement =
-      !activeElement ||
-      activeElement === document.body ||
-      activeElement === document.documentElement
-    const isOutsideTable = !tableRef.current?.contains(activeElement)
-    const isInteractiveElement = activeElement?.matches(
-      "button, input, select, textarea, a[href], [tabindex], [contenteditable]",
-    )
-    return (isBaseElement || isOutsideTable) && !isInteractiveElement
-  }
-
-  const smartFocus = () => {
-    if (isNoFocusActive()) {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-
-      focusTimeoutRef.current = setTimeout(() => {
-        if (tableRef.current) {
-          tableRef.current.focus()
-          setIsTableFocused(true)
-
-          const targetIndex = focusedRowIndex >= 0 ? focusedRowIndex : 0
-          const targetRow = document.querySelector(
-            `[data-testid="table-row-${targetIndex}"]`,
-          ) as HTMLElement
-
-          if (targetRow) {
-            targetRow.focus()
-            setFocusedRowIndex(targetIndex)
-          }
-        }
-      }, 0)
-    }
-  }
-
-  const focusRow = (index: number) => {
-    if (index < 0 || !data.length || !isTableFocused) return
-    const validIndex = Math.min(Math.max(0, index), data.length - 1)
-    const row = document.querySelector(
-      `[data-testid="table-row-${validIndex}"]`,
-    ) as HTMLElement
-    if (row) {
-      row.focus({ preventScroll: true })
-      row.scrollIntoView({ behavior: "smooth", block: "nearest" })
-      setFocusedRowIndex(validIndex)
-    }
-  }
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!tableRef.current?.contains(document.activeElement) || !isTableFocused) return
-      if (
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA" ||
-        document.activeElement?.tagName === "SELECT" ||
-        document.activeElement?.tagName === "BUTTON"
-      )
-        return
-      if (!data.length) return
-
-      switch (e.key) {
-        case "ArrowUp":
-          e.preventDefault()
-          focusRow(focusedRowIndex - 1)
-          break
-        case "ArrowDown":
-          e.preventDefault()
-          focusRow(focusedRowIndex + 1)
-          break
-        case "Enter":
-          e.preventDefault()
-          if (focusedRowIndex >= 0) {
-            const item = data[focusedRowIndex]
-            if (onRowClick) {
-              onRowClick(item)
-            } else if (navigateTo) {
-              const url = getNavigationUrl(item)
-              if (url) {
-                router.push(url)
-              }
-            }
-          }
-          break
-      }
-    }
-
-    if (isTableFocused) {
-      window.addEventListener("keydown", handleKeyDown)
-      return () => window.removeEventListener("keydown", handleKeyDown)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, focusedRowIndex, onRowClick, navigateTo, isTableFocused])
-
-  useEffect(() => {
-    const shouldAutoFocus = data && data.length > 0 && !loading
-    if (shouldAutoFocus) {
-      smartFocus()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.length, loading])
-
-  useEffect(() => {
-    const handleFocusOut = (e: FocusEvent) => {
-      if (!tableRef.current?.contains(e.relatedTarget as Node)) {
-        if (isNoFocusActive()) {
-          smartFocus()
-        }
-      }
-    }
-
-    document.addEventListener("focusout", handleFocusOut)
-    return () => document.removeEventListener("focusout", handleFocusOut)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-    }
-  }, [])
+    if (!navigateTo) return false;
+    const url = getNavigationUrl(item);
+    return url !== null && url !== "";
+  };
 
   if (loading && !data.length) {
     return isMobile ? (
@@ -213,7 +78,10 @@ const DataTable = <T,>({
         ))}
       </div>
     ) : (
-      <div className="overflow-x-auto border rounded-md" data-testid="loading-skeleton">
+      <div
+        className="overflow-x-auto border rounded-md"
+        data-testid="loading-skeleton"
+      >
         <Table className={cn("table-fixed w-full", className)}>
           <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
             <TableRow className={headerClassName}>
@@ -221,12 +89,18 @@ const DataTable = <T,>({
                 <TableHead
                   key={index}
                   className={cn(
-                    column.align === "center" && "text-center",
-                    column.align === "right" && "text-right",
+                    column.align === "center" && "!text-center",
+                    column.align === "right" && "!text-right"
                   )}
                   style={{ width: column.width }}
                 >
-                  <div className="flex items-center space-x-2 justify-between">
+                  <div
+                    className={cn(
+                      "flex items-center space-x-2",
+                      column.align === "center" && "justify-center",
+                      column.align === "right" && "justify-end"
+                    )}
+                  >
                     <span>{column.header}</span>
                   </div>
                 </TableHead>
@@ -238,12 +112,12 @@ const DataTable = <T,>({
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex} className="h-[3.8rem]">
+                  <TableCell key={colIndex}>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell className="h-[3.8rem]">
+                  <TableCell>
                     <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
@@ -252,11 +126,11 @@ const DataTable = <T,>({
           </TableBody>
         </Table>
       </div>
-    )
+    );
   }
 
   if (!data.length) {
-    return <div className="text-sm">{emptyMessage}</div>
+    return <div className="text-sm">{emptyMessage}</div>;
   }
 
   if (isMobile) {
@@ -270,13 +144,14 @@ const DataTable = <T,>({
               typeof rowClassName === "function"
                 ? rowClassName(item, index)
                 : rowClassName,
-              onRowClick && "cursor-pointer",
+              onRowClick && "cursor-pointer"
             )}
             onClick={() => onRowClick?.(item)}
           >
             {columns.map((column, colIndex) => {
               const hasHeader =
-                typeof column.header === "string" && column.header.trim() !== ""
+                typeof column.header === "string" &&
+                column.header.trim() !== "";
               return (
                 <div
                   key={colIndex}
@@ -285,7 +160,7 @@ const DataTable = <T,>({
                     hasHeader ? "justify-between" : "w-full",
                     typeof cellClassName === "function"
                       ? cellClassName(column, item)
-                      : cellClassName,
+                      : cellClassName
                   )}
                 >
                   {hasHeader && (
@@ -297,8 +172,8 @@ const DataTable = <T,>({
                     className={cn(
                       "text-sm",
                       !hasHeader && "w-full",
-                      column.align === "center" && "text-center",
-                      column.align === "right" && "text-right",
+                      column.align === "center" && "!text-center",
+                      column.align === "right" && "!text-right"
                     )}
                   >
                     {column.render
@@ -306,7 +181,7 @@ const DataTable = <T,>({
                       : String(item[column.key])}
                   </div>
                 </div>
-              )
+              );
             })}
             {shouldShowNavigation(item) && (
               <div className="pt-2">
@@ -324,23 +199,11 @@ const DataTable = <T,>({
           </Card>
         ))}
       </div>
-    )
+    );
   }
 
   return (
-    <div
-      ref={tableRef}
-      className="overflow-x-auto border rounded-md focus:outline-none"
-      tabIndex={0}
-      role="grid"
-      onFocus={() => setIsTableFocused(true)}
-      onBlur={(e) => {
-        if (!tableRef.current?.contains(e.relatedTarget as Node)) {
-          setIsTableFocused(false)
-          setFocusedRowIndex(-1)
-        }
-      }}
-    >
+    <div className="overflow-x-auto border rounded-md">
       <Table className={cn("table-fixed w-full", className)}>
         <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
           <TableRow className={headerClassName}>
@@ -348,12 +211,18 @@ const DataTable = <T,>({
               <TableHead
                 key={index}
                 className={cn(
-                  column.align === "center" && "text-center",
-                  column.align === "right" && "text-right",
+                  column.align === "center" && "!text-center",
+                  column.align === "right" && "!text-right"
                 )}
                 style={{ width: column.width }}
               >
-                <div className="flex items-center space-x-2 justify-between">
+                <div
+                  className={cn(
+                    "flex items-center space-x-2",
+                    column.align === "center" && "justify-center",
+                    column.align === "right" && "justify-end"
+                  )}
+                >
                   <span>{column.header}</span>
                 </div>
               </TableHead>
@@ -364,48 +233,50 @@ const DataTable = <T,>({
         <TableBody>
           {data.map((item, rowIndex) => (
             <TableRow
-              data-testid={`table-row-${rowIndex}`}
               key={rowIndex}
               onClick={() => onRowClick?.(item)}
-              tabIndex={0}
               className={cn(
                 typeof rowClassName === "function"
                   ? rowClassName(item, rowIndex)
                   : rowClassName,
                 onRowClick && "cursor-pointer",
-                focusedRowIndex === rowIndex && "bg-muted",
-                "hover:bg-muted/50 transition-colors outline-none",
+                "hover:bg-muted/50 transition-colors"
               )}
-              onFocus={() => setFocusedRowIndex(rowIndex)}
-              role="row"
-              aria-selected={focusedRowIndex === rowIndex}
             >
               {columns.map((column, colIndex) => (
                 <TableCell
                   key={colIndex}
                   className={cn(
-                    "whitespace-normal break-words h-[3.8rem]",
-                    column.align === "center" && "text-center",
-                    column.align === "right" && "text-right",
+                    "whitespace-normal break-words",
+                    column.align === "center" && "!text-center",
+                    column.align === "right" && "!text-right",
                     typeof cellClassName === "function"
                       ? cellClassName(column, item)
-                      : cellClassName,
+                      : cellClassName
                   )}
                 >
-                  {column.render
-                    ? column.render(item[column.key], item)
-                    : String(item[column.key])}
+                  <div
+                    className={cn(
+                      "w-full",
+                      column.align === "center" && "!text-center",
+                      column.align === "right" && "!text-right"
+                    )}
+                  >
+                    {column.render
+                      ? column.render(item[column.key], item)
+                      : String(item[column.key])}
+                  </div>
                 </TableCell>
               ))}
               {shouldShowNavigation(item) && (
-                <TableCell className="h-[3.8rem]">
+                <TableCell>
                   <Link href={getNavigationUrl(item) || ""}>
                     <Button
                       variant="outline"
                       className="w-full flex items-center justify-between"
                     >
                       View
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight />
                     </Button>
                   </Link>
                 </TableCell>
@@ -415,7 +286,7 @@ const DataTable = <T,>({
         </TableBody>
       </Table>
     </div>
-  )
-}
+  );
+};
 
-export default DataTable
+export default DataTable;
