@@ -1,8 +1,8 @@
 use async_graphql::{Context, Object};
 
-use crate::primitives::*;
+use crate::{primitives::*, LanaApp};
 
-use super::{authenticated_subject::*, credit_facility::*};
+use super::{authenticated_subject::*, credit_facility::*, price::*};
 
 pub struct Query;
 
@@ -27,5 +27,11 @@ impl Query {
             .find_by_id(id)
             .await?
             .map(CreditFacility::from))
+    }
+
+    async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
+        let app = ctx.data_unchecked::<LanaApp>();
+        let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
+        Ok(usd_cents_per_btc.into())
     }
 }

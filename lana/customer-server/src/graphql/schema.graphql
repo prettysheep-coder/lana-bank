@@ -134,6 +134,11 @@ enum Period {
 type Query {
 	me: Subject!
 	creditFacility(id: UUID!): CreditFacility
+	realtimePrice: RealtimePrice!
+}
+
+type RealtimePrice {
+	usdCentsPerBtc: UsdCents!
 }
 
 scalar Satoshis
