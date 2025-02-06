@@ -9,8 +9,9 @@ import { basePath, env } from "@/env"
 export const kratosPublic = () =>
   new FrontendApi(
     new Configuration({
-      basePath: nextRunTimeEnv("NEXT_PUBLIC_KRATOS_PUBLIC_API") ||
-      env.NEXT_PUBLIC_KRATOS_PUBLIC_API + basePath,
+      basePath:
+        nextRunTimeEnv("NEXT_PUBLIC_KRATOS_PUBLIC_API") ||
+        env.NEXT_PUBLIC_KRATOS_PUBLIC_API + basePath,
     }),
     "",
     axios,
