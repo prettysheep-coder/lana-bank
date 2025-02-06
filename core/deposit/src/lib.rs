@@ -215,7 +215,6 @@ where
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
-        dbg!(sub);
         let audit_info = self
             .authz
             .enforce_permission(
@@ -224,7 +223,6 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
-        dbg!(&audit_info);
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
