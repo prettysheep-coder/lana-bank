@@ -156,7 +156,7 @@ where
         ))
     }
 
-    #[instrument(name = "deposit.create_account", skip(self))]
+    #[instrument(name = "deposit.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -206,7 +206,7 @@ where
         Ok(account)
     }
 
-    #[instrument(name = "deposit.record_deposit", skip(self))]
+    #[instrument(name = "deposit.record_deposit", skip(self), err)]
     pub async fn record_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -215,6 +215,7 @@ where
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
+        dbg!(sub);
         let audit_info = self
             .authz
             .enforce_permission(
@@ -223,7 +224,7 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
-
+        dbg!(&audit_info);
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
@@ -242,6 +243,7 @@ where
         Ok(deposit)
     }
 
+    #[instrument(name = "deposit.initiate_withdrawal", skip(self), err)]
     pub async fn initiate_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -289,10 +291,11 @@ where
         Ok(withdrawal)
     }
 
+    #[instrument(name = "deposit.confirm_withdrawal", skip(self), err)]
     pub async fn confirm_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        withdrawal_id: impl Into<WithdrawalId>,
+        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let id = withdrawal_id.into();
         let audit_info = self
@@ -324,10 +327,11 @@ where
         Ok(withdrawal)
     }
 
+    #[instrument(name = "deposit.cancel_withdrawal", skip(self), err)]
     pub async fn cancel_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        withdrawal_id: impl Into<WithdrawalId>,
+        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let id = withdrawal_id.into();
         let audit_info = self
@@ -350,6 +354,7 @@ where
         Ok(withdrawal)
     }
 
+    #[instrument(name = "deposit.account_balance", skip(self), err)]
     pub async fn account_balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -369,6 +374,7 @@ where
         Ok(balance)
     }
 
+    #[instrument(name = "deposit.find_deposit_by_id", skip(self), err)]
     pub async fn find_deposit_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -390,6 +396,7 @@ where
         }
     }
 
+    #[instrument(name = "deposit.find_withdrawal_by_id", skip(self), err)]
     pub async fn find_withdrawal_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -411,6 +418,7 @@ where
         }
     }
 
+    #[instrument(name = "deposit.find_all_withdrawals", skip(self), err)]
     pub async fn find_all_withdrawals<T: From<Withdrawal>>(
         &self,
         ids: &[WithdrawalId],
@@ -418,6 +426,7 @@ where
         Ok(self.withdrawals.find_all(ids).await?)
     }
 
+    #[instrument(name = "deposit.find_all_deposits", skip(self), err)]
     pub async fn find_all_deposits<T: From<Deposit>>(
         &self,
         ids: &[DepositId],
@@ -425,6 +434,7 @@ where
         Ok(self.deposits.find_all(ids).await?)
     }
 
+    #[instrument(name = "deposit.find_all_deposit_accounts", skip(self), err)]
     pub async fn find_all_deposit_accounts<T: From<DepositAccount>>(
         &self,
         ids: &[DepositAccountId],
@@ -432,6 +442,7 @@ where
         Ok(self.accounts.find_all(ids).await?)
     }
 
+    #[instrument(name = "deposit.list_withdrawals", skip(self), err)]
     pub async fn list_withdrawals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -453,6 +464,7 @@ where
             .await?)
     }
 
+    #[instrument(name = "deposit.list_deposits", skip(self), err)]
     pub async fn list_deposits(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -472,6 +484,7 @@ where
             .await?)
     }
 
+    #[instrument(name = "deposit.ensure_up_to_date_status", skip(self, withdraw), err)]
     pub async fn ensure_up_to_date_status(
         &self,
         withdraw: &Withdrawal,
@@ -479,6 +492,7 @@ where
         Ok(self.approve_withdrawal.execute_from_svc(withdraw).await?)
     }
 
+    #[instrument(name = "deposit.list_deposits_for_account", skip(self), err)]
     pub async fn list_deposits_for_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -488,7 +502,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::deposit_account(account_id),
+                CoreDepositObject::all_deposits(),
                 CoreDepositAction::DEPOSIT_LIST,
             )
             .await?;
@@ -503,6 +517,7 @@ where
             .entities)
     }
 
+    #[instrument(name = "deposit.list_withdrawals_for_account", skip(self), err)]
     pub async fn list_withdrawals_for_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -527,6 +542,11 @@ where
             .entities)
     }
 
+    #[instrument(
+        name = "deposit.list_accounts_by_created_at_for_account_holder",
+        skip(self),
+        err
+    )]
     pub async fn list_accounts_by_created_at_for_account_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
