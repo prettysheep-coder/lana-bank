@@ -64,6 +64,24 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         Ok(credit_facility.balances())
     }
 
+    pub async fn find_by_id(
+        &self,
+        id: impl Into<CreditFacilityId>,
+    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+        let cf = match self.credit_facilities.find_by_id(id.into()).await {
+            Ok(cf) => cf,
+            Err(e) => {
+                self.record_failed_audit_entry(CreditFacilityAction::Read)
+                    .await?;
+                return if e.was_not_found() { Ok(None) } else { Err(e) };
+            }
+        };
+
+        self.ensure_credit_facility_access(&cf, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
+        Ok(Some(cf))
+    }
+
     async fn ensure_credit_facility_access(
         &self,
         credit_facility: &CreditFacility,
@@ -81,6 +99,17 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         self.authz
             .audit()
             .record_entry(self.subject, object, action, true)
+            .await?;
+        Ok(())
+    }
+
+    async fn record_failed_audit_entry(
+        &self,
+        action: CreditFacilityAction,
+    ) -> Result<(), CreditFacilityError> {
+        self.authz
+            .audit()
+            .record_entry(self.subject, Object::CreditFacility, action, false)
             .await?;
         Ok(())
     }
