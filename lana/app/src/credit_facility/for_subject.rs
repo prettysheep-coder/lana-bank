@@ -68,18 +68,19 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         &self,
         id: impl Into<CreditFacilityId>,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
-        let cf = match self.credit_facilities.find_by_id(id.into()).await {
-            Ok(cf) => cf,
-            Err(e) => {
-                self.record_failed_audit_entry(CreditFacilityAction::Read)
-                    .await?;
-                return if e.was_not_found() { Ok(None) } else { Err(e) };
+        match self.credit_facilities.find_by_id(id.into()).await {
+            Ok(cf) => {
+                self.ensure_credit_facility_access(
+                    &cf,
+                    Object::CreditFacility,
+                    CreditFacilityAction::Read,
+                )
+                .await?;
+                Ok(Some(cf))
             }
-        };
-
-        self.ensure_credit_facility_access(&cf, Object::CreditFacility, CreditFacilityAction::Read)
-            .await?;
-        Ok(Some(cf))
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     async fn ensure_credit_facility_access(
@@ -99,17 +100,6 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         self.authz
             .audit()
             .record_entry(self.subject, object, action, true)
-            .await?;
-        Ok(())
-    }
-
-    async fn record_failed_audit_entry(
-        &self,
-        action: CreditFacilityAction,
-    ) -> Result<(), CreditFacilityError> {
-        self.authz
-            .audit()
-            .record_entry(self.subject, Object::CreditFacility, action, false)
             .await?;
         Ok(())
     }
