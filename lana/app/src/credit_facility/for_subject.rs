@@ -8,7 +8,6 @@ pub struct CreditFacilitiesForSubject<'a> {
     subject: &'a Subject,
     authz: &'a Authorization,
     credit_facilities: &'a CreditFacilityRepo,
-    approve_credit_facility: &'a ApproveCreditFacility,
 }
 
 impl<'a> CreditFacilitiesForSubject<'a> {
@@ -17,14 +16,12 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         customer_id: CustomerId,
         authz: &'a Authorization,
         credit_facilities: &'a CreditFacilityRepo,
-        approve_credit_facility: &'a ApproveCreditFacility,
     ) -> Self {
         Self {
             customer_id,
             subject,
             authz,
             credit_facilities,
-            approve_credit_facility,
         }
     }
 
@@ -48,14 +45,6 @@ impl<'a> CreditFacilitiesForSubject<'a> {
 
         self.credit_facilities
             .list_for_customer_id_by_created_at(self.customer_id, query, direction)
-            .await
-    }
-    pub async fn ensure_up_to_date_status(
-        &self,
-        credit_facility: &CreditFacility,
-    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
-        self.approve_credit_facility
-            .execute_from_svc(credit_facility)
             .await
     }
 

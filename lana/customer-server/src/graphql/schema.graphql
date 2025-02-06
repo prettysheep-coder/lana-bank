@@ -22,14 +22,14 @@ enum CollateralizationState {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
-	activatedAt: Timestamp
-	expiresAt: Timestamp
-	createdAt: Timestamp!
-	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
 	collateral: Satoshis!
-	creditFacilityTerms: TermValues!
+	collateralizationState: CollateralizationState!
 	status: CreditFacilityStatus!
+	createdAt: Timestamp!
+	activatedAt: Timestamp
+	expiresAt: Timestamp
+	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
 }
 
