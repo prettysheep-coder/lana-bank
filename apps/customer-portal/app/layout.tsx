@@ -9,6 +9,8 @@ import { ThemeProvider } from "next-themes"
 
 import { Toaster } from "@lana/web/ui/toast"
 
+import NavBar from "@/components/nav-bar"
+
 export const metadata: Metadata = {
   title: "lana Bank",
   description: "Where the lana keeps flowing",
@@ -35,6 +37,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <NavBar />
           {children}
           <Toaster />
         </ThemeProvider>
