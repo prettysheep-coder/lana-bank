@@ -107,26 +107,28 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         Ok(())
     }
 
-    pub async fn list_disbursals(
+    pub async fn list_disbursals_for_credit_facility(
         &self,
+        id: CreditFacilityId,
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
-        filter: FindManyDisbursals,
         sort: impl Into<Sort<DisbursalsSortBy>>,
     ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CreditFacilityError>
     {
-        self.authz
-            .audit()
-            .record_entry(
-                self.subject,
-                Object::CreditFacility,
-                CreditFacilityAction::ListDisbursals,
-                true,
-            )
-            .await?;
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            Object::CreditFacility,
+            CreditFacilityAction::ListDisbursals,
+        )
+        .await?;
 
         let disbursals = self
             .disbursals
-            .find_many(filter, sort.into(), query)
+            .find_many(
+                FindManyDisbursals::WithCreditFacilityId(id),
+                sort.into(),
+                query,
+            )
             .await?;
         Ok(disbursals)
     }

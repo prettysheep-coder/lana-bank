@@ -7,7 +7,7 @@ use async_graphql::*;
 
 pub use lana_app::credit_facility::{
     CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
-    FindManyDisbursals, ListDirection, Sort,
+    ListDirection, Sort,
 };
 
 use crate::{primitives::*, LanaApp};
@@ -99,9 +99,9 @@ impl CreditFacility {
         let disbursals = app
             .credit_facilities()
             .for_subject(sub)?
-            .list_disbursals(
+            .list_disbursals_for_credit_facility(
+                self.entity.id,
                 Default::default(),
-                FindManyDisbursals::WithCreditFacilityId(self.entity.id),
                 Sort {
                     by: DomainDisbursalsSortBy::CreatedAt,
                     direction: ListDirection::Descending,
