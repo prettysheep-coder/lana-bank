@@ -6,6 +6,8 @@ import Link from "next/link"
 
 import { ArrowDownUp, ArrowLeft, Banknote, Clock } from "lucide-react"
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
+
 import FacilityCard from "./facility-card"
 
 import CollateralCard from "./collateral-card"
@@ -14,14 +16,15 @@ import TermsCard from "./terms-card"
 
 import { CreditFacilityTransactions } from "./transactions"
 
+import { CreditFacilityDisbursals } from "./disbursals"
+
+import { CreditFacilityRepaymentPlan } from "./repayment-plan"
+
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
 import { removeUnderscore } from "@/lib/kratos/utils"
 import { formatDate } from "@/lib/utils"
-import { CreditFacilityDisbursals } from "./disbursals"
-import { CreditFacilityRepaymentPlan } from "./repayment-plan"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
 
 gql`
   query GetCreditFacility($id: UUID!) {
@@ -166,7 +169,7 @@ async function page({ params }: { params: { "credit-facility-id": string } }) {
     },
     {
       label: "Expires At",
-      value: data.creditFacility.expiresAt || "N/A",
+      value: formatDate(data.creditFacility.expiresAt) || "N/A",
     },
     {
       label: "Status",

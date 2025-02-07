@@ -1,10 +1,14 @@
 "use client"
 
 import React from "react"
+
+import DataTable, { Column } from "@lana/web/components/data-table"
+
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
+
 import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
-import DataTable, { Column } from "@lana/web/components/data-table"
-import { Badge, BadgeProps } from "@lana/web/ui/badge"
+
 import Balance from "@/components/balance"
 
 type RepaymentPlan = NonNullable<
@@ -55,7 +59,11 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
     <DataTable
       data={repaymentPlanData}
       columns={columns}
-      emptyMessage="No repayment plan found"
+      emptyMessage={
+        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+          No Plan found
+        </div>
+      }
     />
   )
 }

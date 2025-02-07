@@ -4,8 +4,6 @@ import React from "react"
 
 import DataTable, { Column } from "@lana/web/components/data-table"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
-
 import {
   MeQuery,
   CreditFacilityHistoryEntry,

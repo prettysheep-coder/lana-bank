@@ -2,9 +2,14 @@
 
 import React from "react"
 
-import { GetCreditFacilityQuery, MeQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
 import DataTable, { Column } from "@lana/web/components/data-table"
+
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
+
+import { GetCreditFacilityQuery, DisbursalStatus } from "@/lib/graphql/generated"
+import { formatDate } from "@/lib/utils"
+
+import Balance from "@/components/balance"
 
 type Disbursal = NonNullable<
   NonNullable<GetCreditFacilityQuery["creditFacility"]>["disbursals"][number]
@@ -43,16 +48,15 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
       <DataTable
         data={creditFacility.disbursals}
         columns={columns}
-        emptyMessage="No disbursals found"
+        emptyMessage={
+          <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+            No Disbursals found
+          </div>
+        }
       />
     </>
   )
 }
-
-import { Badge, BadgeProps } from "@lana/web/ui/badge"
-
-import { DisbursalStatus } from "@/lib/graphql/generated"
-import Balance from "@/components/balance"
 
 interface StatusBadgeProps extends BadgeProps {
   status: DisbursalStatus
