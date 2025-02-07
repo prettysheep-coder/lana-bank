@@ -8,6 +8,7 @@ pub struct CreditFacilitiesForSubject<'a> {
     subject: &'a Subject,
     authz: &'a Authorization,
     credit_facilities: &'a CreditFacilityRepo,
+    disbursals: &'a DisbursalRepo,
 }
 
 impl<'a> CreditFacilitiesForSubject<'a> {
@@ -16,12 +17,14 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         customer_id: CustomerId,
         authz: &'a Authorization,
         credit_facilities: &'a CreditFacilityRepo,
+        disbursals: &'a DisbursalRepo,
     ) -> Self {
         Self {
             customer_id,
             subject,
             authz,
             credit_facilities,
+            disbursals,
         }
     }
 
@@ -102,5 +105,29 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             .record_entry(self.subject, object, action, true)
             .await?;
         Ok(())
+    }
+
+    pub async fn list_disbursals(
+        &self,
+        query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
+        filter: FindManyDisbursals,
+        sort: impl Into<Sort<DisbursalsSortBy>>,
+    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CreditFacilityError>
+    {
+        self.authz
+            .audit()
+            .record_entry(
+                self.subject,
+                Object::CreditFacility,
+                CreditFacilityAction::ListDisbursals,
+                true,
+            )
+            .await?;
+
+        let disbursals = self
+            .disbursals
+            .find_many(filter, sort.into(), query)
+            .await?;
+        Ok(disbursals)
     }
 }

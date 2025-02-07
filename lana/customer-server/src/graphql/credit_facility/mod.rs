@@ -1,15 +1,20 @@
 mod balance;
+mod disbursal;
 mod history;
 
 use async_graphql::*;
 
-pub use lana_app::credit_facility::{CreditFacility as DomainCreditFacility, ListDirection};
+pub use lana_app::credit_facility::{
+    CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
+    FindManyDisbursals, ListDirection, Sort,
+};
 
 use crate::{primitives::*, LanaApp};
 
 use super::terms::*;
 
 use balance::*;
+use disbursal::*;
 use history::*;
 
 #[derive(SimpleObject, Clone)]
@@ -81,6 +86,32 @@ impl CreditFacility {
             .into_iter()
             .map(CreditFacilityHistoryEntry::from)
             .collect()
+    }
+
+    async fn disbursals(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityDisbursal>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let disbursals = app
+            .credit_facilities()
+            .for_subject(sub)?
+            .list_disbursals(
+                Default::default(),
+                FindManyDisbursals::WithCreditFacilityId(self.entity.id),
+                Sort {
+                    by: DomainDisbursalsSortBy::CreatedAt,
+                    direction: ListDirection::Descending,
+                },
+            )
+            .await?;
+
+        Ok(disbursals
+            .entities
+            .into_iter()
+            .map(CreditFacilityDisbursal::from)
+            .collect())
     }
 }
 
