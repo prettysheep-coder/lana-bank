@@ -1,6 +1,7 @@
 mod balance;
 mod disbursal;
 mod history;
+mod repayment;
 
 use async_graphql::*;
 
@@ -16,6 +17,7 @@ use super::terms::*;
 use balance::*;
 use disbursal::*;
 use history::*;
+use repayment::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -112,6 +114,14 @@ impl CreditFacility {
             .into_iter()
             .map(CreditFacilityDisbursal::from)
             .collect())
+    }
+
+    async fn repayment_plan(&self) -> Vec<CreditFacilityRepaymentInPlan> {
+        self.entity
+            .repayment_plan()
+            .into_iter()
+            .map(CreditFacilityRepaymentInPlan::from)
+            .collect()
     }
 }
 
