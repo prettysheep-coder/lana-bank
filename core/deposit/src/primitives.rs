@@ -171,6 +171,7 @@ impl FromStr for CoreDepositAction {
 pub enum DepositAccountAction {
     Create,
     ReadBalance,
+    ReadTxHistory,
     Read,
     List,
 }

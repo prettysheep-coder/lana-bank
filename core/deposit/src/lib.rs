@@ -7,6 +7,7 @@ mod deposit_account_balance;
 pub mod error;
 mod event;
 mod for_subject;
+mod history;
 mod ledger;
 mod primitives;
 mod processes;

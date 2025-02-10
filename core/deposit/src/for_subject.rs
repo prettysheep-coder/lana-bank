@@ -1,10 +1,11 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use tracing::instrument;
 
 use crate::{
     account::*, deposit::*, deposit_account_balance::*,
-    deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*, ledger::*, primitives::*,
-    withdrawal::*,
+    deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*,
+    history::DepositAccountHistoryEntry, ledger::*, primitives::*, withdrawal::*,
 };
 
 pub struct DepositsForSubject<'a, Perms>
@@ -76,6 +77,7 @@ where
             .await?)
     }
 
+    #[instrument(name = "deposit.for_subject.account_balance", skip(self), err)]
     pub async fn account_balance(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
@@ -91,6 +93,33 @@ where
 
         let balance = self.ledger.balance(account_id).await?;
         Ok(balance)
+    }
+
+    #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
+    pub async fn account_history(
+        &self,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            DepositAccountHistoryEntry,
+            cala_ledger::entry::EntriesByCreatedAtCursor,
+        >,
+        CoreDepositError,
+    > {
+        let account_id = account_id.into();
+
+        self.ensure_account_access(
+            account_id,
+            CoreDepositObject::deposit_account(account_id),
+            CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+        )
+        .await?;
+
+        let history = self
+            .ledger
+            .account_history::<DepositAccountHistoryEntry>(account_id, Default::default())
+            .await?;
+        Ok(history)
     }
 
     pub async fn list_deposits_for_account(
