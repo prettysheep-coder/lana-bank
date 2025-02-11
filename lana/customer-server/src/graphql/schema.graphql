@@ -8,6 +8,11 @@ scalar AnnualRatePct
 
 scalar CVLPct
 
+type CancelledWithdrawalEntry {
+	recordedAt: Timestamp!
+	withdrawal: Withdrawal!
+}
+
 type Collateral {
 	btcBalance: Satoshis!
 }
@@ -169,7 +174,7 @@ type DepositAccountBalance {
 	pending: UsdCents!
 }
 
-union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | DisbursalEntry | PaymentEntry | UnknownEntry
+union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | UnknownEntry
 
 type DepositAccountHistoryEntryConnection {
 	"""
@@ -207,7 +212,6 @@ type DepositEntry {
 
 type DisbursalEntry {
 	txId: UUID!
-	entryId: UUID!
 	recordedAt: Timestamp!
 }
 
@@ -290,7 +294,6 @@ type PageInfo {
 
 type PaymentEntry {
 	txId: UUID!
-	entryId: UUID!
 	recordedAt: Timestamp!
 }
 
@@ -336,7 +339,6 @@ scalar UUID
 
 type UnknownEntry {
 	txId: UUID!
-	entryId: UUID!
 	recordedAt: Timestamp!
 }
 
@@ -353,9 +355,8 @@ type Withdrawal {
 }
 
 type WithdrawalEntry {
-	txId: UUID!
-	entryId: UUID!
 	recordedAt: Timestamp!
+	withdrawal: Withdrawal!
 }
 
 enum WithdrawalStatus {

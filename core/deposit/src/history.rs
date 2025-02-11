@@ -6,12 +6,12 @@ use crate::primitives::{LedgerEntryId, LedgerTransactionId as LedgerTxId};
 pub enum DepositAccountHistoryEntry {
     Deposit(DepositEntry),
     Withdrawal(WithdrawalEntry),
+    CancelledWithdrawal(WithdrawalEntry),
     Disbursal(DisbursalEntry),
     Payment(PaymentEntry),
     Unknown(UnknownEntry),
     Ignored,
 }
-
 pub struct DepositEntry {
     pub tx_id: LedgerTxId,
     pub entry_id: LedgerEntryId,
@@ -65,7 +65,7 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
-            CANCEL_WITHDRAW => DepositAccountHistoryEntry::Withdrawal(WithdrawalEntry {
+            CANCEL_WITHDRAW => DepositAccountHistoryEntry::CancelledWithdrawal(WithdrawalEntry {
                 tx_id: entry.values().transaction_id,
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
@@ -124,52 +124,56 @@ mod graphql {
             serde_json::from_str(&json).map_err(|e| e.to_string())
         }
     }
+}
 
-    impl From<&DepositAccountHistoryEntry> for DepositAccountHistoryCursor {
-        fn from(entry: &DepositAccountHistoryEntry) -> Self {
-            match entry {
-                DepositAccountHistoryEntry::Deposit(entry) => Self {
-                    entry_id: entry.entry_id,
-                    created_at: entry.recorded_at,
-                },
-                DepositAccountHistoryEntry::Withdrawal(entry) => Self {
-                    entry_id: entry.entry_id,
-                    created_at: entry.recorded_at,
-                },
-                DepositAccountHistoryEntry::Disbursal(entry) => Self {
-                    entry_id: entry.entry_id,
-                    created_at: entry.recorded_at,
-                },
-                DepositAccountHistoryEntry::Payment(entry) => Self {
-                    entry_id: entry.entry_id,
-                    created_at: entry.recorded_at,
-                },
-                DepositAccountHistoryEntry::Unknown(entry) => Self {
-                    entry_id: entry.entry_id,
-                    created_at: entry.recorded_at,
-                },
-                DepositAccountHistoryEntry::Ignored => {
-                    unreachable!("Ignored entries should not be cursorized")
-                }
+impl From<&DepositAccountHistoryEntry> for DepositAccountHistoryCursor {
+    fn from(entry: &DepositAccountHistoryEntry) -> Self {
+        match entry {
+            DepositAccountHistoryEntry::Deposit(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Withdrawal(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::CancelledWithdrawal(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Disbursal(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Payment(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Unknown(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.recorded_at,
+            },
+            DepositAccountHistoryEntry::Ignored => {
+                unreachable!("Ignored entries should not be cursorized")
             }
         }
     }
+}
 
-    impl From<DepositAccountHistoryCursor> for cala_ledger::entry::EntriesByCreatedAtCursor {
-        fn from(cursor: DepositAccountHistoryCursor) -> Self {
-            Self {
-                id: cursor.entry_id,
-                created_at: cursor.created_at,
-            }
+impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for DepositAccountHistoryCursor {
+    fn from(cursor: cala_ledger::entry::EntriesByCreatedAtCursor) -> Self {
+        Self {
+            entry_id: cursor.id,
+            created_at: cursor.created_at,
         }
     }
+}
 
-    impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for DepositAccountHistoryCursor {
-        fn from(cursor: cala_ledger::entry::EntriesByCreatedAtCursor) -> Self {
-            Self {
-                entry_id: cursor.id,
-                created_at: cursor.created_at,
-            }
+impl From<DepositAccountHistoryCursor> for cala_ledger::entry::EntriesByCreatedAtCursor {
+    fn from(cursor: DepositAccountHistoryCursor) -> Self {
+        Self {
+            id: cursor.entry_id,
+            created_at: cursor.created_at,
         }
     }
 }

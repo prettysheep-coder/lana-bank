@@ -193,6 +193,43 @@ where
             .entities)
     }
 
+    pub async fn find_withdrawal_by_id(
+        &self,
+        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let withdrawal_id = withdrawal_id.into();
+        let withdrawal = self.withdrawals.find_by_id(withdrawal_id).await?;
+
+        self.ensure_account_access(
+            withdrawal.deposit_account_id,
+            CoreDepositObject::withdrawal(withdrawal_id),
+            CoreDepositAction::WITHDRAWAL_READ,
+        )
+        .await?;
+
+        Ok(withdrawal)
+    }
+
+    pub async fn find_withdrawal_by_cancelled_tx_id(
+        &self,
+        cancelled_tx_id: impl Into<LedgerTransactionId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let cancelled_tx_id = cancelled_tx_id.into();
+        let withdrawal = self
+            .withdrawals
+            .find_by_cancelled_tx_id(Some(cancelled_tx_id))
+            .await?;
+
+        self.ensure_account_access(
+            withdrawal.deposit_account_id,
+            CoreDepositObject::withdrawal(withdrawal.id),
+            CoreDepositAction::WITHDRAWAL_READ,
+        )
+        .await?;
+
+        Ok(withdrawal)
+    }
+
     async fn ensure_account_access(
         &self,
         account_id: DepositAccountId,
