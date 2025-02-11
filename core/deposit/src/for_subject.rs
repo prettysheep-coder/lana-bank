@@ -121,7 +121,9 @@ where
 
         let history = self
             .ledger
-            .account_history::<DepositAccountHistoryEntry>(account_id, query)
+            .account_history::<DepositAccountHistoryEntry, DepositAccountHistoryCursor>(
+                account_id, query,
+            )
             .await?;
         Ok(history)
     }

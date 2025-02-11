@@ -154,4 +154,22 @@ mod graphql {
             }
         }
     }
+
+    impl From<DepositAccountHistoryCursor> for cala_ledger::entry::EntriesByCreatedAtCursor {
+        fn from(cursor: DepositAccountHistoryCursor) -> Self {
+            Self {
+                id: cursor.entry_id,
+                created_at: cursor.created_at,
+            }
+        }
+    }
+
+    impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for DepositAccountHistoryCursor {
+        fn from(cursor: cala_ledger::entry::EntriesByCreatedAtCursor) -> Self {
+            Self {
+                entry_id: cursor.id,
+                created_at: cursor.created_at,
+            }
+        }
+    }
 }
