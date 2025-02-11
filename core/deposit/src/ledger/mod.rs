@@ -10,7 +10,7 @@ use cala_ledger::{
 };
 use chart_of_accounts::TransactionAccountFactory;
 
-use crate::{primitives::UsdCents, DepositAccountBalance};
+use crate::{primitives::UsdCents, DepositAccountBalance, DepositAccountHistoryCursor};
 
 use error::*;
 
@@ -66,22 +66,34 @@ impl DepositLedger {
     pub async fn account_history<T: From<cala_ledger::entry::Entry>>(
         &self,
         id: impl Into<AccountId>,
-        cursor: es_entity::PaginatedQueryArgs<cala_ledger::entry::EntriesByCreatedAtCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<T, cala_ledger::entry::EntriesByCreatedAtCursor>,
-        DepositLedgerError,
-    > {
+        cursor: es_entity::PaginatedQueryArgs<DepositAccountHistoryCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<T, DepositAccountHistoryCursor>, DepositLedgerError>
+    {
         let id = id.into();
+
+        let cala_cursor = es_entity::PaginatedQueryArgs {
+            after: cursor
+                .after
+                .map(|c| cala_ledger::entry::EntriesByCreatedAtCursor {
+                    id: c.entry_id,
+                    created_at: c.created_at,
+                }),
+            first: cursor.first,
+        };
+
         let ret = self
             .cala
             .entries()
-            .list_for_account_id(id, cursor, es_entity::ListDirection::Descending)
+            .list_for_account_id(id, cala_cursor, es_entity::ListDirection::Descending)
             .await?;
         let entities = ret.entities.into_iter().map(T::from).collect();
         Ok(es_entity::PaginatedQueryRet {
             entities,
             has_next_page: ret.has_next_page,
-            end_cursor: ret.end_cursor,
+            end_cursor: ret.end_cursor.map(|c| DepositAccountHistoryCursor {
+                entry_id: c.id,
+                created_at: c.created_at,
+            }),
         })
     }
 

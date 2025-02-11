@@ -32,6 +32,7 @@ pub use deposit_account_balance::DepositAccountBalance;
 use error::*;
 pub use event::*;
 pub use for_subject::DepositsForSubject;
+pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;

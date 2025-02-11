@@ -3,9 +3,15 @@ use authz::PermissionCheck;
 use tracing::instrument;
 
 use crate::{
-    account::*, deposit::*, deposit_account_balance::*,
-    deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*,
-    history::DepositAccountHistoryEntry, ledger::*, primitives::*, withdrawal::*,
+    account::*,
+    deposit::*,
+    deposit_account_balance::*,
+    deposit_account_cursor::DepositAccountsByCreatedAtCursor,
+    error::*,
+    history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry},
+    ledger::*,
+    primitives::*,
+    withdrawal::*,
 };
 
 pub struct DepositsForSubject<'a, Perms>
@@ -99,11 +105,9 @@ where
     pub async fn account_history(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<DepositAccountHistoryCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<
-            DepositAccountHistoryEntry,
-            cala_ledger::entry::EntriesByCreatedAtCursor,
-        >,
+        es_entity::PaginatedQueryRet<DepositAccountHistoryEntry, DepositAccountHistoryCursor>,
         CoreDepositError,
     > {
         let account_id = account_id.into();
@@ -117,7 +121,7 @@ where
 
         let history = self
             .ledger
-            .account_history::<DepositAccountHistoryEntry>(account_id, Default::default())
+            .account_history::<DepositAccountHistoryEntry>(account_id, query)
             .await?;
         Ok(history)
     }
