@@ -152,6 +152,23 @@ where
             .entities)
     }
 
+    pub async fn find_deposit_by_id(
+        &self,
+        deposit_id: impl Into<DepositId> + std::fmt::Debug,
+    ) -> Result<Deposit, CoreDepositError> {
+        let deposit_id = deposit_id.into();
+        let deposit = self.deposits.find_by_id(deposit_id).await?;
+
+        self.ensure_account_access(
+            deposit.deposit_account_id,
+            CoreDepositObject::deposit(deposit_id),
+            CoreDepositAction::DEPOSIT_READ,
+        )
+        .await?;
+
+        Ok(deposit)
+    }
+
     pub async fn list_withdrawals_for_account(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,

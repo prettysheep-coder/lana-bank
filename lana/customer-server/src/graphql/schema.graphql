@@ -201,9 +201,8 @@ type DepositAccountHistoryEntryEdge {
 }
 
 type DepositEntry {
-	txId: UUID!
-	entryId: UUID!
 	recordedAt: Timestamp!
+	deposit: Deposit!
 }
 
 type DisbursalEntry {
