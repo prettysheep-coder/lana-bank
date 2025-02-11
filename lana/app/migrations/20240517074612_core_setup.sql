@@ -97,6 +97,7 @@ CREATE TABLE core_withdrawals (
   id UUID PRIMARY KEY,
   deposit_account_id UUID NOT NULL REFERENCES deposit_accounts(id),
   approval_process_id UUID REFERENCES approval_processes(id),
+  cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
