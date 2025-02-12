@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
-graphql = [ "dep:async-graphql", "es-entity/graphql" ]
+graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
 
 [dependencies]
 core-money = { path = "../money" }
