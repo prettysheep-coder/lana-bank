@@ -51,8 +51,8 @@ from approved_cf
 union all
 select
     4 as order_by,
-    'Number Customers w Disbursed Approved CF' as kpi_title,
-    'number_customers_w_disbursed_approved_cf' as kpi_name,
+    'Number Customers w Dsbd Approved CF' as kpi_title,
+    'number_customers_w_dsbd_approved_cf' as kpi_name,
     cast(kpi_value as numeric) as kpi_value
 from disbursed_cf
 
