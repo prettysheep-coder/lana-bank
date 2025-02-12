@@ -100,32 +100,6 @@ pub struct DepositAccountHistoryCursor {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[cfg(feature = "graphql")]
-mod graphql {
-    use async_graphql::{connection::CursorType, *};
-
-    use super::*;
-
-    impl CursorType for DepositAccountHistoryCursor {
-        type Error = String;
-
-        fn encode_cursor(&self) -> String {
-            use base64::{engine::general_purpose, Engine as _};
-            let json = serde_json::to_string(&self).expect("could not serialize cursor");
-            general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-        }
-
-        fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-            use base64::{engine::general_purpose, Engine as _};
-            let bytes = general_purpose::STANDARD_NO_PAD
-                .decode(s.as_bytes())
-                .map_err(|e| e.to_string())?;
-            let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-            serde_json::from_str(&json).map_err(|e| e.to_string())
-        }
-    }
-}
-
 impl From<&DepositAccountHistoryEntry> for DepositAccountHistoryCursor {
     fn from(entry: &DepositAccountHistoryEntry) -> Self {
         match entry {
@@ -174,6 +148,32 @@ impl From<DepositAccountHistoryCursor> for cala_ledger::entry::EntriesByCreatedA
         Self {
             id: cursor.entry_id,
             created_at: cursor.created_at,
+        }
+    }
+}
+
+#[cfg(feature = "graphql")]
+mod graphql {
+    use async_graphql::{connection::CursorType, *};
+
+    use super::*;
+
+    impl CursorType for DepositAccountHistoryCursor {
+        type Error = String;
+
+        fn encode_cursor(&self) -> String {
+            use base64::{engine::general_purpose, Engine as _};
+            let json = serde_json::to_string(&self).expect("could not serialize cursor");
+            general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
+        }
+
+        fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+            use base64::{engine::general_purpose, Engine as _};
+            let bytes = general_purpose::STANDARD_NO_PAD
+                .decode(s.as_bytes())
+                .map_err(|e| e.to_string())?;
+            let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+            serde_json::from_str(&json).map_err(|e| e.to_string())
         }
     }
 }

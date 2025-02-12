@@ -209,8 +209,6 @@ pub struct NewWithdrawal {
     pub(super) amount: UsdCents,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
-    #[builder(setter(skip), default)]
-    pub(super) cancelled_tx_id: Option<LedgerTransactionId>,
     reference: Option<String>,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
