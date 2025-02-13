@@ -36,6 +36,7 @@ gql`
     expiresAt
     collateral
     collateralizationState
+    createdAt
     currentCvl {
       total
       disbursed
@@ -72,9 +73,17 @@ gql`
       }
     }
     creditFacilityTerms {
-      marginCallCvl
+      annualRate
+      accrualInterval
+      incurrenceInterval
       liquidationCvl
+      marginCallCvl
       initialCvl
+      oneTimeFeeRate
+      duration {
+        period
+        units
+      }
     }
     customer {
       customerId
@@ -105,7 +114,6 @@ gql`
 
 const TABS = [
   { id: "1", url: "/", tabLabel: "Transactions" },
-  { id: "2", url: "/terms", tabLabel: "Terms" },
   { id: "4", url: "/disbursals", tabLabel: "Disbursals" },
   { id: "5", url: "/repayment-plan", tabLabel: "Repayment Plan" },
 ]
