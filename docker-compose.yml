@@ -80,6 +80,7 @@ services:
     image: busybox
     command: sh -c "while :; do sleep 10; done"
     depends_on:
+      - bria
       - core-pg
       - otel-agent
       - kratos-admin
@@ -88,3 +89,74 @@ services:
       - kratos-customer-pg
       - oathkeeper
       - mailhog
+
+  bria:
+    image: us.gcr.io/galoy-org/bria:latest
+    ports:
+      - "2743:2743"
+      - "2742:2742"
+    environment:
+      - PG_CON=postgres://user:password@bria-pg:5432/pg
+      - BITCOIND_SIGNER_ENDPOINT=https://bitcoind-signer:18443
+    command:
+      - bria
+      - daemon
+      - --config
+      - /bria.yml
+      - dev
+      - -x
+      - tpubDDDDGYiFda8HfJRc2AHFJDxVzzEtBPrKsbh35EaW2UGd5qfzrF2G87ewAgeeRyHEz4iB3kvhAYW1sH6dpLepTkFUzAktumBN8AXeXWE9nd1
+      - -d
+      - m/84h/0h/0h
+    volumes:
+      - ./dev/bria/bria.yml:/bria.yml
+    depends_on:
+      bitcoind-signer:
+        condition: service_started
+      otel-agent:
+        condition: service_started
+      fulcrum:
+        condition: service_started
+      bria-pg:
+        condition: service_healthy
+  bria-pg:
+    image: postgres:14.1
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=pg
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+  fulcrum:
+    image: cculianu/fulcrum:latest
+    ports:
+      - "50001:50001"
+    depends_on: [bitcoind]
+    volumes:
+      - ./dev/bria/fulcrum.conf:/fulcrum.conf
+      - ./dev/bria/fulcrum-tls.key:/tls.key
+      - ./dev/bria/fulcrum-tls.cert:/tls.cert
+    environment:
+      - DATA_DIR=/db
+      - SSL_CERTFILE=/tls.cert
+      - SSL_KEYFILE=/tls.key
+    command: ["Fulcrum", "/fulcrum.conf"]
+  bitcoind:
+    image: lncm/bitcoind:v27.0
+    ports:
+      - "18443:18443"
+    volumes:
+      - ./dev/bria/bitcoin.conf:/data/.bitcoin/bitcoin.conf
+  bitcoind-signer:
+    image: lncm/bitcoind:v27.0
+    ports: []
+    volumes:
+      - ./dev/bria/bitcoin.conf:/data/.bitcoin/bitcoin.conf
+    depends_on: [bitcoind]
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        bitcoind -connect=bitcoind:18444
