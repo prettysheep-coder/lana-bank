@@ -141,7 +141,6 @@ describe("credit facility", () => {
       .then((collateralValue) => {
         const numericValue = parseFloat(collateralValue.split(" ")[0])
 
-
         cy.log(`Collateral value: ${numericValue}`)
         cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
         cy.takeScreenshot("7_click_update_collateral_button")
