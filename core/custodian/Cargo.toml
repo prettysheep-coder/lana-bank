@@ -1,0 +1,17 @@
+[package]
+name = "custodian"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+
+es-entity = { workspace = true }
+strum = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
+derive_builder = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }

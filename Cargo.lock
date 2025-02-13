@@ -1132,6 +1132,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "custodian"
+version = "0.1.0"
+dependencies = [
+ "audit",
+ "authz",
+ "chrono",
+ "derive_builder",
+ "es-entity",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "customer-onboarding"
 version = "0.3.72-dev"
 dependencies = [

@@ -1,3 +1,18 @@
+CREATE TABLE custodians (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE custodian_events (
+  id UUID NOT NULL REFERENCES custodians(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE committees (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
