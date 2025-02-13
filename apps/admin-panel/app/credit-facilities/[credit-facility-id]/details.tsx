@@ -6,13 +6,14 @@ import { Button } from "@lana/web/ui/button"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
+import { CreditFacilityTermsDialog } from "./terms-dialog"
+
 import {
   ApprovalProcessStatus,
   GetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
-
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -30,9 +31,9 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
-
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
+  const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
   const details: DetailItemProps[] = [
     {
@@ -61,6 +62,13 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 
   const footerContent = (
     <>
+      <Button
+        variant="outline"
+        onClick={() => setOpenTermsDialog(true)}
+        data-testid="loan-terms-button"
+      >
+        Loan Terms
+      </Button>
       {creditFacilityDetails.subjectCanUpdateCollateral && (
         <Button
           variant="outline"
@@ -100,6 +108,12 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         details={details}
         footerContent={footerContent}
         errorMessage={creditFacilityDetails.approvalProcess.deniedReason}
+      />
+
+      <CreditFacilityTermsDialog
+        creditFacility={creditFacilityDetails}
+        openTermsDialog={openTermsDialog}
+        setOpenTermsDialog={setOpenTermsDialog}
       />
 
       <CreditFacilityCollateralUpdateDialog

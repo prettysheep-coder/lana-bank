@@ -1,16 +1,23 @@
 "use client"
 
 import React from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@lana/web/ui/dialog"
 
-import { GetCreditFacilityTermsQuery } from "@/lib/graphql/generated"
+import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
-type CreditFacilityTermsProps = {
-  creditFacility: NonNullable<GetCreditFacilityTermsQuery["creditFacility"]>
+type CreditFacilityTermsDialogProps = {
+  openTermsDialog: boolean
+  setOpenTermsDialog: (isOpen: boolean) => void
+  creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>
 }
 
-const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({ creditFacility }) => {
+export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps> = ({
+  openTermsDialog,
+  setOpenTermsDialog,
+  creditFacility,
+}) => {
   const details: DetailItemProps[] = [
     {
       label: "Duration",
@@ -53,12 +60,15 @@ const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({ creditFacilit
   ]
 
   return (
-    <DetailsCard
-      title="Credit Facility Terms"
-      details={details}
-      description="Terms Details for this credit facility"
-    />
+    <Dialog open={openTermsDialog} onOpenChange={setOpenTermsDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Credit Facility Terms</DialogTitle>
+        </DialogHeader>
+        <div className="py-2">
+          <DetailsCard columns={2} variant="container" details={details} />
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
-
-export { CreditFacilityTerms }
