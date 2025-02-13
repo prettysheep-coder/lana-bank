@@ -8,10 +8,9 @@ import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import {
   ApprovalProcessStatus,
-  GetCreditFacilityBasicDetailsQuery,
+  GetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
-import Balance from "@/components/balance/balance"
-import { formatCollateralizationState } from "@/lib/utils"
+import { formatCollateralizationState, formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 
 import ApprovalDialog from "@/app/actions/approve"
@@ -20,7 +19,9 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
-  creditFacilityDetails: NonNullable<GetCreditFacilityBasicDetailsQuery["creditFacility"]>
+  creditFacilityDetails: NonNullable<
+    GetCreditFacilityLayoutDetailsQuery["creditFacility"]
+  >
 }
 
 const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
@@ -44,10 +45,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       value: formatCollateralizationState(creditFacilityDetails.collateralizationState),
     },
     {
-      label: "Facility Amount",
-      value: <Balance amount={creditFacilityDetails.facilityAmount} currency="usd" />,
-    },
-    {
       label: "Status",
       value: (
         <LoanAndCreditFacilityStatusBadge
@@ -55,6 +52,10 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           status={creditFacilityDetails.status}
         />
       ),
+    },
+    {
+      label: "Expires At",
+      value: formatDate(creditFacilityDetails.expiresAt),
     },
   ]
 

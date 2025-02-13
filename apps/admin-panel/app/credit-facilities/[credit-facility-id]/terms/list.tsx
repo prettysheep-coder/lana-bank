@@ -3,7 +3,6 @@
 import React from "react"
 
 import { GetCreditFacilityTermsQuery } from "@/lib/graphql/generated"
-import Balance from "@/components/balance/balance"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
@@ -42,10 +41,6 @@ const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({ creditFacilit
     {
       label: "Date created",
       value: formatDate(creditFacility.createdAt),
-    },
-    {
-      label: "Facility Amount",
-      value: <Balance amount={creditFacility.facilityAmount} currency="usd" />,
     },
     {
       label: "Incurrence Interval",
