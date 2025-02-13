@@ -266,7 +266,7 @@ mod tests {
                 interest_amount: UsdCents::from(2),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: first_interest_accrued_at,
+                recorded_at: first_interest_accrued_at,
             },
         ]
     }
@@ -391,7 +391,7 @@ mod tests {
                 interest_amount: UsdCents::from(2),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: second_interest_accrued_at,
+                recorded_at: second_interest_accrued_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -476,7 +476,7 @@ mod tests {
                 interest_amount: UsdCents::from(12),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: second_interest_accrued_at,
+                recorded_at: second_interest_accrued_at,
             },
             CreditFacilityEvent::InterestAccrualConcluded {
                 idx: second_interest_idx.next(),
@@ -492,7 +492,7 @@ mod tests {
                 interest_amount: UsdCents::from(6),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: third_interest_accrued_at,
+                recorded_at: third_interest_accrued_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -538,7 +538,7 @@ mod tests {
                 interest_amount: UsdCents::from(12),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: second_interest_accrued_at,
+                recorded_at: second_interest_accrued_at,
             },
             CreditFacilityEvent::InterestAccrualConcluded {
                 idx: second_interest_idx.next(),
@@ -554,7 +554,7 @@ mod tests {
                 interest_amount: UsdCents::from(6),
                 audit_info: dummy_audit_info(),
                 tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: third_interest_accrued_at,
+                recorded_at: third_interest_accrued_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());
