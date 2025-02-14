@@ -94,8 +94,7 @@ impl DepositAccount {
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
                 let res = app
                     .deposits()
-                    .for_subject(sub)?
-                    .account_history(self.entity.id, query_args)
+                    .account_history(sub, self.entity.id, query_args)
                     .await?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
