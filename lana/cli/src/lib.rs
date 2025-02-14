@@ -34,8 +34,8 @@ struct Cli {
     sumsub_key: String,
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
-    #[clap(env = "SA_CREDS_BASE64", default_value = "")]
-    sa_creds_base64: String,
+    #[clap(env = "SA_CREDS_BASE64")]
+    sa_creds_base64: Option<String>,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
 }

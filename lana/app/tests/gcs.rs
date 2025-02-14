@@ -8,10 +8,16 @@ async fn upload_doc() -> anyhow::Result<()> {
     let sa_creds_base64 = if let Ok(sa_creds_base64) = std::env::var("SA_CREDS_BASE64") {
         sa_creds_base64
     } else {
+        println!("sa_creds_base64 is not defined");
         return Ok(());
     };
 
-    let sa = ServiceAccountConfig::default().set_sa_creds_base64(sa_creds_base64)?;
+    if sa_creds_base64.is_empty() {
+        println!("sa_creds_base64 is empty");
+        return Ok(());
+    }
+
+    let sa = ServiceAccountConfig::default().set_sa_creds_base64(Some(sa_creds_base64))?;
 
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
         StorageConfig::new_dev_mode(name_prefix, sa)

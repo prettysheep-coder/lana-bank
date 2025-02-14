@@ -103,10 +103,18 @@ pub(super) mod bq {
         let client =
             Client::from_service_account_key(config.service_account().service_account_key(), false)
                 .await?;
+
+        let gcp_project = &config
+            .service_account()
+            .gcp_project
+            .as_ref()
+            .ok_or(ReportError::GCPProjectNotSet)?
+            .as_str();
+
         let tables = client
             .table()
             .list(
-                &config.service_account().gcp_project,
+                gcp_project,
                 &config.dbt_output_dataset,
                 ListOptions::default(),
             )
@@ -133,6 +141,10 @@ pub(super) mod bq {
             Client::from_service_account_key(config.service_account().service_account_key(), false)
                 .await?;
         let gcp_project = &config.service_account().gcp_project;
+        let gcp_project = gcp_project
+            .as_ref()
+            .ok_or(ReportError::GCPProjectNotSet)?
+            .as_str();
         let query = format!(
             "SELECT * FROM `{}.{}.{}`",
             gcp_project, config.dbt_output_dataset, report

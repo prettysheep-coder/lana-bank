@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServiceAccountConfig {
     #[serde(skip)]
-    pub gcp_project: String,
+    pub gcp_project: Option<String>,
     #[serde(skip)]
-    pub sa_creds_base64: String,
+    pub sa_creds_base64: Option<String>,
     #[serde(skip)]
     service_account_key: Option<ServiceAccountKey>,
 
@@ -20,8 +20,8 @@ pub struct ServiceAccountConfig {
 impl Default for ServiceAccountConfig {
     fn default() -> Self {
         Self {
-            gcp_project: "".to_string(),
-            sa_creds_base64: "".to_string(),
+            gcp_project: None,
+            sa_creds_base64: None,
             service_account_key: None,
             gcp_location: default_gcp_location(),
         }
@@ -31,18 +31,27 @@ impl Default for ServiceAccountConfig {
 impl ServiceAccountConfig {
     pub fn set_sa_creds_base64(
         mut self,
-        sa_creds_base64: String,
+        sa_creds_base64: Option<String>,
     ) -> Result<Self, ServiceAccountError> {
         self.sa_creds_base64 = sa_creds_base64;
+
+        if self.sa_creds_base64.is_none() {
+            return Err(ServiceAccountError::EnvVarMissing);
+        }
+
+        // print the sa_creds_base64
+        println!("sa_creds_base64: {:?}", self.sa_creds_base64);
 
         let creds = self.get_json_creds()?;
         let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
         std::env::set_var("SERVICE_ACCOUNT_JSON", creds);
 
-        self.gcp_project = service_account_key
-            .project_id
-            .clone()
-            .ok_or(ServiceAccountError::GCPProjectIdMissing)?;
+        self.gcp_project = Some(
+            service_account_key
+                .project_id
+                .clone()
+                .ok_or(ServiceAccountError::GCPProjectIdMissing)?,
+        );
         self.service_account_key = Some(service_account_key);
 
         Ok(self)
@@ -57,10 +66,13 @@ impl ServiceAccountConfig {
     pub fn get_json_creds(&self) -> Result<String, ServiceAccountError> {
         use base64::{engine::general_purpose, Engine as _};
 
-        Ok(std::str::from_utf8(
-            &general_purpose::STANDARD.decode(self.sa_creds_base64.as_bytes())?,
-        )?
-        .to_string())
+        let sa_creds_base64 = self
+            .sa_creds_base64
+            .as_ref()
+            .ok_or(ServiceAccountError::EnvVarMissing)?
+            .as_bytes();
+
+        Ok(std::str::from_utf8(&general_purpose::STANDARD.decode(sa_creds_base64)?)?.to_string())
     }
 }
 
