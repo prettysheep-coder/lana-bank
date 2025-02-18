@@ -9,4 +9,7 @@ setup_suite() {
 
 teardown_suite() {
   stop_server
+
+  lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
+  lsof -i :5254 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
 }
