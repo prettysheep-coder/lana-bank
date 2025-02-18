@@ -62,6 +62,7 @@ cvl_implied_prices as (
 
         array_agg(
             last_btc_price_usd
+            ignore nulls
             order by recorded_at desc limit 1)[
             safe_ordinal(1)
         ] as last_btc_price_usd,
