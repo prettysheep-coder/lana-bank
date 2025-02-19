@@ -1,0 +1,21 @@
+[package]
+name = "price"
+version = "0.3.98-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+core-money = { path = "../money/" }
+
+reqwest = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+cached = { workspace = true }
+
+[dev-dependencies]
