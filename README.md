@@ -106,4 +106,5 @@ git pull
 make init-bq
 ```
 
-If you are doing work that requires adding a new big query table you need to add it to `./tf/cala-setup/bq.tf`
+If you are doing work that requires adding a new big query table you need to add it to
+`./tf/cala-setup/bq.tf`
