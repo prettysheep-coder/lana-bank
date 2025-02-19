@@ -1156,6 +1156,7 @@ dependencies = [
  "strum",
  "thiserror 1.0.69",
  "tokio",
+ "tracing",
  "uuid",
 ]
 
@@ -2499,6 +2500,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
+ "tracing",
  "uuid",
 ]
 
@@ -3071,6 +3073,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tokio-stream",
+ "tracing-utils",
  "uuid",
 ]
 
