@@ -98,7 +98,7 @@ gcloud auth application-default print-access-token
 
 commands to re-run when adding new BQ tables:
 
-```
+```bash
 git checkout pre-merged-commit
 # this is important to have the previous state before pulling
 make reset-deps
