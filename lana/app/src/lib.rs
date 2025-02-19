@@ -58,7 +58,7 @@ pub mod customer_onboarding {
 }
 
 pub mod price {
-    pub use price::*;
+    pub use core_price::*;
 }
 
 pub mod job {

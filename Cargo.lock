@@ -1049,6 +1049,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-price"
+version = "0.3.98-dev"
+dependencies = [
+ "anyhow",
+ "cached 0.53.1",
+ "core-money",
+ "reqwest 0.12.9",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
 name = "core-user"
 version = "0.3.98-dev"
 dependencies = [
@@ -2554,6 +2570,7 @@ dependencies = [
  "cloud-storage",
  "core-customer",
  "core-money",
+ "core-price",
  "core-user",
  "customer-onboarding",
  "dashboard",
@@ -2572,7 +2589,6 @@ dependencies = [
  "lana-ids",
  "ory-kratos-client",
  "outbox",
- "price",
  "rand",
  "rbac-types",
  "reqwest 0.12.9",
@@ -3292,20 +3308,6 @@ checksum = "64d1ec885c64d0457d564db4ec299b2dae3f9c02808b8ad9c3a089c591b18033"
 dependencies = [
  "proc-macro2",
  "syn 2.0.90",
-]
-
-[[package]]
-name = "price"
-version = "0.3.98-dev"
-dependencies = [
- "cached 0.53.1",
- "core-money",
- "reqwest 0.12.9",
- "rust_decimal",
- "rust_decimal_macros",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
 ]
 
 [[package]]

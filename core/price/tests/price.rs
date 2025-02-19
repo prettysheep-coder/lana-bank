@@ -1,4 +1,4 @@
-use price::Price;
+use core_price::Price;
 
 #[tokio::test]
 async fn get_price() -> anyhow::Result<()> {

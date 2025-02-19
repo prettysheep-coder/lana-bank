@@ -4,12 +4,12 @@ use std::fmt;
 
 pub use core_customer::CustomerId;
 pub use core_money::*;
+pub use core_price::PriceOfOneBTC;
 pub use core_user::UserId;
 pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
-pub use price::PriceOfOneBTC;
 pub use rbac_types::{LanaRole, Role, Subject};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
