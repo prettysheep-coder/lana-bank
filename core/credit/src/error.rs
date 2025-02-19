@@ -36,8 +36,6 @@ pub enum CreditFacilityError {
     DepositAccountForHolderNotFound(DepositAccountHolderId),
     #[error("CreditFacilityError - CoreDepositError: '{0}'")]
     CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
-    #[error("CreditFacilityError - UserError: '{0}'")]
-    UserError(#[from] crate::user::error::UserError),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]

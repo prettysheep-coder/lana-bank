@@ -61,7 +61,7 @@ where
 {
     authz: Perms,
     // deposits: Deposits,
-    credit_facility_repo: CreditFacilityRepo,
+    credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
     governance: Governance<Perms, E>,
@@ -144,7 +144,7 @@ where
         );
 
         jobs.add_initializer_and_spawn_unique(
-            cvl::CreditFacilityProcessingJobInitializer::new(
+            cvl::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 credit_facility_repo.clone(),
                 price,
                 authz.audit(),
@@ -152,25 +152,24 @@ where
             cvl::CreditFacilityJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                _phantom: std::marker::PhantomData,
             },
         )
         .await?;
         jobs.add_initializer(
-            interest_incurrences::CreditFacilityProcessingJobInitializer::new(
+            interest_incurrences::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 credit_facility_repo.clone(),
                 authz.audit(),
                 jobs,
             ),
         );
-        jobs.add_initializer(
-            interest_accruals::CreditFacilityProcessingJobInitializer::new(
-                &ledger,
-                credit_facility_repo.clone(),
-                jobs,
-                authz.audit(),
-            ),
-        );
+        jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
+            Perms,
+            E,
+        >::new(
+            &ledger, credit_facility_repo.clone(), jobs, authz.audit()
+        ));
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig::<Perms, E>::new(),
@@ -226,7 +225,7 @@ where
     pub fn for_subject<'s>(
         &'s self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<CreditFacilitiesForSubject<'s>, CreditFacilityError> {
+    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CreditFacilityError> {
         let customer_id =
             CustomerId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotCustomer)?;
         Ok(CreditFacilitiesForSubject::new(
@@ -616,7 +615,11 @@ where
         CreditFacilityError,
     > {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
             .await?;
         self.credit_facility_repo
             .find_many(filter, sort.into(), query)
@@ -639,7 +642,11 @@ where
         CreditFacilityError,
     > {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
             .await?;
         self.credit_facility_repo
             .list_for_status_by_created_at(status, query, direction.into())
@@ -662,7 +669,11 @@ where
         CreditFacilityError,
     > {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
             .await?;
         self.credit_facility_repo
             .list_for_collateralization_state_by_created_at(
@@ -691,7 +702,11 @@ where
         CreditFacilityError,
     > {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
             .await?;
         self.credit_facility_repo
             .list_by_collateralization_ratio(query, direction.into())
@@ -717,7 +732,11 @@ where
         CreditFacilityError,
     > {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
             .await?;
         self.credit_facility_repo
             .list_for_status_by_collateralization_ratio(status, query, direction.into())
@@ -743,7 +762,11 @@ where
         CreditFacilityError,
     > {
         self.authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
             .await?;
         self.credit_facility_repo
             .list_for_collateralization_state_by_collateralization_ratio(
@@ -763,8 +786,8 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                Object::CreditFacility,
-                CreditFacilityAction::Complete,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_COMPLETE,
                 enforce,
             )
             .await?)

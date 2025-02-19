@@ -1,23 +1,34 @@
 use audit::AuditSvc;
+use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 
 use super::*;
 
-pub struct CreditFacilitiesForSubject<'a> {
+pub struct CreditFacilitiesForSubject<'a, Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     customer_id: CustomerId,
-    subject: &'a Subject,
-    authz: &'a Authorization,
-    credit_facilities: &'a CreditFacilityRepo,
+    subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    authz: &'a Perms,
+    credit_facilities: &'a CreditFacilityRepo<E>,
     disbursals: &'a DisbursalRepo,
     payments: &'a PaymentRepo,
 }
 
-impl<'a> CreditFacilitiesForSubject<'a> {
+impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     pub(super) fn new(
-        subject: &'a Subject,
+        subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: CustomerId,
-        authz: &'a Authorization,
-        credit_facilities: &'a CreditFacilityRepo,
+        authz: &'a Perms,
+        credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo,
         payments: &'a PaymentRepo,
     ) -> Self {
@@ -43,8 +54,8 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             .audit()
             .record_entry(
                 self.subject,
-                Object::CreditFacility,
-                CreditFacilityAction::List,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
                 true,
             )
             .await?;
@@ -58,12 +69,13 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacilityBalance, CreditFacilityError> {
-        let credit_facility = self.credit_facilities.find_by_id(id.into()).await?;
+        let id = id.into();
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
-            Object::CreditFacility,
-            CreditFacilityAction::Read,
+            CoreCreditObject::credit_facility(id),
+            CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
 
@@ -74,12 +86,13 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         &self,
         id: impl Into<CreditFacilityId>,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
-        match self.credit_facilities.find_by_id(id.into()).await {
+        let id = id.into();
+        match self.credit_facilities.find_by_id(id).await {
             Ok(cf) => {
                 self.ensure_credit_facility_access(
                     &cf,
-                    Object::CreditFacility,
-                    CreditFacilityAction::Read,
+                    CoreCreditObject::credit_facility(id.into()),
+                    CoreCreditAction::CREDIT_FACILITY_READ,
                 )
                 .await?;
                 Ok(Some(cf))
@@ -92,8 +105,8 @@ impl<'a> CreditFacilitiesForSubject<'a> {
     async fn ensure_credit_facility_access(
         &self,
         credit_facility: &CreditFacility,
-        object: Object,
-        action: CreditFacilityAction,
+        object: CoreCreditObject,
+        action: CoreCreditAction,
     ) -> Result<(), CreditFacilityError> {
         if credit_facility.customer_id != self.customer_id {
             self.authz
@@ -120,8 +133,8 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         let credit_facility = self.credit_facilities.find_by_id(id).await?;
         self.ensure_credit_facility_access(
             &credit_facility,
-            Object::CreditFacility,
-            CreditFacilityAction::ListDisbursals,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::DISBURSAL_LIST,
         )
         .await?;
 
@@ -149,8 +162,8 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,
-            Object::CreditFacility,
-            CreditFacilityAction::Read,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
 
@@ -169,8 +182,8 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,
-            Object::CreditFacility,
-            CreditFacilityAction::Read,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
 

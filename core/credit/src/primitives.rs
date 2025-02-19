@@ -100,6 +100,8 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
     pub const CREDIT_FACILITY_COMPLETE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Complete);
+    pub const CREDIT_FACILITY_UPDATE_COLLATERAL: Self =
+        CoreCreditAction::CreditFacility(CreditFacilityAction::UpdateCollateral);
     pub const CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::UpdateCollateralizationState);
 
@@ -145,6 +147,7 @@ pub enum CreditFacilityAction {
     List,
     ConcludeApprovalProcess,
     Activate,
+    UpdateCollateral,
     RecordPayment,
     RecordInterest,
     Complete,
