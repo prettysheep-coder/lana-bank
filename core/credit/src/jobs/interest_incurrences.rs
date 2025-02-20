@@ -8,8 +8,9 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    ledger::*, repo::*, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityError,
-    CreditFacilityId, CreditFacilityInterestIncurrence, InterestAccrualIdx, InterestPeriod,
+    credit_facility::CreditFacilityRepo, ledger::*, CoreCreditAction, CoreCreditError,
+    CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditFacilityInterestIncurrence,
+    InterestAccrualIdx, InterestPeriod,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -119,7 +120,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
-    ) -> Result<ConfirmedIncurrence, CreditFacilityError> {
+    ) -> Result<ConfirmedIncurrence, CoreCreditError> {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)

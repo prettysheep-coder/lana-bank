@@ -8,7 +8,7 @@ use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CreditFacilityError, interest_incurrences, ledger::CreditLedger,
+    error::CoreCreditError, interest_incurrences, ledger::CreditLedger,
     primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
     CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs,
 };
@@ -74,7 +74,7 @@ where
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let id = id.into();
         let mut credit_facility = self.credit_facility_repo.find_by_id(id).await?;
 

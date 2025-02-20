@@ -1,6 +1,9 @@
 use outbox::{Outbox, OutboxEventMarker};
 
-use super::{entity::*, error::*, event::*};
+use crate::{
+    credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
+    event::*,
+};
 
 pub struct CreditFacilityPublisher<E>
 where
@@ -30,7 +33,7 @@ where
         }
     }
 
-    pub async fn publish(
+    pub async fn publish_facility(
         &self,
         db: &mut es_entity::DbOp<'_>,
         entity: &CreditFacility,

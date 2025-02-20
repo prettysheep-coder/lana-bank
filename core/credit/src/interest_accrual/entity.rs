@@ -6,7 +6,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    entity::CreditFacilityReceivable,
+    credit_facility::CreditFacilityReceivable,
     primitives::*,
     terms::{InterestPeriod, TermValues},
     CreditFacilityInterestAccrual,

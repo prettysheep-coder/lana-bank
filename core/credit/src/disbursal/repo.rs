@@ -15,7 +15,8 @@ use super::{entity::*, error::DisbursalError};
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
         idx(ty = "DisbursalIdx", list_by, update(persist = false)),
-    )
+    ),
+    tbl_prefix = "core"
 )]
 pub struct DisbursalRepo {
     pool: PgPool,

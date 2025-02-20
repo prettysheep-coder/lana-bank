@@ -22,7 +22,7 @@ const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
     strum::Display,
     strum::EnumString,
 )]
-#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
@@ -322,7 +322,7 @@ impl InterestPeriod {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,

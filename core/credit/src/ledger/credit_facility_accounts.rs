@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as LedgerAccountId;
-use chart_of_accounts::{CoreChartOfAccounts, TransactionAccountFactory};
+use chart_of_accounts::TransactionAccountFactory;
 
 use crate::{
     // accounting_init::CreditFacilitiesAccountPaths,

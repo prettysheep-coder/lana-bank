@@ -22,6 +22,11 @@ impl<Perms, E> DisbursalApprovalJobConfig<Perms, E> {
         }
     }
 }
+impl<Perms, E> Default for DisbursalApprovalJobConfig<Perms, E> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl<Perms, E> JobConfig for DisbursalApprovalJobConfig<Perms, E>
 where
     Perms: PermissionCheck,

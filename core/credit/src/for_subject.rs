@@ -46,10 +46,8 @@ where
         &self,
         query: PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
         direction: ListDirection,
-    ) -> Result<
-        PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CreditFacilityError,
-    > {
+    ) -> Result<PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>, CoreCreditError>
+    {
         self.authz
             .audit()
             .record_entry(
@@ -60,15 +58,16 @@ where
             )
             .await?;
 
-        self.credit_facilities
+        Ok(self
+            .credit_facilities
             .list_for_credit_recipient_id_by_created_at(self.credit_recipient_id, query, direction)
-            .await
+            .await?)
     }
 
     pub async fn balance(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalance, CreditFacilityError> {
+    ) -> Result<CreditFacilityBalance, CoreCreditError> {
         let id = id.into();
         let credit_facility = self.credit_facilities.find_by_id(id).await?;
 
@@ -85,20 +84,20 @@ where
     pub async fn find_by_id(
         &self,
         id: impl Into<CreditFacilityId>,
-    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+    ) -> Result<Option<CreditFacility>, CoreCreditError> {
         let id = id.into();
         match self.credit_facilities.find_by_id(id).await {
             Ok(cf) => {
                 self.ensure_credit_facility_access(
                     &cf,
-                    CoreCreditObject::credit_facility(id.into()),
+                    CoreCreditObject::credit_facility(id),
                     CoreCreditAction::CREDIT_FACILITY_READ,
                 )
                 .await?;
                 Ok(Some(cf))
             }
             Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -107,13 +106,13 @@ where
         credit_facility: &CreditFacility,
         object: CoreCreditObject,
         action: CoreCreditAction,
-    ) -> Result<(), CreditFacilityError> {
+    ) -> Result<(), CoreCreditError> {
         if credit_facility.credit_recipient_id != self.credit_recipient_id {
             self.authz
                 .audit()
                 .record_entry(self.subject, object, action, false)
                 .await?;
-            return Err(CreditFacilityError::CreditRecipientMismatchForCreditFacility);
+            return Err(CoreCreditError::CreditRecipientMismatchForCreditFacility);
         }
 
         self.authz
@@ -128,8 +127,7 @@ where
         id: CreditFacilityId,
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         sort: impl Into<Sort<DisbursalsSortBy>>,
-    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CreditFacilityError>
-    {
+    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
         let credit_facility = self.credit_facilities.find_by_id(id).await?;
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -152,7 +150,7 @@ where
     pub async fn find_disbursal_by_concluded_tx_id(
         &self,
         tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
-    ) -> Result<Disbursal, CreditFacilityError> {
+    ) -> Result<Disbursal, CoreCreditError> {
         let tx_id = tx_id.into();
         let disbursal = self.disbursals.find_by_concluded_tx_id(Some(tx_id)).await?;
 
@@ -173,7 +171,7 @@ where
     pub async fn find_payment_by_id(
         &self,
         payment_id: impl Into<PaymentId> + std::fmt::Debug,
-    ) -> Result<Payment, CreditFacilityError> {
+    ) -> Result<Payment, CoreCreditError> {
         let payment = self.payments.find_by_id(payment_id.into()).await?;
 
         let credit_facility = self

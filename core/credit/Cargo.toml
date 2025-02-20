@@ -7,6 +7,7 @@ edition = "2021"
 
 fail-on-warnings = []
 graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
+sim-time = ["dep:sim-time", "es-entity/sim-time"]
 
 [dependencies]
 core-money = { path = "../money" }
@@ -21,7 +22,7 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 
 cala-ledger = { workspace = true }
-es-entity = { workspace = true }
+es-entity = { workspace = true, features = ["graphql"] }
 sqlx = { workspace = true }
 
 strum = { workspace = true }
@@ -38,10 +39,11 @@ rust_decimal_macros = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }
+sim-time = { workspace = true, optional = true }
 base64 = { workspace = true }
+
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
-
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rand = { workspace = true }

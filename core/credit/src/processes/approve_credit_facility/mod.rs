@@ -11,8 +11,8 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CreditFacilityError, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacility, CreditFacilityId, CreditFacilityRepo,
+    error::CoreCreditError, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacility,
+    CreditFacilityId, CreditFacilityRepo,
 };
 
 pub use job::*;
@@ -67,7 +67,7 @@ where
     pub async fn execute_from_svc(
         &self,
         credit_facility: &CreditFacility,
-    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+    ) -> Result<Option<CreditFacility>, CoreCreditError> {
         if credit_facility.is_approval_process_concluded() {
             return Ok(None);
         }
@@ -93,7 +93,7 @@ where
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
         approved: bool,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let mut credit_facility = self.repo.find_by_id(id.into()).await?;
         if credit_facility.is_approval_process_concluded() {
             return Ok(credit_facility);

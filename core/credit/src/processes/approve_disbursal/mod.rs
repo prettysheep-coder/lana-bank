@@ -12,9 +12,8 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CreditFacilityError, ledger::CreditLedger, primitives::DisbursalId,
-    repo::CreditFacilityRepo, CoreCreditAction, CoreCreditEvent, CoreCreditObject, Disbursal,
-    DisbursalRepo,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::DisbursalId,
+    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, DisbursalRepo,
 };
 
 pub use job::*;
@@ -76,7 +75,7 @@ where
     pub async fn execute_from_svc(
         &self,
         disbursal: &Disbursal,
-    ) -> Result<Option<Disbursal>, CreditFacilityError> {
+    ) -> Result<Option<Disbursal>, CoreCreditError> {
         if disbursal.is_approval_process_concluded() {
             return Ok(None);
         }
@@ -106,7 +105,7 @@ where
         &self,
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
-    ) -> Result<Disbursal, CreditFacilityError> {
+    ) -> Result<Disbursal, CoreCreditError> {
         let mut disbursal = self.disbursal_repo.find_by_id(id.into()).await?;
         let mut db = self.disbursal_repo.begin_op().await?;
         let audit_info = self

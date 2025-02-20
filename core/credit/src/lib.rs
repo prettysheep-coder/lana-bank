@@ -1,10 +1,9 @@
 mod config;
+mod credit_facility;
 mod disbursal;
-mod entity;
 pub mod error;
 mod event;
 mod for_subject;
-mod history;
 mod interest_accrual;
 mod jobs;
 pub mod ledger;
@@ -12,8 +11,6 @@ mod payment;
 mod primitives;
 mod processes;
 mod publisher;
-mod repayment_plan;
-mod repo;
 mod terms;
 mod time;
 
@@ -23,19 +20,18 @@ use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_price::Price;
-use deposit::{DepositAccount, DepositAccountHolderId};
+use deposit::DepositAccountHolderId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 pub use config::*;
+pub use credit_facility::*;
 pub use disbursal::{disbursal_cursor::*, *};
-pub use entity::*;
 use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
-pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
 pub use ledger::*;
@@ -45,14 +41,7 @@ use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
-pub use repayment_plan::*;
-use repo::CreditFacilityRepo;
-pub use repo::{
-    credit_facility_cursor::*, CreditFacilitiesSortBy, FindManyCreditFacilities, ListDirection,
-    Sort,
-};
 use terms::*;
-use time::*;
 
 pub struct CreditFacilities<Perms, E>
 where
@@ -118,7 +107,7 @@ where
         account_factories: CreditFacilityAccountFactories,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
-    ) -> Result<Self, CreditFacilityError> {
+    ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
@@ -210,7 +199,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
         Ok(self
             .authz
             .evaluate_permission(
@@ -225,13 +214,13 @@ where
     pub fn for_subject<'s>(
         &'s self,
         sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CreditFacilityError>
+    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CoreCreditError>
     where
         CreditRecipientId:
             for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let credit_recipient_id = CreditRecipientId::try_from(sub)
-            .map_err(|_| CreditFacilityError::SubjectIsNotCreditRecipient)?;
+            .map_err(|_| CoreCreditError::SubjectIsNotCreditRecipient)?;
         Ok(CreditFacilitiesForSubject::new(
             sub,
             credit_recipient_id,
@@ -252,7 +241,7 @@ where
             + Copy,
         facility: UsdCents,
         terms: TermValues,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
             .subject_can_create(sub, true)
             .await?
@@ -306,7 +295,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+    ) -> Result<Option<CreditFacility>, CoreCreditError> {
         let id = id.into();
         self.authz
             .enforce_permission(
@@ -319,7 +308,7 @@ where
         match self.credit_facility_repo.find_by_id(id).await {
             Ok(credit_facility) => Ok(Some(credit_facility)),
             Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -328,7 +317,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalance, CreditFacilityError> {
+    ) -> Result<CreditFacilityBalance, CoreCreditError> {
         let id = id.into();
         self.authz
             .enforce_permission(
@@ -347,7 +336,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
         Ok(self
             .authz
             .evaluate_permission(
@@ -366,7 +355,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<Disbursal, CreditFacilityError> {
+    ) -> Result<Disbursal, CoreCreditError> {
         let audit_info = self
             .subject_can_initiate_disbursal(sub, true)
             .await?
@@ -411,7 +400,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DisbursalId> + std::fmt::Debug,
-    ) -> Result<Option<Disbursal>, CreditFacilityError> {
+    ) -> Result<Option<Disbursal>, CoreCreditError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -431,7 +420,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
-    ) -> Result<Disbursal, CreditFacilityError> {
+    ) -> Result<Disbursal, CoreCreditError> {
         let tx_id = tx_id.into();
         let disbursal = self
             .disbursal_repo
@@ -452,14 +441,14 @@ where
     pub async fn ensure_up_to_date_disbursal_status(
         &self,
         disbursal: &Disbursal,
-    ) -> Result<Option<Disbursal>, CreditFacilityError> {
+    ) -> Result<Option<Disbursal>, CoreCreditError> {
         self.approve_disbursal.execute_from_svc(disbursal).await
     }
 
     pub async fn ensure_up_to_date_status(
         &self,
         credit_facility: &CreditFacility,
-    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+    ) -> Result<Option<CreditFacility>, CoreCreditError> {
         self.approve_credit_facility
             .execute_from_svc(credit_facility)
             .await
@@ -469,7 +458,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
         Ok(self
             .authz
             .evaluate_permission(
@@ -488,7 +477,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         updated_collateral: Satoshis,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
             .subject_can_update_collateral(sub, true)
             .await?
@@ -523,7 +512,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
         Ok(self
             .authz
             .evaluate_permission(
@@ -541,7 +530,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let mut db = self.credit_facility_repo.begin_op().await?;
 
         let audit_info = self
@@ -599,10 +588,8 @@ where
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
         filter: FindManyCreditFacilities,
         sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>,
-        CreditFacilityError,
-    > {
+    ) -> Result<es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>, CoreCreditError>
+    {
         self.authz
             .enforce_permission(
                 sub,
@@ -610,9 +597,10 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.credit_facility_repo
+        Ok(self
+            .credit_facility_repo
             .find_many(filter, sort.into(), query)
-            .await
+            .await?)
     }
 
     #[instrument(
@@ -628,7 +616,7 @@ where
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CreditFacilityError,
+        CoreCreditError,
     > {
         self.authz
             .enforce_permission(
@@ -637,9 +625,10 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.credit_facility_repo
+        Ok(self
+            .credit_facility_repo
             .list_for_status_by_created_at(status, query, direction.into())
-            .await
+            .await?)
     }
 
     #[instrument(
@@ -655,7 +644,7 @@ where
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
-        CreditFacilityError,
+        CoreCreditError,
     > {
         self.authz
             .enforce_permission(
@@ -664,13 +653,14 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.credit_facility_repo
+        Ok(self
+            .credit_facility_repo
             .list_for_collateralization_state_by_created_at(
                 collateralization_state,
                 query,
                 direction.into(),
             )
-            .await
+            .await?)
     }
 
     #[instrument(
@@ -688,7 +678,7 @@ where
             CreditFacility,
             CreditFacilitiesByCollateralizationRatioCursor,
         >,
-        CreditFacilityError,
+        CoreCreditError,
     > {
         self.authz
             .enforce_permission(
@@ -697,9 +687,10 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.credit_facility_repo
+        Ok(self
+            .credit_facility_repo
             .list_by_collateralization_ratio(query, direction.into())
-            .await
+            .await?)
     }
 
     #[instrument(
@@ -718,7 +709,7 @@ where
             CreditFacility,
             CreditFacilitiesByCollateralizationRatioCursor,
         >,
-        CreditFacilityError,
+        CoreCreditError,
     > {
         self.authz
             .enforce_permission(
@@ -727,9 +718,10 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.credit_facility_repo
+        Ok(self
+            .credit_facility_repo
             .list_for_status_by_collateralization_ratio(status, query, direction.into())
-            .await
+            .await?)
     }
 
     #[instrument(
@@ -748,7 +740,7 @@ where
             CreditFacility,
             CreditFacilitiesByCollateralizationRatioCursor,
         >,
-        CreditFacilityError,
+        CoreCreditError,
     > {
         self.authz
             .enforce_permission(
@@ -757,20 +749,21 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.credit_facility_repo
+        Ok(self
+            .credit_facility_repo
             .list_for_collateralization_state_by_collateralization_ratio(
                 collateralization_state,
                 query,
                 direction.into(),
             )
-            .await
+            .await?)
     }
 
     pub async fn subject_can_complete(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
         Ok(self
             .authz
             .evaluate_permission(
@@ -787,7 +780,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<CreditFacility, CoreCreditError> {
         let credit_facility_id = credit_facility_id.into();
 
         let audit_info = self
@@ -819,7 +812,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         payment_id: impl Into<PaymentId> + std::fmt::Debug,
-    ) -> Result<Payment, CreditFacilityError> {
+    ) -> Result<Payment, CoreCreditError> {
         let payment = self.payment_repo.find_by_id(payment_id.into()).await?;
 
         self.authz
@@ -839,8 +832,7 @@ where
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         filter: FindManyDisbursals,
         sort: impl Into<Sort<DisbursalsSortBy>>,
-    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CreditFacilityError>
-    {
+    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -859,14 +851,14 @@ where
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
-    ) -> Result<HashMap<CreditFacilityId, T>, CreditFacilityError> {
-        self.credit_facility_repo.find_all(ids).await
+    ) -> Result<HashMap<CreditFacilityId, T>, CoreCreditError> {
+        Ok(self.credit_facility_repo.find_all(ids).await?)
     }
 
     pub async fn find_all_disbursals<T: From<Disbursal>>(
         &self,
         ids: &[DisbursalId],
-    ) -> Result<HashMap<DisbursalId, T>, CreditFacilityError> {
+    ) -> Result<HashMap<DisbursalId, T>, CoreCreditError> {
         Ok(self.disbursal_repo.find_all(ids).await?)
     }
 }

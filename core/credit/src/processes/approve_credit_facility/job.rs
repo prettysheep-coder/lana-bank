@@ -22,6 +22,13 @@ impl<Perms, E> CreditFacilityApprovalJobConfig<Perms, E> {
         }
     }
 }
+
+impl<Perms, E> Default for CreditFacilityApprovalJobConfig<Perms, E> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<Perms, E> JobConfig for CreditFacilityApprovalJobConfig<Perms, E>
 where
     Perms: PermissionCheck,

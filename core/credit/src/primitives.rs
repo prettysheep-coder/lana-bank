@@ -186,7 +186,7 @@ impl From<DisbursalAction> for CoreCreditAction {
     strum::Display,
     strum::EnumString,
 )]
-#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum CreditFacilityStatus {
     #[default]
     PendingCollateralization,
@@ -197,7 +197,7 @@ pub enum CreditFacilityStatus {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum DisbursalStatus {
     New,
     Approved,
@@ -242,7 +242,7 @@ impl DisbursalIdx {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-#[cfg_attr(feature = "graphql", async_graphql::Enum)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum CollateralAction {
     Add,
     Remove,

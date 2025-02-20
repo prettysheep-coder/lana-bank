@@ -1,81 +1,35 @@
 use thiserror::Error;
 
-use core_money::{Satoshis, UsdCents};
-
-// use crate::primitives::DepositAccountHolderId;
-
 #[derive(Error, Debug)]
-pub enum CreditFacilityError {
-    #[error("CreditFacilityError - Sqlx: {0}")]
+pub enum CoreCreditError {
+    #[error("CoreCreditError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CreditFacilityError - CreditError: {0}")]
-    CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
-    #[error("CreditFacilityError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("FacilityError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("CreditFacilityError - JobError: {0}")]
-    JobError(#[from] job::error::JobError),
-    #[error("CreditFacilityError - GovernanceError: {0}")]
-    GovernanceError(#[from] governance::error::GovernanceError),
-    #[error("CreditFacilityError - PriceError: {0}")]
-    PriceError(#[from] core_price::error::PriceError),
-    #[error("CreditFacilityError - AuthorizationError: {0}")]
-    AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("CreditFacilityError - AuditError: {0}")]
+    #[error("CoreCreditError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("CreditFacilityError - ConversionError: {0}")]
-    ConversionError(#[from] crate::primitives::ConversionError),
-    #[error("CreditFacilityError - DisbursalError: {0}")]
-    DisbursalError(#[from] super::disbursal::error::DisbursalError),
-    #[error("CreditFacilityError - PaymentError: {0}")]
+    #[error("CoreCreditError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CoreCreditError - CreditError: {0}")]
+    CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
+    #[error("CoreCreditError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
+    #[error("CoreCreditError - PaymentError: {0}")]
+    CoreCreditError(#[from] super::credit_facility::error::CreditFacilityError),
+    #[error("CoreCreditError - PaymentError: {0}")]
     PaymentError(#[from] super::payment::error::PaymentError),
-    #[error("CreditFacilityError - InterestAccrualError: {0}")]
+    #[error("CoreCreditError - DisbursalError: {0}")]
+    DisbursalError(#[from] super::disbursal::error::DisbursalError),
+    #[error("CoreCreditError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
-    // #[error("CreditFacilityError - DepositAccountForHolderNotFound: {0}")]
-    // DepositAccountForHolderNotFound(DepositAccountHolderId),
-    // #[error("CreditFacilityError - CoreDepositError: '{0}'")]
-    // CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
-    #[error("CreditFacilityError - ApprovalInProgress")]
-    ApprovalInProgress,
-    #[error("CreditFacilityError - Denied")]
-    Denied,
-    #[error("CreditFacilityError - DisbursalExpiryDate")]
-    DisbursalPastExpiryDate,
-    #[error("CreditFacilityError - NotActivatedYet")]
-    NotActivatedYet,
-    #[error("CreditFacilityError - InterestAccrualNotCompletedYet")]
-    InterestAccrualNotCompletedYet,
-    #[error("CreditFacilityError - NoDisbursalInProgress")]
-    NoDisbursalInProgress,
-    #[error("CreditFacilityError - CollateralNotUpdated: before({0}), after({1})")]
-    CollateralNotUpdated(Satoshis, Satoshis),
-    #[error("CreditFacilityError - NoCollateral")]
-    NoCollateral,
-    #[error("CreditFacilityError - BelowMarginLimit")]
-    BelowMarginLimit,
-    #[error("CreditFacilityError - PaymentExceedsOutstandingCreditFacilityAmount: {0} > {1}")]
-    PaymentExceedsOutstandingCreditFacilityAmount(UsdCents, UsdCents),
-    #[error("CreditFacilityError - FacilityLedgerBalanceMismatch")]
-    FacilityLedgerBalanceMismatch,
-    #[error("CreditFacilityError - OutstandingAmount")]
-    OutstandingAmount,
-    #[error("CreditFacilityError - AlreadyCompleted")]
-    AlreadyCompleted,
-    #[error("CreditFacilityError - InterestAccrualInProgress")]
-    InterestAccrualInProgress,
-    #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
-    InterestAccrualWithInvalidFutureStartDate,
-    #[error("CreditFacilityError - SubjectIsNotUser")]
-    SubjectIsNotUser,
+    #[error("CoreCreditError - PriceError: {0}")]
+    PriceError(#[from] core_price::error::PriceError),
+    #[error("CoreCreditError - GovernanceError: {0}")]
+    GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreCreditError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
+    #[error("CoreCreditError - CreditRecipientMismatchForCreditFacility")]
+    CreditRecipientMismatchForCreditFacility,
     #[error("CreditFacilityError - SubjectIsNotCreditRecipientId")]
     SubjectIsNotCreditRecipient,
-    #[error(
-        "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
-    )]
-    DisbursalAmountTooLarge(UsdCents, UsdCents),
-    #[error("CreditFacilityError - CreditRecipientMismatchForCreditFacility")]
-    CreditRecipientMismatchForCreditFacility,
 }
 
-es_entity::from_es_entity_error!(CreditFacilityError);
+es_entity::from_es_entity_error!(CoreCreditError);
