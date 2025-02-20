@@ -224,13 +224,17 @@ where
 
     pub fn for_subject<'s>(
         &'s self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CreditFacilityError> {
-        let customer_id =
-            CustomerId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotCustomer)?;
+        sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<CreditFacilitiesForSubject<'s, Perms, E>, CreditFacilityError>
+    where
+        CreditRecipientId:
+            for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
+        let credit_recipient_id = CreditRecipientId::try_from(sub)
+            .map_err(|_| CreditFacilityError::SubjectIsNotCreditRecipient)?;
         Ok(CreditFacilitiesForSubject::new(
             sub,
-            customer_id,
+            credit_recipient_id,
             &self.authz,
             &self.credit_facility_repo,
             &self.disbursal_repo,
@@ -242,7 +246,10 @@ where
     pub async fn initiate(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + Into<DepositAccountHolderId> + std::fmt::Debug + Copy,
+        credit_recipient_id: impl Into<CreditRecipientId>
+            + Into<DepositAccountHolderId>
+            + std::fmt::Debug
+            + Copy,
         facility: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CreditFacilityError> {
@@ -251,33 +258,15 @@ where
             .await?
             .expect("audit info missing");
 
-        let deposit_accounts: Vec<DepositAccount> = self
-            .deposits
-            .list_accounts_by_created_at_for_account_holder(
-                sub,
-                customer_id,
-                Default::default(),
-                ListDirection::Descending,
-            )
-            .await?
-            .entities
-            .into_iter()
-            .map(DepositAccount::from)
-            .collect();
-
-        let deposit_account = deposit_accounts.first().ok_or(
-            CreditFacilityError::DepositAccountForHolderNotFound(customer_id.into()),
-        )?;
-
         let id = CreditFacilityId::new();
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .approval_process_id(id)
-            .customer_id(customer_id)
+            .credit_recipient_id(credit_recipient_id)
             .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
-            .deposit_account_id(deposit_account.id)
+            .deposit_account_id(uuid::Uuid::new_v4())
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");

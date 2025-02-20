@@ -20,7 +20,7 @@ use super::{
     entity = "CreditFacility",
     err = "CreditFacilityError",
     columns(
-        customer_id(ty = "CustomerId", list_for, update(persist = false)),
+        credit_recipient_id(ty = "CreditRecipientId", list_for, update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateralization_ratio(
             ty = "Option<Decimal>",

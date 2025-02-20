@@ -14,20 +14,21 @@ pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
 
 es_entity::entity_id! {
-CreditFacilityId,
-DisbursalId,
-PaymentId,
-InterestAccrualId;
+    CreditFacilityId,
+    CreditRecipientId,
+    DisbursalId,
+    PaymentId,
+    InterestAccrualId;
 
-CreditFacilityId => governance::ApprovalProcessId,
-DisbursalId => governance::ApprovalProcessId,
+    CreditFacilityId => governance::ApprovalProcessId,
+    DisbursalId => governance::ApprovalProcessId,
 
 
-CreditFacilityId => job::JobId,
-InterestAccrualId => job::JobId,
+    CreditFacilityId => job::JobId,
+    InterestAccrualId => job::JobId,
 
-DisbursalId => LedgerTxId,
-PaymentId => LedgerTxId,
+    DisbursalId => LedgerTxId,
+    PaymentId => LedgerTxId,
 }
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;

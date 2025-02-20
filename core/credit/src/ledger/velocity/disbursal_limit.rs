@@ -10,7 +10,7 @@ impl DisbursalLimit {
     #[instrument(name = "ledger.disbursal_limit.init", skip_all)]
     pub async fn init(
         ledger: &CalaLedger,
-    ) -> Result<VelocityLimitId, crate::credit_facility::ledger::CreditLedgerError> {
+    ) -> Result<VelocityLimitId, crate::ledger::CreditLedgerError> {
         let limit = NewVelocityLimit::builder()
             .id(DISBURSAL_LIMIT_ID)
             .name("Disbursal Limit")

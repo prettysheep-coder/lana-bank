@@ -22,11 +22,11 @@ use super::{
 pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
-        customer_id: CustomerId,
+        credit_recipient_id: CreditRecipientId,
         terms: TermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        deposit_account_id: DepositAccountId,
+        deposit_account_id: uuid::Uuid,
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
@@ -316,10 +316,10 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
 pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub approval_process_id: ApprovalProcessId,
-    pub customer_id: CustomerId,
+    pub credit_recipient_id: CreditRecipientId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
-    pub deposit_account_id: DepositAccountId,
+    pub deposit_account_id: uuid::Uuid,
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -1114,7 +1114,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
             match event {
                 CreditFacilityEvent::Initialized {
                     id,
-                    customer_id,
+                    credit_recipient_id,
                     account_ids,
                     deposit_account_id,
                     terms: t,
@@ -1124,7 +1124,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     terms = Some(*t);
                     builder = builder
                         .id(*id)
-                        .customer_id(*customer_id)
+                        .credit_recipient_id(*credit_recipient_id)
                         .terms(*t)
                         .account_ids(*account_ids)
                         .deposit_account_id(*deposit_account_id)
@@ -1160,7 +1160,7 @@ pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
-    pub(super) customer_id: CustomerId,
+    pub(super) credit_recipient_id: CreditRecipientId,
     terms: TermValues,
     facility: UsdCents,
     #[builder(setter(skip), default)]
@@ -1168,7 +1168,7 @@ pub struct NewCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityAccountIds,
-    deposit_account_id: DepositAccountId,
+    deposit_account_id: uuid::Uuid,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -1186,7 +1186,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
             [CreditFacilityEvent::Initialized {
                 id: self.id,
                 audit_info: self.audit_info.clone(),
-                customer_id: self.customer_id,
+                credit_recipient_id: self.credit_recipient_id,
                 terms: self.terms,
                 facility: self.facility,
                 account_ids: self.account_ids,
@@ -1255,7 +1255,7 @@ mod test {
         vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
             audit_info: dummy_audit_info(),
-            customer_id: CustomerId::new(),
+            credit_recipient_id: CustomerId::new(),
             facility: default_facility(),
             terms: default_terms(),
             account_ids: CreditFacilityAccountIds::new(),
@@ -1940,11 +1940,11 @@ mod test {
             let new_credit_facility = NewCreditFacility::builder()
                 .id(id)
                 .approval_process_id(id)
-                .customer_id(CustomerId::new())
+                .credit_recipient_id(CreditRecipientId::new())
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())
-                .deposit_account_id(DepositAccountId::new())
+                .deposit_account_id(uuid::Uuid::new_v4())
                 .audit_info(dummy_audit_info())
                 .build()
                 .expect("could not build new credit facility");

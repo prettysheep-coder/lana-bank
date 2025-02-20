@@ -32,10 +32,10 @@ pub enum CreditFacilityError {
     PaymentError(#[from] super::payment::error::PaymentError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
-    #[error("CreditFacilityError - DepositAccountForHolderNotFound: {0}")]
-    DepositAccountForHolderNotFound(DepositAccountHolderId),
-    #[error("CreditFacilityError - CoreDepositError: '{0}'")]
-    CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
+    // #[error("CreditFacilityError - DepositAccountForHolderNotFound: {0}")]
+    // DepositAccountForHolderNotFound(DepositAccountHolderId),
+    // #[error("CreditFacilityError - CoreDepositError: '{0}'")]
+    // CoreDepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
@@ -68,14 +68,14 @@ pub enum CreditFacilityError {
     InterestAccrualWithInvalidFutureStartDate,
     #[error("CreditFacilityError - SubjectIsNotUser")]
     SubjectIsNotUser,
-    #[error("CreditFacilityError - SubjectIsNotCustomer")]
-    SubjectIsNotCustomer,
+    #[error("CreditFacilityError - SubjectIsNotCreditRecipientId")]
+    SubjectIsNotCreditRecipient,
     #[error(
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]
     DisbursalAmountTooLarge(UsdCents, UsdCents),
-    #[error("CreditFacilityError - CustomerMismatchForCreditFacility")]
-    CustomerMismatchForCreditFacility,
+    #[error("CreditFacilityError - CreditRecipientMismatchForCreditFacility")]
+    CreditRecipientMismatchForCreditFacility,
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

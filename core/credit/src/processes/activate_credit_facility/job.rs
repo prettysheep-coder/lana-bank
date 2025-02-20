@@ -122,7 +122,7 @@ where
             match message.as_ref().as_event() {
                 Some(CoreCreditEvent::FacilityCollateralUpdated { id, .. })
                 | Some(CoreCreditEvent::FacilityApproved { id, .. }) => {
-                    self.process.execute(id).await?;
+                    self.process.execute(*id).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }

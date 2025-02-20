@@ -137,7 +137,7 @@ where
                     ref process_type,
                     ..
                 }) if process_type == &super::APPROVE_DISBURSAL_PROCESS => {
-                    self.process.execute(id, approved).await?;
+                    self.process.execute(*id, *approved).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }

@@ -18,7 +18,7 @@ pub enum DisbursalEvent {
         idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        deposit_account_id: DepositAccountId,
+        deposit_account_id: uuid::Uuid,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -45,7 +45,7 @@ pub struct Disbursal {
     pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
-    pub deposit_account_id: DepositAccountId,
+    pub deposit_account_id: uuid::Uuid,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
     pub(super) events: EntityEvents<DisbursalEvent>,
@@ -182,7 +182,7 @@ pub struct NewDisbursal {
     pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
-    pub(super) deposit_account_id: DepositAccountId,
+    pub(super) deposit_account_id: uuid::Uuid,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
