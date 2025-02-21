@@ -88,8 +88,8 @@ plugins:
       user: MELTANO_USER
       role: MELTANO_ROLE
       warehouse: MELTANO_WAREHOUSE
-      schema: MELTANO_SCHEMA
-      default_target_schema: MELTANO_SCHEMA
+      schema: RAW_SCHEMA
+      default_target_schema: RAW_SCHEMA
       flattening_enabled: true
       flattening_max_depth: 10
   transformers:
