@@ -79,6 +79,19 @@ plugins:
     config:
       project: lana-dev-440721
       generate_view: true
+  - name: target-snowflake
+    variant: meltanolabs
+    pip_url: meltanolabs-target-snowflake
+    config:
+      account: cdagppu-sy37948
+      database: MELTANO_DATABASE
+      user: MELTANO_USER
+      role: MELTANO_ROLE
+      warehouse: MELTANO_WAREHOUSE
+      schema: MELTANO_SCHEMA
+      default_target_schema: MELTANO_SCHEMA
+      flattening_enabled: true
+      flattening_max_depth: 10
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
