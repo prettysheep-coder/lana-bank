@@ -248,6 +248,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
+        disbursal_credit_account_id: impl Into<DisbursalCreditAccountId> + std::fmt::Debug,
         facility: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CoreCreditError> {
@@ -275,7 +276,7 @@ where
             .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
-            .deposit_account_id(uuid::Uuid::new_v4())
+            .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");
@@ -594,7 +595,7 @@ where
                 payment.ledger_tx_ref,
                 payment.amounts,
                 payment.account_ids,
-                payment.deposit_account_id.into(),
+                payment.disbursal_credit_account_id.into(),
             )
             .await?;
 

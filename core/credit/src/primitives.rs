@@ -18,17 +18,20 @@ es_entity::entity_id! {
     CreditFacilityId,
     DisbursalId,
     PaymentId,
-    InterestAccrualId;
+    InterestAccrualId,
+    DisbursalCreditAccountId;
 
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
 
+    deposit::DepositAccountId => DisbursalCreditAccountId,
 
     CreditFacilityId => job::JobId,
     InterestAccrualId => job::JobId,
 
     DisbursalId => LedgerTxId,
     PaymentId => LedgerTxId,
+    DisbursalCreditAccountId => LedgerAccountId,
 }
 
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
