@@ -991,6 +991,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-credit"
+version = "0.3.108-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "base64 0.22.1",
+ "cala-ledger",
+ "chart-of-accounts",
+ "chrono",
+ "core-customer",
+ "core-money",
+ "core-price",
+ "deposit",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "governance",
+ "job",
+ "outbox",
+ "rand",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "sim-time",
+ "sqlx",
+ "strum",
+ "thiserror 1.0.69",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "core-customer"
 version = "0.3.108-dev"
 dependencies = [
@@ -1114,44 +1152,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a97769d94ddab943e4510d138150169a2758b5ef3eb191a9ee688de3e23ef7b3"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "credit"
-version = "0.3.108-dev"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-trait",
- "audit",
- "authz",
- "base64 0.22.1",
- "cala-ledger",
- "chart-of-accounts",
- "chrono",
- "core-customer",
- "core-money",
- "core-price",
- "deposit",
- "derive_builder",
- "es-entity",
- "futures",
- "governance",
- "job",
- "outbox",
- "rand",
- "rust_decimal",
- "rust_decimal_macros",
- "serde",
- "serde_json",
- "serde_with",
- "sim-time",
- "sqlx",
- "strum",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -2608,6 +2608,7 @@ dependencies = [
  "chrono",
  "clap",
  "cloud-storage",
+ "core-credit",
  "core-customer",
  "core-money",
  "core-price",
@@ -2675,13 +2676,11 @@ dependencies = [
 name = "lana-events"
 version = "0.3.108-dev"
 dependencies = [
- "chrono",
+ "core-credit",
  "core-customer",
- "core-money",
  "core-user",
  "deposit",
  "governance",
- "lana-ids",
  "outbox",
  "serde",
 ]
@@ -3625,6 +3624,7 @@ dependencies = [
  "audit",
  "authz",
  "chart-of-accounts",
+ "core-credit",
  "core-customer",
  "core-user",
  "dashboard",

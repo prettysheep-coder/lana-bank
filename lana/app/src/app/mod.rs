@@ -138,7 +138,7 @@ impl LanaApp {
             &governance,
             &jobs,
             &authz,
-            &deposits,
+            &customers,
             &price,
             &outbox,
             charts_init.credit_facilities.factories,
