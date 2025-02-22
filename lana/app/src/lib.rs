@@ -7,7 +7,7 @@ pub mod applicant;
 pub mod authorization;
 pub mod balance_sheet;
 pub mod cash_flow;
-pub mod credit_facility;
+// pub mod credit_facility;
 pub mod document;
 pub mod primitives;
 pub mod profit_and_loss;
@@ -101,4 +101,16 @@ pub mod chart_of_accounts {
 
     pub type ChartOfAccounts =
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
+}
+
+pub mod credit_facility {
+    pub use core_credit::{
+        error, CreditFacility, CreditFacilityAccountFactories, CreditFacilityBalance,
+        CreditFacilityConfig, CreditFacilityHistoryEntry, Disbursal, DisbursalsSortBy,
+        ListDirection, Payment, RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS,
+        APPROVE_DISBURSAL_PROCESS,
+    };
+
+    pub type CreditFacilities =
+        core_credit::CreditFacilities<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
