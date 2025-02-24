@@ -48,7 +48,7 @@ const Login: React.FC = () => {
           defaultValue={email}
           onChange={setEmail}
         />
-        <Button type="submit" disabled={isLoading} loading={isLoading}>
+        <Button type="submit" loading={isLoading}>
           Submit
         </Button>
         {error && <div className="text-destructive">{error}</div>}
