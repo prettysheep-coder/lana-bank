@@ -252,7 +252,7 @@ where
             .await?
             .expect("audit info missing");
 
-        if self.config.sumsub_enabled
+        if self.config.customer_active_check_enabled
             && self
                 .customer
                 .find_by_id(sub, customer_id)
