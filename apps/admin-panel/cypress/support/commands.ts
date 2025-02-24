@@ -71,7 +71,9 @@ interface CustomerCreateResponse {
 }
 interface CustomerQueryResponse {
   data: {
-    customer: Customer
+    customer: {
+      customer: Customer
+    }
   }
 }
 
