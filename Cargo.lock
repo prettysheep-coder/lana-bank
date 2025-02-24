@@ -1091,7 +1091,7 @@ dependencies = [
  "anyhow",
  "cached 0.53.1",
  "core-money",
- "reqwest 0.12.9",
+ "reqwest 0.12.12",
  "rust_decimal",
  "rust_decimal_macros",
  "serde",

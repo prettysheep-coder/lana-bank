@@ -5,7 +5,7 @@ mod repayment_plan;
 mod repo;
 
 pub(crate) use entity::*;
-pub use entity::{CreditFacility, CreditFacilityBalance};
+pub use entity::{CreditFacility, CreditFacilityBalance, FacilityCVL};
 pub use history::*;
 pub use repayment_plan::*;
 pub use repo::{

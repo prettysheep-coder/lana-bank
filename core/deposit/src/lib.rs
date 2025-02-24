@@ -439,6 +439,28 @@ where
         }
     }
 
+    #[instrument(name = "deposit.find_deposit_by_id", skip(self), err)]
+    pub async fn find_deposit_account_by_holder_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        match self.accounts.find_by_account_holder_id(id).await {
+            Ok(deposit) => Ok(Some(deposit)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     #[instrument(name = "deposit.find_withdrawal_by_id", skip(self), err)]
     pub async fn find_withdrawal_by_id(
         &self,
