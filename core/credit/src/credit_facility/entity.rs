@@ -732,7 +732,7 @@ impl CreditFacility {
         Ok(interest_accrual)
     }
 
-    pub(crate) fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
+    pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
         if let Some(id) = self
             .events
             .iter_all()
@@ -794,7 +794,11 @@ impl CreditFacility {
         }
     }
 
-    fn collateral(&self) -> Satoshis {
+    pub fn can_be_completed(&self) -> bool {
+        self.outstanding().is_zero()
+    }
+
+    pub fn collateral(&self) -> Satoshis {
         self.events
             .iter_all()
             .rev()
@@ -864,7 +868,7 @@ impl CreditFacility {
             .count()
     }
 
-    pub(super) fn last_collateralization_state(&self) -> CollateralizationState {
+    pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
         }

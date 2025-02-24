@@ -7,7 +7,6 @@ pub mod applicant;
 pub mod authorization;
 pub mod balance_sheet;
 pub mod cash_flow;
-// pub mod credit_facility;
 pub mod document;
 pub mod primitives;
 pub mod profit_and_loss;
@@ -15,15 +14,12 @@ pub mod report;
 pub mod service_account;
 pub mod statement;
 pub mod storage;
-pub mod terms;
 pub mod terms_template;
-mod time;
 pub mod trial_balance;
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;
 }
-
 pub mod dashboard {
     pub type Dashboard = dashboard::Dashboard<crate::authorization::Authorization>;
     pub use dashboard::DashboardValues;
@@ -105,12 +101,23 @@ pub mod chart_of_accounts {
 
 pub mod credit_facility {
     pub use core_credit::{
-        error, CreditFacility, CreditFacilityAccountFactories, CreditFacilityBalance,
-        CreditFacilityConfig, CreditFacilityHistoryEntry, Disbursal, DisbursalsSortBy,
-        ListDirection, Payment, RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS,
-        APPROVE_DISBURSAL_PROCESS,
+        error, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent,
+        CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility,
+        CreditFacilityAccountFactories, CreditFacilityBalance, CreditFacilityConfig,
+        CreditFacilityHistoryEntry, CreditFacilityOrigination, CreditFacilityRepaymentInPlan,
+        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
+        DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities, FindManyDisbursals,
+        IncrementalPayment, InterestAccrued, ListDirection, Payment, RepaymentStatus, Sort,
+        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
 
     pub type CreditFacilities =
         core_credit::CreditFacilities<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
+
+pub mod terms {
+    pub use core_credit::{
+        AnnualRatePct, CVLPct, CollateralizationState, Duration, InterestInterval,
+        OneTimeFeeRatePct, TermValues,
+    };
 }

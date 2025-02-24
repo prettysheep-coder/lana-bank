@@ -41,7 +41,7 @@ use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
-use terms::*;
+pub use terms::*;
 
 pub struct CreditFacilities<Perms, E>
 where
@@ -257,16 +257,16 @@ where
             .await?
             .expect("audit info missing");
 
-        if self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerMismatchForCreditFacility)?
-            .status
-            .is_inactive()
-        {
-            return Err(CoreCreditError::CustomerNotActive);
-        }
+        // if self
+        //     .customer
+        //     .find_by_id(sub, customer_id)
+        //     .await?
+        //     .ok_or(CoreCreditError::CustomerMismatchForCreditFacility)?
+        //     .status
+        //     .is_inactive()
+        // {
+        //     return Err(CoreCreditError::CustomerNotActive);
+        // }
 
         let id = CreditFacilityId::new();
         let new_credit_facility = NewCreditFacility::builder()
