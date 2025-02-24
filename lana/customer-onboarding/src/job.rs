@@ -188,10 +188,14 @@ where
             message.inject_trace_parent();
             let description = &format!("Deposit Account for Customer {}", id);
             let account_ref = &format!("deposit-customer-account:{}", id);
-            self.deposit
+            match self.deposit
                 .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
                 "customer-deposits", description)
-                .await?;
+                .await {
+                Ok(_) => {}
+                Err(e) if e.is_account_already_exists() => {},
+                Err(e) => return Err(e.into()),
+                }
 
             let authentication_id = self
                 .kratos_admin
