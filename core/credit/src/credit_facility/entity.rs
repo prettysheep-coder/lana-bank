@@ -25,7 +25,7 @@ pub enum CreditFacilityEvent {
         terms: TermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        disbursal_credit_account_id: DisbursalCreditAccountId,
+        disbursal_credit_account_id: LedgerAccountId,
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
@@ -318,7 +318,7 @@ pub struct CreditFacility {
     pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
-    pub disbursal_credit_account_id: DisbursalCreditAccountId,
+    pub disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -548,7 +548,7 @@ impl CreditFacility {
             tx_id,
             tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.disbursal_credit_account_id.into(),
+            debit_account_id: self.disbursal_credit_account_id,
             facility_amount: self.initial_facility(),
             structuring_fee_amount: self.structuring_fee(),
         };
@@ -1167,7 +1167,7 @@ pub struct NewCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityAccountIds,
-    disbursal_credit_account_id: DisbursalCreditAccountId,
+    disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -1258,7 +1258,7 @@ mod test {
             facility: default_facility(),
             terms: default_terms(),
             account_ids: CreditFacilityAccountIds::new(),
-            disbursal_credit_account_id: DisbursalCreditAccountId::new(),
+            disbursal_credit_account_id: LedgerAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
         }]
     }
@@ -1943,7 +1943,7 @@ mod test {
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())
-                .disbursal_credit_account_id(DisbursalCreditAccountId::new())
+                .disbursal_credit_account_id(LedgerAccountId::new())
                 .audit_info(dummy_audit_info())
                 .build()
                 .expect("could not build new credit facility");

@@ -243,7 +243,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
-        disbursal_credit_account_id: impl Into<DisbursalCreditAccountId> + std::fmt::Debug,
+        disbursal_credit_account_id: impl Into<LedgerAccountId> + std::fmt::Debug,
         facility: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CoreCreditError> {
@@ -590,7 +590,7 @@ where
                 payment.ledger_tx_ref,
                 payment.amounts,
                 payment.account_ids,
-                payment.disbursal_credit_account_id.into(),
+                payment.disbursal_credit_account_id,
             )
             .await?;
 

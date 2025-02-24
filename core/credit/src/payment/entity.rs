@@ -18,7 +18,7 @@ pub enum PaymentEvent {
         facility_id: CreditFacilityId,
         amounts: CreditFacilityPaymentAmounts,
         account_ids: CreditFacilityAccountIds,
-        disbursal_credit_account_id: DisbursalCreditAccountId,
+        disbursal_credit_account_id: LedgerAccountId,
         audit_info: AuditInfo,
     },
 }
@@ -32,7 +32,7 @@ pub struct Payment {
     pub facility_id: CreditFacilityId,
     pub amounts: CreditFacilityPaymentAmounts,
     pub account_ids: CreditFacilityAccountIds,
-    pub disbursal_credit_account_id: DisbursalCreditAccountId,
+    pub disbursal_credit_account_id: LedgerAccountId,
 
     pub(super) events: EntityEvents<PaymentEvent>,
 }
@@ -87,7 +87,7 @@ pub struct NewPayment {
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amounts: CreditFacilityPaymentAmounts,
     pub(super) account_ids: CreditFacilityAccountIds,
-    pub(super) disbursal_credit_account_id: DisbursalCreditAccountId,
+    pub(super) disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }

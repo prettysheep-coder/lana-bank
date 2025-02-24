@@ -226,7 +226,7 @@ mod tests {
                 facility: UsdCents::from(1_000_000),
                 terms: terms(),
                 audit_info: dummy_audit_info(),
-                disbursal_credit_account_id: DisbursalCreditAccountId::new(),
+                disbursal_credit_account_id: LedgerAccountId::new(),
                 approval_process_id: ApprovalProcessId::new(),
             },
             CreditFacilityEvent::Activated {
