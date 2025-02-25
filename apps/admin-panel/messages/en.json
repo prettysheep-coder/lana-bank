@@ -564,5 +564,114 @@
         }
       }
     }
+  },
+  "TermsTemplates": {
+    "title": "Terms Templates",
+    "description": "Terms templates that can be used with loans and credit facilities",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "duration": "Duration",
+        "annualRate": "Annual Rate",
+        "initialCvl": "Initial CVL",
+        "marginCallCvl": "Margin Call CVL",
+        "liquidationCvl": "Liquidation CVL"
+      }
+    },
+    "errors": {
+      "general": "An error occurred"
+    },
+    "TermsTemplateDetails": {
+      "DetailsCard": {
+        "title": "Terms Template",
+        "fields": {
+          "name": "Name",
+          "createdAt": "Created At",
+          "duration": "Duration",
+          "accrualInterval": "Accrual Interval",
+          "incurrenceInterval": "Incurrence Interval",
+          "annualRate": "Annual Rate",
+          "initialCvl": "Initial CVL (%)",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+        },
+        "buttons": {
+          "update": "Update"
+        }
+      },
+      "UpdateTermsTemplate": {
+        "title": "Update {name}",
+        "description": "Update the Terms Template by modifying the required information.",
+        "fields": {
+          "annualRate": "Interest Rate (APR)",
+          "duration": "Duration",
+          "accrualInterval": "Accrual Interval",
+          "incurrenceInterval": "Incurrence Interval",
+          "initialCvl": "Initial CVL (%)",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+        },
+        "placeholders": {
+          "annualRate": "Enter the annual rate",
+          "durationUnits": "Duration",
+          "durationPeriod": "Select period",
+          "accrualInterval": "Select accrual interval",
+          "incurrenceInterval": "Select incurrence interval",
+          "initialCvl": "Enter the initial CVL",
+          "marginCallCvl": "Enter the margin call CVL",
+          "liquidationCvl": "Enter the liquidation CVL",
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate"
+        },
+        "buttons": {
+          "submit": "Update Terms Template"
+        },
+        "errors": {
+          "general": "An unexpected error occurred. Please try again.",
+          "updateFailed": "Failed to update Terms Template"
+        },
+        "success": {
+          "updated": "Terms Template updated successfully"
+        }
+      },
+      "CreateTermsTemplate": {
+        "title": "Create Terms Template",
+        "description": "Create a new Terms Template by providing the required information.",
+        "fields": {
+          "name": "Template Name",
+          "annualRate": "Interest Rate (APR)",
+          "duration": "Duration",
+          "accrualInterval": "Accrual Interval",
+          "incurrenceInterval": "Incurrence Interval",
+          "initialCvl": "Initial CVL (%)",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+        },
+        "placeholders": {
+          "name": "Enter the template name",
+          "annualRate": "Enter the annual rate",
+          "durationUnits": "Duration",
+          "durationPeriod": "Select period",
+          "initialCvl": "Enter the initial CVL",
+          "marginCallCvl": "Enter the margin call CVL",
+          "liquidationCvl": "Enter the liquidation CVL",
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate",
+          "accrualInterval": "Select accrual interval",
+          "incurrenceInterval": "Select incurrence interval"
+        },
+        "buttons": {
+          "submit": "Create Terms Template"
+        },
+        "errors": {
+          "general": "An unexpected error occurred. Please try again.",
+          "creationFailed": "Failed to create Terms Template"
+        },
+        "success": {
+          "created": "Terms Template created successfully"
+        }
+      }
+    }
   }
 }
