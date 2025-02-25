@@ -257,7 +257,7 @@ where
                 .customer
                 .find_by_id(sub, customer_id)
                 .await?
-                .ok_or(CoreCreditError::CustomerMismatchForCreditFacility)?
+                .ok_or(CoreCreditError::CustomerNotFound(customer_id.into()))?
                 .status
                 .is_inactive()
         {
