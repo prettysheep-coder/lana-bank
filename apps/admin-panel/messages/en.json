@@ -269,7 +269,239 @@
       }
     },
     "errors": {
-      "fetchError": "An error occurred while fetching data."
+      "fetchError": "An error occurred while fetching data.",
+      "general": "An error occurred"
+    },
+    "CreditFacilityDetails": {
+      "RepaymentPlan": {
+        "title": "Repayment Plan",
+        "description": "Repayment plan associated with this credit facility",
+        "columns": {
+          "type": "Type",
+          "initialAmount": "Initial Amount",
+          "outstanding": "Outstanding",
+          "dueDate": "Due Date",
+          "status": "Status"
+        },
+        "messages": {
+          "emptyTable": "No Plan found"
+        },
+        "repaymentTypes": {
+          "principal": "Principal",
+          "interest": "Interest"
+        },
+        "status": {
+          "upcoming": "UPCOMING",
+          "due": "DUE",
+          "overdue": "OVERDUE",
+          "paid": "PAID"
+        }
+      },
+      "Disbursals": {
+        "title": "Disbursals",
+        "description": "Disbursals associated with this credit facility",
+        "columns": {
+          "amount": "Amount",
+          "createdAt": "Created At",
+          "status": "Status"
+        },
+        "messages": {
+          "emptyTable": "No disbursals found"
+        }
+      },
+      "Transactions": {
+        "title": "Transactions",
+        "description": "Credit Facility Transactions",
+        "columns": {
+          "transactionType": "Transaction Type",
+          "recordedAt": "Recorded At",
+          "amount": "Amount"
+        },
+        "messages": {
+          "unknownType": "Unknown Transaction Type",
+          "emptyTable": "No transactions found"
+        }
+      },
+      "TermsDialog": {
+        "title": "Terms",
+        "details": {
+          "duration": "Duration",
+          "interestRate": "Interest (APR)",
+          "accrualInterval": "Accrual Interval",
+          "targetCvl": "Target/initial CVL %",
+          "marginCallCvl": "Margin call CVL %",
+          "liquidationCvl": "Liquidation CVL %",
+          "dateCreated": "Date created",
+          "incurrenceInterval": "Incurrence Interval",
+          "structuringFeeRate": "Structuring Fee Rate"
+        }
+      },
+      "CollateralCard": {
+        "title": "Collateral",
+        "details": {
+          "collateralBalance": "Collateral balance (BTC)",
+          "currentPrice": "Current BTC/USD Price",
+          "collateralValue": "Collateral value (USD)",
+          "marginCallPrice": "Margin Call Price BTC/USD ({percentage}%)",
+          "liquidationPrice": "Liquidation Price BTC/USD ({percentage}%)",
+          "collateralToReachTarget": "Collateral to reach target ({percentage}%)",
+          "currentCvl": "Current CVL"
+        },
+        "status": {
+          "moderate": "Moderate",
+          "high": "High",
+          "critical": "Critical"
+        }
+      },
+      "FacilityCard": {
+        "title": "Facility",
+        "details": {
+          "facilityAmount": "Facility Amount",
+          "facilityRemaining": "Facility Remaining",
+          "disbursedOutstanding": "Disbursed and Outstanding",
+          "outstandingInterest": "Outstanding Interest",
+          "totalOutstanding": "Total Outstanding",
+          "totalInterest": "Total Interest",
+          "totalDisbursed": "Total Disbursed",
+          "totalCost": "Total Cost"
+        }
+      },
+      "DetailsCard": {
+        "title": "Credit Facility",
+        "details": {
+          "customerEmail": "Customer Email",
+          "collateralizationState": "Collateralization State",
+          "status": "Status",
+          "expiresAt": "Expires At"
+        },
+        "buttons": {
+          "loanTerms": "Loan Terms",
+          "updateCollateral": "Update Collateral",
+          "approve": "Approve",
+          "deny": "Deny"
+        }
+      },
+      "Layout": {
+        "tabs": {
+          "transactions": "Transactions",
+          "disbursals": "Disbursals",
+          "repaymentPlan": "Repayment Plan"
+        },
+        "breadcrumbs": {
+          "dashboard": "Dashboard",
+          "creditFacilities": "Credit Facilities"
+        },
+        "errors": {
+          "notFound": "Not found",
+          "loading": "Loading..."
+        }
+      },
+      "CreateCreditFacility": {
+        "dialog": {
+          "customerInfo": "Creating credit facility for {email}",
+          "title": "Create Credit Facility",
+          "description": "Fill in the details to create a credit facility."
+        },
+        "form": {
+          "labels": {
+            "facilityAmount": "Facility Amount",
+            "termsTemplate": "Terms Template",
+            "creditFacilityTerms": "Credit Facility Terms",
+            "interestRate": "Interest Rate (APR)",
+            "initialCvl": "Initial CVL (%)",
+            "duration": "Duration",
+            "marginCallCvl": "Margin Call CVL (%)",
+            "accrualInterval": "Accrual Interval",
+            "liquidationCvl": "Liquidation CVL (%)",
+            "incurrenceInterval": "Incurrence Interval",
+            "structuringFeeRate": "Structuring Fee Rate (%)"
+          },
+          "placeholders": {
+            "facilityAmount": "Enter the facility amount",
+            "termsTemplate": "Select from predefined terms template",
+            "annualRate": "Enter the annual rate",
+            "initialCvl": "Enter the initial CVL",
+            "duration": "Duration",
+            "marginCallCvl": "Enter the margin call CVL",
+            "accrualInterval": "Select accrual interval",
+            "liquidationCvl": "Enter the liquidation CVL",
+            "incurrenceInterval": "Select incurrence interval",
+            "structuringFeeRate": "Enter the Structuring Fee Rate",
+            "selectPeriod": "Select period"
+          },
+          "buttons": {
+            "back": "Back",
+            "create": "Create Credit Facility"
+          },
+          "messages": {
+            "collateralRequired": "collateral required",
+            "btcUsdRate": "BTC/USD:",
+            "noTemplates": "No terms templates available please create one or manually specify the terms below.",
+            "fillAllFields": "Please fill in all the fields.",
+            "success": "Credit Facility created successfully"
+          }
+        }
+      },
+      "CreditFacilityPartialPayment": {
+        "dialog": {
+          "title": "Process Partial Payment",
+          "description": "Enter the amount you wish to pay towards this credit facility."
+        },
+        "form": {
+          "labels": {
+            "amount": "Amount"
+          },
+          "placeholders": {
+            "amount": "Enter the desired principal amount"
+          },
+          "errors": {
+            "invalidAmount": "Please enter a valid amount",
+            "unknownError": "An unknown error occurred"
+          },
+          "buttons": {
+            "cancel": "Cancel",
+            "processPayment": "Process Payment"
+          }
+        },
+        "messages": {
+          "success": "Partial payment processed successfully"
+        }
+      },
+      "CreditFacilityCollateralUpdate": {
+        "dialog": {
+          "title": "Update Credit Facility Collateral",
+          "description": "Enter the new collateral amount for this credit facility.",
+          "confirmTitle": "Confirm Update",
+          "confirmDescription": "Are you sure you want to update the collateral for this credit facility?"
+        },
+        "form": {
+          "labels": {
+            "currentCollateral": "Current Collateral",
+            "expectedCollateral": "Expected Collateral",
+            "newCollateral": "New Collateral"
+          },
+          "placeholders": {
+            "newCollateral": "Enter new collateral amount"
+          },
+          "errors": {
+            "emptyCollateral": "Please enter a valid collateral amount.",
+            "noData": "No data returned from mutation",
+            "unknownError": "An unknown error occurred"
+          },
+          "buttons": {
+            "back": "Back",
+            "proceedToConfirm": "Proceed to Confirm",
+            "confirm": "Confirm",
+            "updating": "Updating..."
+          }
+        },
+        "messages": {
+          "success": "Credit facility collateral updated successfully"
+        },
+        "units": {
+          "btc": "BTC"
+        }
+      }
     }
   }
 }
