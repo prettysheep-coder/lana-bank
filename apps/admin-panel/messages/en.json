@@ -503,5 +503,66 @@
         }
       }
     }
+  },
+  "Disbursals": {
+    "title": "Disbursals",
+    "description": "Payments made from a credit facility to user",
+    "table": {
+      "headers": {
+        "amount": "Amount",
+        "createdAt": "Date",
+        "status": "Status"
+      }
+    },
+    "errors": {
+      "general": "An error occurred"
+    },
+    "DisbursalDetails": {
+      "VotersCard": {
+        "title": "Approval process decision from the {committeeName} Committee",
+        "description": "Users who can approve the process",
+        "voter": {
+          "approved": "Approved",
+          "denied": "Denied",
+          "notVoted": "Has not voted yet"
+        }
+      },
+      "DetailsCard": {
+        "title": "Disbursal",
+        "details": {
+          "customerEmail": "Customer Email",
+          "disbursalAmount": "Disbursal Amount",
+          "facilityAmount": "Facility Amount",
+          "status": "Status"
+        },
+        "buttons": {
+          "approve": "Approve",
+          "deny": "Deny",
+          "viewCreditFacility": "View Credit Facility"
+        }
+      },
+      "CreditFacilityDisbursalInitiate": {
+        "dialog": {
+          "title": "Initiate Credit Facility Disbursal",
+          "description": "Enter the amount you want to disburse from this credit facility."
+        },
+        "form": {
+          "labels": {
+            "amount": "Amount (USD)"
+          },
+          "placeholders": {
+            "amount": "Enter amount"
+          }
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "submit": "Initiate Disbursal"
+        },
+        "messages": {
+          "success": "Disbursal initiated successfully",
+          "unknownError": "An unknown error occurred"
+        }
+      }
+    }
   }
 }

@@ -4,7 +4,7 @@ import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 
-import { LoanAndCreditFacilityStatusBadge } from "../loans/status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
 import {
   CreditFacilitiesSort,

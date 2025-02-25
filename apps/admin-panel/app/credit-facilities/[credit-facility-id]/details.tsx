@@ -14,7 +14,7 @@ import {
   GetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
-import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
