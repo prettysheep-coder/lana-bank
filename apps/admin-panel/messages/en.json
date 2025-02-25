@@ -1,0 +1,275 @@
+{
+  "Common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "notFound": "Not found",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "close": "Close"
+  },
+  "Sidebar": {
+    "labels": {
+      "loans": "Loans",
+      "customers": "Customers",
+      "transactions": "Transactions",
+      "administration": "Administration",
+      "financialReports": "Financial Reports"
+    },
+    "navItems": {
+      "dashboard": "Dashboard",
+      "actions": "Actions",
+      "creditFacilities": "Credit Facilities",
+      "disbursals": "Disbursals",
+      "termTemplates": "Term Templates",
+      "customers": "Customers",
+      "policies": "Policies",
+      "deposits": "Deposits",
+      "withdrawals": "Withdrawals",
+      "auditLogs": "Audit Logs",
+      "committees": "Committees",
+      "chartOfAccounts": "Chart of Accounts",
+      "users": "Users",
+      "balanceSheet": "Balance Sheet",
+      "cashFlow": "Cash Flow",
+      "profitAndLoss": "Profit & Loss",
+      "regulatoryReporting": "Regulatory Reporting",
+      "trialBalance": "Trial Balance"
+    },
+    "footer": {
+      "appName": "Lana Bank",
+      "version": "v{version}"
+    }
+  },
+  "UserBlock": {
+    "settings": "Settings",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "CommandMenu": {
+    "placeholders": {
+      "searchNavigation": "Search navigation...",
+      "searchActions": "Search actions...",
+      "whatDoYouNeed": "What do you need?"
+    },
+    "noResults": "No results found.",
+    "headings": {
+      "availableActions": "Available Actions",
+      "navigation": "Navigation"
+    },
+    "actions": {
+      "createDeposit": "Create Deposit",
+      "createWithdrawal": "Create Withdrawal",
+      "createCustomer": "Create Customer",
+      "createCreditFacility": "Create Credit Facility",
+      "updateCollateral": "Update Collateral",
+      "createDisbursal": "Create Disbursal",
+      "makePayment": "Make Payment",
+      "createUser": "Create User",
+      "updateTermsTemplate": "Update Terms Template",
+      "createTermsTemplate": "Create Terms Template",
+      "createCommittee": "Create Committee",
+      "confirmWithdrawal": "Confirm Withdrawal",
+      "cancelWithdrawal": "Cancel Withdrawal",
+      "assignCommittee": "Assign Committee",
+      "addCommitteeMember": "Add Committee Member",
+      "approve": "Approve",
+      "deny": "Deny"
+    },
+    "keyboardInstructions": {
+      "commandPalette": "Command Palette"
+    }
+  },
+  "Customers": {
+    "title": "Customers",
+    "description": "Individuals or entities who hold accounts, loans, or credit facilities with the bank",
+    "columns": {
+      "email": "Email",
+      "telegramId": "Telegram",
+      "status": "KYC Status",
+      "depositAccount": "USD Balance"
+    },
+    "status": {
+      "verified": "Verified",
+      "notVerified": "Not Verified"
+    },
+    "create": {
+      "title": "Add new customer",
+      "confirmTitle": "Confirm Customer Details",
+      "description": "Add a new Customer by providing their email address and Telegram ID",
+      "confirmDescription": "Please review the details before submitting",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Please enter the email address",
+      "telegramLabel": "Telegram ID",
+      "telegramPlaceholder": "Please enter the Telegram ID",
+      "reviewButton": "Review Details",
+      "backButton": "Back",
+      "confirmButton": "Confirm and Submit",
+      "successMessage": "Customer created successfully",
+      "errorMessage": "Failed to create customer",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "failedToCreate": "Failed to create customer. Please try again."
+    },
+    "CustomerDetails": {
+      "layout": {
+        "tabs": {
+          "transactions": "Transactions",
+          "creditFacilities": "Credit Facilities",
+          "documents": "Documents"
+        },
+        "breadcrumbs": {
+          "dashboard": "Dashboard",
+          "customers": "Customers"
+        },
+        "errors": {
+          "loading": "Loading...",
+          "error": "An error occurred"
+        }
+      },
+      "details": {
+        "title": "Customer",
+        "labels": {
+          "email": "Email",
+          "createdOn": "Created on",
+          "telegram": "Telegram",
+          "status": "Status"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "actions": {
+          "editTelegram": "Edit Telegram ID"
+        }
+      },
+      "kycStatus": {
+        "title": "KYC Status",
+        "labels": {
+          "level": "Level",
+          "kycApplicationLink": "KYC Application Link"
+        },
+        "actions": {
+          "createLink": "Create link",
+          "creatingLink": "Creating link..."
+        },
+        "messages": {
+          "copied": "Copied to clipboard"
+        }
+      },
+      "accountBalances": {
+        "title": "Account Balances",
+        "labels": {
+          "checkingSettled": "Checking Settled Balance (USD)",
+          "pendingWithdrawals": "Pending Withdrawals (USD)"
+        }
+      },
+      "updateTelegram": {
+        "title": "Update Telegram ID",
+        "description": "Update the Telegram ID for this customer",
+        "labels": {
+          "newTelegramId": "New Telegram ID"
+        },
+        "placeholders": {
+          "newTelegramId": "Please enter the new Telegram ID"
+        },
+        "errors": {
+          "emptyTelegramId": "Telegram ID cannot be empty",
+          "unexpected": "An unexpected error occurred",
+          "updateFailed": "Failed to update Telegram ID: {error}"
+        },
+        "messages": {
+          "updateSuccess": "Telegram ID updated successfully"
+        },
+        "actions": {
+          "update": "Update",
+          "updating": "Updating..."
+        }
+      },
+      "transactions": {
+        "title": "Transactions",
+        "description": "Transactions for this Customer",
+        "table": {
+          "headers": {
+            "date": "Date",
+            "type": "Type",
+            "amount": "Amount",
+            "status": "Status"
+          },
+          "types": {
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "disbursal": "Disbursal",
+            "payment": "Payment"
+          },
+          "empty": "No transactions found"
+        }
+      },
+      "creditFacilities": {
+        "title": "Credit Facilities",
+        "description": "Credit Facilities for this Customer",
+        "table": {
+          "headers": {
+            "status": "Status",
+            "outstandingBalance": "Outstanding Balance",
+            "collateralBtc": "Collateral (BTC)",
+            "collateralizationState": "Collateralization State",
+            "createdAt": "Created At"
+          }
+        }
+      },
+      "Documents": {
+        "title": "Documents",
+        "description": "Documents uploaded by this customer",
+        "columns": {
+          "id": "ID",
+          "fileName": "File Name"
+        },
+        "buttons": {
+          "view": "View",
+          "delete": "Delete"
+        },
+        "dropzone": {
+          "prompt": "Click, drag and drop, or paste a PDF file to upload a document for this user"
+        },
+        "messages": {
+          "uploadSuccess": "Document uploaded successfully",
+          "deleteSuccess": "Document deleted successfully",
+          "generateLinkError": "Failed to generate download link",
+          "deleteError": "Failed to delete document",
+          "pdfOnly": "Please upload only PDF files.",
+          "pasteError": "Failed to retrieve the pasted file.",
+          "fileTooLarge": "File is too large. Please upload a smaller file.",
+          "uploadFailed": "Upload failed: {message}",
+          "unexpectedError": "An unexpected error occurred during file upload."
+        }
+      }
+    }
+  },
+  "CreditFacilities": {
+    "title": "Credit Facilities",
+    "description": "Pre-approved financial arrangements allowing borrowers to access funds up to a certain limit as needed",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "status": "Status",
+        "outstanding": "Outstanding",
+        "collateralizationState": "State",
+        "cvl": "CVL",
+        "createdAt": "Created At"
+      }
+    },
+    "errors": {
+      "fetchError": "An error occurred while fetching data."
+    }
+  }
+}

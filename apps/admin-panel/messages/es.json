@@ -1,0 +1,93 @@
+{
+  "Sidebar": {
+    "labels": {
+      "loans": "Préstamos",
+      "customers": "Clientes",
+      "transactions": "Transacciones",
+      "administration": "Administración",
+      "financialReports": "Informes Financieros"
+    },
+    "navItems": {
+      "dashboard": "Panel Principal",
+      "actions": "Acciones",
+      "creditFacilities": "Facilidades de Crédito",
+      "disbursals": "Desembolsos",
+      "termTemplates": "Plantillas de Términos",
+      "customers": "Clientes",
+      "policies": "Políticas",
+      "deposits": "Depósitos",
+      "withdrawals": "Retiros",
+      "auditLogs": "Registros de Auditoría",
+      "committees": "Comités",
+      "chartOfAccounts": "Plan de Cuentas",
+      "users": "Usuarios",
+      "balanceSheet": "Balance General",
+      "cashFlow": "Flujo de Caja",
+      "profitAndLoss": "Pérdidas y Ganancias",
+      "regulatoryReporting": "Informes Regulatorios",
+      "trialBalance": "Balance de Comprobación"
+    },
+    "footer": {
+      "appName": "Lana Bank",
+      "version": "v{version}"
+    }
+  },
+  "UserBlock": {
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "profile": "Perfil"
+  },
+  "Common": {
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "notFound": "No encontrado",
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "refresh": "Actualizar",
+    "view": "Ver",
+    "download": "Descargar",
+    "upload": "Subir",
+    "close": "Cerrar"
+  },
+  "CommandMenu": {
+    "placeholders": {
+      "searchNavigation": "Buscar navegación...",
+      "searchActions": "Buscar acciones...",
+      "whatDoYouNeed": "¿Qué necesitas?"
+    },
+    "noResults": "No se encontraron resultados.",
+    "headings": {
+      "availableActions": "Acciones Disponibles",
+      "navigation": "Navegación"
+    },
+    "actions": {
+      "createDeposit": "Crear Depósito",
+      "createWithdrawal": "Crear Retiro",
+      "createCustomer": "Crear Cliente",
+      "createCreditFacility": "Crear Facilidad de Crédito",
+      "updateCollateral": "Actualizar Garantía",
+      "createDisbursal": "Crear Desembolso",
+      "makePayment": "Realizar Pago",
+      "createUser": "Crear Usuario",
+      "updateTermsTemplate": "Actualizar Plantilla de Términos",
+      "createTermsTemplate": "Crear Plantilla de Términos",
+      "createCommittee": "Crear Comité",
+      "confirmWithdrawal": "Confirmar Retiro",
+      "cancelWithdrawal": "Cancelar Retiro",
+      "assignCommittee": "Asignar Comité",
+      "addCommitteeMember": "Añadir Miembro al Comité",
+      "approve": "Aprobar",
+      "deny": "Rechazar"
+    },
+    "keyboardInstructions": {
+      "commandPalette": "Paleta de Comandos"
+    }
+  }
+}
