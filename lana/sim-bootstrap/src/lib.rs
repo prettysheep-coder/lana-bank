@@ -57,9 +57,17 @@ async fn create_and_process_facility(
 
     let deposit_account = app
         .deposits()
-        .find_deposit_account_by_holder_id(&sub, customer_id)
+        .list_accounts_by_created_at_for_account_holder(
+            &sub,
+            customer_id,
+            Default::default(),
+            es_entity::ListDirection::Descending,
+        )
         .await?
-        .expect("deposit account");
+        .entities
+        .into_iter()
+        .next()
+        .expect("Deposit account not found");
 
     let cf = app
         .credit_facilities()
