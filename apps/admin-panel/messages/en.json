@@ -673,5 +673,59 @@
         }
       }
     }
+  },
+  "Policies": {
+    "title": "Policies",
+    "description": "Policies define the approval process for different types of transactions.",
+    "table": {
+      "headers": {
+        "approvalProcessType": "Process Type",
+        "rules": "Rule"
+      },
+      "errors": {
+        "general": "An error occurred while fetching policies."
+      },
+      "rules": {
+        "committeeThreshold": "{committeeName} Committee",
+        "systemApproval": "System"
+      }
+    },
+    "PolicyDetails": {
+      "DetailsCard": {
+        "title": "Policy",
+        "fields": {
+          "processType": "Process Type",
+          "rule": "Rule",
+          "assignedCommittee": "Assigned Committee"
+        },
+        "buttons": {
+          "updatePolicy": "Update Policy",
+          "assignCommittee": "Assign Committee"
+        }
+      },
+      "CommitteeAssignmentDialog": {
+        "title": "Assign Committee to Policy",
+        "description": "Select a committee and set threshold for this policy.",
+        "fields": {
+          "committee": "Select Committee",
+          "threshold": "Threshold"
+        },
+        "placeholders": {
+          "committee": "Select a committee",
+          "threshold": "Enter threshold value"
+        },
+        "errors": {
+          "selectCommitteeAndThreshold": "Please select a committee and set threshold.",
+          "general": "An unexpected error occurred. Please try again.",
+          "assignmentFailed": "Failed to assign committee to policy."
+        },
+        "success": {
+          "assigned": "Committee assigned to policy successfully."
+        },
+        "buttons": {
+          "assign": "Assign Committee"
+        }
+      }
+    }
   }
 }
