@@ -1096,5 +1096,89 @@
       "error": "An error occurred while fetching audit logs.",
       "emptyMessage": "No audit logs found."
     }
+  },
+  "ChartOfAccounts": {
+    "title": "Chart Of Accounts",
+    "description": "A structured list of all accounts used to categorize and track financial records.",
+    "tabs": {
+      "regular": "Regular",
+      "offBalanceSheet": "Off Balance Sheet"
+    },
+    "table": {
+      "headers": {
+        "accountName": "Account Name",
+        "accountCode": "Account Code"
+      },
+      "error": "An error occurred while fetching the chart of accounts."
+    }
+  },
+  "BalanceSheet": {
+    "title": "Balance Sheet",
+    "description": "A financial statement showing the company's assets, liabilities, and equity at a specific point in time.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "total": "Total",
+    "columns": {
+      "assets": "Total Assets",
+      "liabilitiesAndEquity": "Total Liabilities & Equity"
+    }
+  },
+  "CashFlowStatement": {
+    "title": "Cash Flow Statement",
+    "description": "A financial statement showing how changes in balance sheet accounts and income affect cash and cash equivalents.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "total": "Total"
+  },
+  "ProfitAndLoss": {
+    "title": "Profit and Loss Statement",
+    "description": "A financial report showing revenue, expenses, and resulting profit or loss over a specific time period.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "net": "NET"
+  },
+  "Reports": {
+    "title": "Report Management",
+    "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
+    "generateReport": "Generate Report",
+    "noReportsFound": "No reports found",
+    "selectReport": "Select Report",
+    "selectReportPlaceholder": "Select a report",
+    "reportId": "Report ID",
+    "lastError": "Last Error",
+    "currentStatus": "Status",
+    "downloads": "Downloads",
+    "generateLinks": "Generate Links",
+    "status": {
+      "running": "Running (last triggered on {date})",
+      "complete": "Operational (last report created on {date})"
+    },
+    "createDialog": {
+      "title": "Create New Report",
+      "description": "Are you sure you want to create a new report? This action will generate a regulatory report based on the latest financial data.",
+      "create": "Create Report",
+      "creating": "Creating...",
+      "success": "Report creation started",
+      "error": "Failed to create report"
+    }
+  },
+  "TrialBalance": {
+    "title": "Trial Balance",
+    "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "totals": "Totals",
+    "tabs": {
+      "regular": "Regular",
+      "offBalanceSheet": "Off Balance Sheet"
+    },
+    "table": {
+      "headers": {
+        "accountName": "Account Name",
+        "debit": "Debit",
+        "credit": "Credit",
+        "net": "Net"
+      }
+    }
   }
 }

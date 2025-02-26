@@ -29,6 +29,7 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
+import { useTranslations } from "next-intl"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
@@ -118,7 +119,6 @@ const LoadingSkeleton = () => {
     </div>
   )
 }
-
 const BALANCE_FOR_CATEGORY: {
   [key: string]: { TransactionType: TransactionType }
 } = {
@@ -164,6 +164,7 @@ const ProfitAndLossStatement = ({
   dateRange: DateRange
   setDateRange: (dateRange: DateRange) => void
 }) => {
+  const t = useTranslations("ProfitAndLoss")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
@@ -175,11 +176,8 @@ const ProfitAndLossStatement = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Profit and Loss Statement</CardTitle>
-          <CardDescription>
-            A financial report showing revenue, expenses, and resulting profit or loss
-            over a specific time period.
-          </CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <LoadingSkeleton />
@@ -187,20 +185,17 @@ const ProfitAndLossStatement = ({
       </Card>
     )
   }
-  if (!net) return <div>No data</div>
+  if (!net) return <div>{t("noData")}</div>
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profit and Loss Statement</CardTitle>
-        <CardDescription>
-          A financial report showing revenue, expenses, and resulting profit or loss over
-          a specific time period.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex gap-6 items-center">
-          <div>Date Range:</div>
+          <div>{t("dateRange")}:</div>
           <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
         </div>
 
@@ -229,7 +224,7 @@ const ProfitAndLossStatement = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell className="uppercase font-bold">NET</TableCell>
+              <TableCell className="uppercase font-bold">{t("net")}</TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
