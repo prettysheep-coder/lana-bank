@@ -949,5 +949,60 @@
         "unknown": "An unknown error occurred"
       }
     }
+  },
+  "Actions": {
+    "ApprovalProcess": {
+      "Approve": {
+        "title": "Approve Process",
+        "fields": {
+          "processType": "Process Type",
+          "createdAt": "Created At"
+        },
+        "buttons": {
+          "approve": "Approve"
+        },
+        "errors": {
+          "unknown": "An unknown error occurred"
+        },
+        "success": {
+          "processApproved": "Process approved successfully"
+        }
+      },
+      "Deny": {
+        "title": "Deny Process",
+        "fields": {
+          "processType": "Process Type",
+          "createdAt": "Created At",
+          "reasonLabel": "Reason for Denial"
+        },
+        "placeholders": {
+          "reason": "Please provide a reason for denying this process"
+        },
+        "buttons": {
+          "deny": "Deny"
+        },
+        "errors": {
+          "reasonRequired": "Please provide a reason for denial",
+          "unknown": "An unknown error occurred"
+        },
+        "success": {
+          "processDenied": "Process denied successfully"
+        }
+      }
+    },
+    "table": {
+      "title": "Pending Actions",
+      "description": "Approvals / Rejections waiting your way",
+      "headers": {
+        "customer": "Customer",
+        "type": "Type",
+        "date": "Date"
+      },
+      "values": {
+        "unknown": "Unknown"
+      },
+      "more": "...{count} more",
+      "allCaughtUp": "All Caught Up"
+    }
   }
 }
