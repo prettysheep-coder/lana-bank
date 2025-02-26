@@ -14,6 +14,8 @@ import {
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useTranslations } from "next-intl"
+
 import { Account } from "./account"
 
 import {
@@ -29,7 +31,6 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import { useTranslations } from "next-intl"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {

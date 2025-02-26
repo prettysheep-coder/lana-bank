@@ -12,8 +12,9 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
-import { useReportCreateMutation } from "@/lib/graphql/generated"
 import { useTranslations } from "next-intl"
+
+import { useReportCreateMutation } from "@/lib/graphql/generated"
 
 gql`
   mutation ReportCreate {

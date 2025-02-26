@@ -12,6 +12,8 @@ import {
 } from "@lana/web/ui/card"
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useTranslations } from "next-intl"
+
 import { Account } from "./account"
 
 import {
@@ -25,7 +27,6 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import { useTranslations } from "next-intl"
 
 const BALANCE_FOR_CATEGORY: {
   [key: string]: { TransactionType: TransactionType }

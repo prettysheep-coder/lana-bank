@@ -23,6 +23,8 @@ import {
 } from "@lana/web/ui/card"
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useTranslations } from "next-intl"
+
 import { ReportCreateDialog } from "./create-dialog"
 
 import { formatDate } from "@/lib/utils"
@@ -32,7 +34,6 @@ import {
   useReportsQuery,
   Report,
 } from "@/lib/graphql/generated"
-import { useTranslations } from "next-intl"
 
 gql`
   query Reports {
@@ -258,10 +259,12 @@ const ReportDetails: React.FC<{
       <KeyValueItem
         data-testid="report-status"
         label={t("currentStatus")}
-        value={formatStatus({
-          reportProgress: selectedReportDetails.progress,
-          createdAt: selectedReportDetails.createdAt,
-        })}
+        value={
+          <FormatStatus
+            reportProgress={selectedReportDetails.progress}
+            createdAt={selectedReportDetails.createdAt}
+          />
+        }
       />
       <KeyValueItem
         data-testid="report-downloads"
@@ -315,7 +318,7 @@ const DownloadLinks: React.FC<{
   )
 }
 
-const formatStatus = ({
+const FormatStatus = ({
   reportProgress,
   createdAt,
 }: {
