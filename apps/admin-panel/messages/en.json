@@ -1004,5 +1004,25 @@
       "more": "...{count} more",
       "allCaughtUp": "All Caught Up"
     }
+  },
+  "Dashboard": {
+    "cards": {
+      "activeFacilities": {
+        "title": "Active Facilities",
+        "description": "Credit Facilities where money has been disbursed",
+        "pending": "Pending",
+        "buttonText": "View Active Facilities"
+      },
+      "totalDisbursed": {
+        "title": "Total Disbursed",
+        "description": "Total amount of money customers withdrew from the bank",
+        "buttonText": "View Disbursals"
+      },
+      "totalCollateral": {
+        "title": "Total Collateral",
+        "description": "Total bitcoin collateral value at market rate that the bank holds",
+        "buttonText": "View Credit Facilities"
+      }
+    }
   }
 }
