@@ -727,5 +727,90 @@
         }
       }
     }
+  },
+  "Committees": {
+    "title": "Committees",
+    "description": "Manage approval committees and their members",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "created": "Created",
+        "members": "Members"
+      }
+    },
+    "CommitteeDetails": {
+      "CommitteeUsers": {
+        "title": "Members",
+        "description": "Members in this committee",
+        "table": {
+          "headers": {
+            "email": "Email"
+          },
+          "noRoles": "No roles assigned",
+          "emptyMessage": "No members found in this committee"
+        },
+        "buttons": {
+          "removeMember": "Remove member"
+        }
+      },
+      "detailsCard": {
+        "title": "Committee",
+        "fields": {
+          "createdAt": "Created At",
+          "name": "Name",
+          "totalMembers": "Total Members"
+        },
+        "buttons": {
+          "addMember": "Add Member"
+        }
+      },
+      "create": {
+        "title": "Create Committee",
+        "description": "Create a new committee by providing the required information",
+        "fields": {
+          "name": "Committee Name"
+        },
+        "placeholders": {
+          "name": "Enter the committee name"
+        },
+        "buttons": {
+          "create": "Create Committee"
+        },
+        "success": "Committee created successfully",
+        "errors": {
+          "failed": "Failed to create committee. Please try again.",
+          "general": "An unexpected error occurred. Please try again."
+        }
+      },
+      "RemoveUserCommitteeDialog": {
+        "title": "Remove Committee Member",
+        "description": "Are you sure you want to remove {userEmail} from this committee?",
+        "buttons": {
+          "cancel": "Cancel",
+          "remove": "Remove"
+        },
+        "success": "User removed from committee successfully",
+        "errors": {
+          "failed": "Failed to remove user from committee. Please try again.",
+          "general": "An unexpected error occurred. Please try again."
+        }
+      },
+      "AddUserCommitteeDialog": {
+        "title": "Add User to Committee",
+        "description": "Select a user to add to this committee",
+        "placeholders": {
+          "selectUser": "Select a user"
+        },
+        "buttons": {
+          "addUser": "Add User"
+        },
+        "success": "User added to committee successfully",
+        "errors": {
+          "selectUser": "Please select a user",
+          "failed": "Failed to add user to committee. Please try again.",
+          "general": "An unexpected error occurred. Please try again."
+        }
+      }
+    }
   }
 }
