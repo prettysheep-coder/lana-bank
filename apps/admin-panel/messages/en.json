@@ -1082,5 +1082,19 @@
         }
       }
     }
+  },
+  "AuditLogs": {
+    "title": "Audit Logs",
+    "description": "System-wide audit trail showing user and system actions",
+    "table": {
+      "headers": {
+        "subject": "Subject",
+        "object": "Object",
+        "action": "Action",
+        "recordedAt": "Recorded At"
+      },
+      "error": "An error occurred while fetching audit logs.",
+      "emptyMessage": "No audit logs found."
+    }
   }
 }
