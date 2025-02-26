@@ -812,5 +812,41 @@
         }
       }
     }
+  },
+  "Deposits": {
+    "title": "Deposits",
+    "description": "Sums of money added from credit facilities into customer’s accounts",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "reference": "Reference",
+        "amount": "Amount"
+      },
+      "errors": {
+        "general": "An error occurred while fetching deposits."
+      }
+    },
+    "CreateDepositDialog": {
+      "title": "Create Deposit",
+      "description": "Provide the required details to create a deposit.",
+      "creatingFor": "Creating deposit for {email}",
+      "fields": {
+        "amount": "Amount",
+        "reference": "Reference"
+      },
+      "placeholders": {
+        "amount": "Enter the deposit amount",
+        "reference": "Enter a reference (optional)"
+      },
+      "buttons": {
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "success": "Deposit created successfully",
+      "errors": {
+        "noData": "No data returned from mutation",
+        "unknown": "An unknown error occurred"
+      }
+    }
   }
 }
