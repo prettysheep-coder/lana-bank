@@ -848,5 +848,106 @@
         "unknown": "An unknown error occurred"
       }
     }
+  },
+  "Withdrawals": {
+    "title": "Withdrawals",
+    "description": "Money taken out from customer’s accounts",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "reference": "Reference",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "errors": {
+        "general": "An error occurred while fetching withdrawals."
+      },
+      "values": {
+        "na": "N/A"
+      }
+    },
+    "WithdrawDetails": {
+      "WithdrawalCancelDialog": {
+        "title": "Cancel Withdrawal",
+        "description": "Are you sure you want to cancel this withdrawal?",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "amount": "Amount",
+          "withdrawalReference": "Withdrawal Reference"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirm",
+          "canceling": "Canceling..."
+        },
+        "success": "Withdrawal canceled successfully",
+        "errors": {
+          "noData": "No data returned from mutation",
+          "unknown": "An unknown error occurred"
+        }
+      },
+      "WithdrawalConfirmDialog": {
+        "title": "Confirm Withdrawal",
+        "description": "Are you sure you want to confirm this withdrawal?",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "amount": "Amount",
+          "withdrawalReference": "Withdrawal Reference"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirm",
+          "confirming": "Confirming..."
+        },
+        "success": "Withdrawal confirmed successfully",
+        "errors": {
+          "noData": "No data returned from mutation",
+          "unknown": "An unknown error occurred"
+        }
+      },
+      "WithdrawalDetailsCard": {
+        "title": "Withdrawal",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "withdrawalAmount": "Withdrawal Amount",
+          "withdrawalReference": "Withdrawal Reference",
+          "status": "Status"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirm",
+          "cancel": "Cancel",
+          "approve": "Approve",
+          "deny": "Deny"
+        }
+      }
+    },
+    "WithdrawalInitiateDialog": {
+      "title": "Initiate Withdrawal",
+      "description": "Provide the required details to initiate a withdrawal.",
+      "creatingFor": "Creating withdrawal for {email}",
+      "fields": {
+        "amount": "Amount",
+        "reference": "Reference"
+      },
+      "placeholders": {
+        "amount": "Enter amount",
+        "reference": "Enter a reference (optional)"
+      },
+      "buttons": {
+        "submit": "Initiate Withdrawal",
+        "processing": "Processing..."
+      },
+      "success": "Withdrawal initiated successfully",
+      "errors": {
+        "unknown": "An unknown error occurred"
+      }
+    }
   }
 }
