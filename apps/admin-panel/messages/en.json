@@ -268,6 +268,13 @@
         "createdAt": "Created At"
       }
     },
+    "CreditFacilityStatus": {
+      "active": "Active",
+      "pendingApproval": "Pending Approval",
+      "pendingCollateralization": "Pending Collateralization",
+      "closed": "Closed",
+      "matured": "Matured"
+    },
     "errors": {
       "fetchError": "An error occurred while fetching data.",
       "general": "An error occurred"
@@ -516,6 +523,12 @@
     },
     "errors": {
       "general": "An error occurred"
+    },
+    "DisbursalStatus": {
+      "new": "New",
+      "approved": "Approved",
+      "confirmed": "Confirmed",
+      "denied": "Denied"
     },
     "DisbursalDetails": {
       "VotersCard": {
@@ -866,6 +879,13 @@
         "na": "N/A"
       }
     },
+    "WithdrawalStatus": {
+      "pendingApproval": "Pending Approval",
+      "pendingConfirmation": "Pending Confirmation",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "denied": "Denied"
+    },
     "WithdrawDetails": {
       "WithdrawalCancelDialog": {
         "title": "Cancel Withdrawal",
@@ -1180,5 +1200,57 @@
         "net": "Net"
       }
     }
+  },
+  "CurrencyLayerSelection": {
+    "currency": {
+      "label": "Currency",
+      "options": {
+        "usd": "USD",
+        "btc": "BTC"
+      }
+    },
+    "layer": {
+      "label": "Layer",
+      "options": {
+        "all": "All",
+        "settled": "Settled",
+        "pending": "Pending"
+      }
+    }
+  },
+  "dateTime": {
+    "created": "Created on {date}",
+    "format": {
+      "short": "MMMM d, yyyy, HH:mm"
+    }
+  },
+  "CreateButton": {
+    "buttons": {
+      "create": "Create"
+    },
+    "disabledMessages": {
+      "creditFacilityMustBeActive": "Credit facility must be active to perform actions"
+    },
+    "menuItems": {
+      "deposit": "Deposit",
+      "withdrawal": "Withdrawal",
+      "customer": "Customer",
+      "creditFacility": "Credit Facility",
+      "disbursal": "Disbursal",
+      "payment": "Payment",
+      "user": "User",
+      "termsTemplate": "Terms Template",
+      "committee": "Committee"
+    }
+  },
+  "DataTable": {
+    "view": "View",
+    "noData": "No data to display"
+  },
+  "PaginatedTable": {
+    "view": "View",
+    "noData": "No data to display",
+    "sortBy": "Sort By",
+    "all": "All"
   }
 }
