@@ -1024,5 +1024,63 @@
         "buttonText": "View Credit Facilities"
       }
     }
+  },
+  "Users": {
+    "title": "Users",
+    "description": "Manage system users and their role assignments",
+    "table": {
+      "headers": {
+        "email": "Email",
+        "roles": "Roles"
+      },
+      "noRolesAssigned": "No roles Assigned",
+      "emptyMessage": "No users found"
+    },
+    "createDialog": {
+      "title": "Add new User",
+      "description": "Add a new user to the admin-panel by providing their email address and selecting roles",
+      "fields": {
+        "email": "Email",
+        "roles": "Roles"
+      },
+      "placeholders": {
+        "email": "Please enter the email address"
+      },
+      "emailHelperText": "A magic link will be sent to the email address provided.",
+      "buttons": {
+        "submit": "Submit",
+        "processing": "Processing..."
+      },
+      "errors": {
+        "selectRole": "Please select at least one role.",
+        "createPrefix": "Error creating user:",
+        "assignRolePrefix": "Error assigning role:",
+        "unknown": "An unknown error occurred"
+      },
+      "success": {
+        "userCreated": "User created successfully"
+      }
+    },
+    "userDetails": {
+      "title": "User",
+      "fields": {
+        "createdAt": "Created At",
+        "email": "Email",
+        "roles": "Roles"
+      },
+      "noRolesAssigned": "No roles assigned",
+      "roleDropdown": {
+        "manageRoles": "Manage Roles",
+        "rolesLabel": "Roles",
+        "success": {
+          "roleAssigned": "Role assigned",
+          "roleRevoked": "Role revoked"
+        },
+        "errors": {
+          "assignFailed": "Failed to assign role",
+          "revokeFailed": "Failed to revoke role"
+        }
+      }
+    }
   }
 }
