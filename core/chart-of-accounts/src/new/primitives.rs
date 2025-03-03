@@ -2,30 +2,87 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-pub use cala_ledger::{
-    primitives::AccountId as LedgerAccountId, primitives::AccountSetId as LedgerAccountSetId,
-    primitives::JournalId as LedgerJournalId, DebitOrCredit,
-};
+pub use cala_ledger::primitives::JournalId as LedgerJournalId;
 
 es_entity::entity_id! {
     ChartId,
 }
 
-pub struct CodeSection {
-    code: String,
-}
+use thiserror::Error;
 
-pub struct AccountCode {
-    section: Vec<CodeSection>,
+#[derive(Error, Debug)]
+pub enum AccountCategoryParseError {
+    #[error("empty")]
+    Empty,
+    #[error("starts-with-digit")]
+    StartsWithDigit,
 }
 
 pub struct AccountCategory {
     name: String,
 }
 
+impl FromStr for AccountCategory {
+    type Err = AccountCategoryParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let trimmed = s.trim();
+        if trimmed.is_empty() {
+            return Err(AccountCategoryParseError::Empty);
+        }
+        if trimmed.chars().next().unwrap().is_ascii_digit() {
+            return Err(AccountCategoryParseError::StartsWithDigit);
+        }
+        Ok(AccountCategory {
+            name: trimmed.to_string(),
+        })
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum AccountCodeSectionParseError {
+    #[error("empty")]
+    Empty,
+    #[error("non-digit")]
+    NonDigit,
+}
+
+pub struct AccountCodeSection {
+    code: String,
+}
+
+impl FromStr for AccountCodeSection {
+    type Err = AccountCodeSectionParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.is_empty() {
+            return Err(AccountCodeSectionParseError::Empty);
+        }
+
+        if !s.chars().all(|c| c.is_ascii_digit()) {
+            return Err(AccountCodeSectionParseError::NonDigit);
+        }
+
+        Ok(AccountCodeSection {
+            code: s.to_string(),
+        })
+    }
+}
+
+pub struct AccountCode {
+    section: Vec<AccountCodeSection>,
+}
+
 pub struct AccountSpec {
     code: AccountCode,
     category: AccountCategory,
+}
+
+impl AccountSpec {
+    pub(super) fn new(sections: Vec<AccountCodeSection>, category: AccountCategory) -> Self {
+        let code = AccountCode { section: sections };
+        AccountSpec { code, category }
+    }
 }
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;
