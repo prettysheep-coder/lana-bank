@@ -1,0 +1,127 @@
+use std::{fmt::Display, str::FromStr};
+
+use authz::AllOrOne;
+
+pub use cala_ledger::{
+    primitives::AccountId as LedgerAccountId, primitives::AccountSetId as LedgerAccountSetId,
+    primitives::JournalId as LedgerJournalId, DebitOrCredit,
+};
+
+es_entity::entity_id! {
+    ChartId,
+}
+
+pub struct CodeSection {
+    code: String,
+}
+
+pub struct AccountCode {
+    section: Vec<CodeSection>,
+}
+
+pub struct AccountCategory {
+    name: String,
+}
+
+pub struct AccountSpec {
+    code: AccountCode,
+    category: AccountCategory,
+}
+
+pub type ChartAllOrOne = AllOrOne<ChartId>;
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum CoreChartOfAccountsAction {
+    ChartAction(ChartAction),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum CoreChartOfAccountsObject {
+    Chart(ChartAllOrOne),
+}
+
+impl CoreChartOfAccountsObject {
+    pub fn chart(id: ChartId) -> Self {
+        CoreChartOfAccountsObject::Chart(AllOrOne::ById(id))
+    }
+
+    pub fn all_charts() -> Self {
+        CoreChartOfAccountsObject::Chart(AllOrOne::All)
+    }
+}
+
+impl Display for CoreChartOfAccountsObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let discriminant = CoreChartOfAccountsObjectDiscriminants::from(self);
+        use CoreChartOfAccountsObject::*;
+        match self {
+            Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+        }
+    }
+}
+
+impl FromStr for CoreChartOfAccountsObject {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, id) = s.split_once('/').expect("missing slash");
+        use CoreChartOfAccountsObjectDiscriminants::*;
+        let res = match entity.parse().expect("invalid entity") {
+            Chart => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreChartObject")?;
+                CoreChartOfAccountsObject::Chart(obj_ref)
+            }
+        };
+        Ok(res)
+    }
+}
+
+impl CoreChartOfAccountsAction {
+    pub const CHART_CREATE: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::Create);
+    pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
+}
+
+impl Display for CoreChartOfAccountsAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:", CoreChartOfAccountsActionDiscriminants::from(self))?;
+        use CoreChartOfAccountsAction::*;
+        match self {
+            ChartAction(action) => action.fmt(f),
+        }
+    }
+}
+
+impl FromStr for CoreChartOfAccountsAction {
+    type Err = strum::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (entity, action) = s.split_once(':').expect("missing colon");
+        let res = match entity.parse()? {
+            CoreChartOfAccountsActionDiscriminants::ChartAction => {
+                CoreChartOfAccountsAction::from(action.parse::<ChartAction>()?)
+            }
+        };
+        Ok(res)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ChartAction {
+    Create,
+    List,
+    CreateControlAccount,
+    FindControlAccount,
+    CreateControlSubAccount,
+    FindControlSubAccount,
+}
+
+impl From<ChartAction> for CoreChartOfAccountsAction {
+    fn from(action: ChartAction) -> Self {
+        CoreChartOfAccountsAction::ChartAction(action)
+    }
+}
