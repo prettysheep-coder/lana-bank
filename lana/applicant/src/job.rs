@@ -2,7 +2,8 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::{job::*, primitives::CustomerId};
+use core_customer::CustomerId;
+use job::*;
 
 use super::{repo::ApplicantRepo, SumsubClient};
 

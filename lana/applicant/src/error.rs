@@ -7,7 +7,7 @@ pub enum ApplicantError {
     #[error("ApplicantError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("ApplicantError - UserError: {0}")]
-    CustomerError(#[from] crate::customer::error::CustomerError),
+    CustomerError(#[from] core_customer::error::CustomerError),
     #[error("ApplicantError - SystemTimeError: {0}")]
     SystemTimeError(#[from] std::time::SystemTimeError),
     #[error("ApplicantError - InvalidHeaderValue: {0}")]
@@ -23,5 +23,5 @@ pub enum ApplicantError {
     #[error("ApplicantError - UuidError: {0}")]
     UuidError(#[from] uuid::Error),
     #[error("ApplicantError - JobError: {0}")]
-    JobError(#[from] crate::job::error::JobError),
+    JobError(#[from] job::error::JobError),
 }

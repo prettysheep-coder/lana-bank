@@ -128,6 +128,7 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
         let customer_onboarding = CustomerOnboarding::init(
             &jobs,
             &outbox,
@@ -136,7 +137,6 @@ impl LanaApp {
             config.customer_onboarding,
         )
         .await?;
-        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
         let credit_facilities = CreditFacilities::init(
             &pool,

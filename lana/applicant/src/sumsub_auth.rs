@@ -8,7 +8,7 @@ use serde_json::json;
 use sha2::Sha256;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::primitives::CustomerId;
+use core_customer::CustomerId;
 
 use super::error::ApplicantError;
 use super::SumsubConfig;

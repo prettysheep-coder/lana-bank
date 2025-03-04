@@ -8,11 +8,17 @@ use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use crate::{
-    customer::Customers,
-    job::Jobs,
-    primitives::{CustomerId, JobId},
+use ::job::{JobId, Jobs};
+use core_customer::{CoreCustomerEvent, CustomerId, Customers};
+
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use core_customer::{CoreCustomerAction, CustomerObject};
+use deposit::{
+    CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
+use governance::GovernanceEvent;
+use outbox::OutboxEventMarker;
 
 pub use config::*;
 use error::ApplicantError;
@@ -21,12 +27,34 @@ use sumsub_auth::*;
 use repo::ApplicantRepo;
 pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
-#[derive(Clone)]
-pub struct Applicants {
+pub struct Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
     sumsub_client: SumsubClient,
-    users: Customers,
+    customers: Customers<Perms, E>,
     repo: ApplicantRepo,
     jobs: Jobs,
+}
+
+impl<Perms, E> Clone for Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            sumsub_client: self.sumsub_client.clone(),
+            customers: self.customers.clone(),
+            repo: self.repo.clone(),
+            jobs: self.jobs.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -95,11 +123,21 @@ pub struct ReviewResult {
     pub review_reject_type: Option<String>,
 }
 
-impl Applicants {
+impl<Perms, E> Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
     pub fn new(
         pool: &sqlx::PgPool,
         config: &SumsubConfig,
-        users: &Customers,
+        customers: &Customers<Perms, E>,
         jobs: &Jobs,
         // export: &Export,
     ) -> Self {
@@ -113,7 +151,7 @@ impl Applicants {
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            users: users.clone(),
+            customers: customers.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -165,7 +203,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .start_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -189,7 +227,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .decline_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -214,7 +252,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .approve_kyc(db, external_user_id, applicant_id)
                     .await;
 
