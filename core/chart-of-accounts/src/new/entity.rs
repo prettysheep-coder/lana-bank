@@ -1,6 +1,8 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashMap;
+
 use audit::AuditInfo;
 
 use es_entity::*;
@@ -18,11 +20,13 @@ pub enum ChartEvent {
         audit_info: AuditInfo,
     },
     ControlAccountAdded {
-        category: AccountCategory,
+        spec: AccountSpec,
+        ledger_account_set_id: LedgerAccountSetId,
         audit_info: AuditInfo,
     },
     ControlSubAccountAdded {
-        category: AccountCategory,
+        spec: AccountSpec,
+        ledger_account_set_id: LedgerAccountSetId,
         audit_info: AuditInfo,
     },
 }
@@ -33,28 +37,55 @@ pub struct Chart {
     pub id: ChartId,
     pub reference: String,
     pub name: String,
+    all_accounts: HashMap<AccountCode, (AccountSpec, LedgerAccountSetId)>,
     pub(super) events: EntityEvents<ChartEvent>,
 }
 
 impl Chart {
-    pub fn create_control_account(&mut self, category: AccountCategory, audit_info: AuditInfo) {
+    pub fn create_control_account(
+        &mut self,
+        spec: &AccountSpec,
+        audit_info: AuditInfo,
+    ) -> Idempotent<LedgerAccountSetId> {
+        if self.all_accounts.contains_key(&spec.code) {
+            return Idempotent::AlreadyApplied;
+        }
+        let ledger_account_set_id = LedgerAccountSetId::new();
         self.events.push(ChartEvent::ControlAccountAdded {
-            category,
+            spec: spec.clone(),
+            ledger_account_set_id,
             audit_info,
         });
+        Idempotent::Executed(ledger_account_set_id)
     }
 
-    pub fn create_control_sub_account(&mut self, category: AccountCategory, audit_info: AuditInfo) {
+    pub fn create_control_sub_account(
+        &mut self,
+        spec: &AccountSpec,
+        audit_info: AuditInfo,
+    ) -> Idempotent<(Option<LedgerAccountSetId>, LedgerAccountSetId)> {
+        if self.all_accounts.contains_key(&spec.code) {
+            return Idempotent::AlreadyApplied;
+        }
+        let ledger_account_set_id = LedgerAccountSetId::new();
         self.events.push(ChartEvent::ControlSubAccountAdded {
-            category,
+            spec: spec.clone(),
+            ledger_account_set_id,
             audit_info,
         });
+        let parent = if let Some(parent) = spec.parent.as_ref() {
+            self.all_accounts.get(parent).map(|(_, id)| *id)
+        } else {
+            None
+        };
+        Idempotent::Executed((parent, ledger_account_set_id))
     }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
     fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ChartBuilder::default();
+        let mut all_accounts = HashMap::new();
         for event in events.iter_all() {
             match event {
                 ChartEvent::Initialized {
@@ -68,10 +99,23 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string())
                 }
-                _ => (),
+                ChartEvent::ControlAccountAdded {
+                    spec,
+                    ledger_account_set_id,
+                    ..
+                } => {
+                    all_accounts.insert(spec.code.clone(), (spec.clone(), *ledger_account_set_id));
+                }
+                ChartEvent::ControlSubAccountAdded {
+                    spec,
+                    ledger_account_set_id,
+                    ..
+                } => {
+                    all_accounts.insert(spec.code.clone(), (spec.clone(), *ledger_account_set_id));
+                }
             }
         }
-        builder.events(events).build()
+        builder.all_accounts(all_accounts).events(events).build()
     }
 }
 

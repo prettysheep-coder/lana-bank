@@ -68,7 +68,6 @@ where
         id: impl Into<ChartId> + std::fmt::Debug,
         data: String,
     ) -> Result<(), CoreChartOfAccountsError> {
-        // Fix audit
         let id = id.into();
         let audit_info = self
             .authz
@@ -81,18 +80,60 @@ where
         let mut chart = self.repo.find_by_id(id).await?;
 
         let account_specs = csv::CsvParser::new(data).account_specs()?;
-        for account_spec in account_specs {
-            if !account_spec.has_parent() {
-                chart.create_control_account(account_spec.category, audit_info.clone());
-                // create account set for control account
+        let mut new_account_sets = Vec::new();
+        let mut new_connections = Vec::new();
+        for spec in account_specs {
+            if !spec.has_parent() {
+                if let es_entity::Idempotent::Executed(set_id) =
+                    chart.create_control_account(&spec, audit_info.clone())
+                {
+                    let new_account_set = NewAccountSet::builder()
+                        .id(set_id)
+                        .journal_id(self.journal_id)
+                        .name(spec.category.to_string())
+                        .description(spec.category.to_string())
+                        .external_id(spec.code.to_string())
+                        // .normal_balance_type()
+                        .build()
+                        .expect("Could not build new account set");
+                    new_account_sets.push(new_account_set);
+                }
             } else {
-                chart.create_control_sub_account(account_spec.category, audit_info.clone());
-                // get the control account for control sub account from cala
-                // create account set for control sub account
-                // add control sub account to control account
+                if let es_entity::Idempotent::Executed((parent, set_id)) =
+                    chart.create_control_sub_account(&spec, audit_info.clone())
+                {
+                    let new_account_set = NewAccountSet::builder()
+                        .id(set_id)
+                        .journal_id(self.journal_id)
+                        .name(spec.category.to_string())
+                        .description(spec.category.to_string())
+                        .external_id(spec.code.to_string())
+                        // .normal_balance_type()
+                        .build()
+                        .expect("Could not build new account set");
+                    new_account_sets.push(new_account_set);
+                    new_connections.push((parent, set_id));
+                }
             }
         }
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
 
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .account_sets()
+            .create_all_in_op(&mut op, new_account_sets)
+            .await?;
+
+        for (parent, child) in new_connections {
+            if let Some(parent) = parent {
+                self.cala
+                    .account_sets()
+                    .add_member_in_op(&mut op, parent, child)
+                    .await?;
+            }
+        }
+        op.commit().await?;
         Ok(())
     }
 

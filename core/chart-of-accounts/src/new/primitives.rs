@@ -4,7 +4,9 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-pub use cala_ledger::primitives::JournalId as LedgerJournalId;
+pub use cala_ledger::primitives::{
+    AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
+};
 
 pub use crate::primitives::ChartId;
 
@@ -21,6 +23,12 @@ pub enum AccountCategoryParseError {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AccountCategory {
     name: String,
+}
+
+impl std::fmt::Display for AccountCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 impl FromStr for AccountCategory {
@@ -48,7 +56,7 @@ pub enum AccountCodeSectionParseError {
     NonDigit,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AccountCodeSection {
     code: String,
 }
@@ -76,7 +84,7 @@ impl std::fmt::Display for AccountCodeSection {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct AccountCode {
     section: Vec<AccountCodeSection>,
 }
@@ -136,7 +144,7 @@ impl std::fmt::Display for AccountCode {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountSpec {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
@@ -217,6 +225,8 @@ impl FromStr for CoreChartOfAccountsObject {
 impl CoreChartOfAccountsAction {
     pub const CHART_CREATE: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::Create);
     pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
+    pub const CHART_IMPORT_ACCOUNTS: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::ImportAccounts);
 }
 
 impl Display for CoreChartOfAccountsAction {
@@ -248,6 +258,7 @@ impl FromStr for CoreChartOfAccountsAction {
 pub enum ChartAction {
     Create,
     List,
+    ImportAccounts,
     CreateControlAccount,
     FindControlAccount,
     CreateControlSubAccount,
