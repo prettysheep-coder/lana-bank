@@ -13,7 +13,7 @@ use super::error::*;
 
 pub(crate) use csv::CsvParseError;
 use entity::*;
-use primitives::*;
+pub use primitives::*;
 use repo::*;
 
 pub struct CoreChartOfAccounts<Perms>
@@ -43,8 +43,8 @@ where
 impl<Perms> CoreChartOfAccounts<Perms>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreChartOfAccountsAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreChartOfAccountsObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreChartOfAccountsActionNew>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreChartOfAccountsObjectNew>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -77,8 +77,8 @@ where
             .audit()
             .record_system_entry_in_tx(
                 op.tx(),
-                CoreChartOfAccountsObject::chart(id),
-                CoreChartOfAccountsAction::CHART_CREATE,
+                CoreChartOfAccountsObjectNew::chart(id),
+                CoreChartOfAccountsActionNew::CHART_CREATE,
             )
             .await?;
 
@@ -96,23 +96,24 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "chart_of_account.import_from_csv", skip(self))]
+    #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
     pub async fn import_from_csv(
         &self,
         id: impl Into<ChartId> + std::fmt::Debug,
-        data: String,
+        data: impl AsRef<str>,
     ) -> Result<(), CoreChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
             .audit()
             .record_system_entry(
-                CoreChartOfAccountsObject::chart(id),
-                CoreChartOfAccountsAction::CHART_LIST,
+                CoreChartOfAccountsObjectNew::chart(id),
+                CoreChartOfAccountsActionNew::CHART_LIST,
             )
             .await?;
         let mut chart = self.repo.find_by_id(id).await?;
 
+        let data = data.as_ref().to_string();
         let account_specs = csv::CsvParser::new(data).account_specs()?;
         let mut new_account_sets = Vec::new();
         let mut new_connections = Vec::new();
