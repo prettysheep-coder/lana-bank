@@ -2,8 +2,6 @@
 
 import { gql } from "@apollo/client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
-
 import { CustomerTransactionsTable } from "./transactions"
 
 import { useGetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
@@ -106,8 +104,6 @@ export default function CustomerTransactionsPage({
 
   const historyEntries =
     data?.customer?.depositAccount?.history.edges.map((edge) => edge.node) || []
-
-  const customerType = data?.customer?.customerType || null
 
   return (
     <div className="space-y-6">

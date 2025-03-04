@@ -85,7 +85,6 @@ wait_for_approval() {
   echo $(graphql_output) | jq .
   [[ "$(graphql_output .data.me.customer.customerId)" == "$customer_id" ]] || exit 1
   
-  # Verify customerType in response
   response_customer_type=$(graphql_output .data.me.customer.customerType)
   [[ "$response_customer_type" == "$customer_type" ]] || exit 1
 }
