@@ -1,12 +1,12 @@
+use serde::{Deserialize, Serialize};
+
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
 pub use cala_ledger::primitives::JournalId as LedgerJournalId;
 
-es_entity::entity_id! {
-    ChartId,
-}
+pub use crate::primitives::ChartId;
 
 use thiserror::Error;
 
@@ -18,7 +18,7 @@ pub enum AccountCategoryParseError {
     StartsWithDigit,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AccountCategory {
     name: String,
 }
@@ -155,6 +155,10 @@ impl AccountSpec {
             code,
             category,
         }
+    }
+
+    pub fn has_parent(&self) -> bool {
+        self.parent.is_some()
     }
 }
 
