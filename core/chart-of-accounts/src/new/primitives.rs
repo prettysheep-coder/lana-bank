@@ -18,6 +18,7 @@ pub enum AccountCategoryParseError {
     StartsWithDigit,
 }
 
+#[derive(Debug)]
 pub struct AccountCategory {
     name: String,
 }
@@ -47,6 +48,7 @@ pub enum AccountCodeSectionParseError {
     NonDigit,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct AccountCodeSection {
     code: String,
 }
@@ -69,19 +71,65 @@ impl FromStr for AccountCodeSection {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct AccountCode {
     section: Vec<AccountCodeSection>,
 }
+impl AccountCode {
+    pub fn new(section: Vec<AccountCodeSection>) -> Self {
+        AccountCode { section }
+    }
 
+    pub fn len_sections(&self) -> usize {
+        self.section.len()
+    }
+
+    pub fn is_parent(&self, sections: &[AccountCodeSection]) -> bool {
+        if self.section.is_empty() {
+            return false;
+        }
+        if sections.is_empty() {
+            return false;
+        }
+
+        for (i, parent_section) in self.section.iter().enumerate() {
+            if i >= sections.len() {
+                return false;
+            }
+
+            if !sections[i].code.starts_with(&parent_section.code) {
+                return false;
+            }
+            if sections[i].code.len() <= parent_section.code.len()
+                && sections[i].code != parent_section.code
+            {
+                return false;
+            }
+        }
+
+        true
+    }
+}
+
+#[derive(Debug)]
 pub struct AccountSpec {
-    code: AccountCode,
-    category: AccountCategory,
+    pub parent: Option<AccountCode>,
+    pub code: AccountCode,
+    pub category: AccountCategory,
 }
 
 impl AccountSpec {
-    pub(super) fn new(sections: Vec<AccountCodeSection>, category: AccountCategory) -> Self {
+    pub(super) fn new(
+        parent: Option<AccountCode>,
+        sections: Vec<AccountCodeSection>,
+        category: AccountCategory,
+    ) -> Self {
         let code = AccountCode { section: sections };
-        AccountSpec { code, category }
+        AccountSpec {
+            parent,
+            code,
+            category,
+        }
     }
 }
 
@@ -180,5 +228,35 @@ pub enum ChartAction {
 impl From<ChartAction> for CoreChartOfAccountsAction {
     fn from(action: ChartAction) -> Self {
         CoreChartOfAccountsAction::ChartAction(action)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_parent_same_level() {
+        let parent = "1".parse::<AccountCodeSection>().unwrap();
+        let child = "11".parse::<AccountCodeSection>().unwrap();
+        let account_code = AccountCode::new(vec![parent]);
+        assert!(account_code.is_parent(&[child]));
+    }
+
+    #[test]
+    fn is_parent_next_level() {
+        let parent = "11".parse::<AccountCodeSection>().unwrap();
+        let child = "0201".parse::<AccountCodeSection>().unwrap();
+        let account_code = AccountCode::new(vec![parent.clone()]);
+        assert!(account_code.is_parent(&[parent, child]));
+    }
+
+    #[test]
+    fn is_parent_next_level_with_sub() {
+        let parent = "11".parse::<AccountCodeSection>().unwrap();
+        let sub = "01".parse::<AccountCodeSection>().unwrap();
+        let child = "0201".parse::<AccountCodeSection>().unwrap();
+        let account_code = AccountCode::new(vec![parent.clone(), sub.clone()]);
+        assert!(account_code.is_parent(&[parent, sub, child]));
     }
 }
