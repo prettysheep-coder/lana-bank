@@ -29,7 +29,11 @@ async fn get_access_token() -> anyhow::Result<()> {
     let app = LanaApp::run(pool, app_config).await?;
 
     let customer_id = CustomerId::new();
-    match app.applicants().create_access_token(customer_id).await {
+    match app
+        .applicants()
+        .create_access_token(customer_id, SumsubKycLevel::Individual)
+        .await
+    {
         Ok(AccessTokenResponse {
             token,
             customer_id: returned_customer_id,
@@ -63,7 +67,11 @@ async fn create_permalink() -> anyhow::Result<()> {
     let app = LanaApp::run(pool, app_config).await?;
 
     let customer_id = CustomerId::new();
-    match app.applicants().create_permalink(customer_id).await {
+    match app
+        .applicants()
+        .create_permalink(customer_id, SumsubKycLevel::Individual)
+        .await
+    {
         Ok(PermalinkResponse { url }) => {
             assert!(!url.is_empty(), "The returned URL should not be empty");
             assert!(url.starts_with("http"), "The URL should start with 'http'");

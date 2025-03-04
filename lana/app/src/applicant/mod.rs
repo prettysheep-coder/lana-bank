@@ -21,6 +21,8 @@ use sumsub_auth::*;
 use repo::ApplicantRepo;
 pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
+use async_graphql::*;
+
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
@@ -36,18 +38,18 @@ pub enum ReviewAnswer {
     Red,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum SumsubKycLevel {
-    BasicKycLevel,
-    AdvancedKycLevel,
+    Individual,
+    Company,
 }
 
 impl std::fmt::Display for SumsubKycLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SumsubKycLevel::BasicKycLevel => write!(f, "basic-kyc-level"),
-            SumsubKycLevel::AdvancedKycLevel => write!(f, "advanced-kyc-level"),
+            SumsubKycLevel::Individual => write!(f, "basic-kyc-level"),
+            SumsubKycLevel::Company => write!(f, "basic-kyc-level"),
         }
     }
 }
@@ -209,7 +211,7 @@ impl Applicants {
                         ..
                     },
                 applicant_id,
-                level_name: SumsubKycLevel::BasicKycLevel,
+                level_name: SumsubKycLevel::Individual,
                 sandbox_mode,
                 ..
             } => {
@@ -242,11 +244,11 @@ impl Applicants {
                         review_answer: ReviewAnswer::Green,
                         ..
                     },
-                level_name: SumsubKycLevel::AdvancedKycLevel,
+                level_name: SumsubKycLevel::Company,
                 ..
             } => {
                 return Err(ApplicantError::UnhandledCallbackType(
-                    "Advanced KYC level is not supported".to_string(),
+                    "Company KYC level is not supported".to_string(),
                 ));
             }
             SumsubCallbackPayload::Unknown => {
@@ -261,11 +263,10 @@ impl Applicants {
     pub async fn create_access_token(
         &self,
         customer_id: CustomerId,
+        level: SumsubKycLevel,
     ) -> Result<AccessTokenResponse, ApplicantError> {
-        let level_name = SumsubKycLevel::BasicKycLevel;
-
         self.sumsub_client
-            .create_access_token(customer_id, &level_name.to_string())
+            .create_access_token(customer_id, &level.to_string())
             .await
     }
 
@@ -274,10 +275,11 @@ impl Applicants {
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
-        let level_name = SumsubKycLevel::BasicKycLevel;
+        // TODO: fetch customer type from customer
+        let level = SumsubKycLevel::Individual;
 
         self.sumsub_client
-            .create_permalink(customer_id.into(), &level_name.to_string())
+            .create_permalink(customer_id.into(), &level.to_string())
             .await
     }
 }
