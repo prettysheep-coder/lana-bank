@@ -141,11 +141,16 @@
           "email": "Correo electrónico",
           "createdOn": "Creado el",
           "telegram": "Telegram",
-          "status": "Estado"
+          "status": "Estado",
+          "customerType": "Tipo"
         },
         "status": {
           "active": "Activo",
           "inactive": "Inactivo"
+        },
+        "customerType": {
+          "individual": "Individuo",
+          "company": "Empresa"
         },
         "actions": {
           "editTelegram": "Editar ID de Telegram"

@@ -111,19 +111,6 @@ export default function CustomerTransactionsPage({
 
   return (
     <div className="space-y-6">
-      {customerType && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Customer Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Customer Type</p>
-              <p className="text-lg font-semibold">{customerType}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
       <CustomerTransactionsTable historyEntries={historyEntries} />
     </div>
   )

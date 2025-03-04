@@ -1998,7 +1998,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, createdAt: any, depositAccount?: { __typename?: 'DepositAccount', id: string, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, customerType: CustomerType, createdAt: any, depositAccount?: { __typename?: 'DepositAccount', id: string, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3982,6 +3982,7 @@ export const GetCustomerBasicDetailsDocument = gql`
     telegramId
     status
     level
+    customerType
     createdAt
     depositAccount {
       id

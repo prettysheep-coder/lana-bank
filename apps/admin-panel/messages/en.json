@@ -141,11 +141,16 @@
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",
-          "status": "Status"
+          "status": "Status",
+          "customerType": "Type"
         },
         "status": {
           "active": "Active",
           "inactive": "Inactive"
+        },
+        "customerType": {
+          "individual": "Individual",
+          "company": "Company"
         },
         "actions": {
           "editTelegram": "Edit Telegram ID"
