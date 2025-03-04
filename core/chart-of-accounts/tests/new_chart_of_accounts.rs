@@ -1,6 +1,5 @@
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 
-use authz::dummy::DummySubject;
 use chart_of_accounts::new::{CoreChartOfAccounts, *};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
@@ -24,7 +23,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
 }
 
 #[tokio::test]
-async fn parse_csv() -> anyhow::Result<()> {
+async fn import_from_csv() -> anyhow::Result<()> {
     use rand::Rng;
 
     let pool = init_pool().await?;
@@ -43,22 +42,19 @@ async fn parse_csv() -> anyhow::Result<()> {
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
 
     let chart_id = ChartId::new();
+    let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
     chart_of_accounts
-        .create_chart(
-            chart_id,
-            "Test Chart".to_string(),
-            format!("{:05}", rand::thread_rng().gen_range(0..100000)),
-        )
+        .create_chart(chart_id, "Test Chart".to_string(), rand_ref.clone())
         .await?;
 
-    let data = r#"
-        1,,,Assets ,,
-        ,,,,,
-        11,,,Assets,,
-        ,,,,,
-            ,01,,Effective,,
+    let data = format!(
+        r#"
+        {rand_ref},,,Assets
+        {rand_ref}1,,,Assets
+        ,01,,Effective
         ,,0101,Central Office,
-        "#;
+        "#
+    );
 
     chart_of_accounts.import_from_csv(chart_id, data).await?;
 
