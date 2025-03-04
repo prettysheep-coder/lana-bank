@@ -1,7 +1,9 @@
 use csv::{ReaderBuilder, Trim};
 use std::io::Cursor;
 
-use super::primitives::{AccountCategory, AccountCodeSection, AccountSpec};
+use super::primitives::{
+    AccountCategory, AccountCodeSection, AccountCodeSectionParseError, AccountSpec,
+};
 
 use thiserror::Error;
 
@@ -28,12 +30,13 @@ impl CsvParser {
         for result in rdr.records() {
             match result {
                 Ok(record) => {
+                    let mut initial_empty = true;
                     let mut sections = vec![];
                     if record.iter().all(|field| field.is_empty()) {
                         continue;
                     }
 
-                    for field in record.iter() {
+                    for (idx, field) in record.iter().enumerate() {
                         if let Ok(category) = field.parse::<AccountCategory>() {
                             if let Some(s) = specs.last() {
                                 if s.code.is_parent(&sections) {
@@ -48,8 +51,25 @@ impl CsvParser {
                             specs.push(AccountSpec::new(None, sections, category));
                             break;
                         }
-                        if let Ok(section) = field.parse::<AccountCodeSection>() {
-                            sections.push(section);
+                        match field.parse::<AccountCodeSection>() {
+                            Ok(section) => {
+                                initial_empty = false;
+                                sections.push(section)
+                            }
+                            Err(AccountCodeSectionParseError::Empty) if initial_empty => {
+                                sections.push(
+                                    specs
+                                        .last()
+                                        .expect("No parent")
+                                        .code
+                                        .section(idx)
+                                        .expect("No parent section")
+                                        .clone(),
+                                );
+                            }
+                            _ => {
+                                continue;
+                            }
                         }
                     }
                 }
@@ -86,5 +106,28 @@ mod tests {
         assert_eq!(specs.len(), 2);
         assert_eq!(specs[0].code.len_sections(), 1);
         assert_eq!(Some(&specs[0].code), specs[1].parent.as_ref());
+    }
+
+    #[test]
+    fn parse_child_with_empty_top_section() {
+        let data = r#"
+        1,,,Assets ,,
+        ,,,,,
+        11,,,Assets,,
+        ,,,,,
+            ,01,,Effective,,
+        ,,0101,Central Office,
+        "#;
+        let parser = CsvParser::new(data.to_string());
+        let specs = parser.account_specs().unwrap();
+        assert_eq!(specs.len(), 4);
+
+        assert_eq!(specs[2].code.len_sections(), 2);
+        assert_eq!(Some(&specs[1].code), specs[2].parent.as_ref());
+
+        assert_eq!(specs[3].code.len_sections(), 3);
+        assert_eq!(Some(&specs[2].code), specs[3].parent.as_ref());
+
+        assert_eq!(&specs[3].code.to_string(), "11.01.0101");
     }
 }

@@ -70,6 +70,11 @@ impl FromStr for AccountCodeSection {
         })
     }
 }
+impl std::fmt::Display for AccountCodeSection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.code)
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AccountCode {
@@ -82,6 +87,10 @@ impl AccountCode {
 
     pub fn len_sections(&self) -> usize {
         self.section.len()
+    }
+
+    pub fn section(&self, idx: usize) -> Option<&AccountCodeSection> {
+        self.section.get(idx)
     }
 
     pub fn is_parent(&self, sections: &[AccountCodeSection]) -> bool {
@@ -108,6 +117,22 @@ impl AccountCode {
         }
 
         true
+    }
+}
+
+impl std::fmt::Display for AccountCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.section.is_empty() {
+            return Ok(());
+        }
+
+        write!(f, "{}", self.section[0])?;
+
+        for section in &self.section[1..] {
+            write!(f, ".{}", section)?;
+        }
+
+        Ok(())
     }
 }
 
