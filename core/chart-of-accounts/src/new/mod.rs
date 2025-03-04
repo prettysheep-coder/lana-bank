@@ -62,6 +62,40 @@ where
         Ok(res)
     }
 
+    #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
+    pub async fn create_chart(
+        &self,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        name: String,
+        reference: String,
+    ) -> Result<Chart, CoreChartOfAccountsError> {
+        let id = id.into();
+
+        let mut op = self.repo.begin_op().await?;
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreChartOfAccountsObject::chart(id),
+                CoreChartOfAccountsAction::CHART_CREATE,
+            )
+            .await?;
+
+        let new_chart = NewChart::builder()
+            .id(id)
+            .name(name)
+            .reference(reference)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build new chart of accounts");
+
+        let chart = self.repo.create_in_op(&mut op, new_chart).await?;
+        op.commit().await?;
+
+        Ok(chart)
+    }
+
     #[instrument(name = "chart_of_account.import_from_csv", skip(self))]
     pub async fn import_from_csv(
         &self,
@@ -136,40 +170,4 @@ where
         op.commit().await?;
         Ok(())
     }
-
-    // #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
-    // pub async fn create_chart( &self,
-    //     id: impl Into<ChartId> + std::fmt::Debug,
-    //     name: String,
-    //     reference: String,
-    // ) -> Result<Chart, CoreChartOfAccountsError> {
-    //     let id = id.into();
-
-    //     let mut op = self.repo.begin_op().await?;
-    //     let audit_info = self
-    //         .authz
-    //         .audit()
-    //         .record_system_entry_in_tx(
-    //             op.tx(),
-    //             CoreChartOfAccountsObject::chart(id),
-    //             CoreChartOfAccountsAction::CHART_CREATE,
-    //         )
-    //         .await?;
-
-    //     let new_chart_of_account = NewChart::builder()
-    //         .id(id)
-    //         .name(name)
-    //         .reference(reference)
-    //         .audit_info(audit_info)
-    //         .build()
-    //         .expect("Could not build new chart of accounts");
-
-    //     let chart = self
-    //         .repo
-    //         .create_in_op(&mut op, new_chart_of_account)
-    //         .await?;
-    //     op.commit().await?;
-
-    //     Ok(chart)
-    // }
 }
