@@ -4,6 +4,7 @@ mod job;
 mod repo;
 mod sumsub_auth;
 
+use core_customer;
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -26,7 +27,7 @@ use async_graphql::*;
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
-    users: Customers,
+    customers: Customers,
     repo: ApplicantRepo,
     jobs: Jobs,
 }
@@ -40,17 +41,50 @@ pub enum ReviewAnswer {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
-pub enum SumsubKycLevel {
-    Individual,
-    Company,
+pub enum SumsubVerificationLevel {
+    #[serde(rename = "basic-kyc-level")]
+    BasicKycLevel,
+    #[serde(rename = "basic-kyb-level")]
+    BasicKybLevel,
+    Unimplemented,
 }
 
-impl std::fmt::Display for SumsubKycLevel {
+impl std::fmt::Display for SumsubVerificationLevel {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            SumsubKycLevel::Individual => write!(f, "basic-kyc-level"),
-            SumsubKycLevel::Company => write!(f, "basic-kyc-level"),
+            SumsubVerificationLevel::BasicKycLevel => {
+                write!(f, "basic-kyc-level")
+            }
+            SumsubVerificationLevel::BasicKybLevel => write!(f, "basic-kyb-level"),
+            SumsubVerificationLevel::Unimplemented => write!(f, "unimplemented"),
         }
+    }
+}
+
+impl std::str::FromStr for SumsubVerificationLevel {
+    type Err = ApplicantError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "basic-kyc-level" => Ok(SumsubVerificationLevel::BasicKycLevel),
+            "basic-kyb-level" => Ok(SumsubVerificationLevel::BasicKybLevel),
+            _ => Ok(SumsubVerificationLevel::Unimplemented),
+        }
+    }
+}
+
+impl From<&core_customer::CustomerType> for SumsubVerificationLevel {
+    fn from(customer_type: &core_customer::CustomerType) -> Self {
+        match customer_type {
+            core_customer::CustomerType::Individual => SumsubVerificationLevel::BasicKycLevel,
+            core_customer::CustomerType::Company => SumsubVerificationLevel::BasicKybLevel,
+        }
+    }
+}
+
+impl From<core_customer::CustomerType> for SumsubVerificationLevel {
+    fn from(customer_type: core_customer::CustomerType) -> Self {
+        (&customer_type).into()
     }
 }
 
@@ -63,7 +97,7 @@ pub enum SumsubCallbackPayload {
         applicant_id: String,
         inspection_id: String,
         correlation_id: String,
-        level_name: SumsubKycLevel,
+        level_name: String,
         external_user_id: CustomerId,
         review_status: String,
         created_at_ms: String,
@@ -77,7 +111,7 @@ pub enum SumsubCallbackPayload {
         inspection_id: String,
         correlation_id: String,
         external_user_id: CustomerId,
-        level_name: SumsubKycLevel,
+        level_name: String,
         review_result: ReviewResult,
         review_status: String,
         created_at_ms: String,
@@ -101,7 +135,7 @@ impl Applicants {
     pub fn new(
         pool: &sqlx::PgPool,
         config: &SumsubConfig,
-        users: &Customers,
+        customers: &Customers,
         jobs: &Jobs,
         // export: &Export,
     ) -> Self {
@@ -115,7 +149,7 @@ impl Applicants {
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            users: users.clone(),
+            customers: customers.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -167,7 +201,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .start_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -191,7 +225,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .decline_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -211,12 +245,21 @@ impl Applicants {
                         ..
                     },
                 applicant_id,
-                level_name: SumsubKycLevel::Individual,
+                level_name,
                 sandbox_mode,
                 ..
             } => {
+                let level: SumsubVerificationLevel = level_name.parse()?;
+
+                if level == SumsubVerificationLevel::Unimplemented {
+                    return Err(ApplicantError::UnhandledCallbackType(format!(
+                        "Sumsub level {level_name} not implemented",
+                        level_name = level_name
+                    )));
+                }
+
                 let res = self
-                    .users
+                    .customers
                     .approve_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -238,19 +281,6 @@ impl Applicants {
                     )
                     .await?;
             }
-            SumsubCallbackPayload::ApplicantReviewed {
-                review_result:
-                    ReviewResult {
-                        review_answer: ReviewAnswer::Green,
-                        ..
-                    },
-                level_name: SumsubKycLevel::Company,
-                ..
-            } => {
-                return Err(ApplicantError::UnhandledCallbackType(
-                    "Company KYC level is not supported".to_string(),
-                ));
-            }
             SumsubCallbackPayload::Unknown => {
                 return Err(ApplicantError::UnhandledCallbackType(format!(
                     "callback event not processed for payload {payload}",
@@ -263,8 +293,17 @@ impl Applicants {
     pub async fn create_access_token(
         &self,
         customer_id: CustomerId,
-        level: SumsubKycLevel,
     ) -> Result<AccessTokenResponse, ApplicantError> {
+        let customer = self.customers.find_by_id_internal(customer_id).await?;
+        let customer = customer.ok_or_else(|| {
+            ApplicantError::CustomerIdNotFound(format!(
+                "Customer with ID {} not found",
+                customer_id
+            ))
+        })?;
+
+        let level: SumsubVerificationLevel = customer.customer_type.into();
+
         self.sumsub_client
             .create_access_token(customer_id, &level.to_string())
             .await
@@ -275,11 +314,20 @@ impl Applicants {
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
-        // TODO: fetch customer type from customer
-        let level = SumsubKycLevel::Individual;
+        let customer_id: CustomerId = customer_id.into();
+
+        let customer = self.customers.find_by_id_internal(customer_id).await?;
+        let customer = customer.ok_or_else(|| {
+            ApplicantError::CustomerIdNotFound(format!(
+                "Customer with ID {} not found",
+                customer_id
+            ))
+        })?;
+
+        let level: SumsubVerificationLevel = customer.customer_type.into();
 
         self.sumsub_client
-            .create_permalink(customer_id.into(), &level.to_string())
+            .create_permalink(customer_id, &level.to_string())
             .await
     }
 }

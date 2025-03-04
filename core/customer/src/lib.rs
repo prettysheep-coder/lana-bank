@@ -91,6 +91,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         email: impl Into<String> + std::fmt::Debug,
         telegram_id: impl Into<String> + std::fmt::Debug,
+        customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .subject_can_create_customer(sub, true)
@@ -104,6 +105,7 @@ where
             .id(CustomerId::new())
             .email(email.clone())
             .telegram_id(telegram_id)
+            .customer_type(customer_type)
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");

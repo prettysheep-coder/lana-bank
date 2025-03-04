@@ -636,6 +636,7 @@ export type Customer = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   customerId: Scalars['UUID']['output'];
+  customerType: CustomerType;
   depositAccount?: Maybe<DepositAccount>;
   documents: Array<Document>;
   email: Scalars['String']['output'];
@@ -658,6 +659,7 @@ export type CustomerConnection = {
 };
 
 export type CustomerCreateInput = {
+  customerType: CustomerType;
   email: Scalars['String']['input'];
   telegramId: Scalars['String']['input'];
 };
@@ -675,6 +677,11 @@ export type CustomerEdge = {
   /** The item at the end of the edge */
   node: Customer;
 };
+
+export enum CustomerType {
+  Company = 'COMPANY',
+  Individual = 'INDIVIDUAL'
+}
 
 export type CustomerUpdateInput = {
   customerId: Scalars['UUID']['input'];
@@ -2000,7 +2007,7 @@ export type GetCustomerTransactionHistoryQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPayment', id: string, paymentId: string, interestAmount: UsdCents, disbursalAmount: UsdCents, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } | null } | null };
+export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPayment', id: string, paymentId: string, interestAmount: UsdCents, disbursalAmount: UsdCents, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } | null } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -4020,6 +4027,7 @@ export const GetCustomerTransactionHistoryDocument = gql`
   customer(id: $id) {
     id
     customerId
+    customerType
     depositAccount {
       depositAccountId
       history(first: $first, after: $after) {

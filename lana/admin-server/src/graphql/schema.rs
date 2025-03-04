@@ -711,7 +711,8 @@ impl Mutation {
             CustomerCreatePayload,
             Customer,
             ctx,
-            app.customers().create(sub, input.email, input.telegram_id)
+            app.customers()
+                .create(sub, input.email, input.telegram_id, input.customer_type)
         )
     }
 
