@@ -134,6 +134,7 @@ impl LanaApp {
             &outbox,
             &customers,
             &deposits,
+            &applicants,
             config.customer_onboarding,
         )
         .await?;

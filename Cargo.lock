@@ -1222,6 +1222,7 @@ name = "customer-onboarding"
 version = "0.3.132-dev"
 dependencies = [
  "anyhow",
+ "applicant",
  "async-graphql",
  "async-trait",
  "audit",
