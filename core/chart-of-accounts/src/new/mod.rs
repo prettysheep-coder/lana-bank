@@ -133,22 +133,20 @@ where
                         .expect("Could not build new account set");
                     new_account_sets.push(new_account_set);
                 }
-            } else {
-                if let es_entity::Idempotent::Executed((parent, set_id)) =
-                    chart.create_control_sub_account(&spec, audit_info.clone())
-                {
-                    let new_account_set = NewAccountSet::builder()
-                        .id(set_id)
-                        .journal_id(self.journal_id)
-                        .name(spec.category.to_string())
-                        .description(spec.category.to_string())
-                        .external_id(spec.code.to_string())
-                        // .normal_balance_type()
-                        .build()
-                        .expect("Could not build new account set");
-                    new_account_sets.push(new_account_set);
-                    new_connections.push((parent, set_id));
-                }
+            } else if let es_entity::Idempotent::Executed((parent, set_id)) =
+                chart.create_control_sub_account(&spec, audit_info.clone())
+            {
+                let new_account_set = NewAccountSet::builder()
+                    .id(set_id)
+                    .journal_id(self.journal_id)
+                    .name(spec.category.to_string())
+                    .description(spec.category.to_string())
+                    .external_id(spec.code.to_string())
+                    // .normal_balance_type()
+                    .build()
+                    .expect("Could not build new account set");
+                new_account_sets.push(new_account_set);
+                new_connections.push((parent, set_id));
             }
         }
         let mut op = self.repo.begin_op().await?;
