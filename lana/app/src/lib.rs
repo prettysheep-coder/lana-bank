@@ -53,7 +53,7 @@ pub mod customer_onboarding {
 }
 
 pub mod applicant {
-    pub use applicant::SumsubConfig;
+    pub use applicant::{AccessTokenResponse, PermalinkResponse, SumsubConfig};
     pub type Applicants =
         applicant::Applicants<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
