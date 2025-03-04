@@ -127,7 +127,7 @@ where
                         .journal_id(self.journal_id)
                         .name(spec.category.to_string())
                         .description(spec.category.to_string())
-                        .external_id(spec.code.to_string())
+                        .external_id(spec.account_set_external_id(id))
                         // .normal_balance_type()
                         .build()
                         .expect("Could not build new account set");
@@ -141,7 +141,7 @@ where
                     .journal_id(self.journal_id)
                     .name(spec.category.to_string())
                     .description(spec.category.to_string())
-                    .external_id(spec.code.to_string())
+                    .external_id(spec.account_set_external_id(id))
                     // .normal_balance_type()
                     .build()
                     .expect("Could not build new account set");

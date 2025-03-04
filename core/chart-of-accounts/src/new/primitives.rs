@@ -165,6 +165,10 @@ impl AccountSpec {
         }
     }
 
+    pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
+        format!("{}.{}", chart_id, self.code)
+    }
+
     pub fn has_parent(&self) -> bool {
         self.parent.is_some()
     }
