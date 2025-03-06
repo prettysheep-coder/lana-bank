@@ -48,7 +48,11 @@ async fn create_permalink() -> anyhow::Result<()> {
         .await?;
     let customer_id = customer.id;
 
-    match app.applicants().create_permalink(customer_id).await {
+    match app
+        .applicants()
+        .create_permalink(&Subject::System, customer_id)
+        .await
+    {
         Ok(PermalinkResponse { url }) => {
             assert!(!url.is_empty(), "The returned URL should not be empty");
             assert!(url.starts_with("http"), "The URL should start with 'http'");
