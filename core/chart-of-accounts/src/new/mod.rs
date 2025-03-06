@@ -67,18 +67,17 @@ where
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
-        id: impl Into<AltChartId> + std::fmt::Debug,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
     ) -> Result<AltChart, CoreChartOfAccountsError> {
-        let id = id.into();
+        let id = AltChartId::new();
 
         let mut op = self.repo.begin_op().await?;
         let audit_info = self
             .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObjectNew::chart(id),
                 CoreChartOfAccountsActionNew::CHART_CREATE,
             )
@@ -101,14 +100,15 @@ where
     #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
     pub async fn import_from_csv(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<AltChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
     ) -> Result<(), CoreChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
-            .audit()
-            .record_system_entry(
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObjectNew::chart(id),
                 CoreChartOfAccountsActionNew::CHART_LIST,
             )
@@ -178,5 +178,13 @@ where
         };
 
         Ok(chart)
+    }
+
+    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
+    pub async fn find_all<T: From<AltChart>>(
+        &self,
+        ids: &[AltChartId],
+    ) -> Result<std::collections::HashMap<AltChartId, T>, CoreChartOfAccountsError> {
+        Ok(self.repo.find_all(ids).await?)
     }
 }

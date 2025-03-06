@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM core_alt_charts WHERE (COALESCE(id < $2, true)) ORDER BY id DESC LIMIT $1) SELECT i.id AS \"entity_id: AltChartId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_alt_chart_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: AltChartId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "55f3537dc4791cda070521b30df181f3eed2dc7fdd5d0a6fb64391f4ed0302ba"
+}

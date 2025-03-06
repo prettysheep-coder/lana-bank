@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM core_alt_charts WHERE reference = $1) SELECT i.id AS \"entity_id: AltChartId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_alt_chart_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: AltChartId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "769c2c049e3a1ce3797c1d465b27ad8f116d143e3a960387a8c8851b900548b6"
+}

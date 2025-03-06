@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.id AS \"id: AltChartId\", e.sequence, e.event, e.recorded_at FROM core_alt_charts i JOIN core_alt_chart_events e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: AltChartId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "88a3588e2929f18430ea1a994ce739cd4f10bbafd83129cc38a081c81a2b66cb"
+}
