@@ -32,33 +32,27 @@ pub struct Applicants {
     jobs: Jobs,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display, strum::EnumString,
+)]
 #[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum ReviewAnswer {
     Green,
     Red,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq, strum::Display)]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum SumsubVerificationLevel {
     #[serde(rename = "basic-kyc-level")]
+    #[strum(serialize = "basic-kyc-level")]
     BasicKycLevel,
     #[serde(rename = "basic-kyb-level")]
+    #[strum(serialize = "basic-kyb-level")]
     BasicKybLevel,
     Unimplemented,
-}
-
-impl std::fmt::Display for SumsubVerificationLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SumsubVerificationLevel::BasicKycLevel => {
-                write!(f, "basic-kyc-level")
-            }
-            SumsubVerificationLevel::BasicKybLevel => write!(f, "basic-kyb-level"),
-            SumsubVerificationLevel::Unimplemented => write!(f, "unimplemented"),
-        }
-    }
 }
 
 impl std::str::FromStr for SumsubVerificationLevel {

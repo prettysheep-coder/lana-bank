@@ -26,4 +26,6 @@ pub enum ApplicantError {
     JobError(#[from] crate::job::error::JobError),
     #[error("ApplicantError - CustomerIdNotFound: {0}")]
     CustomerIdNotFound(String),
+    #[error("ApplicantError - SumsubVerificationLevelParseError: Could not parse '{0}'")]
+    SumsubVerificationLevelParseError(String),
 }
