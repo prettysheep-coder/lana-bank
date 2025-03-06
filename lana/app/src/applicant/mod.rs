@@ -32,14 +32,24 @@ pub struct Applicants {
     jobs: Jobs,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display, strum::EnumString,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
 pub enum ReviewAnswer {
     Green,
     Red,
+}
+
+impl std::str::FromStr for ReviewAnswer {
+    type Err = ApplicantError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_uppercase().as_str() {
+            "GREEN" => Ok(ReviewAnswer::Green),
+            "RED" => Ok(ReviewAnswer::Red),
+            _ => Err(ApplicantError::ReviewAnswerParseError(s.to_string())),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq, strum::Display)]
@@ -62,7 +72,12 @@ impl std::str::FromStr for SumsubVerificationLevel {
         match s {
             "basic-kyc-level" => Ok(SumsubVerificationLevel::BasicKycLevel),
             "basic-kyb-level" => Ok(SumsubVerificationLevel::BasicKybLevel),
-            _ => Ok(SumsubVerificationLevel::Unimplemented),
+            _ => {
+                tracing::warn!("Unrecognized SumsubVerificationLevel: {}", s);
+                Err(ApplicantError::SumsubVerificationLevelParseError(
+                    s.to_string(),
+                ))
+            }
         }
     }
 }
@@ -243,14 +258,16 @@ impl Applicants {
                 sandbox_mode,
                 ..
             } => {
-                let level: SumsubVerificationLevel = level_name.parse()?;
-
-                if level == SumsubVerificationLevel::Unimplemented {
-                    return Err(ApplicantError::UnhandledCallbackType(format!(
-                        "Sumsub level {level_name} not implemented",
-                        level_name = level_name
-                    )));
-                }
+                // Try to parse the level name, will return error for unrecognized values
+                match level_name.parse::<SumsubVerificationLevel>() {
+                    Ok(_) => {} // Level is valid, continue
+                    Err(_) => {
+                        return Err(ApplicantError::UnhandledCallbackType(format!(
+                            "Sumsub level {level_name} not implemented",
+                            level_name = level_name
+                        )));
+                    }
+                };
 
                 let res = self
                     .customers

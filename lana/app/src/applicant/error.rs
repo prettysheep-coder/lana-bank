@@ -28,4 +28,6 @@ pub enum ApplicantError {
     CustomerIdNotFound(String),
     #[error("ApplicantError - SumsubVerificationLevelParseError: Could not parse '{0}'")]
     SumsubVerificationLevelParseError(String),
+    #[error("ApplicantError - ReviewAnswerParseError: Could not parse '{0}'")]
+    ReviewAnswerParseError(String),
 }
