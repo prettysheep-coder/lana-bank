@@ -173,17 +173,6 @@ where
         }
     }
 
-    pub async fn find_by_id_internal(
-        &self,
-        id: impl Into<CustomerId> + std::fmt::Debug,
-    ) -> Result<Option<Customer>, CustomerError> {
-        match self.repo.find_by_id(id.into()).await {
-            Ok(customer) => Ok(Some(customer)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-
     pub async fn list(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

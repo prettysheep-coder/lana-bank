@@ -650,11 +650,12 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let app = ctx.data_unchecked::<LanaApp>();
-        let res = app.applicants().create_permalink(input.customer_id).await?;
-
-        let url = res.url;
-        Ok(SumsubPermalinkCreatePayload { url })
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let permalink = app
+            .applicants()
+            .create_permalink(sub, input.customer_id)
+            .await?;
+        Ok(SumsubPermalinkCreatePayload { url: permalink.url })
     }
 
     async fn user_create(

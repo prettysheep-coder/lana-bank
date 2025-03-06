@@ -12,7 +12,7 @@ use tracing::instrument;
 use crate::{
     customer::Customers,
     job::Jobs,
-    primitives::{CustomerId, JobId},
+    primitives::{CustomerId, JobId, Subject},
 };
 
 pub use config::*;
@@ -290,33 +290,15 @@ impl Applicants {
         Ok(())
     }
 
-    pub async fn create_access_token(
-        &self,
-        customer_id: CustomerId,
-    ) -> Result<AccessTokenResponse, ApplicantError> {
-        let customer = self.customers.find_by_id_internal(customer_id).await?;
-        let customer = customer.ok_or_else(|| {
-            ApplicantError::CustomerIdNotFound(format!(
-                "Customer with ID {} not found",
-                customer_id
-            ))
-        })?;
-
-        let level: SumsubVerificationLevel = customer.customer_type.into();
-
-        self.sumsub_client
-            .create_access_token(customer_id, &level.to_string())
-            .await
-    }
-
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
+        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        let customer = self.customers.find_by_id_internal(customer_id).await?;
+        let customer = self.customers.find_by_id(sub, customer_id).await?;
         let customer = customer.ok_or_else(|| {
             ApplicantError::CustomerIdNotFound(format!(
                 "Customer with ID {} not found",
