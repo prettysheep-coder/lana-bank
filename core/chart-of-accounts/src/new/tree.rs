@@ -4,13 +4,13 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use crate::{primitives::LedgerAccountSetId, ChartId};
+use crate::primitives::LedgerAccountSetId;
 
-use super::{AccountCode, AccountName, AccountSpec, ChartEvent};
+use super::{primitives::AltChartId, AccountCode, AccountName, AccountSpec, AltChartEvent};
 
 #[derive(Debug)]
 pub struct ChartTree {
-    pub id: ChartId,
+    pub id: AltChartId,
     pub name: String,
     pub children: Vec<TreeNode>,
 }
@@ -25,7 +25,7 @@ pub struct TreeNode {
 }
 
 #[derive(Debug, Clone)]
-pub struct TreeNodeWithRef {
+struct TreeNodeWithRef {
     id: LedgerAccountSetId,
     code: AccountCode,
     name: AccountName,
@@ -55,19 +55,19 @@ impl TreeNodeWithRef {
 }
 
 #[derive(Debug, Clone)]
-pub struct EntityNode {
-    pub id: LedgerAccountSetId,
-    pub spec: AccountSpec,
+struct EntityNode {
+    id: LedgerAccountSetId,
+    spec: AccountSpec,
 }
 
-pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent>) -> ChartTree {
-    let mut id: Option<ChartId> = None;
+pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a AltChartEvent>) -> ChartTree {
+    let mut id: Option<AltChartId> = None;
     let mut name: Option<String> = None;
     let mut entity_nodes: Vec<EntityNode> = vec![];
 
     for event in events {
         match event {
-            ChartEvent::Initialized {
+            AltChartEvent::Initialized {
                 id: chart_id,
                 name: chart_name,
                 ..
@@ -75,7 +75,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                 id = Some(*chart_id);
                 name = Some(chart_name.to_string());
             }
-            ChartEvent::NodeAdded {
+            AltChartEvent::NodeAdded {
                 ledger_account_set_id: id,
                 spec,
                 ..
@@ -136,7 +136,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
 mod tests {
     use es_entity::*;
 
-    use crate::new::{Chart, NewChart};
+    use crate::new::{AltChart, NewAltChart};
 
     use super::*;
 
@@ -149,11 +149,11 @@ mod tests {
         }
     }
 
-    fn init_chart_of_events() -> Chart {
-        let id = ChartId::new();
+    fn init_chart_of_events() -> AltChart {
+        let id = AltChartId::new();
         let audit_info = dummy_audit_info();
 
-        let new_chart = NewChart::builder()
+        let new_chart = NewAltChart::builder()
             .id(id)
             .name("Test Chart".to_string())
             .reference("ref-01".to_string())
@@ -162,7 +162,7 @@ mod tests {
             .unwrap();
 
         let events = new_chart.into_events();
-        Chart::try_from_events(events).unwrap()
+        AltChart::try_from_events(events).unwrap()
     }
 
     #[test]

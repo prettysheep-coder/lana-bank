@@ -12,10 +12,10 @@ use super::tree;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "ChartId")]
-pub enum ChartEvent {
+#[es_event(id = "AltChartId")]
+pub enum AltChartEvent {
     Initialized {
-        id: ChartId,
+        id: AltChartId,
         name: String,
         reference: String,
         audit_info: AuditInfo,
@@ -29,15 +29,15 @@ pub enum ChartEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct Chart {
-    pub id: ChartId,
+pub struct AltChart {
+    pub id: AltChartId,
     pub reference: String,
     pub name: String,
     all_accounts: HashMap<AccountCode, (AccountSpec, LedgerAccountSetId)>,
-    pub(super) events: EntityEvents<ChartEvent>,
+    pub(super) events: EntityEvents<AltChartEvent>,
 }
 
-impl Chart {
+impl AltChart {
     pub fn create_node(
         &mut self,
         spec: &AccountSpec,
@@ -47,7 +47,7 @@ impl Chart {
             return Idempotent::AlreadyApplied;
         }
         let ledger_account_set_id = LedgerAccountSetId::new();
-        self.events.push(ChartEvent::NodeAdded {
+        self.events.push(AltChartEvent::NodeAdded {
             spec: spec.clone(),
             ledger_account_set_id,
             audit_info,
@@ -65,13 +65,13 @@ impl Chart {
     }
 }
 
-impl TryFromEvents<ChartEvent> for Chart {
-    fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
-        let mut builder = ChartBuilder::default();
+impl TryFromEvents<AltChartEvent> for AltChart {
+    fn try_from_events(events: EntityEvents<AltChartEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = AltChartBuilder::default();
         let mut all_accounts = HashMap::new();
         for event in events.iter_all() {
             match event {
-                ChartEvent::Initialized {
+                AltChartEvent::Initialized {
                     id,
                     reference,
                     name,
@@ -82,7 +82,7 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string())
                 }
-                ChartEvent::NodeAdded {
+                AltChartEvent::NodeAdded {
                     spec,
                     ledger_account_set_id,
                     ..
@@ -96,26 +96,26 @@ impl TryFromEvents<ChartEvent> for Chart {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewChart {
+pub struct NewAltChart {
     #[builder(setter(into))]
-    pub(super) id: ChartId,
+    pub(super) id: AltChartId,
     pub(super) name: String,
     pub(super) reference: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
 
-impl NewChart {
-    pub fn builder() -> NewChartBuilder {
-        NewChartBuilder::default()
+impl NewAltChart {
+    pub fn builder() -> NewAltChartBuilder {
+        NewAltChartBuilder::default()
     }
 }
 
-impl IntoEvents<ChartEvent> for NewChart {
-    fn into_events(self) -> EntityEvents<ChartEvent> {
+impl IntoEvents<AltChartEvent> for NewAltChart {
+    fn into_events(self) -> EntityEvents<AltChartEvent> {
         EntityEvents::init(
             self.id,
-            [ChartEvent::Initialized {
+            [AltChartEvent::Initialized {
                 id: self.id,
                 name: self.name,
                 reference: self.reference,

@@ -13,6 +13,7 @@ use tracing::instrument;
 use super::error::*;
 
 pub(crate) use csv::CsvParseError;
+pub use entity::AltChart;
 use entity::*;
 pub use primitives::*;
 use repo::*;
@@ -66,10 +67,10 @@ where
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        id: impl Into<AltChartId> + std::fmt::Debug,
         name: String,
         reference: String,
-    ) -> Result<Chart, CoreChartOfAccountsError> {
+    ) -> Result<AltChart, CoreChartOfAccountsError> {
         let id = id.into();
 
         let mut op = self.repo.begin_op().await?;
@@ -83,7 +84,7 @@ where
             )
             .await?;
 
-        let new_chart = NewChart::builder()
+        let new_chart = NewAltChart::builder()
             .id(id)
             .name(name)
             .reference(reference)
@@ -100,7 +101,7 @@ where
     #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
     pub async fn import_from_csv(
         &self,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        id: impl Into<AltChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
     ) -> Result<(), CoreChartOfAccountsError> {
         let id = id.into();

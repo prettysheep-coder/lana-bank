@@ -8,9 +8,11 @@ pub use cala_ledger::primitives::{
     AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
 };
 
-pub use crate::primitives::ChartId;
-
 use thiserror::Error;
+
+es_entity::entity_id! {
+    AltChartId,
+}
 
 #[derive(Error, Debug)]
 pub enum AccountNameParseError {
@@ -161,7 +163,7 @@ impl AccountSpec {
         AccountSpec { parent, code, name }
     }
 
-    pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
+    pub(super) fn account_set_external_id(&self, chart_id: AltChartId) -> String {
         format!("{}.{}", chart_id, self.code)
     }
 
@@ -170,7 +172,7 @@ impl AccountSpec {
     }
 }
 
-pub type ChartAllOrOne = AllOrOne<ChartId>;
+pub type ChartAllOrOne = AllOrOne<AltChartId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -187,7 +189,7 @@ pub enum CoreChartOfAccountsObjectNew {
 }
 
 impl CoreChartOfAccountsObjectNew {
-    pub fn chart(id: ChartId) -> Self {
+    pub fn chart(id: AltChartId) -> Self {
         CoreChartOfAccountsObjectNew::Chart(AllOrOne::ById(id))
     }
 

@@ -41,7 +41,7 @@ async fn import_from_csv() -> anyhow::Result<()> {
 
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
 
-    let chart_id = ChartId::new();
+    let chart_id = AltChartId::new();
     let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
     chart_of_accounts
         .create_chart(chart_id, "Test Chart".to_string(), rand_ref.clone())
