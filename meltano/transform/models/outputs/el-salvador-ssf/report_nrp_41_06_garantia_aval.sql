@@ -3,7 +3,6 @@
 with dummy as (
 
     select
-        null as ``,
         null as `Nombre`,
         null as `num_referencia`,
         null as `cod_cartera`,
