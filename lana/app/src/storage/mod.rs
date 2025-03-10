@@ -1,8 +1,6 @@
 pub mod config;
 pub mod error;
 
-pub use error::StorageError;
-
 use config::StorageConfig;
 use google_cloud_storage::{
     client::{Client, ClientConfig},
@@ -13,6 +11,8 @@ use google_cloud_storage::{
     },
     sign::SignedURLOptions,
 };
+
+use error::*;
 
 const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 
