@@ -4,9 +4,16 @@ mod error;
 pub use error::StorageError;
 
 use config::StorageConfig;
-use futures::TryStreamExt;
+use google_cloud_storage::{
+    client::{Client, ClientConfig},
+    http::objects::{
+        delete::DeleteObjectRequest,
+        upload::{Media, UploadObjectRequest, UploadType},
+    },
+    sign::SignedURLOptions,
+};
 
-const LINK_DURATION_IN_SECS: u32 = 60 * 5;
+const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 
 #[derive(Debug, Clone)]
 pub struct LocationInCloud<'a> {
@@ -26,6 +33,12 @@ impl Storage {
         }
     }
 
+    async fn client(&self) -> Result<Client, StorageError> {
+        let config = ClientConfig::default().with_auth().await?;
+        let client = Client::new(config);
+        Ok(client)
+    }
+
     pub fn bucket_name(&self) -> &str {
         &self.config.bucket_name
     }
@@ -40,24 +53,35 @@ impl Storage {
         path_in_bucket: &str,
         mime_type: &str,
     ) -> Result<(), StorageError> {
-        Object::create(
-            &self.config.bucket_name,
-            file,
-            &self.path_with_prefix(path_in_bucket),
-            mime_type,
-        )
-        .await?;
+        let client = self.client().await?;
+        let bucket = self.bucket_name();
+        let object_name = self.path_with_prefix(path_in_bucket);
+
+        let mut media = Media::new(object_name);
+        media.content_type = mime_type.to_owned().into();
+        let upload_type = UploadType::Simple(media);
+
+        let req = UploadObjectRequest {
+            bucket: bucket.to_string(),
+            ..Default::default()
+        };
+        client.upload_object(&req, file, &upload_type).await?;
 
         Ok(())
     }
 
     pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
-        Object::delete(
-            &self.config.bucket_name,
-            &self.path_with_prefix(location.path_in_bucket),
-        )
-        .await?;
+        let client = self.client().await?;
+        let bucket = location.bucket;
+        let object_name = self.path_with_prefix(location.path_in_bucket);
 
+        let req = DeleteObjectRequest {
+            bucket: bucket.to_owned(),
+            object: object_name,
+            ..Default::default()
+        };
+
+        client.delete_object(&req).await?;
         Ok(())
     }
 
@@ -66,36 +90,20 @@ impl Storage {
         location: impl Into<LocationInCloud<'_>>,
     ) -> Result<String, StorageError> {
         let location = location.into();
-        Ok(Object::read(
-            location.bucket,
-            &self.path_with_prefix(location.path_in_bucket),
-        )
-        .await?
-        .download_url(LINK_DURATION_IN_SECS)?)
-    }
 
-    pub async fn _list(&self, filter_prefix: String) -> anyhow::Result<Vec<String>> {
-        let full_prefix = self.path_with_prefix(&filter_prefix);
-        let mut filenames = Vec::new();
-        let stream = Object::list(
-            &self.config.bucket_name,
-            ListRequest {
-                prefix: Some(full_prefix.clone()),
-                ..Default::default()
-            },
-        )
-        .await?;
+        let client = self.client().await?;
+        let bucket = location.bucket;
+        let object_name = self.path_with_prefix(location.path_in_bucket);
 
-        let mut stream = Box::pin(stream.into_stream());
+        let opts = SignedURLOptions {
+            expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),
+            ..Default::default()
+        };
 
-        while let Some(result) = stream.try_next().await? {
-            for item in result.items {
-                if let Some(stripped) = item.name.strip_prefix(&self.path_with_prefix("")) {
-                    filenames.push(stripped.trim_start_matches('/').to_string());
-                }
-            }
-        }
+        let signed_url = client
+            .signed_url(bucket, &object_name, None, None, opts)
+            .await?;
 
-        Ok(filenames)
+        Ok(signed_url)
     }
 }
