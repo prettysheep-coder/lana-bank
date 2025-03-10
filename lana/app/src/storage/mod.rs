@@ -1,5 +1,5 @@
 pub mod config;
-mod error;
+pub mod error;
 
 pub use error::StorageError;
 
@@ -24,20 +24,19 @@ pub struct LocationInCloud<'a> {
 
 #[derive(Clone)]
 pub struct Storage {
+    client: Client,
     config: StorageConfig,
 }
 
 impl Storage {
-    pub fn new(config: &StorageConfig) -> Self {
-        Self {
-            config: config.clone(),
-        }
-    }
+    pub async fn new(config: &StorageConfig) -> Result<Self, StorageError> {
+        let client_config = ClientConfig::default().with_auth().await?;
+        let client = Client::new(client_config);
 
-    async fn client(&self) -> Result<Client, StorageError> {
-        let config = ClientConfig::default().with_auth().await?;
-        let client = Client::new(config);
-        Ok(client)
+        Ok(Self {
+            client,
+            config: config.clone(),
+        })
     }
 
     pub fn bucket_name(&self) -> &str {
@@ -54,7 +53,6 @@ impl Storage {
         path_in_bucket: &str,
         mime_type: &str,
     ) -> Result<(), StorageError> {
-        let client = self.client().await?;
         let bucket = self.bucket_name();
         let object_name = self.path_with_prefix(path_in_bucket);
 
@@ -66,13 +64,12 @@ impl Storage {
             bucket: bucket.to_string(),
             ..Default::default()
         };
-        client.upload_object(&req, file, &upload_type).await?;
+        self.client.upload_object(&req, file, &upload_type).await?;
 
         Ok(())
     }
 
     pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
-        let client = self.client().await?;
         let bucket = location.bucket;
         let object_name = self.path_with_prefix(location.path_in_bucket);
 
@@ -82,7 +79,7 @@ impl Storage {
             ..Default::default()
         };
 
-        client.delete_object(&req).await?;
+        self.client.delete_object(&req).await?;
         Ok(())
     }
 
@@ -92,7 +89,6 @@ impl Storage {
     ) -> Result<String, StorageError> {
         let location = location.into();
 
-        let client = self.client().await?;
         let bucket = location.bucket;
         let object_name = self.path_with_prefix(location.path_in_bucket);
 
@@ -101,7 +97,8 @@ impl Storage {
             ..Default::default()
         };
 
-        let signed_url = client
+        let signed_url = self
+            .client
             .signed_url(bucket, &object_name, None, None, opts)
             .await?;
 
@@ -110,8 +107,6 @@ impl Storage {
 
     pub async fn _list(&self, filter_prefix: String) -> anyhow::Result<Vec<String>> {
         let full_prefix = self.path_with_prefix(&filter_prefix);
-
-        let client = self.client().await?;
         let bucket = self.bucket_name();
 
         let req = ListObjectsRequest {
@@ -120,10 +115,10 @@ impl Storage {
             ..Default::default()
         };
 
-        let result = client
-            .list_objects(&req)
-            .await
-            .map_err(|e| anyhow::anyhow!("Error listing objects from bucket {}: {e}", bucket))?;
+        let result =
+            self.client.list_objects(&req).await.map_err(|e| {
+                anyhow::anyhow!("Error listing objects from bucket {}: {e}", bucket)
+            })?;
 
         let mut filenames = Vec::new();
         if let Some(items) = result.items {
