@@ -803,6 +803,24 @@ export type DepositEntry = {
   recordedAt: Scalars['Timestamp']['output'];
 };
 
+export type DepositModuleConfig = {
+  __typename?: 'DepositModuleConfig';
+  chartOfAccountsDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type DepositModuleConfigUpdateInput = {
+  chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsId: Scalars['UUID']['input'];
+  chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
+};
+
+export type DepositModuleConfigUpdatePayload = {
+  __typename?: 'DepositModuleConfigUpdatePayload';
+  depositConfig: DepositModuleConfig;
+};
+
 export type DepositRecordInput = {
   amount: Scalars['UsdCents']['input'];
   depositAccountId: Scalars['UUID']['input'];
@@ -971,6 +989,7 @@ export type Mutation = {
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
+  depositConfigUpdate: DepositModuleConfigUpdatePayload;
   depositRecord: DepositRecordPayload;
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
@@ -1064,6 +1083,11 @@ export type MutationCustomerDocumentAttachArgs = {
 
 export type MutationCustomerUpdateArgs = {
   input: CustomerUpdateInput;
+};
+
+
+export type MutationDepositConfigUpdateArgs = {
+  input: DepositModuleConfigUpdateInput;
 };
 
 
