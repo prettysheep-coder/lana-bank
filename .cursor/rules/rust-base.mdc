@@ -1,5 +1,5 @@
 ---
-description: rust rul`
+description: rust rules
 globs: **.rs
 alwaysApply: false
 ---
@@ -30,6 +30,7 @@ You should know about those commands:
 
 - interaction across module boundaries are done through events. public events are listed 
 - do not update schema.graphql manually. rather do it with `make sdl`
+- we don't want to use openssl. rather we use rust-ssl. import rustls-tls with features flag for package we import
 
 - use Strum library for primitive enum <-> string conversion
 - we use DDD (Domaine Driven Design) pattern. the filename give a hint as what it's aim to do: 
