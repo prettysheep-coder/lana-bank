@@ -3,9 +3,17 @@ mod error;
 
 pub use error::StorageError;
 
-use cloud_storage::{ListRequest, Object};
+// use cloud_storage::{ListRequest, Object};
 use config::StorageConfig;
 use futures::TryStreamExt;
+use google_cloud_storage::{
+    client::{google_cloud_auth::credentials::CredentialsFile, Client, ClientConfig},
+    http::objects::{
+        delete::DeleteObjectRequest,
+        upload::{Media, UploadObjectRequest},
+    },
+    sign::SignedURLOptions,
+};
 
 const LINK_DURATION_IN_SECS: u32 = 60 * 5;
 
@@ -18,17 +26,28 @@ pub struct LocationInCloud<'a> {
 #[derive(Clone)]
 pub struct Storage {
     config: StorageConfig,
+    client: Client,
 }
 
 impl Storage {
-    pub fn new(config: &StorageConfig) -> Self {
-        Self {
+    pub async fn new(config: &StorageConfig) -> Result<Self, StorageError> {
+        let creds = if let Some(creds) = config.service_account {
+            CredentialsFile::new_from_str(creds.get_json_creds().as_ref()).await?;
+        } else {
+            CredentialsFile::new_from_env_var("GOOGLE_APPLICATION_CREDENTIALS").await?
+        };
+
+        let client_config = ClientConfig::default().with_credentials(creds).await?;
+        let client = Client::new(client_config);
+
+        Ok(Self {
             config: config.clone(),
-        }
+            client,
+        })
     }
 
-    pub fn bucket_name(&self) -> &str {
-        &self.config.bucket_name
+    pub fn bucket_name(&self) -> String {
+        self.config.bucket_name.clone()
     }
 
     fn path_with_prefix(&self, path: &str) -> String {
@@ -41,23 +60,30 @@ impl Storage {
         path_in_bucket: &str,
         mime_type: &str,
     ) -> Result<(), StorageError> {
-        Object::create(
-            &self.config.bucket_name,
-            file,
-            &self.path_with_prefix(path_in_bucket),
-            mime_type,
-        )
-        .await?;
+        let media = Media::new(self.path_with_prefix(path_in_bucket));
+
+        self.client
+            .upload_object(
+                &UploadObjectRequest {
+                    bucket: self.bucket_name(),
+                    ..Default::default()
+                },
+                file,
+                &google_cloud_storage::http::objects::upload::UploadType::Simple(media),
+            )
+            .await?;
 
         Ok(())
     }
 
     pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
-        Object::delete(
-            &self.config.bucket_name,
-            &self.path_with_prefix(location.path_in_bucket),
-        )
-        .await?;
+        self.client
+            .delete_object(&DeleteObjectRequest {
+                bucket: self.bucket_name(),
+                object: self.path_with_prefix(location.path_in_bucket),
+                ..Default::default()
+            })
+            .await?;
 
         Ok(())
     }
@@ -67,36 +93,18 @@ impl Storage {
         location: impl Into<LocationInCloud<'_>>,
     ) -> Result<String, StorageError> {
         let location = location.into();
-        Ok(Object::read(
-            location.bucket,
-            &self.path_with_prefix(location.path_in_bucket),
-        )
-        .await?
-        .download_url(LINK_DURATION_IN_SECS)?)
-    }
 
-    pub async fn _list(&self, filter_prefix: String) -> anyhow::Result<Vec<String>> {
-        let full_prefix = self.path_with_prefix(&filter_prefix);
-        let mut filenames = Vec::new();
-        let stream = Object::list(
-            &self.config.bucket_name,
-            ListRequest {
-                prefix: Some(full_prefix.clone()),
-                ..Default::default()
-            },
-        )
-        .await?;
+        let url = self
+            .client
+            .signed_url(
+                &self.bucket_name(),
+                &self.path_with_prefix(location.path_in_bucket),
+                None,
+                None,
+                SignedURLOptions::default(),
+            )
+            .await?;
 
-        let mut stream = Box::pin(stream.into_stream());
-
-        while let Some(result) = stream.try_next().await? {
-            for item in result.items {
-                if let Some(stripped) = item.name.strip_prefix(&self.path_with_prefix("")) {
-                    filenames.push(stripped.trim_start_matches('/').to_string());
-                }
-            }
-        }
-
-        Ok(filenames)
+        Ok(url)
     }
 }
