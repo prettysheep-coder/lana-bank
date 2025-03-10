@@ -2,6 +2,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum StorageError {
-    #[error("Cloud Storage Error: {0}")]
-    CloudStorage(#[from] cloud_storage::Error),
+    #[error("StorageError - Utf8Error: {0}")]
+    Utf8Error(#[from] std::str::Utf8Error),
 }

@@ -43,6 +43,7 @@
           alejandra
           ytt
           sqlx-cli
+          openssl_3
           cargo-nextest
           cargo-audit
           cargo-watch

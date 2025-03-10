@@ -3,7 +3,6 @@ mod error;
 
 pub use error::StorageError;
 
-use cloud_storage::{ListRequest, Object};
 use config::StorageConfig;
 use futures::TryStreamExt;
 
