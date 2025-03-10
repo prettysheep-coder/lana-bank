@@ -787,6 +787,22 @@ type DepositEntry {
 	deposit: Deposit!
 }
 
+type DepositModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsDepositAccountsParentCode: String
+	chartOfAccountsOmnibusParentCode: String
+}
+
+input DepositModuleConfigUpdateInput {
+	chartOfAccountsId: UUID!
+	chartOfAccountsDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
+}
+
+type DepositModuleConfigUpdatePayload {
+	depositConfig: DepositModuleConfig!
+}
+
 input DepositRecordInput {
 	depositAccountId: UUID!
 	amount: UsdCents!
@@ -931,6 +947,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	depositConfigUpdate(input: DepositModuleConfigUpdateInput!): DepositModuleConfigUpdatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
