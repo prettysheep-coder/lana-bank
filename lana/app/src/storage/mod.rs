@@ -29,7 +29,7 @@ pub struct Storage {
 }
 
 impl Storage {
-    pub async fn new(config: &StorageConfig) -> Result<Self, StorageError> {
+    pub async fn init(config: &StorageConfig) -> Result<Self, StorageError> {
         let client_config = ClientConfig::default().with_auth().await?;
         let client = Client::new(client_config);
 

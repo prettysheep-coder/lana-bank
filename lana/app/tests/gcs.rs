@@ -23,7 +23,7 @@ async fn upload_doc() -> anyhow::Result<()> {
         }
     };
 
-    let storage = Storage::new(&config)
+    let storage = Storage::init(&config)
         .await
         .expect("Failed to create storage");
 
