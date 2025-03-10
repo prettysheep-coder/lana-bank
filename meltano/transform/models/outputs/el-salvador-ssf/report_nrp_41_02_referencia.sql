@@ -93,4 +93,4 @@ select
     format_date('%Y-%m-%d', cast(`fecha_cump_cafe` as date))
         as `fecha_cump_cafe`
 from
-    {{ ref('int_npb4_17_02_referencia_xml_raw') }}
+    {{ ref('int_nrp_41_02_referencia') }}

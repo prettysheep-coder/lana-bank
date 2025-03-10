@@ -34,4 +34,4 @@ select
     left(`municipio_residencia`, 4) as `municipio_residencia`
 
 from
-    {{ ref('int_npb4_17_01_persona_xml_raw') }}
+    {{ ref('int_nrp_41_01_persona') }}
