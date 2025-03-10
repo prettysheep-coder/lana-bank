@@ -8,6 +8,7 @@ use google_cloud_storage::{
     client::{Client, ClientConfig},
     http::objects::{
         delete::DeleteObjectRequest,
+        list::ListObjectsRequest,
         upload::{Media, UploadObjectRequest, UploadType},
     },
     sign::SignedURLOptions,
@@ -105,5 +106,33 @@ impl Storage {
             .await?;
 
         Ok(signed_url)
+    }
+
+    pub async fn _list(&self, filter_prefix: String) -> anyhow::Result<Vec<String>> {
+        let full_prefix = self.path_with_prefix(&filter_prefix);
+
+        let client = self.client().await?;
+        let bucket = self.bucket_name();
+
+        let req = ListObjectsRequest {
+            bucket: bucket.to_owned(),
+            prefix: Some(full_prefix),
+            ..Default::default()
+        };
+
+        let result = client
+            .list_objects(&req)
+            .await
+            .map_err(|e| anyhow::anyhow!("Error listing objects from bucket {}: {e}", bucket))?;
+
+        let mut filenames = Vec::new();
+        if let Some(items) = result.items {
+            for item in items {
+                // `item.name` is the full path/key in the bucket
+                filenames.push(item.name);
+            }
+        }
+
+        Ok(filenames)
     }
 }
