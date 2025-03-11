@@ -648,27 +648,14 @@ where
         chart: Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
-        let deposit_accounts_parent_account_set_id = if let Some((_, id)) =
-            chart.account_spec(&config.chart_of_accounts_deposit_accounts_parent_code)
-        {
-            id
-        } else {
-            return Err(CoreDepositError::CodeNotFoundInChart(
-                config.chart_of_accounts_deposit_accounts_parent_code,
-            ));
-        };
-        let omnibus_parent_account_set_id = if let Some((_, id)) =
-            chart.account_spec(&config.chart_of_accounts_omnibus_parent_code)
-        {
-            id
-        } else {
-            return Err(CoreDepositError::CodeNotFoundInChart(
-                config.chart_of_accounts_omnibus_parent_code,
-            ));
-        };
         if chart.id != config.chart_of_accounts_id {
             return Err(CoreDepositError::ChartIdMismatch);
         }
+
+        let deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)?;
+        let omnibus_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
 
         let audit_info = self
             .authz
@@ -683,8 +670,8 @@ where
             .attach_chart_of_accounts_account_sets(
                 audit_info,
                 &config,
-                *deposit_accounts_parent_account_set_id,
-                *omnibus_parent_account_set_id,
+                deposit_accounts_parent_account_set_id,
+                omnibus_parent_account_set_id,
             )
             .await?;
 

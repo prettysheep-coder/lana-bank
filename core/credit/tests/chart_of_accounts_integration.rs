@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chart_of_accounts::new::CoreChartOfAccounts;
-use deposit::*;
+use core_credit::*;
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -17,6 +17,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
     let customers = core_customer::Customers::new(&pool, &authz, &outbox);
+    let price = core_price::Price::new();
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -27,13 +28,15 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let journal_id = helpers::init_journal(&cala).await?;
 
-    let deposit = CoreDeposit::init(
+    let credit = CreditFacilities::init(
         &pool,
-        &authz,
-        &outbox,
+        Default::default(),
         &governance,
-        &customers,
         &jobs,
+        &authz,
+        &customers,
+        &price,
+        &outbox,
         &cala,
         journal_id,
     )
@@ -45,8 +48,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
         .await?;
     let import = r#"
-        1,Deposit Parent
-        2,Omnibus Parent
+        1,Facility Omnibus Parent
+        2,Collateral Omnibus Parent
+        3,Facility Parent
+        4,Collateral Parent
+        5,Disbursed Receivable Parent
+        6,Interest Receivable Parent
+        7,Interest Income Parent
+        8,Fee Income Parent
         "#
     .to_string();
     let chart_id = chart.id;
@@ -61,14 +70,20 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
-    deposit
+    credit
         .update_chart_of_accounts_integration_config(
             &DummySubject,
             chart,
             ChartOfAccountsIntegrationConfig::builder()
                 .chart_of_accounts_id(chart_id)
-                .chart_of_accounts_deposit_accounts_parent_code("1".parse().unwrap())
-                .chart_of_accounts_omnibus_parent_code("2".parse().unwrap())
+                .chart_of_account_facility_omnibus_parent_code("1".parse().unwrap())
+                .chart_of_account_collateral_omnibus_parent_code("2".parse().unwrap())
+                .chart_of_account_facility_parent_code("3".parse().unwrap())
+                .chart_of_account_collateral_parent_code("4".parse().unwrap())
+                .chart_of_account_disbursed_receivable_parent_code("5".parse().unwrap())
+                .chart_of_account_interest_receivable_parent_code("6".parse().unwrap())
+                .chart_of_account_interest_income_parent_code("7".parse().unwrap())
+                .chart_of_account_fee_income_parent_code("8".parse().unwrap())
                 .build()
                 .unwrap(),
         )
@@ -89,8 +104,14 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     let import = r#"
-        1,Other Deposit Parent
-        2,Other Omnibus Parent
+        1,Other Facility Omnibus Parent
+        2,Other Collateral Omnibus Parent
+        3,Other Facility Parent
+        4,Other Collateral Parent
+        5,Other Disbursed Receivable Parent
+        6,Other Interest Receivable Parent
+        7,Other Interest Income Parent
+        8,Other Fee Income Parent
         "#
     .to_string();
     let chart_id = chart.id;
@@ -105,14 +126,20 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
-    deposit
+    credit
         .update_chart_of_accounts_integration_config(
             &DummySubject,
             chart,
             ChartOfAccountsIntegrationConfig::builder()
                 .chart_of_accounts_id(chart_id)
-                .chart_of_accounts_deposit_accounts_parent_code("1".parse().unwrap())
-                .chart_of_accounts_omnibus_parent_code("2".parse().unwrap())
+                .chart_of_account_facility_omnibus_parent_code("1".parse().unwrap())
+                .chart_of_account_collateral_omnibus_parent_code("2".parse().unwrap())
+                .chart_of_account_facility_parent_code("3".parse().unwrap())
+                .chart_of_account_collateral_parent_code("4".parse().unwrap())
+                .chart_of_account_disbursed_receivable_parent_code("5".parse().unwrap())
+                .chart_of_account_interest_receivable_parent_code("6".parse().unwrap())
+                .chart_of_account_interest_income_parent_code("7".parse().unwrap())
+                .chart_of_account_fee_income_parent_code("8".parse().unwrap())
                 .build()
                 .unwrap(),
         )
