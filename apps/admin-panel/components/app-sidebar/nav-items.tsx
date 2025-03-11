@@ -18,6 +18,7 @@ import {
   FileText,
   LayoutTemplate,
   Grid2x2,
+  Cog,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -39,7 +40,6 @@ export function useNavItems() {
 
   const navCustomersItems: NavItem[] = [
     { title: t("customers"), url: "/customers", icon: Users },
-    { title: t("policies"), url: "/policies", icon: GanttChart },
   ]
 
   const navTransactionItems: NavItem[] = [
@@ -66,6 +66,11 @@ export function useNavItems() {
     { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
   ]
 
+  const navConfigurationItems: NavItem[] = [
+    { title: t("modules"), url: "/modules", icon: Cog },
+    { title: t("policies"), url: "/policies", icon: GanttChart },
+  ]
+
   const allNavItems: NavItem[] = [
     ...navDashboardItems,
     ...navLoansItems,
@@ -73,6 +78,7 @@ export function useNavItems() {
     ...navTransactionItems,
     ...navAdminItems,
     ...navFinanceItems,
+    ...navConfigurationItems,
   ]
 
   const navItemsByUrl = new Map<string, NavItem>()
@@ -91,6 +97,7 @@ export function useNavItems() {
     navTransactionItems,
     navAdminItems,
     navFinanceItems,
+    navConfigurationItems,
 
     allNavItems,
     navItemsByUrl,

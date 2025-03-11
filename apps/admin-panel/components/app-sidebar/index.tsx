@@ -33,6 +33,7 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
     navTransactionItems,
     navAdminItems,
     navFinanceItems,
+    navConfigurationItems,
   } = useNavItems()
 
   return (
@@ -47,6 +48,7 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
         <NavSection items={navTransactionItems} label={t("labels.transactions")} />
         <NavSection items={navAdminItems} label={t("labels.administration")} />
         <NavSection items={navFinanceItems} label={t("labels.financialReports")} />
+        <NavSection items={navConfigurationItems} label={t("labels.configuration")} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

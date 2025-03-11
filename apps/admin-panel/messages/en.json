@@ -17,7 +17,8 @@
     "download": "Download",
     "upload": "Upload",
     "close": "Close",
-    "submit": "Submit"
+    "submit": "Submit",
+    "set": "Set"
   },
   "Sidebar": {
     "labels": {
@@ -25,7 +26,8 @@
       "customers": "Customers",
       "transactions": "Transactions",
       "administration": "Administration",
-      "financialReports": "Financial Reports"
+      "financialReports": "Financial Reports",
+      "configuration": "Configuration"
     },
     "navItems": {
       "dashboard": "Dashboard",
@@ -45,7 +47,8 @@
       "cashFlow": "Cash Flow",
       "profitAndLoss": "Profit & Loss",
       "regulatoryReporting": "Regulatory Reporting",
-      "trialBalance": "Trial Balance"
+      "trialBalance": "Trial Balance",
+      "modules": "Modules"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -1255,5 +1258,20 @@
     "noData": "No data to display",
     "sortBy": "Sort By",
     "all": "All"
+  },
+  "Modules": {
+    "notYetAssigned": "Not yet assigned",
+    "deposit": {
+      "title": "Deposit",
+      "description": "Deposit configuration",
+      "setTitle": "Set Deposit Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountsDepositAccountsParentCode": "Deposit Accounts Parent Code",
+      "chartOfAccountsOmnibusParentCode": "Omnibus Parent Code"
+    },
+    "credit": {
+      "title": "Credit",
+      "description": "Credit configuration"
+    }
   }
 }
