@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cypress-test-run-in-browserstack:
-    name: browserstack / local tunnel into tilt up
+  cypress-test-run-in-headless:
+    name: headless / tilt ci
     runs-on: ubuntu-latest
     steps:
       - uses: docker/login-action@v3
@@ -48,10 +48,7 @@ jobs:
           df -h
 
       - name: run cypress tests
-        run: nix develop -c make test-cypress-in-ci-through-browserstack
-        env:
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: nix develop -c make test-cypress-in-ci-headless
 
       - name: upload cypress screenshots
         uses: actions/upload-artifact@v4
@@ -61,7 +58,7 @@ jobs:
 
   manual-generation:
     name: manual pdfs / upload to lana-manuals
-    needs: cypress-test-run-in-browserstack
+    needs: cypress-test-run-in-headless
     runs-on: ubuntu-latest
     steps:
       - uses: DeterminateSystems/nix-installer-action@v4

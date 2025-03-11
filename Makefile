@@ -102,8 +102,8 @@ ngrok:
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
-test-cypress-in-ci-through-browserstack:
-	cd apps/admin-panel && pnpm cypress:run browserstack
+test-cypress-in-ci-headless:
+	cd apps/admin-panel && pnpm cypress:run headless
 
 pg2bq-run:
 	meltano run tap-postgres target-bigquery
