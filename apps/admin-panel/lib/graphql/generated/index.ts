@@ -1253,6 +1253,7 @@ export type Query = {
   customers: CustomerConnection;
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
+  depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
