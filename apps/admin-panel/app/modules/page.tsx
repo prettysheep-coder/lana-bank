@@ -45,7 +45,7 @@ const Modules: React.FC = () => {
       <DepositConfigUpdateDialog
         open={openDepositConfigUpdateDialog}
         setOpen={setOpenDepositConfigUpdateDialog}
-        depositModuleConfig={depositConfig}
+        depositModuleConfig={depositConfig?.depositConfig || undefined}
       />
       <Card>
         <CardHeader>
