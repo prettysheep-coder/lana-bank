@@ -2,13 +2,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::{LedgerEntryId, LedgerTxId};
 
-pub struct TrialBalanceEntry {
+pub struct AccountSetHistoryEntry {
     pub tx_id: LedgerTxId,
     pub entry_id: LedgerEntryId,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl From<cala_ledger::entry::Entry> for TrialBalanceEntry {
+impl From<cala_ledger::entry::Entry> for AccountSetHistoryEntry {
     fn from(cala_entry: cala_ledger::entry::Entry) -> Self {
         Self {
             tx_id: cala_entry.values().transaction_id,
@@ -19,13 +19,13 @@ impl From<cala_ledger::entry::Entry> for TrialBalanceEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrialBalanceEntryCursor {
+pub struct AccountSetHistoryCursor {
     pub entry_id: LedgerEntryId,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl From<TrialBalanceEntryCursor> for cala_ledger::entry::EntriesByCreatedAtCursor {
-    fn from(cursor: TrialBalanceEntryCursor) -> Self {
+impl From<AccountSetHistoryCursor> for cala_ledger::entry::EntriesByCreatedAtCursor {
+    fn from(cursor: AccountSetHistoryCursor) -> Self {
         Self {
             id: cursor.entry_id,
             created_at: cursor.created_at,
@@ -33,7 +33,7 @@ impl From<TrialBalanceEntryCursor> for cala_ledger::entry::EntriesByCreatedAtCur
     }
 }
 
-impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for TrialBalanceEntryCursor {
+impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for AccountSetHistoryCursor {
     fn from(cursor: cala_ledger::entry::EntriesByCreatedAtCursor) -> Self {
         Self {
             entry_id: cursor.id,
@@ -42,8 +42,8 @@ impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for TrialBalanceEntryCur
     }
 }
 
-impl From<&TrialBalanceEntry> for TrialBalanceEntryCursor {
-    fn from(entry: &TrialBalanceEntry) -> Self {
+impl From<&AccountSetHistoryEntry> for AccountSetHistoryCursor {
+    fn from(entry: &AccountSetHistoryEntry) -> Self {
         Self {
             entry_id: entry.entry_id,
             created_at: entry.recorded_at,
@@ -56,7 +56,7 @@ mod graphql {
 
     use super::*;
 
-    impl CursorType for TrialBalanceEntryCursor {
+    impl CursorType for AccountSetHistoryCursor {
         type Error = String;
 
         fn encode_cursor(&self) -> String {

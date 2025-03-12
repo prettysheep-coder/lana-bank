@@ -5,7 +5,9 @@ use chrono::{DateTime, Utc};
 
 use crate::{graphql::account::*, primitives::*};
 
-use lana_app::trial_balance::{TrialBalanceEntry, TrialBalanceEntryCursor};
+use lana_app::trial_balance::{
+    AccountSetHistoryCursor, AccountSetHistoryEntry as DomainAccountSetHistoryEntry,
+};
 
 // use lana_app::app::LanaApp;
 
@@ -24,8 +26,8 @@ pub struct AccountSetHistoryEntry {
     pub recorded_at: DateTime<Utc>,
 }
 
-impl From<TrialBalanceEntry> for AccountSetHistoryEntry {
-    fn from(entry: TrialBalanceEntry) -> Self {
+impl From<DomainAccountSetHistoryEntry> for AccountSetHistoryEntry {
+    fn from(entry: DomainAccountSetHistoryEntry) -> Self {
         Self {
             tx_id: entry.tx_id.into(),
             entry_id: entry.entry_id.into(),
@@ -42,7 +44,7 @@ impl AccountSet {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<TrialBalanceEntryCursor, AccountSetHistoryEntry, EmptyFields, EmptyFields>,
+        Connection<AccountSetHistoryCursor, AccountSetHistoryEntry, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
@@ -63,7 +65,7 @@ impl AccountSet {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = TrialBalanceEntryCursor::from(&entry);
+                        let cursor = AccountSetHistoryCursor::from(&entry);
                         Edge::new(cursor, AccountSetHistoryEntry::from(entry))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

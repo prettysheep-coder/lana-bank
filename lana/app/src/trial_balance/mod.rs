@@ -1,6 +1,6 @@
 pub mod error;
+mod history;
 pub mod ledger;
-mod trial_balance_entry;
 
 use chart_of_accounts::Chart;
 use chrono::{DateTime, Utc};
@@ -18,8 +18,8 @@ use crate::{
 };
 
 use error::*;
+pub use history::*;
 use ledger::*;
-pub use trial_balance_entry::*;
 
 #[derive(Clone)]
 pub struct TrialBalances {
@@ -138,8 +138,8 @@ impl TrialBalances {
         &self,
         sub: &Subject,
         id: impl Into<LedgerAccountSetId>,
-        args: es_entity::PaginatedQueryArgs<TrialBalanceEntryCursor>,
-    ) -> Result<PaginatedQueryRet<TrialBalanceEntry, TrialBalanceEntryCursor>, TrialBalanceError>
+        args: es_entity::PaginatedQueryArgs<AccountSetHistoryCursor>,
+    ) -> Result<PaginatedQueryRet<AccountSetHistoryEntry, AccountSetHistoryCursor>, TrialBalanceError>
     {
         self.authz
             .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
@@ -147,7 +147,7 @@ impl TrialBalances {
 
         let res = self
             .trial_balance_ledger
-            .account_set_history::<TrialBalanceEntry, TrialBalanceEntryCursor>(id.into(), args)
+            .account_set_history::<AccountSetHistoryEntry, AccountSetHistoryCursor>(id.into(), args)
             .await?;
 
         Ok(res)
