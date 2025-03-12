@@ -94,30 +94,34 @@ impl std::fmt::Display for AccountCodeSection {
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct AccountCode {
-    section: Vec<AccountCodeSection>,
+    sections: Vec<AccountCodeSection>,
 }
 impl AccountCode {
     pub fn new(section: Vec<AccountCodeSection>) -> Self {
-        AccountCode { section }
+        AccountCode { sections: section }
     }
 
     pub fn len_sections(&self) -> usize {
-        self.section.len()
+        self.sections.len()
+    }
+
+    pub fn chart_level(&self) -> usize {
+        self.len_sections() - 1
     }
 
     pub fn section(&self, idx: usize) -> Option<&AccountCodeSection> {
-        self.section.get(idx)
+        self.sections.get(idx)
     }
 
     pub fn is_parent(&self, sections: &[AccountCodeSection]) -> bool {
-        if self.section.is_empty() {
+        if self.sections.is_empty() {
             return false;
         }
         if sections.is_empty() {
             return false;
         }
 
-        for (i, parent_section) in self.section.iter().enumerate() {
+        for (i, parent_section) in self.sections.iter().enumerate() {
             if i >= sections.len() {
                 return false;
             }
@@ -156,13 +160,13 @@ impl FromStr for AccountCode {
 
 impl std::fmt::Display for AccountCode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.section.is_empty() {
+        if self.sections.is_empty() {
             return Ok(());
         }
 
-        write!(f, "{}", self.section[0])?;
+        write!(f, "{}", self.sections[0])?;
 
-        for section in &self.section[1..] {
+        for section in &self.sections[1..] {
             write!(f, ".{}", section)?;
         }
 
@@ -183,7 +187,7 @@ impl AccountSpec {
         sections: Vec<AccountCodeSection>,
         name: AccountName,
     ) -> Self {
-        let code = AccountCode { section: sections };
+        let code = AccountCode { sections };
         AccountSpec { parent, code, name }
     }
 
@@ -328,5 +332,21 @@ mod tests {
         let child = "0201".parse::<AccountCodeSection>().unwrap();
         let account_code = AccountCode::new(vec![parent.clone(), sub.clone()]);
         assert!(account_code.is_parent(&[parent, sub, child]));
+    }
+
+    #[test]
+    fn chart_level() {
+        let parent = "11".parse::<AccountCodeSection>().unwrap();
+        let sub = "01".parse::<AccountCodeSection>().unwrap();
+        let child = "0201".parse::<AccountCodeSection>().unwrap();
+
+        let account_code = AccountCode::new(vec![parent.clone()]);
+        assert_eq!(account_code.chart_level(), 0);
+
+        let account_code = AccountCode::new(vec![parent.clone(), sub.clone()]);
+        assert_eq!(account_code.chart_level(), 1);
+
+        let account_code = AccountCode::new(vec![parent, sub, child]);
+        assert_eq!(account_code.chart_level(), 2);
     }
 }

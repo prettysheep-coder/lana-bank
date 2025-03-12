@@ -7,9 +7,7 @@ use audit::AuditInfo;
 
 use es_entity::*;
 
-use super::error::*;
-use super::primitives::*;
-use super::tree;
+use super::{error::*, primitives::*, tree};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -61,6 +59,14 @@ impl Chart {
         self.all_accounts
             .insert(spec.code.clone(), (spec.clone(), ledger_account_set_id));
         Idempotent::Executed((parent, ledger_account_set_id))
+    }
+
+    pub fn all_non_top_level_accounts(
+        &self,
+    ) -> impl Iterator<Item = &(AccountSpec, LedgerAccountSetId)> {
+        self.all_accounts
+            .values()
+            .filter(|(spec, _)| spec.code.len_sections() != 1)
     }
 
     pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {
