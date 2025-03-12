@@ -12,7 +12,7 @@ import {
 import { Label } from "@lana/web/ui/label"
 import { Input } from "@lana/web/ui/input"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { FormEvent, useEffect, useState } from "react"
 
 import {
   CreditModuleConfig,
@@ -44,6 +44,17 @@ type CreditConfigUpdateDialogProps = {
   creditModuleConfig?: CreditModuleConfig
 }
 
+const initialFormData = {
+  chartOfAccountFacilityOmnibusParentCode: "",
+  chartOfAccountCollateralOmnibusParentCode: "",
+  chartOfAccountFacilityParentCode: "",
+  chartOfAccountCollateralParentCode: "",
+  chartOfAccountDisbursedReceivableParentCode: "",
+  chartOfAccountInterestReceivableParentCode: "",
+  chartOfAccountInterestIncomeParentCode: "",
+  chartOfAccountFeeIncomeParentCode: "",
+}
+
 export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> = ({
   open,
   setOpen,
@@ -52,26 +63,18 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   const t = useTranslations("Modules")
   const tCommon = useTranslations("Common")
 
-  const [
-    updateCreditConfig,
-    { loading: updateCreditConfigLoading, error: updateCreditConfigError },
-  ] = useCreditConfigUpdateMutation()
-  const [formData, setFormData] = useState<CreditModuleConfigUpdateInput>({
-    chartOfAccountsId: "",
-    chartOfAccountFacilityOmnibusParentCode: "",
-    chartOfAccountCollateralOmnibusParentCode: "",
-    chartOfAccountFacilityParentCode: "",
-    chartOfAccountCollateralParentCode: "",
-    chartOfAccountDisbursedReceivableParentCode: "",
-    chartOfAccountInterestReceivableParentCode: "",
-    chartOfAccountInterestIncomeParentCode: "",
-    chartOfAccountFeeIncomeParentCode: "",
-  })
+  const [updateCreditConfig, { loading, error, reset }] = useCreditConfigUpdateMutation()
+  const [formData, setFormData] = useState<CreditModuleConfigUpdateInput>(initialFormData)
+
+  const close = () => {
+    reset()
+    setOpen(false)
+    setFormData(initialFormData)
+  }
 
   useEffect(() => {
     if (
       creditModuleConfig &&
-      creditModuleConfig.chartOfAccountsId &&
       creditModuleConfig.chartOfAccountFacilityOmnibusParentCode &&
       creditModuleConfig.chartOfAccountCollateralOmnibusParentCode &&
       creditModuleConfig.chartOfAccountFacilityParentCode &&
@@ -82,7 +85,6 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
       creditModuleConfig.chartOfAccountFeeIncomeParentCode
     ) {
       setFormData({
-        chartOfAccountsId: creditModuleConfig.chartOfAccountsId,
         chartOfAccountFacilityOmnibusParentCode:
           creditModuleConfig.chartOfAccountFacilityOmnibusParentCode,
         chartOfAccountCollateralOmnibusParentCode:
@@ -103,41 +105,42 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
     }
   }, [creditModuleConfig])
 
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    await updateCreditConfig({ variables: { input: formData } })
+    setOpen(false)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={() => setOpen(false)}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("credit.setTitle")}</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col space-y-2">
-          {Object.entries(formData).map(([key, value]) => (
-            <div key={key}>
-              <Label htmlFor={key}>{t(`credit.${key}`)}</Label>
-              <Input
-                id={key}
-                value={value}
-                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-              />
-            </div>
-          ))}
-        </div>
-        {updateCreditConfigError && (
-          <div className="text-destructive">{updateCreditConfigError.message}</div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            {tCommon("cancel")}
-          </Button>
-          <Button
-            loading={updateCreditConfigLoading}
-            onClick={async () => {
-              await updateCreditConfig({ variables: { input: formData } })
-              setOpen(false)
-            }}
-          >
-            {tCommon("save")}
-          </Button>
-        </DialogFooter>
+        <form onSubmit={submit}>
+          <div className="flex flex-col space-y-2 w-full">
+            {Object.entries(formData).map(([key, value]) => (
+              <div key={key}>
+                <Label htmlFor={key}>{t(`credit.${key}`)}</Label>
+                <Input
+                  id={key}
+                  value={value}
+                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                  required={true}
+                />
+              </div>
+            ))}
+          </div>
+          {error && <div className="text-destructive">{error.message}</div>}
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={close}>
+              {tCommon("cancel")}
+            </Button>
+            <Button loading={loading} type="submit">
+              {tCommon("save")}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

@@ -26,7 +26,6 @@ import { useDepositConfigQuery, useCreditConfigQuery } from "@/lib/graphql/gener
 gql`
   query depositConfig {
     depositConfig {
-      chartOfAccountsId
       chartOfAccountsDepositAccountsParentCode
       chartOfAccountsOmnibusParentCode
     }
@@ -34,7 +33,6 @@ gql`
 
   query creditConfig {
     creditConfig {
-      chartOfAccountsId
       chartOfAccountFacilityOmnibusParentCode
       chartOfAccountCollateralOmnibusParentCode
       chartOfAccountFacilityParentCode
@@ -89,16 +87,21 @@ const Modules: React.FC = () => {
             <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
-        <Separator className="mb-4" />
-        <CardFooter className="-mb-3 -mt-1 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => setOpenDepositConfigUpdateDialog(true)}
-          >
-            <Pencil />
-            {depositConfig?.depositConfig ? tCommon("edit") : tCommon("set")}
-          </Button>
-        </CardFooter>
+        {!depositConfig?.depositConfig && (
+          <>
+            {" "}
+            <Separator className="mb-4" />
+            <CardFooter className="-mb-3 -mt-1 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setOpenDepositConfigUpdateDialog(true)}
+              >
+                <Pencil />
+                {tCommon("set")}
+              </Button>
+            </CardFooter>
+          </>
+        )}
       </Card>
       <Card className="mt-3">
         <CardHeader>
@@ -119,13 +122,20 @@ const Modules: React.FC = () => {
             <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
-        <Separator className="mb-4" />
-        <CardFooter className="-mb-3 -mt-1 justify-end">
-          <Button variant="outline" onClick={() => setOpenCreditConfigUpdateDialog(true)}>
-            <Pencil />
-            {creditConfig?.creditConfig ? tCommon("edit") : tCommon("set")}
-          </Button>
-        </CardFooter>
+        {!creditConfig?.creditConfig && (
+          <>
+            <Separator className="mb-4" />
+            <CardFooter className="-mb-3 -mt-1 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setOpenCreditConfigUpdateDialog(true)}
+              >
+                <Pencil />
+                {tCommon("set")}
+              </Button>
+            </CardFooter>
+          </>
+        )}
       </Card>
     </>
   )

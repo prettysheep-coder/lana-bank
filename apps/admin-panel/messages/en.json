@@ -27,7 +27,8 @@
       "transactions": "Transactions",
       "administration": "Administration",
       "financialReports": "Financial Reports",
-      "configuration": "Configuration"
+      "accounting": "Accounting",
+      "governance": "Governance"
     },
     "navItems": {
       "dashboard": "Dashboard",

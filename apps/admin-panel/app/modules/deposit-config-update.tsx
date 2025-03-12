@@ -12,7 +12,7 @@ import {
 import { Label } from "@lana/web/ui/label"
 import { Input } from "@lana/web/ui/input"
 import { useTranslations } from "next-intl"
-import { useEffect, useState } from "react"
+import { FormEvent, useEffect, useState } from "react"
 
 import {
   DepositModuleConfig,
@@ -38,6 +38,11 @@ type DepositConfigUpdateDialogProps = {
   depositModuleConfig?: DepositModuleConfig
 }
 
+const initialFormData = {
+  chartOfAccountsDepositAccountsParentCode: "",
+  chartOfAccountsOmnibusParentCode: "",
+}
+
 export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps> = ({
   open,
   setOpen,
@@ -46,25 +51,24 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   const t = useTranslations("Modules")
   const tCommon = useTranslations("Common")
 
-  const [
-    updateDepositConfig,
-    { loading: updateDepositConfigLoading, error: updateDepositConfigError },
-  ] = useDepositConfigUpdateMutation()
-  const [formData, setFormData] = useState<DepositModuleConfigUpdateInput>({
-    chartOfAccountsId: "",
-    chartOfAccountsDepositAccountsParentCode: "",
-    chartOfAccountsOmnibusParentCode: "",
-  })
+  const [updateDepositConfig, { loading, error, reset }] =
+    useDepositConfigUpdateMutation()
+  const [formData, setFormData] =
+    useState<DepositModuleConfigUpdateInput>(initialFormData)
+
+  const close = () => {
+    reset()
+    setOpen(false)
+    setFormData(initialFormData)
+  }
 
   useEffect(() => {
     if (
       depositModuleConfig &&
-      depositModuleConfig.chartOfAccountsId &&
       depositModuleConfig.chartOfAccountsDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountsOmnibusParentCode
     ) {
       setFormData({
-        chartOfAccountsId: depositModuleConfig.chartOfAccountsId,
         chartOfAccountsDepositAccountsParentCode:
           depositModuleConfig.chartOfAccountsDepositAccountsParentCode,
         chartOfAccountsOmnibusParentCode:
@@ -73,41 +77,42 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
     }
   }, [depositModuleConfig])
 
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    await updateDepositConfig({ variables: { input: formData } })
+    close()
+  }
+
   return (
-    <Dialog open={open} onOpenChange={() => setOpen(false)}>
+    <Dialog open={open} onOpenChange={close}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("deposit.setTitle")}</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col space-y-2">
-          {Object.entries(formData).map(([key, value]) => (
-            <div key={key}>
-              <Label htmlFor={key}>{t(`deposit.${key}`)}</Label>
-              <Input
-                id={key}
-                value={value}
-                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
-              />
-            </div>
-          ))}
-        </div>
-        {updateDepositConfigError && (
-          <div className="text-destructive">{updateDepositConfigError.message}</div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            {tCommon("cancel")}
-          </Button>
-          <Button
-            loading={updateDepositConfigLoading}
-            onClick={async () => {
-              await updateDepositConfig({ variables: { input: formData } })
-              setOpen(false)
-            }}
-          >
-            {tCommon("save")}
-          </Button>
-        </DialogFooter>
+        <form onSubmit={submit}>
+          <div className="flex flex-col space-y-2 w-full">
+            {Object.entries(formData).map(([key, value]) => (
+              <div key={key}>
+                <Label htmlFor={key}>{t(`deposit.${key}`)}</Label>
+                <Input
+                  id={key}
+                  value={value}
+                  onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+                  required={true}
+                />
+              </div>
+            ))}
+            {error && <div className="text-destructive">{error.message}</div>}
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={close}>
+              {tCommon("cancel")}
+            </Button>
+            <Button loading={loading} type="submit">
+              {tCommon("save")}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

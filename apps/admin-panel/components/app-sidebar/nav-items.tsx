@@ -49,8 +49,6 @@ export function useNavItems() {
 
   const navAdminItems: NavItem[] = [
     { title: t("auditLogs"), url: "/audit", icon: BookText },
-    { title: t("committees"), url: "/committees", icon: Users2 },
-    { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
     { title: t("users"), url: "/users", icon: UserCircle },
   ]
 
@@ -63,12 +61,17 @@ export function useNavItems() {
       url: "/regulatory-reporting",
       icon: FileText,
     },
-    { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
   ]
 
-  const navConfigurationItems: NavItem[] = [
-    { title: t("modules"), url: "/modules", icon: Cog },
+  const navGovernanceItems: NavItem[] = [
+    { title: t("committees"), url: "/committees", icon: Users2 },
     { title: t("policies"), url: "/policies", icon: GanttChart },
+  ]
+
+  const navAccountingItems: NavItem[] = [
+    { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
+    { title: t("modules"), url: "/modules", icon: Cog },
+    { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
   ]
 
   const allNavItems: NavItem[] = [
@@ -78,7 +81,8 @@ export function useNavItems() {
     ...navTransactionItems,
     ...navAdminItems,
     ...navFinanceItems,
-    ...navConfigurationItems,
+    ...navGovernanceItems,
+    ...navAccountingItems,
   ]
 
   const navItemsByUrl = new Map<string, NavItem>()
@@ -97,7 +101,8 @@ export function useNavItems() {
     navTransactionItems,
     navAdminItems,
     navFinanceItems,
-    navConfigurationItems,
+    navGovernanceItems,
+    navAccountingItems,
 
     allNavItems,
     navItemsByUrl,
