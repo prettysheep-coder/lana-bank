@@ -11,6 +11,8 @@ The rust application is split across different layer:
 - core/ contains the key primitives of our banking application that are split around multiple repositories
 - lib/ contains some general supporting utilities
 
+we follow Design Driven Development, and hexagonal pattern, for building the architecture of the bank. 
+
 when started, the application expose two servers on 2 different ports: the admin API and the customer API
 
 The admin API is located in lana/admin-server and the custmer API is located in lana/customer-server.
