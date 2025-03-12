@@ -13,6 +13,7 @@ type AccountSet {
 	id: UUID!
 	name: String!
 	amounts: AccountAmountsByCurrency!
+	history(first: Int!, after: String): AccountSetHistoryEntryConnection!
 }
 
 type AccountSetAndSubAccounts {
@@ -20,6 +21,41 @@ type AccountSetAndSubAccounts {
 	name: String!
 	amounts: AccountAmountsByCurrency!
 	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
+}
+
+type AccountSetHistoryEntry {
+	txId: UUID!
+	entryId: UUID!
+	recordedAt: DateTime!
+}
+
+type AccountSetHistoryEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountSetHistoryEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountSetHistoryEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountSetHistoryEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountSetHistoryEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 union AccountSetSubAccount = Account | AccountSet
@@ -697,6 +733,13 @@ type Dashboard {
 	totalDisbursed: UsdCents!
 	totalCollateral: Satoshis!
 }
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
 
 type Deposit {
 	id: ID!

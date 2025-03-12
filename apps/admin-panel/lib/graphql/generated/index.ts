@@ -23,6 +23,12 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  /**
+   * Implement the DateTime<Utc> scalar
+   *
+   * The input/output is a string in RFC3339 format.
+   */
+  DateTime: { input: any; output: any; }
   DisbursalIdx: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
@@ -50,8 +56,15 @@ export type AccountAmountsByCurrency = {
 export type AccountSet = {
   __typename?: 'AccountSet';
   amounts: AccountAmountsByCurrency;
+  history: AccountSetHistoryEntryConnection;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+};
+
+
+export type AccountSetHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type AccountSetAndSubAccounts = {
@@ -66,6 +79,32 @@ export type AccountSetAndSubAccounts = {
 export type AccountSetAndSubAccountsSubAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+export type AccountSetHistoryEntry = {
+  __typename?: 'AccountSetHistoryEntry';
+  entryId: Scalars['UUID']['output'];
+  recordedAt: Scalars['DateTime']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type AccountSetHistoryEntryConnection = {
+  __typename?: 'AccountSetHistoryEntryConnection';
+  /** A list of edges. */
+  edges: Array<AccountSetHistoryEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<AccountSetHistoryEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AccountSetHistoryEntryEdge = {
+  __typename?: 'AccountSetHistoryEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountSetHistoryEntry;
 };
 
 export type AccountSetSubAccount = Account | AccountSet;

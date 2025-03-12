@@ -1,5 +1,6 @@
 pub mod error;
 pub mod ledger;
+mod trial_balance_entry;
 
 use chart_of_accounts::Chart;
 use chrono::{DateTime, Utc};
@@ -7,6 +8,7 @@ use chrono::{DateTime, Utc};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use es_entity::PaginatedQueryRet;
 use rbac_types::{Subject, TrialBalanceAction};
 
 use crate::{
@@ -17,6 +19,7 @@ use crate::{
 
 use error::*;
 use ledger::*;
+pub use trial_balance_entry::*;
 
 #[derive(Clone)]
 pub struct TrialBalances {
@@ -129,6 +132,25 @@ impl TrialBalances {
             .get_trial_balance(name, from, until)
             .await?
             .into())
+    }
+
+    pub async fn account_set_history(
+        &self,
+        sub: &Subject,
+        id: impl Into<LedgerAccountSetId>,
+        args: es_entity::PaginatedQueryArgs<TrialBalanceEntryCursor>,
+    ) -> Result<PaginatedQueryRet<TrialBalanceEntry, TrialBalanceEntryCursor>, TrialBalanceError>
+    {
+        self.authz
+            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
+            .await?;
+
+        let res = self
+            .trial_balance_ledger
+            .account_set_history::<TrialBalanceEntry, TrialBalanceEntryCursor>(id.into(), args)
+            .await?;
+
+        Ok(res)
     }
 }
 
