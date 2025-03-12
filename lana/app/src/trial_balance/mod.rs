@@ -14,12 +14,12 @@ use rbac_types::{Subject, TrialBalanceAction};
 use crate::{
     authorization::{Authorization, Object},
     primitives::LedgerAccountSetId,
-    statement::*,
 };
 
 use error::*;
 pub use history::*;
 use ledger::*;
+pub use ledger::{TrialBalance, TrialBalanceAccountSet};
 
 #[derive(Clone)]
 pub struct TrialBalances {
@@ -130,8 +130,7 @@ impl TrialBalances {
         Ok(self
             .trial_balance_ledger
             .get_trial_balance(name, from, until)
-            .await?
-            .into())
+            .await?)
     }
 
     pub async fn account_set_history(
@@ -151,28 +150,5 @@ impl TrialBalances {
             .await?;
 
         Ok(res)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TrialBalance {
-    pub id: LedgerAccountSetId,
-    pub name: String,
-    pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalanceRange,
-    pub usd_balance: UsdStatementAccountSetBalanceRange,
-    pub accounts: Vec<StatementAccountSet>,
-}
-
-impl From<StatementAccountSetWithAccounts> for TrialBalance {
-    fn from(details: StatementAccountSetWithAccounts) -> Self {
-        Self {
-            id: details.id,
-            name: details.name,
-            description: details.description,
-            btc_balance: details.btc_balance,
-            usd_balance: details.usd_balance,
-            accounts: details.accounts,
-        }
     }
 }

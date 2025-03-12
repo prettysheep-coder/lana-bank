@@ -1313,7 +1313,49 @@ type Total {
 type TrialBalance {
 	name: String!
 	total: AccountAmountsByCurrency!
-	subAccounts: [AccountSetSubAccount!]!
+	accounts: [TrialBalanceAccount!]!
+}
+
+type TrialBalanceAccount {
+	id: UUID!
+	name: String!
+	amounts: AccountAmountsByCurrency!
+	history(first: Int!, after: String): TrialBalanceHistoryEntryConnection!
+}
+
+type TrialBalanceHistoryEntry {
+	txId: UUID!
+	entryId: UUID!
+	recordedAt: DateTime!
+}
+
+type TrialBalanceHistoryEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [TrialBalanceHistoryEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [TrialBalanceHistoryEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type TrialBalanceHistoryEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: TrialBalanceHistoryEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 scalar UUID

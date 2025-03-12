@@ -42,6 +42,15 @@ impl From<cala_ledger::entry::EntriesByCreatedAtCursor> for AccountSetHistoryCur
     }
 }
 
+impl From<chrono::DateTime<chrono::Utc>> for AccountSetHistoryCursor {
+    fn from(created_at: chrono::DateTime<chrono::Utc>) -> Self {
+        Self {
+            entry_id: uuid::uuid!("ffffffff-ffff-ffff-ffff-ffffffffffff").into(),
+            created_at,
+        }
+    }
+}
+
 impl From<&AccountSetHistoryEntry> for AccountSetHistoryCursor {
     fn from(entry: &AccountSetHistoryEntry) -> Self {
         Self {
