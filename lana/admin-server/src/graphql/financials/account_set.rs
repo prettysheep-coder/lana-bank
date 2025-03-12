@@ -13,6 +13,44 @@ pub struct AccountSet {
     name: String,
     amounts: AccountAmountsByCurrency,
 }
+#[ComplexObject]
+impl AccountSet {
+    async fn history(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<AccountSetHistoryCursor, AccountSetHistoryEntry, EmptyFields, EmptyFields>,
+    > {
+        unimplemented!()
+    }
+}
+
+#[derive(SimpleObject)]
+pub(super) struct AccountSetHistoryEntry {
+    pub tx_id: UUID,
+    pub recorded_at: Timestamp,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(super) struct AccountSetHistoryCursor {
+    pub value: String,
+}
+
+impl CursorType for AccountSetHistoryCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        self.value.clone()
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        Ok(Self {
+            value: s.to_string(),
+        })
+    }
+}
 
 impl From<lana_app::statement::StatementAccountSet> for AccountSet {
     fn from(line_item: lana_app::statement::StatementAccountSet) -> Self {
