@@ -1260,7 +1260,7 @@
     "all": "All"
   },
   "Modules": {
-    "notYetAssigned": "Not yet assigned",
+    "notYetConfigured": "Not yet configured",
     "deposit": {
       "title": "Deposit",
       "description": "Deposit configuration",
@@ -1271,7 +1271,17 @@
     },
     "credit": {
       "title": "Credit",
-      "description": "Credit configuration"
+      "description": "Credit configuration",
+      "setTitle": "Set Credit Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountFacilityOmnibusParentCode": "Facility Omnibus Parent Code",
+      "chartOfAccountCollateralOmnibusParentCode": "Collateral Omnibus Parent Code",
+      "chartOfAccountFacilityParentCode": "Facility Parent Code",
+      "chartOfAccountCollateralParentCode": "Collateral Parent Code",
+      "chartOfAccountDisbursedReceivableParentCode": "Disbursed Receivable Parent Code",
+      "chartOfAccountInterestReceivableParentCode": "Interest Receivable Parent Code",
+      "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
+      "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code"
     }
   }
 }

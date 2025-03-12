@@ -2072,6 +2072,13 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type CreditConfigUpdateMutationVariables = Exact<{
+  input: CreditModuleConfigUpdateInput;
+}>;
+
+
+export type CreditConfigUpdateMutation = { __typename?: 'Mutation', creditConfigUpdate: { __typename?: 'CreditModuleConfigUpdatePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } } };
+
 export type DepositConfigUpdateMutationVariables = Exact<{
   input: DepositModuleConfigUpdateInput;
 }>;
@@ -2083,6 +2090,11 @@ export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } | null };
+
+export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } | null };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -4558,6 +4570,49 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const CreditConfigUpdateDocument = gql`
+    mutation CreditConfigUpdate($input: CreditModuleConfigUpdateInput!) {
+  creditConfigUpdate(input: $input) {
+    creditConfig {
+      chartOfAccountsId
+      chartOfAccountFacilityOmnibusParentCode
+      chartOfAccountCollateralOmnibusParentCode
+      chartOfAccountFacilityParentCode
+      chartOfAccountCollateralParentCode
+      chartOfAccountDisbursedReceivableParentCode
+      chartOfAccountInterestReceivableParentCode
+      chartOfAccountInterestIncomeParentCode
+      chartOfAccountFeeIncomeParentCode
+    }
+  }
+}
+    `;
+export type CreditConfigUpdateMutationFn = Apollo.MutationFunction<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>;
+
+/**
+ * __useCreditConfigUpdateMutation__
+ *
+ * To run a mutation, you first call `useCreditConfigUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditConfigUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditConfigUpdateMutation, { data, loading, error }] = useCreditConfigUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>(CreditConfigUpdateDocument, options);
+      }
+export type CreditConfigUpdateMutationHookResult = ReturnType<typeof useCreditConfigUpdateMutation>;
+export type CreditConfigUpdateMutationResult = Apollo.MutationResult<CreditConfigUpdateMutation>;
+export type CreditConfigUpdateMutationOptions = Apollo.BaseMutationOptions<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>;
 export const DepositConfigUpdateDocument = gql`
     mutation depositConfigUpdate($input: DepositModuleConfigUpdateInput!) {
   depositConfigUpdate(input: $input) {
@@ -4631,6 +4686,48 @@ export function useDepositConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
 export type DepositConfigQueryHookResult = ReturnType<typeof useDepositConfigQuery>;
 export type DepositConfigLazyQueryHookResult = ReturnType<typeof useDepositConfigLazyQuery>;
 export type DepositConfigQueryResult = Apollo.QueryResult<DepositConfigQuery, DepositConfigQueryVariables>;
+export const CreditConfigDocument = gql`
+    query creditConfig {
+  creditConfig {
+    chartOfAccountsId
+    chartOfAccountFacilityOmnibusParentCode
+    chartOfAccountCollateralOmnibusParentCode
+    chartOfAccountFacilityParentCode
+    chartOfAccountCollateralParentCode
+    chartOfAccountDisbursedReceivableParentCode
+    chartOfAccountInterestReceivableParentCode
+    chartOfAccountInterestIncomeParentCode
+    chartOfAccountFeeIncomeParentCode
+  }
+}
+    `;
+
+/**
+ * __useCreditConfigQuery__
+ *
+ * To run a query within a React component, call `useCreditConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreditConfigQuery(baseOptions?: Apollo.QueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+      }
+export function useCreditConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+        }
+export type CreditConfigQueryHookResult = ReturnType<typeof useCreditConfigQuery>;
+export type CreditConfigLazyQueryHookResult = ReturnType<typeof useCreditConfigLazyQuery>;
+export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {

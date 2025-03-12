@@ -18,8 +18,10 @@ import { LoaderCircle, Pencil } from "lucide-react"
 
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 
+import { CreditConfigUpdateDialog } from "./credit-config-update"
+
 import { DetailItem } from "@/components/details"
-import { useDepositConfigQuery } from "@/lib/graphql/generated"
+import { useDepositConfigQuery, useCreditConfigQuery } from "@/lib/graphql/generated"
 
 gql`
   query depositConfig {
@@ -27,6 +29,20 @@ gql`
       chartOfAccountsId
       chartOfAccountsDepositAccountsParentCode
       chartOfAccountsOmnibusParentCode
+    }
+  }
+
+  query creditConfig {
+    creditConfig {
+      chartOfAccountsId
+      chartOfAccountFacilityOmnibusParentCode
+      chartOfAccountCollateralOmnibusParentCode
+      chartOfAccountFacilityParentCode
+      chartOfAccountCollateralParentCode
+      chartOfAccountDisbursedReceivableParentCode
+      chartOfAccountInterestReceivableParentCode
+      chartOfAccountInterestIncomeParentCode
+      chartOfAccountFeeIncomeParentCode
     }
   }
 `
@@ -37,8 +53,10 @@ const Modules: React.FC = () => {
 
   const [openDepositConfigUpdateDialog, setOpenDepositConfigUpdateDialog] =
     useState(false)
+  const [openCreditConfigUpdateDialog, setOpenCreditConfigUpdateDialog] = useState(false)
 
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
+  const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
 
   return (
     <>
@@ -46,6 +64,11 @@ const Modules: React.FC = () => {
         open={openDepositConfigUpdateDialog}
         setOpen={setOpenDepositConfigUpdateDialog}
         depositModuleConfig={depositConfig?.depositConfig || undefined}
+      />
+      <CreditConfigUpdateDialog
+        open={openCreditConfigUpdateDialog}
+        setOpen={setOpenCreditConfigUpdateDialog}
+        creditModuleConfig={creditConfig?.creditConfig || undefined}
       />
       <Card>
         <CardHeader>
@@ -56,25 +79,14 @@ const Modules: React.FC = () => {
         <CardContent>
           {depositConfigLoading ? (
             <LoaderCircle className="animate-spin" />
-          ) : depositConfig ? (
+          ) : depositConfig?.depositConfig ? (
             <>
-              <DetailItem
-                label="Chart of Accounts ID"
-                value={depositConfig?.depositConfig?.chartOfAccountsId}
-              />
-              <DetailItem
-                label="Chart of Accounts Deposit Accounts Parent Code"
-                value={
-                  depositConfig?.depositConfig?.chartOfAccountsDepositAccountsParentCode
-                }
-              />
-              <DetailItem
-                label="Chart of Accounts Omnibus Parent Code"
-                value={depositConfig?.depositConfig?.chartOfAccountsOmnibusParentCode}
-              />
+              {Object.entries(depositConfig?.depositConfig || {}).map(([key, value]) => (
+                <DetailItem key={key} label={t(`deposit.${key}`)} value={value} />
+              ))}
             </>
           ) : (
-            <div>{t("notYetAssigned")}</div>
+            <div>{t("notYetConfigured")}</div>
           )}
         </CardContent>
         <Separator className="mb-4" />
@@ -84,7 +96,34 @@ const Modules: React.FC = () => {
             onClick={() => setOpenDepositConfigUpdateDialog(true)}
           >
             <Pencil />
-            {depositConfig ? tCommon("edit") : tCommon("set")}
+            {depositConfig?.depositConfig ? tCommon("edit") : tCommon("set")}
+          </Button>
+        </CardFooter>
+      </Card>
+      <Card className="mt-3">
+        <CardHeader>
+          <CardTitle>{t("credit.title")}</CardTitle>
+          <CardDescription>{t("credit.description")}</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {creditConfigLoading ? (
+            <LoaderCircle className="animate-spin" />
+          ) : creditConfig?.creditConfig ? (
+            <>
+              {Object.entries(creditConfig?.creditConfig || {}).map(([key, value]) => (
+                <DetailItem key={key} label={t(`credit.${key}`)} value={value} />
+              ))}
+            </>
+          ) : (
+            <div>{t("notYetConfigured")}</div>
+          )}
+        </CardContent>
+        <Separator className="mb-4" />
+        <CardFooter className="-mb-3 -mt-1 justify-end">
+          <Button variant="outline" onClick={() => setOpenCreditConfigUpdateDialog(true)}>
+            <Pencil />
+            {creditConfig?.creditConfig ? tCommon("edit") : tCommon("set")}
           </Button>
         </CardFooter>
       </Card>

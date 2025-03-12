@@ -79,30 +79,18 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
         <DialogHeader>
           <DialogTitle>{t("deposit.setTitle")}</DialogTitle>
         </DialogHeader>
-        <Label>{t("deposit.chartOfAccountsId")}</Label>
-        <Input
-          value={formData.chartOfAccountsId}
-          onChange={(e) =>
-            setFormData({ ...formData, chartOfAccountsId: e.target.value })
-          }
-        />
-        <Label>{t("deposit.chartOfAccountsDepositAccountsParentCode")}</Label>
-        <Input
-          value={formData.chartOfAccountsDepositAccountsParentCode}
-          onChange={(e) =>
-            setFormData({
-              ...formData,
-              chartOfAccountsDepositAccountsParentCode: e.target.value,
-            })
-          }
-        />
-        <Label>{t("deposit.chartOfAccountsOmnibusParentCode")}</Label>
-        <Input
-          value={formData.chartOfAccountsOmnibusParentCode}
-          onChange={(e) =>
-            setFormData({ ...formData, chartOfAccountsOmnibusParentCode: e.target.value })
-          }
-        />
+        <div className="flex flex-col space-y-2">
+          {Object.entries(formData).map(([key, value]) => (
+            <div key={key}>
+              <Label htmlFor={key}>{t(`deposit.${key}`)}</Label>
+              <Input
+                id={key}
+                value={value}
+                onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
+              />
+            </div>
+          ))}
+        </div>
         {updateDepositConfigError && (
           <div className="text-destructive">{updateDepositConfigError.message}</div>
         )}
