@@ -351,7 +351,6 @@ impl Applicants {
         customer_id: CustomerId,
         amount: UsdCents,
     ) -> Result<(), ApplicantError> {
-
         self.sumsub_client
             .submit_finance_transaction(
                 customer_id,
@@ -371,7 +370,6 @@ impl Applicants {
         customer_id: CustomerId,
         amount: UsdCents,
     ) -> Result<(), ApplicantError> {
-
         self.sumsub_client
             .submit_finance_transaction(
                 customer_id,
