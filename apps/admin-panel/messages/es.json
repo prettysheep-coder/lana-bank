@@ -17,7 +17,8 @@
     "download": "Descargar",
     "upload": "Subir",
     "close": "Cerrar",
-    "submit": "Enviar"
+    "submit": "Enviar",
+    "set": "Establecer"
   },
   "Sidebar": {
     "labels": {
@@ -25,7 +26,9 @@
       "customers": "Clientes",
       "transactions": "Transacciones",
       "administration": "Administración",
-      "financialReports": "Informes Financieros"
+      "financialReports": "Informes Financieros",
+      "accounting": "Contabilidad",
+      "governance": "Gobernanza"
     },
     "navItems": {
       "dashboard": "Panel Principal",
@@ -45,7 +48,8 @@
       "cashFlow": "Flujo de Caja",
       "profitAndLoss": "Pérdidas y Ganancias",
       "regulatoryReporting": "Informes Regulatorios",
-      "trialBalance": "Balance de Comprobación"
+      "trialBalance": "Balance de Comprobación",
+      "modules": "Módulos"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -1255,5 +1259,30 @@
     "noData": "No hay datos para mostrar",
     "sortBy": "Ordenar por",
     "all": "Todos"
+  },
+  "Modules": {
+    "notYetConfigured": "Aún no configurado",
+    "deposit": {
+      "title": "Depósito",
+      "description": "Configuración de depósito",
+      "setTitle": "Establecer configuración de depósito",
+      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsDepositAccountsParentCode": "Código padre de cuentas de depósito",
+      "chartOfAccountsOmnibusParentCode": "Código padre ómnibus"
+    },
+    "credit": {
+      "title": "Crédito",
+      "description": "Configuración de crédito",
+      "setTitle": "Establecer configuración de crédito",
+      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountFacilityOmnibusParentCode": "Código padre ómnibus de facilidad",
+      "chartOfAccountCollateralOmnibusParentCode": "Código padre ómnibus de garantía",
+      "chartOfAccountFacilityParentCode": "Código padre de facilidad",
+      "chartOfAccountCollateralParentCode": "Código padre de garantía",
+      "chartOfAccountDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas",
+      "chartOfAccountInterestReceivableParentCode": "Código padre de intereses por cobrar",
+      "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
+      "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones"
+    }
   }
 }
