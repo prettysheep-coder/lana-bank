@@ -2089,12 +2089,12 @@ export type DepositConfigUpdateMutation = { __typename?: 'Mutation', depositConf
 export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } | null };
+export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } | null };
 
 export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } | null };
+export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } | null };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -4653,7 +4653,6 @@ export type DepositConfigUpdateMutationOptions = Apollo.BaseMutationOptions<Depo
 export const DepositConfigDocument = gql`
     query depositConfig {
   depositConfig {
-    chartOfAccountsId
     chartOfAccountsDepositAccountsParentCode
     chartOfAccountsOmnibusParentCode
   }
@@ -4689,7 +4688,6 @@ export type DepositConfigQueryResult = Apollo.QueryResult<DepositConfigQuery, De
 export const CreditConfigDocument = gql`
     query creditConfig {
   creditConfig {
-    chartOfAccountsId
     chartOfAccountFacilityOmnibusParentCode
     chartOfAccountCollateralOmnibusParentCode
     chartOfAccountFacilityParentCode

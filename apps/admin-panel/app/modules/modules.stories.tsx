@@ -92,3 +92,57 @@ export const Loading: Story = {
     },
   },
 }
+
+const DataStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: DepositConfigDocument,
+      },
+      result: {
+        data: {
+          depositConfig: {
+            chartOfAccountsDepositAccountsParentCode: "41.01.0101",
+            chartOfAccountsOmnibusParentCode: "51.01",
+          },
+        },
+      },
+    },
+    {
+      request: {
+        query: CreditConfigDocument,
+      },
+      result: {
+        data: {
+          creditConfig: {
+            chartOfAccountFacilityOmnibusParentCode: "41.01.0101",
+            chartOfAccountCollateralOmnibusParentCode: "51.01",
+            chartOfAccountFacilityParentCode: "41.01.0101",
+            chartOfAccountCollateralParentCode: "51.01",
+            chartOfAccountDisbursedReceivableParentCode: "41.01.0101",
+            chartOfAccountInterestReceivableParentCode: "51.01",
+            chartOfAccountInterestIncomeParentCode: "41.01.0101",
+            chartOfAccountFeeIncomeParentCode: "51.01",
+          },
+        },
+      },
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <Modules />
+    </MockedProvider>
+  )
+}
+
+export const Data: Story = {
+  render: DataStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/modules",
+      },
+    },
+  },
+}

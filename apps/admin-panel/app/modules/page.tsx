@@ -16,6 +16,8 @@ import { Button } from "@lana/web/ui/button"
 import { Separator } from "@lana/web/ui/separator"
 import { LoaderCircle, Pencil } from "lucide-react"
 
+import { DetailsGroup } from "@lana/web/components/details"
+
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 
 import { CreditConfigUpdateDialog } from "./credit-config-update"
@@ -78,11 +80,14 @@ const Modules: React.FC = () => {
           {depositConfigLoading ? (
             <LoaderCircle className="animate-spin" />
           ) : depositConfig?.depositConfig ? (
-            <>
-              {Object.entries(depositConfig?.depositConfig || {}).map(([key, value]) => (
-                <DetailItem key={key} label={t(`deposit.${key}`)} value={value} />
-              ))}
-            </>
+            <DetailsGroup>
+              {Object.entries(depositConfig?.depositConfig || {}).map(
+                ([key, value]) =>
+                  key !== "__typename" && (
+                    <DetailItem key={key} label={t(`deposit.${key}`)} value={value} />
+                  ),
+              )}
+            </DetailsGroup>
           ) : (
             <div>{t("notYetConfigured")}</div>
           )}
@@ -113,11 +118,14 @@ const Modules: React.FC = () => {
           {creditConfigLoading ? (
             <LoaderCircle className="animate-spin" />
           ) : creditConfig?.creditConfig ? (
-            <>
-              {Object.entries(creditConfig?.creditConfig || {}).map(([key, value]) => (
-                <DetailItem key={key} label={t(`credit.${key}`)} value={value} />
-              ))}
-            </>
+            <DetailsGroup>
+              {Object.entries(creditConfig?.creditConfig || {}).map(
+                ([key, value]) =>
+                  key !== "__typename" && (
+                    <DetailItem key={key} label={t(`credit.${key}`)} value={value} />
+                  ),
+              )}
+            </DetailsGroup>
           ) : (
             <div>{t("notYetConfigured")}</div>
           )}
