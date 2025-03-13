@@ -64,7 +64,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
 }
 
 #[derive(InputObject)]
-pub struct CreditModuleConfigUpdateInput {
+pub struct CreditModuleConfigureInput {
     pub chart_of_account_facility_omnibus_parent_code: String,
     pub chart_of_account_collateral_omnibus_parent_code: String,
     pub chart_of_account_facility_parent_code: String,
@@ -74,4 +74,4 @@ pub struct CreditModuleConfigUpdateInput {
     pub chart_of_account_interest_income_parent_code: String,
     pub chart_of_account_fee_income_parent_code: String,
 }
-crate::mutation_payload! { CreditModuleConfigUpdatePayload, credit_config: CreditModuleConfig }
+crate::mutation_payload! { CreditModuleConfigurePayload, credit_config: CreditModuleConfig }

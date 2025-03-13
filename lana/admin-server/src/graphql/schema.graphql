@@ -587,7 +587,7 @@ type CreditModuleConfig {
 	chartOfAccountFeeIncomeParentCode: String
 }
 
-input CreditModuleConfigUpdateInput {
+input CreditModuleConfigureInput {
 	chartOfAccountFacilityOmnibusParentCode: String!
 	chartOfAccountCollateralOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
@@ -598,7 +598,7 @@ input CreditModuleConfigUpdateInput {
 	chartOfAccountFeeIncomeParentCode: String!
 }
 
-type CreditModuleConfigUpdatePayload {
+type CreditModuleConfigurePayload {
 	creditConfig: CreditModuleConfig!
 }
 
@@ -796,12 +796,12 @@ type DepositModuleConfig {
 	chartOfAccountsOmnibusParentCode: String
 }
 
-input DepositModuleConfigUpdateInput {
+input DepositModuleConfigureInput {
 	chartOfAccountsDepositAccountsParentCode: String!
 	chartOfAccountsOmnibusParentCode: String!
 }
 
-type DepositModuleConfigUpdatePayload {
+type DepositModuleConfigurePayload {
 	depositConfig: DepositModuleConfig!
 }
 
@@ -949,14 +949,14 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
-	depositConfigUpdate(input: DepositModuleConfigUpdateInput!): DepositModuleConfigUpdatePayload!
+	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
-	creditConfigUpdate(input: CreditModuleConfigUpdateInput!): CreditModuleConfigUpdatePayload!
+	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!

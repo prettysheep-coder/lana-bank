@@ -720,11 +720,11 @@ impl Mutation {
         )
     }
 
-    async fn deposit_config_update(
+    async fn deposit_module_configure(
         &self,
         ctx: &Context<'_>,
-        input: DepositModuleConfigUpdateInput,
-    ) -> async_graphql::Result<DepositModuleConfigUpdatePayload> {
+        input: DepositModuleConfigureInput,
+    ) -> async_graphql::Result<DepositModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
@@ -746,9 +746,9 @@ impl Mutation {
             .build()?;
         let config = app
             .deposits()
-            .update_chart_of_accounts_integration_config(sub, chart, config_values)
+            .set_chart_of_accounts_integration_config(sub, chart, config_values)
             .await?;
-        Ok(DepositModuleConfigUpdatePayload::from(
+        Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
         ))
     }
@@ -874,11 +874,11 @@ impl Mutation {
         )
     }
 
-    async fn credit_config_update(
+    async fn credit_module_configure(
         &self,
         ctx: &Context<'_>,
-        input: CreditModuleConfigUpdateInput,
-    ) -> async_graphql::Result<CreditModuleConfigUpdatePayload> {
+        input: CreditModuleConfigureInput,
+    ) -> async_graphql::Result<CreditModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let chart = app
@@ -924,9 +924,9 @@ impl Mutation {
             .build()?;
         let config = app
             .credit_facilities()
-            .update_chart_of_accounts_integration_config(sub, chart, config_values)
+            .set_chart_of_accounts_integration_config(sub, chart, config_values)
             .await?;
-        Ok(CreditModuleConfigUpdatePayload::from(
+        Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
         ))
     }

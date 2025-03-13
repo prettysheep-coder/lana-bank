@@ -62,7 +62,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .id;
 
     deposit
-        .update_chart_of_accounts_integration_config(
+        .set_chart_of_accounts_integration_config(
             &DummySubject,
             chart,
             ChartOfAccountsIntegrationConfig::builder()
@@ -80,8 +80,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     assert_eq!(res.entities.len(), 1);
-
-    let first_account_set_id = account_set_id;
 
     let chart_ref = format!("other-ref-{:08}", rand::thread_rng().gen_range(0..10000));
     let chart = charts
@@ -98,15 +96,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
 
-    let code = "1".parse::<chart_of_accounts::AccountCode>().unwrap();
-    let account_set_id = cala
-        .account_sets()
-        .find(chart.account_set_id_from_code(&code).unwrap())
-        .await?
-        .id;
-
-    deposit
-        .update_chart_of_accounts_integration_config(
+    let res = deposit
+        .set_chart_of_accounts_integration_config(
             &DummySubject,
             chart,
             ChartOfAccountsIntegrationConfig::builder()
@@ -116,21 +107,12 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 .build()
                 .unwrap(),
         )
-        .await?;
+        .await;
 
-    let res = cala
-        .account_sets()
-        .list_members(account_set_id, Default::default())
-        .await?;
-
-    assert_eq!(res.entities.len(), 1);
-
-    let res = cala
-        .account_sets()
-        .list_members(first_account_set_id, Default::default())
-        .await?;
-
-    assert!(res.entities.is_empty());
+    assert!(matches!(
+        res,
+        Err(deposit::error::CoreDepositError::DepositConfigAlreadyExists)
+    ));
 
     Ok(())
 }

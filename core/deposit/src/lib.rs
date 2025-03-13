@@ -642,7 +642,7 @@ where
             .await?)
     }
 
-    pub async fn update_chart_of_accounts_integration_config(
+    pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: Chart,
@@ -650,6 +650,15 @@ where
     ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
         if chart.id != config.chart_of_accounts_id {
             return Err(CoreDepositError::ChartIdMismatch);
+        }
+
+        if self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?
+            .is_some()
+        {
+            return Err(CoreDepositError::DepositConfigAlreadyExists);
         }
 
         let deposit_accounts_parent_account_set_id = chart
