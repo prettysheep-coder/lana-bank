@@ -75,10 +75,10 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
     label: t("headers.depositId") || "ID",
     render: (depositId) => {
       // Format the deposit ID to show only the first 4 and last 4 characters
-      const shortId = `${depositId.substring(0, 4)}...${depositId.substring(depositId.length - 4)}`;
-      
+      const shortId = `${depositId.substring(0, 4)}...${depositId.substring(depositId.length - 4)}`
+
       return (
-        <a 
+        <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${depositId}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -87,7 +87,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
         >
           {shortId}
         </a>
-      );
+      )
     },
   },
   {

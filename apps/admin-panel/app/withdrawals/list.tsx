@@ -81,10 +81,10 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
     label: t("headers.withdrawalId") || "ID",
     render: (withdrawalId) => {
       // Format the withdrawal ID to show only the first 4 and last 4 characters
-      const shortId = `${withdrawalId.substring(0, 4)}...${withdrawalId.substring(withdrawalId.length - 4)}`;
-      
+      const shortId = `${withdrawalId.substring(0, 4)}...${withdrawalId.substring(withdrawalId.length - 4)}`
+
       return (
-        <a 
+        <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawalId}`}
           target="_blank"
           rel="noopener noreferrer"
@@ -93,7 +93,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] =>
         >
           {shortId}
         </a>
-      );
+      )
     },
   },
   {

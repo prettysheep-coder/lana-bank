@@ -45,7 +45,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
     {
       label: t("fields.withdrawalId") || "ID",
       value: (
-        <a 
+        <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
           target="_blank"
           rel="noopener noreferrer"
