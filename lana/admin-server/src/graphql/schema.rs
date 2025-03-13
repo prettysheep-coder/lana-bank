@@ -720,7 +720,7 @@ impl Mutation {
         )
     }
 
-    async fn deposit_config_update(
+    async fn deposit_module_configure(
         &self,
         ctx: &Context<'_>,
         input: DepositModuleConfigUpdateInput,
@@ -746,7 +746,7 @@ impl Mutation {
             .build()?;
         let config = app
             .deposits()
-            .update_chart_of_accounts_integration_config(sub, chart, config_values)
+            .set_chart_of_accounts_integration_config(sub, chart, config_values)
             .await?;
         Ok(DepositModuleConfigUpdatePayload::from(
             DepositModuleConfig::from(config),

@@ -979,7 +979,7 @@ export type Mutation = {
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
-  depositConfigUpdate: DepositModuleConfigUpdatePayload;
+  depositModuleConfigure: DepositModuleConfigUpdatePayload;
   depositRecord: DepositRecordPayload;
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
@@ -1076,7 +1076,7 @@ export type MutationCustomerUpdateArgs = {
 };
 
 
-export type MutationDepositConfigUpdateArgs = {
+export type MutationDepositModuleConfigureArgs = {
   input: DepositModuleConfigUpdateInput;
 };
 

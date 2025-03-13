@@ -62,7 +62,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .id;
 
     deposit
-        .update_chart_of_accounts_integration_config(
+        .set_chart_of_accounts_integration_config(
             &DummySubject,
             chart,
             ChartOfAccountsIntegrationConfig::builder()
@@ -97,7 +97,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     let res = deposit
-        .update_chart_of_accounts_integration_config(
+        .set_chart_of_accounts_integration_config(
             &DummySubject,
             chart,
             ChartOfAccountsIntegrationConfig::builder()
