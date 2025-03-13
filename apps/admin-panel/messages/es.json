@@ -836,6 +836,7 @@
     "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
     "table": {
       "headers": {
+        "depositId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto"
