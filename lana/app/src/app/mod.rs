@@ -333,25 +333,42 @@ impl LanaApp {
         };
 
         // Confirm the withdrawal using the CoreDeposit implementation
+        // This is the critical step that should not be affected by Sumsub
         let withdrawal = self
             .deposits()
             .confirm_withdrawal(sub, withdrawal_id)
             .await?;
 
-        // Then, submit the transaction to Sumsub for monitoring
+        // Get customer ID for Sumsub
         let customer_id = deposit_account.account_holder_id.into();
-        match self
-            .applicants()
-            .submit_withdrawal_transaction(withdrawal.id, customer_id, withdrawal.amount)
-            .await
-        {
-            Ok(_) => Ok(withdrawal),
-            Err(e) => {
-                // Log the error but don't fail the confirmation
-                tracing::warn!("Failed to submit transaction to Sumsub: {:?}", e);
-                // Return the successful withdrawal anyway
-                Ok(withdrawal)
+
+        // Clone the data we need for Sumsub submission
+        let withdrawal_id_for_sumsub = withdrawal.id;
+        let amount_for_sumsub = withdrawal.amount;
+        let applicants = self.applicants().clone();
+
+        // Submit transaction to Sumsub in a separate task to not block confirmation
+        // This ensures the withdrawal confirmation completes regardless of Sumsub status
+        tokio::spawn(async move {
+            match applicants
+                .submit_withdrawal_transaction(
+                    withdrawal_id_for_sumsub,
+                    customer_id,
+                    amount_for_sumsub,
+                )
+                .await
+            {
+                Ok(_) => {
+                    tracing::info!("Successfully submitted withdrawal to Sumsub");
+                }
+                Err(e) => {
+                    // Just log the error, but don't affect the withdrawal confirmation
+                    tracing::warn!("Failed to submit transaction to Sumsub: {:?}", e);
+                }
             }
-        }
+        });
+
+        // Return the confirmed withdrawal immediately
+        Ok(withdrawal)
     }
 }

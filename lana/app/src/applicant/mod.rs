@@ -7,6 +7,8 @@ mod sumsub_auth;
 use core_customer;
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
+use std::sync::Arc;
 use tracing::instrument;
 
 use crate::{
@@ -51,12 +53,13 @@ pub fn usd_cents_to_dollars(cents: UsdCents) -> f64 {
     (cents.into_inner() as f64) / 100.0
 }
 
+/// Applicants service
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
-    customers: Customers,
+    customers: Arc<Customers>,
+    jobs: Arc<Jobs>,
     repo: ApplicantRepo,
-    jobs: Jobs,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
@@ -168,25 +171,15 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(
-        pool: &sqlx::PgPool,
-        config: &SumsubConfig,
-        customers: &Customers,
-        jobs: &Jobs,
-        // export: &Export,
-    ) -> Self {
+    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers, jobs: &Jobs) -> Self {
         let sumsub_client = SumsubClient::new(config);
-        jobs.add_initializer(SumsubExportInitializer::new(
-            // export.clone(),
-            sumsub_client.clone(),
-            pool,
-        ));
+        jobs.add_initializer(SumsubExportInitializer::new(sumsub_client.clone(), pool));
 
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            customers: customers.clone(),
-            jobs: jobs.clone(),
+            customers: Arc::new(customers.clone()),
+            jobs: Arc::new(jobs.clone()),
         }
     }
 
