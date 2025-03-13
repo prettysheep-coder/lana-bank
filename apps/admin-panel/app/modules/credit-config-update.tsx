@@ -17,13 +17,13 @@ import { FormEvent, useEffect, useState } from "react"
 import {
   CreditConfigDocument,
   CreditModuleConfig,
-  CreditModuleConfigUpdateInput,
-  useCreditConfigUpdateMutation,
+  CreditModuleConfigureInput,
+  useCreditModuleConfigureMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation CreditConfigUpdate($input: CreditModuleConfigUpdateInput!) {
-    creditConfigUpdate(input: $input) {
+  mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
+    creditModuleConfigure(input: $input) {
       creditConfig {
         chartOfAccountsId
         chartOfAccountFacilityOmnibusParentCode
@@ -64,10 +64,11 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   const t = useTranslations("Modules")
   const tCommon = useTranslations("Common")
 
-  const [updateCreditConfig, { loading, error, reset }] = useCreditConfigUpdateMutation({
-    refetchQueries: [CreditConfigDocument]
-  })
-  const [formData, setFormData] = useState<CreditModuleConfigUpdateInput>(initialFormData)
+  const [updateCreditConfig, { loading, error, reset }] =
+    useCreditModuleConfigureMutation({
+      refetchQueries: [CreditConfigDocument],
+    })
+  const [formData, setFormData] = useState<CreditModuleConfigureInput>(initialFormData)
 
   const close = () => {
     reset()

@@ -84,7 +84,11 @@ const Modules: React.FC = () => {
               {Object.entries(depositConfig?.depositConfig || {}).map(
                 ([key, value]) =>
                   key !== "__typename" && (
-                    <DetailItem key={key} label={t(`deposit.${key}`)} value={value} />
+                    <DetailItem
+                      key={key}
+                      label={t(`deposit.${key}`)}
+                      value={value?.replace(/\./g, "")}
+                    />
                   ),
               )}
             </DetailsGroup>
@@ -122,7 +126,11 @@ const Modules: React.FC = () => {
               {Object.entries(creditConfig?.creditConfig || {}).map(
                 ([key, value]) =>
                   key !== "__typename" && (
-                    <DetailItem key={key} label={t(`credit.${key}`)} value={value} />
+                    <DetailItem
+                      key={key}
+                      label={t(`credit.${key}`)}
+                      value={value?.replace(/\./g, "")}
+                    />
                   ),
               )}
             </DetailsGroup>

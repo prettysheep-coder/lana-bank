@@ -2072,19 +2072,19 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
-export type CreditConfigUpdateMutationVariables = Exact<{
-  input: CreditModuleConfigUpdateInput;
+export type CreditModuleConfigureMutationVariables = Exact<{
+  input: CreditModuleConfigureInput;
 }>;
 
 
-export type CreditConfigUpdateMutation = { __typename?: 'Mutation', creditConfigUpdate: { __typename?: 'CreditModuleConfigUpdatePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } } };
+export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } } };
 
-export type DepositConfigUpdateMutationVariables = Exact<{
-  input: DepositModuleConfigUpdateInput;
+export type DepositModuleConfigureMutationVariables = Exact<{
+  input: DepositModuleConfigureInput;
 }>;
 
 
-export type DepositConfigUpdateMutation = { __typename?: 'Mutation', depositConfigUpdate: { __typename?: 'DepositModuleConfigUpdatePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } } };
+export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } } };
 
 export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4570,9 +4570,9 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
-export const CreditConfigUpdateDocument = gql`
-    mutation CreditConfigUpdate($input: CreditModuleConfigUpdateInput!) {
-  creditConfigUpdate(input: $input) {
+export const CreditModuleConfigureDocument = gql`
+    mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
+  creditModuleConfigure(input: $input) {
     creditConfig {
       chartOfAccountsId
       chartOfAccountFacilityOmnibusParentCode
@@ -4587,35 +4587,35 @@ export const CreditConfigUpdateDocument = gql`
   }
 }
     `;
-export type CreditConfigUpdateMutationFn = Apollo.MutationFunction<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>;
+export type CreditModuleConfigureMutationFn = Apollo.MutationFunction<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
 
 /**
- * __useCreditConfigUpdateMutation__
+ * __useCreditModuleConfigureMutation__
  *
- * To run a mutation, you first call `useCreditConfigUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditConfigUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreditModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditModuleConfigureMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [creditConfigUpdateMutation, { data, loading, error }] = useCreditConfigUpdateMutation({
+ * const [creditModuleConfigureMutation, { data, loading, error }] = useCreditModuleConfigureMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreditConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>) {
+export function useCreditModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>(CreditConfigUpdateDocument, options);
+        return Apollo.useMutation<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>(CreditModuleConfigureDocument, options);
       }
-export type CreditConfigUpdateMutationHookResult = ReturnType<typeof useCreditConfigUpdateMutation>;
-export type CreditConfigUpdateMutationResult = Apollo.MutationResult<CreditConfigUpdateMutation>;
-export type CreditConfigUpdateMutationOptions = Apollo.BaseMutationOptions<CreditConfigUpdateMutation, CreditConfigUpdateMutationVariables>;
-export const DepositConfigUpdateDocument = gql`
-    mutation depositConfigUpdate($input: DepositModuleConfigUpdateInput!) {
-  depositConfigUpdate(input: $input) {
+export type CreditModuleConfigureMutationHookResult = ReturnType<typeof useCreditModuleConfigureMutation>;
+export type CreditModuleConfigureMutationResult = Apollo.MutationResult<CreditModuleConfigureMutation>;
+export type CreditModuleConfigureMutationOptions = Apollo.BaseMutationOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
+export const DepositModuleConfigureDocument = gql`
+    mutation DepositModuleConfigure($input: DepositModuleConfigureInput!) {
+  depositModuleConfigure(input: $input) {
     depositConfig {
       chartOfAccountsId
       chartOfAccountsDepositAccountsParentCode
@@ -4624,32 +4624,32 @@ export const DepositConfigUpdateDocument = gql`
   }
 }
     `;
-export type DepositConfigUpdateMutationFn = Apollo.MutationFunction<DepositConfigUpdateMutation, DepositConfigUpdateMutationVariables>;
+export type DepositModuleConfigureMutationFn = Apollo.MutationFunction<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
 
 /**
- * __useDepositConfigUpdateMutation__
+ * __useDepositModuleConfigureMutation__
  *
- * To run a mutation, you first call `useDepositConfigUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDepositConfigUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useDepositModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositModuleConfigureMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [depositConfigUpdateMutation, { data, loading, error }] = useDepositConfigUpdateMutation({
+ * const [depositModuleConfigureMutation, { data, loading, error }] = useDepositModuleConfigureMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDepositConfigUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DepositConfigUpdateMutation, DepositConfigUpdateMutationVariables>) {
+export function useDepositModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DepositConfigUpdateMutation, DepositConfigUpdateMutationVariables>(DepositConfigUpdateDocument, options);
+        return Apollo.useMutation<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>(DepositModuleConfigureDocument, options);
       }
-export type DepositConfigUpdateMutationHookResult = ReturnType<typeof useDepositConfigUpdateMutation>;
-export type DepositConfigUpdateMutationResult = Apollo.MutationResult<DepositConfigUpdateMutation>;
-export type DepositConfigUpdateMutationOptions = Apollo.BaseMutationOptions<DepositConfigUpdateMutation, DepositConfigUpdateMutationVariables>;
+export type DepositModuleConfigureMutationHookResult = ReturnType<typeof useDepositModuleConfigureMutation>;
+export type DepositModuleConfigureMutationResult = Apollo.MutationResult<DepositModuleConfigureMutation>;
+export type DepositModuleConfigureMutationOptions = Apollo.BaseMutationOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
 export const DepositConfigDocument = gql`
     query depositConfig {
   depositConfig {

@@ -17,13 +17,13 @@ import { FormEvent, useEffect, useState } from "react"
 import {
   DepositConfigDocument,
   DepositModuleConfig,
-  DepositModuleConfigUpdateInput,
-  useDepositConfigUpdateMutation,
+  DepositModuleConfigureInput,
+  useDepositModuleConfigureMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation depositConfigUpdate($input: DepositModuleConfigUpdateInput!) {
-    depositConfigUpdate(input: $input) {
+  mutation DepositModuleConfigure($input: DepositModuleConfigureInput!) {
+    depositModuleConfigure(input: $input) {
       depositConfig {
         chartOfAccountsId
         chartOfAccountsDepositAccountsParentCode
@@ -53,11 +53,10 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   const tCommon = useTranslations("Common")
 
   const [updateDepositConfig, { loading, error, reset }] =
-    useDepositConfigUpdateMutation({
+    useDepositModuleConfigureMutation({
       refetchQueries: [DepositConfigDocument],
     })
-  const [formData, setFormData] =
-    useState<DepositModuleConfigUpdateInput>(initialFormData)
+  const [formData, setFormData] = useState<DepositModuleConfigureInput>(initialFormData)
 
   const close = () => {
     reset()
