@@ -101,7 +101,20 @@ const getIndentLevel = (accountCode: string): number => {
 
 const getIndentClass = (accountCode: string): string => {
   const level = getIndentLevel(accountCode)
-  return `pl-${Math.min(level * 8 * 2, 56)}`
+  switch (level) {
+    case 0:
+      return ""
+    case 1:
+      return "pl-16"
+    case 2:
+      return "pl-24"
+    case 3:
+      return "pl-32"
+    case 4:
+      return "pl-40"
+    default:
+      return `pl-${Math.min(level * 8, 56)}`
+  }
 }
 
 const getTextClass = (accountCode: string): string => {
