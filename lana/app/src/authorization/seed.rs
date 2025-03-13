@@ -356,6 +356,20 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
         )
         .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::chart_of_accounts_integration(),
+            CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::chart_of_accounts_integration(),
+            CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
+        )
+        .await?;
 
     authz
         .add_permission_to_role(

@@ -2072,6 +2072,30 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type CreditModuleConfigureMutationVariables = Exact<{
+  input: CreditModuleConfigureInput;
+}>;
+
+
+export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } } };
+
+export type DepositModuleConfigureMutationVariables = Exact<{
+  input: DepositModuleConfigureInput;
+}>;
+
+
+export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } } };
+
+export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } | null };
+
+export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } | null };
+
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
 }>;
@@ -4546,6 +4570,162 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const CreditModuleConfigureDocument = gql`
+    mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
+  creditModuleConfigure(input: $input) {
+    creditConfig {
+      chartOfAccountsId
+      chartOfAccountFacilityOmnibusParentCode
+      chartOfAccountCollateralOmnibusParentCode
+      chartOfAccountFacilityParentCode
+      chartOfAccountCollateralParentCode
+      chartOfAccountDisbursedReceivableParentCode
+      chartOfAccountInterestReceivableParentCode
+      chartOfAccountInterestIncomeParentCode
+      chartOfAccountFeeIncomeParentCode
+    }
+  }
+}
+    `;
+export type CreditModuleConfigureMutationFn = Apollo.MutationFunction<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
+
+/**
+ * __useCreditModuleConfigureMutation__
+ *
+ * To run a mutation, you first call `useCreditModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditModuleConfigureMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditModuleConfigureMutation, { data, loading, error }] = useCreditModuleConfigureMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>(CreditModuleConfigureDocument, options);
+      }
+export type CreditModuleConfigureMutationHookResult = ReturnType<typeof useCreditModuleConfigureMutation>;
+export type CreditModuleConfigureMutationResult = Apollo.MutationResult<CreditModuleConfigureMutation>;
+export type CreditModuleConfigureMutationOptions = Apollo.BaseMutationOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
+export const DepositModuleConfigureDocument = gql`
+    mutation DepositModuleConfigure($input: DepositModuleConfigureInput!) {
+  depositModuleConfigure(input: $input) {
+    depositConfig {
+      chartOfAccountsId
+      chartOfAccountsDepositAccountsParentCode
+      chartOfAccountsOmnibusParentCode
+    }
+  }
+}
+    `;
+export type DepositModuleConfigureMutationFn = Apollo.MutationFunction<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
+
+/**
+ * __useDepositModuleConfigureMutation__
+ *
+ * To run a mutation, you first call `useDepositModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositModuleConfigureMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [depositModuleConfigureMutation, { data, loading, error }] = useDepositModuleConfigureMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDepositModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>(DepositModuleConfigureDocument, options);
+      }
+export type DepositModuleConfigureMutationHookResult = ReturnType<typeof useDepositModuleConfigureMutation>;
+export type DepositModuleConfigureMutationResult = Apollo.MutationResult<DepositModuleConfigureMutation>;
+export type DepositModuleConfigureMutationOptions = Apollo.BaseMutationOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
+export const DepositConfigDocument = gql`
+    query depositConfig {
+  depositConfig {
+    chartOfAccountsDepositAccountsParentCode
+    chartOfAccountsOmnibusParentCode
+  }
+}
+    `;
+
+/**
+ * __useDepositConfigQuery__
+ *
+ * To run a query within a React component, call `useDepositConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDepositConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDepositConfigQuery(baseOptions?: Apollo.QueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+      }
+export function useDepositConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+        }
+export type DepositConfigQueryHookResult = ReturnType<typeof useDepositConfigQuery>;
+export type DepositConfigLazyQueryHookResult = ReturnType<typeof useDepositConfigLazyQuery>;
+export type DepositConfigQueryResult = Apollo.QueryResult<DepositConfigQuery, DepositConfigQueryVariables>;
+export const CreditConfigDocument = gql`
+    query creditConfig {
+  creditConfig {
+    chartOfAccountFacilityOmnibusParentCode
+    chartOfAccountCollateralOmnibusParentCode
+    chartOfAccountFacilityParentCode
+    chartOfAccountCollateralParentCode
+    chartOfAccountDisbursedReceivableParentCode
+    chartOfAccountInterestReceivableParentCode
+    chartOfAccountInterestIncomeParentCode
+    chartOfAccountFeeIncomeParentCode
+  }
+}
+    `;
+
+/**
+ * __useCreditConfigQuery__
+ *
+ * To run a query within a React component, call `useCreditConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreditConfigQuery(baseOptions?: Apollo.QueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+      }
+export function useCreditConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+        }
+export type CreditConfigQueryHookResult = ReturnType<typeof useCreditConfigQuery>;
+export type CreditConfigLazyQueryHookResult = ReturnType<typeof useCreditConfigLazyQuery>;
+export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {

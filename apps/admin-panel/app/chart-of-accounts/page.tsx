@@ -170,7 +170,7 @@ const AccountRow = React.memo<AccountRowProps>(
                   e.stopPropagation()
                   const code = account.accountCode.replace(/\./g, "")
                   toast.info(t("copied", { code }))
-                  navigator.clipboard.writeText(code)
+                  navigator.clipboard.writeText(account.accountCode)
                 }}
               >
                 {formatAccountCode(account.accountCode)}
