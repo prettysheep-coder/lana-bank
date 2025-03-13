@@ -605,7 +605,7 @@ export type CreditModuleConfig = {
   chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
 };
 
-export type CreditModuleConfigUpdateInput = {
+export type CreditModuleConfigureInput = {
   chartOfAccountCollateralOmnibusParentCode: Scalars['String']['input'];
   chartOfAccountCollateralParentCode: Scalars['String']['input'];
   chartOfAccountDisbursedReceivableParentCode: Scalars['String']['input'];
@@ -616,8 +616,8 @@ export type CreditModuleConfigUpdateInput = {
   chartOfAccountInterestReceivableParentCode: Scalars['String']['input'];
 };
 
-export type CreditModuleConfigUpdatePayload = {
-  __typename?: 'CreditModuleConfigUpdatePayload';
+export type CreditModuleConfigurePayload = {
+  __typename?: 'CreditModuleConfigurePayload';
   creditConfig: CreditModuleConfig;
 };
 
@@ -801,13 +801,13 @@ export type DepositModuleConfig = {
   chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
 };
 
-export type DepositModuleConfigUpdateInput = {
+export type DepositModuleConfigureInput = {
   chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
 };
 
-export type DepositModuleConfigUpdatePayload = {
-  __typename?: 'DepositModuleConfigUpdatePayload';
+export type DepositModuleConfigurePayload = {
+  __typename?: 'DepositModuleConfigurePayload';
   depositConfig: DepositModuleConfig;
 };
 
@@ -970,16 +970,16 @@ export type Mutation = {
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
   committeeRemoveUser: CommitteeRemoveUserPayload;
-  creditConfigUpdate: CreditModuleConfigUpdatePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
+  creditModuleConfigure: CreditModuleConfigurePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
-  depositModuleConfigure: DepositModuleConfigUpdatePayload;
+  depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
@@ -1031,11 +1031,6 @@ export type MutationCommitteeRemoveUserArgs = {
 };
 
 
-export type MutationCreditConfigUpdateArgs = {
-  input: CreditModuleConfigUpdateInput;
-};
-
-
 export type MutationCreditFacilityCollateralUpdateArgs = {
   input: CreditFacilityCollateralUpdateInput;
 };
@@ -1061,6 +1056,11 @@ export type MutationCreditFacilityPartialPaymentArgs = {
 };
 
 
+export type MutationCreditModuleConfigureArgs = {
+  input: CreditModuleConfigureInput;
+};
+
+
 export type MutationCustomerCreateArgs = {
   input: CustomerCreateInput;
 };
@@ -1077,7 +1077,7 @@ export type MutationCustomerUpdateArgs = {
 
 
 export type MutationDepositModuleConfigureArgs = {
-  input: DepositModuleConfigUpdateInput;
+  input: DepositModuleConfigureInput;
 };
 
 

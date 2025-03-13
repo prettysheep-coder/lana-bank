@@ -34,14 +34,16 @@ pub enum CoreCreditError {
     JobError(#[from] job::error::JobError),
     #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
     CustomerMismatchForCreditFacility,
-    #[error("CreditFacilityError - SubjectIsNotCustomer")]
+    #[error("CoreCreditError - SubjectIsNotCustomer")]
     SubjectIsNotCustomer,
-    #[error("CreditFacilityError - CustomerIsNotActive")]
+    #[error("CoreCreditError - CustomerIsNotActive")]
     CustomerNotActive,
-    #[error("CreditFacilityError - CustomerNotFound")]
+    #[error("CoreCreditError - CustomerNotFound")]
     CustomerNotFound,
-    #[error("CreditFacilityError - ChartIdMismatch")]
+    #[error("CoreCreditError ChartIdMismatch")]
     ChartIdMismatch,
+    #[error("CoreCreditError - CreditConfigAlreadyExists")]
+    CreditConfigAlreadyExists,
 }
 
 es_entity::from_es_entity_error!(CoreCreditError);
