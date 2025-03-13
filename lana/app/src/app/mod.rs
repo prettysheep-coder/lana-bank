@@ -19,13 +19,14 @@ use crate::{
     customer_onboarding::CustomerOnboarding,
     dashboard::Dashboard,
     deposit::Deposits,
+    deposit::Withdrawal,
     document::Documents,
     governance::Governance,
     job::Jobs,
     new_chart_of_accounts::NewChartOfAccounts,
     outbox::Outbox,
     price::Price,
-    primitives::Subject,
+    primitives::{Subject, WithdrawalId},
     profit_and_loss::ProfitAndLossStatements,
     report::Reports,
     storage::Storage,
@@ -289,5 +290,68 @@ impl LanaApp {
         crate::authorization::error::AuthorizationError,
     > {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
+    }
+
+    #[instrument(name = "lana.confirm_withdrawal_with_sumsub", skip(self), err)]
+    pub async fn confirm_withdrawal_with_sumsub(
+        &self,
+        sub: &Subject,
+        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, ApplicationError> {
+        let withdrawal_id = withdrawal_id.into();
+
+        // First, get the withdrawal to find the associated deposit account
+        let withdrawal = match self
+            .deposits()
+            .find_withdrawal_by_id(sub, withdrawal_id)
+            .await?
+        {
+            Some(withdrawal) => withdrawal,
+            None => {
+                tracing::error!("Withdrawal not found: {}", withdrawal_id);
+                return Err(ApplicationError::DepositError(
+                    crate::deposit::error::CoreDepositError::DepositAccountNotFound,
+                ));
+            }
+        };
+
+        // Use find_all_deposit_accounts to get the account holder ID
+        let account_id = withdrawal.deposit_account_id;
+        let accounts = self
+            .deposits()
+            .find_all_deposit_accounts::<crate::deposit::DepositAccount>(&[account_id])
+            .await?;
+
+        let deposit_account = match accounts.get(&account_id) {
+            Some(account) => account,
+            None => {
+                tracing::error!("Deposit account not found: {}", account_id);
+                return Err(ApplicationError::DepositError(
+                    crate::deposit::error::CoreDepositError::DepositAccountNotFound,
+                ));
+            }
+        };
+
+        // Confirm the withdrawal using the CoreDeposit implementation
+        let withdrawal = self
+            .deposits()
+            .confirm_withdrawal(sub, withdrawal_id)
+            .await?;
+
+        // Then, submit the transaction to Sumsub for monitoring
+        let customer_id = deposit_account.account_holder_id.into();
+        match self
+            .applicants()
+            .submit_withdrawal_transaction(withdrawal.id, customer_id, withdrawal.amount)
+            .await
+        {
+            Ok(_) => Ok(withdrawal),
+            Err(e) => {
+                // Log the error but don't fail the confirmation
+                tracing::warn!("Failed to submit transaction to Sumsub: {:?}", e);
+                // Return the successful withdrawal anyway
+                Ok(withdrawal)
+            }
+        }
     }
 }
