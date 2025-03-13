@@ -140,6 +140,8 @@ interface AccountRowProps {
 
 const AccountRow = React.memo<AccountRowProps>(
   ({ account, hasDots, isExpanded, toggleExpand }) => {
+    const t = useTranslations("ChartOfAccounts")
+
     return (
       <TableRow
         className={hasDots ? "cursor-pointer hover:bg-muted/5" : ""}
@@ -154,7 +156,7 @@ const AccountRow = React.memo<AccountRowProps>(
                 onClick={(e) => {
                   e.stopPropagation()
                   const code = account.accountCode.replace(/\./g, "")
-                  toast.info(`Copied Account Code: "${code}"`)
+                  toast.info(t("copied", { code }))
                   navigator.clipboard.writeText(code)
                 }}
               >
