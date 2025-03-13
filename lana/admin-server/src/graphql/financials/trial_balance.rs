@@ -1,6 +1,8 @@
 use async_graphql::{types::connection::*, *};
 use chrono::{DateTime, Utc};
 
+use cala_ledger::DebitOrCredit;
+
 use crate::{graphql::account::AccountAmountsByCurrency, primitives::*};
 use lana_app::trial_balance::{
     AccountSetHistoryCursor, AccountSetHistoryEntry as DomainTrialBalanceHistoryEntry,
@@ -102,6 +104,7 @@ impl TrialBalanceAccount {
 pub struct TrialBalanceHistoryEntry {
     pub tx_id: UUID,
     pub entry_id: UUID,
+    pub direction: DebitOrCredit,
     pub recorded_at: DateTime<Utc>,
 }
 
@@ -110,6 +113,7 @@ impl From<DomainTrialBalanceHistoryEntry> for TrialBalanceHistoryEntry {
         Self {
             tx_id: entry.tx_id.into(),
             entry_id: entry.entry_id.into(),
+            direction: entry.values.direction,
             recorded_at: entry.recorded_at,
         }
     }

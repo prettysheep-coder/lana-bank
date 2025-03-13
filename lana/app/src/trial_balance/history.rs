@@ -5,6 +5,7 @@ use crate::primitives::{LedgerEntryId, LedgerTxId};
 pub struct AccountSetHistoryEntry {
     pub tx_id: LedgerTxId,
     pub entry_id: LedgerEntryId,
+    pub values: cala_ledger::entry::EntryValues,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -14,6 +15,7 @@ impl From<cala_ledger::entry::Entry> for AccountSetHistoryEntry {
             tx_id: cala_entry.values().transaction_id,
             entry_id: cala_entry.id,
             recorded_at: cala_entry.created_at(),
+            values: cala_entry.into_values(),
         }
     }
 }

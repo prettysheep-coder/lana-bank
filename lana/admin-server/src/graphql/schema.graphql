@@ -741,6 +741,11 @@ The input/output is a string in RFC3339 format.
 """
 scalar DateTime
 
+enum DebitOrCredit {
+	DEBIT
+	CREDIT
+}
+
 type Deposit {
 	id: ID!
 	depositId: UUID!
@@ -1326,6 +1331,7 @@ type TrialBalanceAccount {
 type TrialBalanceHistoryEntry {
 	txId: UUID!
 	entryId: UUID!
+	direction: DebitOrCredit!
 	recordedAt: DateTime!
 }
 
