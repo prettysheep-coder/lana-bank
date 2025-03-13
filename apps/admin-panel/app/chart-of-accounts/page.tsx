@@ -19,6 +19,8 @@ import {
 
 import { Badge } from "@lana/web/ui/badge"
 
+import { toast } from "sonner"
+
 import ChartOfAccountsUpload from "./upload"
 
 import {
@@ -99,20 +101,7 @@ const getIndentLevel = (accountCode: string): number => {
 
 const getIndentClass = (accountCode: string): string => {
   const level = getIndentLevel(accountCode)
-  switch (level) {
-    case 0:
-      return ""
-    case 1:
-      return "pl-8"
-    case 2:
-      return "pl-16"
-    case 3:
-      return "pl-24"
-    case 4:
-      return "pl-32"
-    default:
-      return `pl-${Math.min(level * 8, 56)}`
-  }
+  return `pl-${Math.min(level * 8 * 2, 56)}`
 }
 
 const getTextClass = (accountCode: string): string => {
@@ -151,6 +140,8 @@ interface AccountRowProps {
 
 const AccountRow = React.memo<AccountRowProps>(
   ({ account, hasDots, isExpanded, toggleExpand }) => {
+    const t = useTranslations("ChartOfAccounts")
+
     return (
       <TableRow
         className={hasDots ? "cursor-pointer hover:bg-muted/5" : ""}
@@ -159,7 +150,16 @@ const AccountRow = React.memo<AccountRowProps>(
         <TableCell className={getIndentClass(account.accountCode)}>
           <div className="grid grid-cols-[100px_40px_1fr] items-center">
             <div>
-              <Badge className="font-mono" variant="secondary">
+              <Badge
+                className="font-mono cursor-pointer"
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const code = account.accountCode.replace(/\./g, "")
+                  toast.info(t("copied", { code }))
+                  navigator.clipboard.writeText(code)
+                }}
+              >
                 {formatAccountCode(account.accountCode)}
               </Badge>
             </div>

@@ -1132,7 +1132,8 @@
       "uploading": "Uploading your chart of accounts...",
       "reset": "Reset",
       "upload": "Upload"
-    }
+    },
+    "copied": "Copied Account Code: \"{code}\""
   },
   "BalanceSheet": {
     "title": "Balance Sheet",

@@ -1132,7 +1132,8 @@
       "uploading": "Subiendo tu plan de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
-    }
+    },
+    "copied": "Código de cuenta copiado: \"{code}\""
   },
   "BalanceSheet": {
     "title": "Balance General",
