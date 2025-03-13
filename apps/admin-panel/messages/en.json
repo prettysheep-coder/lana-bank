@@ -836,6 +836,7 @@
     "description": "Sums of money added from credit facilities into customer's accounts",
     "table": {
       "headers": {
+        "depositId": "ID",
         "customer": "Customer",
         "reference": "Reference",
         "amount": "Amount"
