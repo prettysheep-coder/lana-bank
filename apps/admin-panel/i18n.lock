@@ -630,6 +630,7 @@ checksums:
     ChartOfAccounts/upload/uploading: a61a76d2fa69d41f012849f91b4e159a
     ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
     ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
+    ChartOfAccounts/copied: e5fa151fba7800f5e76e25a1c6fe61e0
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
     BalanceSheet/noData: 81e91b979968615c55f9c0701fa9bbe3
