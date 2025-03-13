@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl"
 import { FormEvent, useEffect, useState } from "react"
 
 import {
+  DepositConfigDocument,
   DepositModuleConfig,
   DepositModuleConfigUpdateInput,
   useDepositConfigUpdateMutation,
@@ -52,7 +53,9 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   const tCommon = useTranslations("Common")
 
   const [updateDepositConfig, { loading, error, reset }] =
-    useDepositConfigUpdateMutation()
+    useDepositConfigUpdateMutation({
+      refetchQueries: [DepositConfigDocument],
+    })
   const [formData, setFormData] =
     useState<DepositModuleConfigUpdateInput>(initialFormData)
 

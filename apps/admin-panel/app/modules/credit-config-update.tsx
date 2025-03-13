@@ -15,6 +15,7 @@ import { useTranslations } from "next-intl"
 import { FormEvent, useEffect, useState } from "react"
 
 import {
+  CreditConfigDocument,
   CreditModuleConfig,
   CreditModuleConfigUpdateInput,
   useCreditConfigUpdateMutation,
@@ -63,7 +64,9 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
   const t = useTranslations("Modules")
   const tCommon = useTranslations("Common")
 
-  const [updateCreditConfig, { loading, error, reset }] = useCreditConfigUpdateMutation()
+  const [updateCreditConfig, { loading, error, reset }] = useCreditConfigUpdateMutation({
+    refetchQueries: [CreditConfigDocument]
+  })
   const [formData, setFormData] = useState<CreditModuleConfigUpdateInput>(initialFormData)
 
   const close = () => {

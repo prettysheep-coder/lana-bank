@@ -359,14 +359,14 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            CoreCreditObject::all_credit_facilities(),
+            CoreCreditObject::chart_of_accounts_integration(),
             CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreCreditObject::all_credit_facilities(),
+            CoreCreditObject::chart_of_accounts_integration(),
             CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
         )
         .await?;
