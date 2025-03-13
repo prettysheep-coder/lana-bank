@@ -652,6 +652,15 @@ where
             return Err(CoreDepositError::ChartIdMismatch);
         }
 
+        if self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?
+            .is_some()
+        {
+            return Err(CoreDepositError::DepositConfigAlreadyExists);
+        }
+
         let deposit_accounts_parent_account_set_id = chart
             .account_set_id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)?;
         let omnibus_parent_account_set_id =
