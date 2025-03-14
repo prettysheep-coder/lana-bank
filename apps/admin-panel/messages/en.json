@@ -836,6 +836,7 @@
     "description": "Sums of money added from credit facilities into customer's accounts",
     "table": {
       "headers": {
+        "depositId": "ID",
         "customer": "Customer",
         "reference": "Reference",
         "amount": "Amount"
@@ -872,6 +873,7 @@
     "description": "Money taken out from customer's accounts",
     "table": {
       "headers": {
+        "withdrawalId": "ID",
         "customer": "Customer",
         "reference": "Reference",
         "amount": "Amount",
@@ -938,6 +940,7 @@
         "title": "Withdrawal",
         "fields": {
           "customerEmail": "Customer Email",
+          "withdrawalId": "ID",
           "withdrawalAmount": "Withdrawal Amount",
           "withdrawalReference": "Withdrawal Reference",
           "status": "Status"
@@ -1283,6 +1286,24 @@
       "chartOfAccountInterestReceivableParentCode": "Interest Receivable Parent Code",
       "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
       "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code"
+    }
+  },
+  "ChartOfAccountsLedgerAccount": {
+    "title": "Ledger Account Details",
+    "description": "Details of ledger account by account code {code}",
+    "details": {
+      "code": "Account Code",
+      "name": "Account Name",
+      "usdBalance": "USD Balance",
+      "btcBalance": "BTC Balance"
+    },
+    "table": {
+      "columns": {
+        "recordedAt": "Recorded At",
+        "currency": "Currency",
+        "debit": "Debit",
+        "credit": "Credit"
+      }
     }
   }
 }

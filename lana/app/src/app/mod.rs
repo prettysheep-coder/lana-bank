@@ -23,9 +23,10 @@ use crate::{
     document::Documents,
     governance::Governance,
     job::Jobs,
+    ledger_account::LedgerAccounts,
     outbox::Outbox,
     price::Price,
-    primitives::{Subject, WithdrawalId},
+    primitives::{DepositAccountId, Subject, UsdCents, WithdrawalId},
     profit_and_loss::ProfitAndLossStatements,
     report::Reports,
     storage::Storage,
@@ -54,6 +55,7 @@ pub struct LanaApp {
     profit_and_loss_statements: ProfitAndLossStatements,
     balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
+    ledger_accounts: LedgerAccounts,
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
@@ -108,6 +110,7 @@ impl LanaApp {
         let chart_of_accounts =
             ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
+        let ledger_accounts = LedgerAccounts::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
@@ -163,6 +166,7 @@ impl LanaApp {
             profit_and_loss_statements: pl_statements,
             balance_sheets,
             cash_flow_statements,
+            ledger_accounts,
             terms_templates,
             documents,
             outbox,
@@ -246,6 +250,10 @@ impl LanaApp {
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {
         &self.cash_flow_statements
+    }
+
+    pub fn ledger_accounts(&self) -> &LedgerAccounts {
+        &self.ledger_accounts
     }
 
     pub fn users(&self) -> &Users {
@@ -348,5 +356,65 @@ impl LanaApp {
 
         // Return the confirmed withdrawal immediately
         Ok(withdrawal)
+    }
+
+    #[instrument(name = "lana.confirm_deposit_with_sumsub", skip(self), err)]
+    pub async fn confirm_deposit_with_sumsub(
+        &self,
+        sub: &Subject,
+        deposit_account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+        amount: UsdCents,
+        reference: Option<String>,
+    ) -> Result<crate::deposit::Deposit, ApplicationError> {
+        let deposit_account_id = deposit_account_id.into();
+
+        // First, record the deposit using the CoreDeposit implementation
+        let deposit = self
+            .deposits()
+            .record_deposit(sub, deposit_account_id, amount, reference)
+            .await?;
+
+        // Get the account information using find_all_deposit_accounts
+        let accounts = self
+            .deposits()
+            .find_all_deposit_accounts::<crate::deposit::DepositAccount>(&[deposit_account_id])
+            .await?;
+
+        let deposit_account = match accounts.get(&deposit_account_id) {
+            Some(account) => account,
+            None => {
+                tracing::error!("Deposit account not found: {}", deposit_account_id);
+                return Err(ApplicationError::DepositError(
+                    crate::deposit::error::CoreDepositError::DepositAccountNotFound,
+                ));
+            }
+        };
+
+        // Get customer ID for Sumsub
+        let customer_id = deposit_account.account_holder_id.into();
+
+        // Clone the data we need for Sumsub submission
+        let deposit_id_for_sumsub = deposit.id;
+        let amount_for_sumsub = deposit.amount;
+        let applicants = self.applicants().clone();
+
+        // Submit transaction to Sumsub in a separate task to not block
+        tokio::spawn(async move {
+            match applicants
+                .submit_deposit_transaction(deposit_id_for_sumsub, customer_id, amount_for_sumsub)
+                .await
+            {
+                Ok(_) => {
+                    tracing::info!("Successfully submitted deposit to Sumsub");
+                }
+                Err(e) => {
+                    // Just log the error, but don't affect the deposit processing
+                    tracing::warn!("Failed to submit transaction to Sumsub: {:?}", e);
+                }
+            }
+        });
+
+        // Return the deposit
+        Ok(deposit)
     }
 }

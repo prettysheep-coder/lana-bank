@@ -299,8 +299,6 @@ export const mockBtcAccountAmounts = (overrides?: Partial<BtcAccountAmounts>, _r
         __typename: 'BtcAccountAmounts',
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.satoshis(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.satoshis(),
-        netCredit: overrides && overrides.hasOwnProperty('netCredit') ? overrides.netCredit! : generateMockValue.signedSatoshis(),
-        netDebit: overrides && overrides.hasOwnProperty('netDebit') ? overrides.netDebit! : generateMockValue.signedSatoshis(),
     };
 };
 
@@ -309,9 +307,44 @@ export const mockBtcAccountAmountsInPeriod = (overrides?: Partial<BtcAccountAmou
     relationshipsToOmit.add('BtcAccountAmountsInPeriod');
     return {
         __typename: 'BtcAccountAmountsInPeriod',
-        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
-        closingBalance: overrides && overrides.hasOwnProperty('closingBalance') ? overrides.closingBalance! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
-        openingBalance: overrides && overrides.hasOwnProperty('openingBalance') ? overrides.openingBalance! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
+        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredBtcAccountBalanceAmounts') ? {} as LayeredBtcAccountBalanceAmounts : mockLayeredBtcAccountBalanceAmounts({}, relationshipsToOmit),
+        closingBalance: overrides && overrides.hasOwnProperty('closingBalance') ? overrides.closingBalance! : relationshipsToOmit.has('LayeredBtcAccountBalanceAmounts') ? {} as LayeredBtcAccountBalanceAmounts : mockLayeredBtcAccountBalanceAmounts({}, relationshipsToOmit),
+        openingBalance: overrides && overrides.hasOwnProperty('openingBalance') ? overrides.openingBalance! : relationshipsToOmit.has('LayeredBtcAccountBalanceAmounts') ? {} as LayeredBtcAccountBalanceAmounts : mockLayeredBtcAccountBalanceAmounts({}, relationshipsToOmit),
+    };
+};
+
+export const mockBtcAccountBalanceAmounts = (overrides?: Partial<BtcAccountBalanceAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BtcAccountBalanceAmounts' } & BtcAccountBalanceAmounts => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('BtcAccountBalanceAmounts');
+    return {
+        __typename: 'BtcAccountBalanceAmounts',
+        credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.satoshis(),
+        debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.satoshis(),
+        netCredit: overrides && overrides.hasOwnProperty('netCredit') ? overrides.netCredit! : generateMockValue.signedSatoshis(),
+        netDebit: overrides && overrides.hasOwnProperty('netDebit') ? overrides.netDebit! : generateMockValue.signedSatoshis(),
+    };
+};
+
+export const mockBtcLedgerAccountBalance = (overrides?: Partial<BtcLedgerAccountBalance>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BtcLedgerAccountBalance' } & BtcLedgerAccountBalance => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('BtcLedgerAccountBalance');
+    return {
+        __typename: 'BtcLedgerAccountBalance',
+        encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : generateMockValue.satoshis(),
+        pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : generateMockValue.satoshis(),
+        settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : generateMockValue.satoshis(),
+    };
+};
+
+export const mockBtcLedgerAccountHistoryEntry = (overrides?: Partial<BtcLedgerAccountHistoryEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BtcLedgerAccountHistoryEntry' } & BtcLedgerAccountHistoryEntry => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('BtcLedgerAccountHistoryEntry');
+    return {
+        __typename: 'BtcLedgerAccountHistoryEntry',
+        btcAmount: overrides && overrides.hasOwnProperty('btcAmount') ? overrides.btcAmount! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
+        entryId: overrides && overrides.hasOwnProperty('entryId') ? overrides.entryId! : generateMockValue.uuid(),
+        recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
@@ -1258,10 +1291,21 @@ export const mockLayeredBtcAccountAmounts = (overrides?: Partial<LayeredBtcAccou
     relationshipsToOmit.add('LayeredBtcAccountAmounts');
     return {
         __typename: 'LayeredBtcAccountAmounts',
-        all: overrides && overrides.hasOwnProperty('all') ? overrides.all! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
         encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
         pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
         settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
+    };
+};
+
+export const mockLayeredBtcAccountBalanceAmounts = (overrides?: Partial<LayeredBtcAccountBalanceAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LayeredBtcAccountBalanceAmounts' } & LayeredBtcAccountBalanceAmounts => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LayeredBtcAccountBalanceAmounts');
+    return {
+        __typename: 'LayeredBtcAccountBalanceAmounts',
+        all: overrides && overrides.hasOwnProperty('all') ? overrides.all! : relationshipsToOmit.has('BtcAccountBalanceAmounts') ? {} as BtcAccountBalanceAmounts : mockBtcAccountBalanceAmounts({}, relationshipsToOmit),
+        encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : relationshipsToOmit.has('BtcAccountBalanceAmounts') ? {} as BtcAccountBalanceAmounts : mockBtcAccountBalanceAmounts({}, relationshipsToOmit),
+        pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : relationshipsToOmit.has('BtcAccountBalanceAmounts') ? {} as BtcAccountBalanceAmounts : mockBtcAccountBalanceAmounts({}, relationshipsToOmit),
+        settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : relationshipsToOmit.has('BtcAccountBalanceAmounts') ? {} as BtcAccountBalanceAmounts : mockBtcAccountBalanceAmounts({}, relationshipsToOmit),
     };
 };
 
@@ -1270,10 +1314,55 @@ export const mockLayeredUsdAccountAmounts = (overrides?: Partial<LayeredUsdAccou
     relationshipsToOmit.add('LayeredUsdAccountAmounts');
     return {
         __typename: 'LayeredUsdAccountAmounts',
-        all: overrides && overrides.hasOwnProperty('all') ? overrides.all! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
         encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
         pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
         settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
+    };
+};
+
+export const mockLayeredUsdAccountBalanceAmounts = (overrides?: Partial<LayeredUsdAccountBalanceAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LayeredUsdAccountBalanceAmounts' } & LayeredUsdAccountBalanceAmounts => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LayeredUsdAccountBalanceAmounts');
+    return {
+        __typename: 'LayeredUsdAccountBalanceAmounts',
+        all: overrides && overrides.hasOwnProperty('all') ? overrides.all! : relationshipsToOmit.has('UsdAccountBalanceAmounts') ? {} as UsdAccountBalanceAmounts : mockUsdAccountBalanceAmounts({}, relationshipsToOmit),
+        encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : relationshipsToOmit.has('UsdAccountBalanceAmounts') ? {} as UsdAccountBalanceAmounts : mockUsdAccountBalanceAmounts({}, relationshipsToOmit),
+        pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : relationshipsToOmit.has('UsdAccountBalanceAmounts') ? {} as UsdAccountBalanceAmounts : mockUsdAccountBalanceAmounts({}, relationshipsToOmit),
+        settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : relationshipsToOmit.has('UsdAccountBalanceAmounts') ? {} as UsdAccountBalanceAmounts : mockUsdAccountBalanceAmounts({}, relationshipsToOmit),
+    };
+};
+
+export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccount' } & LedgerAccount => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LedgerAccount');
+    return {
+        __typename: 'LedgerAccount',
+        balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('BtcLedgerAccountBalance') ? {} as BtcLedgerAccountBalance : mockBtcLedgerAccountBalance({}, relationshipsToOmit),
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
+        history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('LedgerAccountHistoryEntryConnection') ? {} as LedgerAccountHistoryEntryConnection : mockLedgerAccountHistoryEntryConnection({}, relationshipsToOmit),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+    };
+};
+
+export const mockLedgerAccountHistoryEntryConnection = (overrides?: Partial<LedgerAccountHistoryEntryConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountHistoryEntryConnection' } & LedgerAccountHistoryEntryConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LedgerAccountHistoryEntryConnection');
+    return {
+        __typename: 'LedgerAccountHistoryEntryConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('LedgerAccountHistoryEntryEdge') ? {} as LedgerAccountHistoryEntryEdge : mockLedgerAccountHistoryEntryEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('BtcLedgerAccountHistoryEntry') ? {} as BtcLedgerAccountHistoryEntry : mockBtcLedgerAccountHistoryEntry({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
+export const mockLedgerAccountHistoryEntryEdge = (overrides?: Partial<LedgerAccountHistoryEntryEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LedgerAccountHistoryEntryEdge' } & LedgerAccountHistoryEntryEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LedgerAccountHistoryEntryEdge');
+    return {
+        __typename: 'LedgerAccountHistoryEntryEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('BtcLedgerAccountHistoryEntry') ? {} as BtcLedgerAccountHistoryEntry : mockBtcLedgerAccountHistoryEntry({}, relationshipsToOmit),
     };
 };
 
@@ -1448,6 +1537,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         disbursal: overrides && overrides.hasOwnProperty('disbursal') ? overrides.disbursal! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         disbursals: overrides && overrides.hasOwnProperty('disbursals') ? overrides.disbursals! : relationshipsToOmit.has('CreditFacilityDisbursalConnection') ? {} as CreditFacilityDisbursalConnection : mockCreditFacilityDisbursalConnection({}, relationshipsToOmit),
         document: overrides && overrides.hasOwnProperty('document') ? overrides.document! : relationshipsToOmit.has('Document') ? {} as Document : mockDocument({}, relationshipsToOmit),
+        ledgerAccountByCode: overrides && overrides.hasOwnProperty('ledgerAccountByCode') ? overrides.ledgerAccountByCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         me: overrides && overrides.hasOwnProperty('me') ? overrides.me! : relationshipsToOmit.has('Subject') ? {} as Subject : mockSubject({}, relationshipsToOmit),
         offBalanceSheetTrialBalance: overrides && overrides.hasOwnProperty('offBalanceSheetTrialBalance') ? overrides.offBalanceSheetTrialBalance! : relationshipsToOmit.has('TrialBalance') ? {} as TrialBalance : mockTrialBalance({}, relationshipsToOmit),
         policies: overrides && overrides.hasOwnProperty('policies') ? overrides.policies! : relationshipsToOmit.has('PolicyConnection') ? {} as PolicyConnection : mockPolicyConnection({}, relationshipsToOmit),
@@ -1778,8 +1868,6 @@ export const mockUsdAccountAmounts = (overrides?: Partial<UsdAccountAmounts>, _r
         __typename: 'UsdAccountAmounts',
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.usdCents(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.usdCents(),
-        netCredit: overrides && overrides.hasOwnProperty('netCredit') ? overrides.netCredit! : generateMockValue.signedUsdCents(),
-        netDebit: overrides && overrides.hasOwnProperty('netDebit') ? overrides.netDebit! : generateMockValue.signedUsdCents(),
     };
 };
 
@@ -1788,9 +1876,44 @@ export const mockUsdAccountAmountsInPeriod = (overrides?: Partial<UsdAccountAmou
     relationshipsToOmit.add('UsdAccountAmountsInPeriod');
     return {
         __typename: 'UsdAccountAmountsInPeriod',
-        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
-        closingBalance: overrides && overrides.hasOwnProperty('closingBalance') ? overrides.closingBalance! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
-        openingBalance: overrides && overrides.hasOwnProperty('openingBalance') ? overrides.openingBalance! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
+        amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredUsdAccountBalanceAmounts') ? {} as LayeredUsdAccountBalanceAmounts : mockLayeredUsdAccountBalanceAmounts({}, relationshipsToOmit),
+        closingBalance: overrides && overrides.hasOwnProperty('closingBalance') ? overrides.closingBalance! : relationshipsToOmit.has('LayeredUsdAccountBalanceAmounts') ? {} as LayeredUsdAccountBalanceAmounts : mockLayeredUsdAccountBalanceAmounts({}, relationshipsToOmit),
+        openingBalance: overrides && overrides.hasOwnProperty('openingBalance') ? overrides.openingBalance! : relationshipsToOmit.has('LayeredUsdAccountBalanceAmounts') ? {} as LayeredUsdAccountBalanceAmounts : mockLayeredUsdAccountBalanceAmounts({}, relationshipsToOmit),
+    };
+};
+
+export const mockUsdAccountBalanceAmounts = (overrides?: Partial<UsdAccountBalanceAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UsdAccountBalanceAmounts' } & UsdAccountBalanceAmounts => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('UsdAccountBalanceAmounts');
+    return {
+        __typename: 'UsdAccountBalanceAmounts',
+        credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.usdCents(),
+        debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.usdCents(),
+        netCredit: overrides && overrides.hasOwnProperty('netCredit') ? overrides.netCredit! : generateMockValue.signedUsdCents(),
+        netDebit: overrides && overrides.hasOwnProperty('netDebit') ? overrides.netDebit! : generateMockValue.signedUsdCents(),
+    };
+};
+
+export const mockUsdLedgerAccountBalance = (overrides?: Partial<UsdLedgerAccountBalance>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UsdLedgerAccountBalance' } & UsdLedgerAccountBalance => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('UsdLedgerAccountBalance');
+    return {
+        __typename: 'UsdLedgerAccountBalance',
+        encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : generateMockValue.usdCents(),
+        pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : generateMockValue.usdCents(),
+        settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : generateMockValue.usdCents(),
+    };
+};
+
+export const mockUsdLedgerAccountHistoryEntry = (overrides?: Partial<UsdLedgerAccountHistoryEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UsdLedgerAccountHistoryEntry' } & UsdLedgerAccountHistoryEntry => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('UsdLedgerAccountHistoryEntry');
+    return {
+        __typename: 'UsdLedgerAccountHistoryEntry',
+        entryId: overrides && overrides.hasOwnProperty('entryId') ? overrides.entryId! : generateMockValue.uuid(),
+        recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
+        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
+        usdAmount: overrides && overrides.hasOwnProperty('usdAmount') ? overrides.usdAmount! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
     };
 };
 
