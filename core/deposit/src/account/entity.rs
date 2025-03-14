@@ -20,6 +20,10 @@ pub enum DepositAccountEvent {
         description: String,
         audit_info: AuditInfo,
     },
+    AccountStatusUpdated {
+        status: AccountStatus,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -30,6 +34,8 @@ pub struct DepositAccount {
     pub reference: String,
     pub name: String,
     pub description: String,
+    #[builder(default)]
+    pub status: AccountStatus,
     pub(super) events: EntityEvents<DepositAccountEvent>,
 }
 
@@ -38,6 +44,21 @@ impl DepositAccount {
         self.events
             .entity_first_persisted_at()
             .expect("Deposit Account has never been persisted")
+    }
+
+    pub fn update_account_status(
+        &mut self,
+        status: AccountStatus,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DepositAccountEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status
+        );
+        self.events
+            .push(DepositAccountEvent::AccountStatusUpdated { status, audit_info });
+        self.status = status;
+        Idempotent::Executed(())
     }
 }
 
@@ -60,6 +81,9 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .reference(reference.to_string())
                         .name(name.to_string())
                         .description(description.to_string())
+                }
+                DepositAccountEvent::AccountStatusUpdated { status, .. } => {
+                    builder = builder.status(*status);
                 }
             }
         }

@@ -211,6 +211,39 @@ where
         Ok(account)
     }
 
+    pub async fn update_account_status_for_holder(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        status: AccountStatus,
+    ) -> Result<(), CoreDepositError> {
+        let holder_id = holder_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_UPDATE_STATUS,
+            )
+            .await?;
+
+        let accounts = self
+            .accounts
+            .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
+            .await?;
+        let mut op = self.accounts.begin_op().await?;
+        for mut account in accounts.entities.into_iter() {
+            if account
+                .update_account_status(status, audit_info.clone())
+                .did_execute()
+            {
+                self.accounts.update_in_op(&mut op, &mut account).await?;
+            }
+        }
+        op.commit().await?;
+        Ok(())
+    }
+
     #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
     pub async fn account_history(
         &self,
