@@ -5,7 +5,7 @@ import TrialBalance from "./page"
 
 import { GetTrialBalanceDocument } from "@/lib/graphql/generated"
 
-import { trailBalanceMockData } from "@/.storybook/mocks"
+import { trialBalanceMockData } from "@/.storybook/mocks"
 
 const createMocks = () => [
   {
@@ -13,7 +13,7 @@ const createMocks = () => [
       query: GetTrialBalanceDocument,
     },
     variableMatcher: () => true,
-    result: trailBalanceMockData,
+    result: trialBalanceMockData,
   },
 ]
 
