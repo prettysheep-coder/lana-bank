@@ -7,7 +7,6 @@ use chrono::{DateTime, Utc};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use es_entity::PaginatedQueryRet;
 use rbac_types::{Subject, TrialBalanceAction};
 
 use crate::{

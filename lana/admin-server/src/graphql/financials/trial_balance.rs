@@ -1,7 +1,4 @@
-use async_graphql::{types::connection::*, *};
-use chrono::{DateTime, Utc};
-
-use cala_ledger::DebitOrCredit;
+use async_graphql::*;
 
 use crate::{graphql::account::AccountAmountsByCurrency, primitives::*};
 
@@ -17,28 +14,14 @@ pub struct TrialBalanceAccount {
     id: UUID,
     name: String,
     amounts: AccountAmountsByCurrency,
-
-    #[graphql(skip)]
-    until: Option<DateTime<Utc>>,
 }
 
-impl
-    From<(
-        lana_app::trial_balance::TrialBalanceAccountSet,
-        Option<DateTime<Utc>>,
-    )> for TrialBalanceAccount
-{
-    fn from(
-        (line_item, until): (
-            lana_app::trial_balance::TrialBalanceAccountSet,
-            Option<DateTime<Utc>>,
-        ),
-    ) -> Self {
+impl From<lana_app::trial_balance::TrialBalanceAccountSet> for TrialBalanceAccount {
+    fn from(line_item: lana_app::trial_balance::TrialBalanceAccountSet) -> Self {
         TrialBalanceAccount {
             id: line_item.id.into(),
             name: line_item.name.to_string(),
             amounts: line_item.into(),
-            until,
         }
     }
 }
@@ -51,7 +34,7 @@ impl From<lana_app::trial_balance::TrialBalance> for TrialBalance {
             accounts: trial_balance
                 .accounts
                 .into_iter()
-                .map(|account| TrialBalanceAccount::from((account, trial_balance.until)))
+                .map(TrialBalanceAccount::from)
                 .collect(),
         }
     }
