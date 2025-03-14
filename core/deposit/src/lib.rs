@@ -289,6 +289,7 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
+        self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
@@ -325,6 +326,7 @@ where
                 CoreDepositAction::WITHDRAWAL_INITIATE,
             )
             .await?;
+        self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
@@ -372,6 +374,8 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        self.check_account_active(withdrawal.deposit_account_id)
+            .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.confirm(audit_info)?;
         self.withdrawals
@@ -408,6 +412,8 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        self.check_account_active(withdrawal.deposit_account_id)
+            .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.cancel(audit_info)?;
         self.withdrawals
@@ -718,5 +724,16 @@ where
             .await?;
 
         Ok(config)
+    }
+
+    async fn check_account_active(
+        &self,
+        deposit_account_id: DepositAccountId,
+    ) -> Result<(), CoreDepositError> {
+        let account = self.accounts.find_by_id(deposit_account_id).await?;
+        if account.status.is_inactive() {
+            return Err(CoreDepositError::DepositAccountNotActive);
+        }
+        Ok(())
     }
 }
