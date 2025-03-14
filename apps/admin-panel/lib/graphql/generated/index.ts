@@ -232,6 +232,13 @@ export type BtcAccountBalanceAmounts = {
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
+export type BtcLedgerAccountBalance = {
+  __typename?: 'BtcLedgerAccountBalance';
+  encumbrance: Scalars['Satoshis']['output'];
+  pending: Scalars['Satoshis']['output'];
+  settled: Scalars['Satoshis']['output'];
+};
+
 export type BtcLedgerAccountHistoryEntry = {
   __typename?: 'BtcLedgerAccountHistoryEntry';
   btcAmount: LayeredBtcAccountAmounts;
@@ -988,6 +995,7 @@ export type LayeredUsdAccountBalanceAmounts = {
 
 export type LedgerAccount = {
   __typename?: 'LedgerAccount';
+  balance: LedgerAccountBalance;
   code: Scalars['AccountCode']['output'];
   history: LedgerAccountHistoryEntryConnection;
   id: Scalars['UUID']['output'];
@@ -999,6 +1007,8 @@ export type LedgerAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };
+
+export type LedgerAccountBalance = BtcLedgerAccountBalance | UsdLedgerAccountBalance;
 
 export type LedgerAccountHistoryEntry = BtcLedgerAccountHistoryEntry | UsdLedgerAccountHistoryEntry;
 
@@ -1706,6 +1716,13 @@ export type UsdAccountBalanceAmounts = {
   debit: Scalars['UsdCents']['output'];
   netCredit: Scalars['SignedUsdCents']['output'];
   netDebit: Scalars['SignedUsdCents']['output'];
+};
+
+export type UsdLedgerAccountBalance = {
+  __typename?: 'UsdLedgerAccountBalance';
+  encumbrance: Scalars['UsdCents']['output'];
+  pending: Scalars['UsdCents']['output'];
+  settled: Scalars['UsdCents']['output'];
 };
 
 export type UsdLedgerAccountHistoryEntry = {
