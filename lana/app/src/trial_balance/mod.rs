@@ -1,5 +1,4 @@
 pub mod error;
-mod history;
 pub mod ledger;
 
 use chart_of_accounts::Chart;
@@ -17,7 +16,6 @@ use crate::{
 };
 
 use error::*;
-pub use history::*;
 use ledger::*;
 pub use ledger::{TrialBalance, TrialBalanceAccountSet};
 
@@ -131,24 +129,5 @@ impl TrialBalances {
             .trial_balance_ledger
             .get_trial_balance(name, from, until)
             .await?)
-    }
-
-    pub async fn account_set_history(
-        &self,
-        sub: &Subject,
-        id: impl Into<LedgerAccountSetId>,
-        args: es_entity::PaginatedQueryArgs<AccountSetHistoryCursor>,
-    ) -> Result<PaginatedQueryRet<AccountSetHistoryEntry, AccountSetHistoryCursor>, TrialBalanceError>
-    {
-        self.authz
-            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
-            .await?;
-
-        let res = self
-            .trial_balance_ledger
-            .account_set_history::<AccountSetHistoryEntry, AccountSetHistoryCursor>(id.into(), args)
-            .await?;
-
-        Ok(res)
     }
 }

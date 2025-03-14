@@ -56,7 +56,7 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { Account, AccountAmountsByCurrency, AccountSet, AccountSetAndSubAccounts, AccountSetHistoryEntry, AccountSetHistoryEntryConnection, AccountSetHistoryEntryEdge, AccountSetSubAccountConnection, AccountSetSubAccountEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BtcAccountAmounts, BtcAccountAmountsInPeriod, CancelledWithdrawalEntry, CashFlowStatement, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityOrigination, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPayment, CreditFacilityRepaymentInPlan, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerUpdateInput, CustomerUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, LayeredBtcAccountAmounts, LayeredUsdAccountAmounts, Loan, Mutation, Outstanding, PageInfo, PaymentEntry, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossStatement, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, ShareholderEquityAddInput, StatementCategory, Subject, SuccessPayload, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TrialBalance, TrialBalanceAccount, TrialBalanceHistoryEntry, TrialBalanceHistoryEntryConnection, TrialBalanceHistoryEntryEdge, UnknownEntry, UsdAccountAmounts, UsdAccountAmountsInPeriod, User, UserAssignRoleInput, UserAssignRolePayload, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Period, ReportProgress, Role, SortDirection, WithdrawalStatus } from './index';
+import { Account, AccountAmountsByCurrency, AccountSet, AccountSetAndSubAccounts, AccountSetSubAccountConnection, AccountSetSubAccountEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BtcAccountAmounts, BtcAccountAmountsInPeriod, BtcAccountBalanceAmounts, BtcLedgerAccountBalance, BtcLedgerAccountHistoryEntry, CancelledWithdrawalEntry, CashFlowStatement, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityOrigination, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPayment, CreditFacilityRepaymentInPlan, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerUpdateInput, CustomerUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, LayeredBtcAccountAmounts, LayeredBtcAccountBalanceAmounts, LayeredUsdAccountAmounts, LayeredUsdAccountBalanceAmounts, LedgerAccount, LedgerAccountHistoryEntryConnection, LedgerAccountHistoryEntryEdge, Loan, Mutation, Outstanding, PageInfo, PaymentEntry, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossStatement, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, ShareholderEquityAddInput, StatementCategory, Subject, SuccessPayload, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TrialBalance, TrialBalanceAccount, UnknownEntry, UsdAccountAmounts, UsdAccountAmountsInPeriod, UsdAccountBalanceAmounts, UsdLedgerAccountBalance, UsdLedgerAccountHistoryEntry, User, UserAssignRoleInput, UserAssignRolePayload, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Period, ReportProgress, Role, SortDirection, WithdrawalStatus } from './index';
 
 faker.seed(0);
 
@@ -87,7 +87,6 @@ export const mockAccountSet = (overrides?: Partial<AccountSet>, _relationshipsTo
     return {
         __typename: 'AccountSet',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
-        history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('AccountSetHistoryEntryConnection') ? {} as AccountSetHistoryEntryConnection : mockAccountSetHistoryEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
@@ -102,38 +101,6 @@ export const mockAccountSetAndSubAccounts = (overrides?: Partial<AccountSetAndSu
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         subAccounts: overrides && overrides.hasOwnProperty('subAccounts') ? overrides.subAccounts! : relationshipsToOmit.has('AccountSetSubAccountConnection') ? {} as AccountSetSubAccountConnection : mockAccountSetSubAccountConnection({}, relationshipsToOmit),
-    };
-};
-
-export const mockAccountSetHistoryEntry = (overrides?: Partial<AccountSetHistoryEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSetHistoryEntry' } & AccountSetHistoryEntry => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('AccountSetHistoryEntry');
-    return {
-        __typename: 'AccountSetHistoryEntry',
-        entryId: overrides && overrides.hasOwnProperty('entryId') ? overrides.entryId! : generateMockValue.uuid(),
-        recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
-    };
-};
-
-export const mockAccountSetHistoryEntryConnection = (overrides?: Partial<AccountSetHistoryEntryConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSetHistoryEntryConnection' } & AccountSetHistoryEntryConnection => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('AccountSetHistoryEntryConnection');
-    return {
-        __typename: 'AccountSetHistoryEntryConnection',
-        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('AccountSetHistoryEntryEdge') ? {} as AccountSetHistoryEntryEdge : mockAccountSetHistoryEntryEdge({}, relationshipsToOmit)],
-        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('AccountSetHistoryEntry') ? {} as AccountSetHistoryEntry : mockAccountSetHistoryEntry({}, relationshipsToOmit)],
-        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
-    };
-};
-
-export const mockAccountSetHistoryEntryEdge = (overrides?: Partial<AccountSetHistoryEntryEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSetHistoryEntryEdge' } & AccountSetHistoryEntryEdge => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('AccountSetHistoryEntryEdge');
-    return {
-        __typename: 'AccountSetHistoryEntryEdge',
-        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
-        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('AccountSetHistoryEntry') ? {} as AccountSetHistoryEntry : mockAccountSetHistoryEntry({}, relationshipsToOmit),
     };
 };
 
@@ -1812,42 +1779,8 @@ export const mockTrialBalanceAccount = (overrides?: Partial<TrialBalanceAccount>
     return {
         __typename: 'TrialBalanceAccount',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
-        history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('TrialBalanceHistoryEntryConnection') ? {} as TrialBalanceHistoryEntryConnection : mockTrialBalanceHistoryEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
-    };
-};
-
-export const mockTrialBalanceHistoryEntry = (overrides?: Partial<TrialBalanceHistoryEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TrialBalanceHistoryEntry' } & TrialBalanceHistoryEntry => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('TrialBalanceHistoryEntry');
-    return {
-        __typename: 'TrialBalanceHistoryEntry',
-        direction: overrides && overrides.hasOwnProperty('direction') ? overrides.direction! : DebitOrCredit.Credit,
-        entryId: overrides && overrides.hasOwnProperty('entryId') ? overrides.entryId! : generateMockValue.uuid(),
-        recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
-        txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
-    };
-};
-
-export const mockTrialBalanceHistoryEntryConnection = (overrides?: Partial<TrialBalanceHistoryEntryConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TrialBalanceHistoryEntryConnection' } & TrialBalanceHistoryEntryConnection => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('TrialBalanceHistoryEntryConnection');
-    return {
-        __typename: 'TrialBalanceHistoryEntryConnection',
-        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('TrialBalanceHistoryEntryEdge') ? {} as TrialBalanceHistoryEntryEdge : mockTrialBalanceHistoryEntryEdge({}, relationshipsToOmit)],
-        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('TrialBalanceHistoryEntry') ? {} as TrialBalanceHistoryEntry : mockTrialBalanceHistoryEntry({}, relationshipsToOmit)],
-        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
-    };
-};
-
-export const mockTrialBalanceHistoryEntryEdge = (overrides?: Partial<TrialBalanceHistoryEntryEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TrialBalanceHistoryEntryEdge' } & TrialBalanceHistoryEntryEdge => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('TrialBalanceHistoryEntryEdge');
-    return {
-        __typename: 'TrialBalanceHistoryEntryEdge',
-        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
-        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('TrialBalanceHistoryEntry') ? {} as TrialBalanceHistoryEntry : mockTrialBalanceHistoryEntry({}, relationshipsToOmit),
     };
 };
 

@@ -4,9 +4,6 @@ use chrono::{DateTime, Utc};
 use cala_ledger::DebitOrCredit;
 
 use crate::{graphql::account::AccountAmountsByCurrency, primitives::*};
-use lana_app::trial_balance::{
-    AccountSetHistoryCursor, AccountSetHistoryEntry as DomainTrialBalanceHistoryEntry,
-};
 
 #[derive(SimpleObject)]
 pub struct TrialBalance {
@@ -16,7 +13,6 @@ pub struct TrialBalance {
 }
 
 #[derive(SimpleObject)]
-#[graphql(complex)]
 pub struct TrialBalanceAccount {
     id: UUID,
     name: String,
@@ -57,64 +53,6 @@ impl From<lana_app::trial_balance::TrialBalance> for TrialBalance {
                 .into_iter()
                 .map(|account| TrialBalanceAccount::from((account, trial_balance.until)))
                 .collect(),
-        }
-    }
-}
-
-#[ComplexObject]
-impl TrialBalanceAccount {
-    async fn history(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<AccountSetHistoryCursor, TrialBalanceHistoryEntry, EmptyFields, EmptyFields>,
-    > {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        query(
-            after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let after = after.or(self.until.map(AccountSetHistoryCursor::from));
-                let query_args = es_entity::PaginatedQueryArgs { first, after };
-                let res = app
-                    .trial_balances()
-                    .account_set_history(sub, self.id, query_args)
-                    .await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = AccountSetHistoryCursor::from(&entry);
-                        Edge::new(cursor, TrialBalanceHistoryEntry::from(entry))
-                    }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
-        )
-        .await
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct TrialBalanceHistoryEntry {
-    pub tx_id: UUID,
-    pub entry_id: UUID,
-    pub direction: DebitOrCredit,
-    pub recorded_at: DateTime<Utc>,
-}
-
-impl From<DomainTrialBalanceHistoryEntry> for TrialBalanceHistoryEntry {
-    fn from(entry: DomainTrialBalanceHistoryEntry) -> Self {
-        Self {
-            tx_id: entry.tx_id.into(),
-            entry_id: entry.entry_id.into(),
-            direction: entry.values.direction,
-            recorded_at: entry.recorded_at,
         }
     }
 }
