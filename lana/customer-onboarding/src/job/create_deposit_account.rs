@@ -189,7 +189,7 @@ where
                 let account_ref = &format!("deposit-customer-account:{}", id);
                 match self.deposit
                 .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
-                "customer-deposits", description)
+                "customer-deposits", description, !self.config.customer_status_sync_active)
                 .await {
                 Ok(_) => {}
                 Err(e) if e.is_account_already_exists() => {},

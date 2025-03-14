@@ -44,6 +44,7 @@ async fn deposit() -> anyhow::Result<()> {
             &format!("user-deposit:{}", account_holder_id),
             &format!("Deposit for User {}", account_holder_id),
             "Deposit checking account for user.",
+            true,
         )
         .await?;
 

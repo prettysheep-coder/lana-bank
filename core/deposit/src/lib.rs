@@ -163,6 +163,7 @@ where
         reference: &str,
         name: &str,
         description: &str,
+        active: bool,
     ) -> Result<DepositAccount, CoreDepositError> {
         let audit_info = self
             .authz
@@ -180,6 +181,7 @@ where
             .reference(reference.to_string())
             .name(name.to_string())
             .description(description.to_string())
+            .active(active)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build new account");
