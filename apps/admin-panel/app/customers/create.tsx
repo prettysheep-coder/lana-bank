@@ -106,11 +106,18 @@ const DetailsForm = ({
         <div className="flex items-center">
           <input
             id="individual"
-            name="customerType"
+            name="customerTypeOption"
             type="radio"
             value="INDIVIDUAL"
             checked={formData.customerType === CustomerType.Individual}
-            onChange={handleInputChange}
+            onChange={() => {
+              if (setFormData) {
+                setFormData((prev) => ({
+                  ...prev,
+                  customerType: CustomerType.Individual,
+                }))
+              }
+            }}
             disabled={isLoading}
             className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
             data-testid="customer-type-individual"
@@ -122,7 +129,7 @@ const DetailsForm = ({
         <div className="flex items-center">
           <input
             id="company"
-            name="customerTypeGroup"
+            name="customerTypeOption"
             type="radio"
             value="COMPANY"
             checked={formData.customerType !== CustomerType.Individual}
@@ -132,7 +139,7 @@ const DetailsForm = ({
                 setFormData((prev) => ({
                   ...prev,
                   customerType: CustomerType.NonDomiciledCompany,
-                }));
+                }))
               }
             }}
             disabled={isLoading}
@@ -145,38 +152,51 @@ const DetailsForm = ({
         </div>
       </div>
     </div>
-    
-    {/* Company type dropdown - only shown when a company type is selected */}
-    {formData.customerType !== CustomerType.Individual ? (
-      <div>
-        <Label htmlFor="companyType">{t("companyTypeLabel")}</Label>
-        <select
-          id="companyType"
-          name="customerType"
-          value={formData.customerType}
-          onChange={handleInputChange}
-          disabled={isLoading}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          data-testid="company-type-select"
-        >
-          <option value={CustomerType.GovernmentEntity}>{t("governmentEntityLabel")}</option>
-          <option value={CustomerType.PrivateCompany}>{t("privateCompanyLabel")}</option>
-          <option value={CustomerType.Bank}>{t("bankLabel")}</option>
-          <option value={CustomerType.FinancialInstitution}>{t("financialInstitutionLabel")}</option>
-          <option value={CustomerType.ForeignAgencyOrSubsidiary}>{t("foreignAgencyLabel")}</option>
-          <option value={CustomerType.NonDomiciledCompany}>{t("nonDomiciledCompanyLabel")}</option>
-        </select>
-      </div>
-    ) : (
-      // Placeholder that doesn't get selected or highlighted
-      <div aria-hidden="true" style={{ visibility: 'hidden' }}>
-        <Label htmlFor="placeholder">{t("companyTypeLabel")}</Label>
-        <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-          &nbsp;
+
+    {/* Visual container to maintain consistent layout */}
+    <div>
+      {/* Company type dropdown - only shown when a company type is selected */}
+      {formData.customerType !== CustomerType.Individual ? (
+        <div>
+          <Label htmlFor="companyType">{t("companyTypeLabel")}</Label>
+          <select
+            id="companyType"
+            name="customerType"
+            value={formData.customerType}
+            onChange={handleInputChange}
+            disabled={isLoading}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            data-testid="company-type-select"
+          >
+            <option value={CustomerType.GovernmentEntity}>
+              {t("governmentEntityLabel")}
+            </option>
+            <option value={CustomerType.PrivateCompany}>
+              {t("privateCompanyLabel")}
+            </option>
+            <option value={CustomerType.Bank}>{t("bankLabel")}</option>
+            <option value={CustomerType.FinancialInstitution}>
+              {t("financialInstitutionLabel")}
+            </option>
+            <option value={CustomerType.ForeignAgencyOrSubsidiary}>
+              {t("foreignAgencyLabel")}
+            </option>
+            <option value={CustomerType.NonDomiciledCompany}>
+              {t("nonDomiciledCompanyLabel")}
+            </option>
+          </select>
         </div>
-      </div>
-    )}
-    
+      ) : (
+        // Invisible placeholder that preserves layout space
+        <div aria-hidden="true" className="invisible">
+          <Label htmlFor="placeholder">{t("companyTypeLabel")}</Label>
+          <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+            &nbsp;
+          </div>
+        </div>
+      )}
+    </div>
+
     {error && <p className="text-destructive">{error}</p>}
     <DialogFooter>
       <Button
@@ -197,7 +217,6 @@ const ConfirmationForm = ({
   error,
   setCurrentStep,
   t,
-  setFormData,
 }: FormProps) => (
   <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
     <input
@@ -221,9 +240,7 @@ const ConfirmationForm = ({
     </div>
     <div>
       <Label>{t("customerTypeLabel")}</Label>
-      <p>
-        {getCustomerTypeDisplay(formData.customerType, t)}
-      </p>
+      <p>{getCustomerTypeDisplay(formData.customerType, t)}</p>
     </div>
     {error && <p className="text-destructive">{error}</p>}
     <DialogFooter>
@@ -247,24 +264,27 @@ const ConfirmationForm = ({
 )
 
 // Helper function to get display text for customer type
-const getCustomerTypeDisplay = (customerType: CustomerType, t: any) => {
+const getCustomerTypeDisplay = (
+  customerType: CustomerType,
+  t: ReturnType<typeof useTranslations<"Customers.create">>,
+) => {
   switch (customerType) {
     case CustomerType.Individual:
-      return t("individualLabel");
+      return t("individualLabel")
     case CustomerType.GovernmentEntity:
-      return t("governmentEntityLabel");
+      return t("governmentEntityLabel")
     case CustomerType.PrivateCompany:
-      return t("privateCompanyLabel");
+      return t("privateCompanyLabel")
     case CustomerType.Bank:
-      return t("bankLabel");
+      return t("bankLabel")
     case CustomerType.FinancialInstitution:
-      return t("financialInstitutionLabel");
+      return t("financialInstitutionLabel")
     case CustomerType.ForeignAgencyOrSubsidiary:
-      return t("foreignAgencyLabel");
+      return t("foreignAgencyLabel")
     case CustomerType.NonDomiciledCompany:
-      return t("nonDomiciledCompanyLabel");
+      return t("nonDomiciledCompanyLabel")
     default:
-      return customerType;
+      return customerType
   }
 }
 
@@ -281,7 +301,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
     },
   })
 
-  const [createCustomer, { loading, reset, error: createCustomerError }] =
+  const [createCustomer, { loading, error: createCustomerError }] =
     useCustomerCreateMutation({
       update: (cache) => {
         cache.modify({
@@ -298,13 +318,15 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [currentStep, setCurrentStep] = useState<"details" | "confirmation">("details")
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -349,19 +371,14 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   }
 
   return (
-    <Dialog
-      open={openCreateCustomerDialog}
-      onOpenChange={setOpenCreateCustomerDialog}
-    >
+    <Dialog open={openCreateCustomerDialog} onOpenChange={setOpenCreateCustomerDialog}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {currentStep === "details" ? t("title") : t("confirmTitle")}
           </DialogTitle>
           <DialogDescription>
-            {currentStep === "details"
-              ? t("description")
-              : t("confirmDescription")}
+            {currentStep === "details" ? t("description") : t("confirmDescription")}
           </DialogDescription>
         </DialogHeader>
         {currentStep === "details" ? (

@@ -28,23 +28,23 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   const getCustomerTypeDisplay = (customerType: CustomerType) => {
     switch (customerType) {
       case CustomerType.Individual:
-        return t("customerType.individual");
+        return t("customerType.individual")
       case CustomerType.GovernmentEntity:
-        return t("customerType.governmentEntity");
+        return t("customerType.governmentEntity")
       case CustomerType.PrivateCompany:
-        return t("customerType.privateCompany");
+        return t("customerType.privateCompany")
       case CustomerType.Bank:
-        return t("customerType.bank");
+        return t("customerType.bank")
       case CustomerType.FinancialInstitution:
-        return t("customerType.financialInstitution");
+        return t("customerType.financialInstitution")
       case CustomerType.ForeignAgencyOrSubsidiary:
-        return t("customerType.foreignAgency");
+        return t("customerType.foreignAgency")
       case CustomerType.NonDomiciledCompany:
-        return t("customerType.nonDomiciledCompany");
+        return t("customerType.nonDomiciledCompany")
       default:
-        return customerType;
+        return customerType
     }
-  };
+  }
 
   const details: DetailItemProps[] = [
     { label: t("labels.email"), value: customer.email },
