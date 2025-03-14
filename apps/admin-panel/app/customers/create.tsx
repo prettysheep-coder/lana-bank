@@ -127,11 +127,11 @@ const DetailsForm = ({
             value="COMPANY"
             checked={formData.customerType !== CustomerType.Individual}
             onChange={() => {
-              // Default to GovernmentEntity when selecting company
+              // Default to NonDomiciledCompany when selecting company
               if (setFormData) {
                 setFormData((prev) => ({
                   ...prev,
-                  customerType: CustomerType.GovernmentEntity,
+                  customerType: CustomerType.NonDomiciledCompany,
                 }));
               }
             }}
@@ -147,7 +147,7 @@ const DetailsForm = ({
     </div>
     
     {/* Company type dropdown - only shown when a company type is selected */}
-    {formData.customerType !== CustomerType.Individual && (
+    {formData.customerType !== CustomerType.Individual ? (
       <div>
         <Label htmlFor="companyType">{t("companyTypeLabel")}</Label>
         <select
@@ -166,6 +166,14 @@ const DetailsForm = ({
           <option value={CustomerType.ForeignAgencyOrSubsidiary}>{t("foreignAgencyLabel")}</option>
           <option value={CustomerType.NonDomiciledCompany}>{t("nonDomiciledCompanyLabel")}</option>
         </select>
+      </div>
+    ) : (
+      // Placeholder that doesn't get selected or highlighted
+      <div aria-hidden="true" style={{ visibility: 'hidden' }}>
+        <Label htmlFor="placeholder">{t("companyTypeLabel")}</Label>
+        <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+          &nbsp;
+        </div>
       </div>
     )}
     
