@@ -1,3 +1,4 @@
+use cala_ledger::DebitOrCredit;
 use csv::{ReaderBuilder, Trim};
 use std::io::Cursor;
 
@@ -36,6 +37,8 @@ impl CsvParser {
                         continue;
                     }
 
+                    let normal_balance_type = record.get(4).map(|b| b.parse::<DebitOrCredit>());
+
                     for (idx, field) in record.iter().enumerate() {
                         if let Ok(category) = field.parse::<AccountName>() {
                             if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections))
@@ -44,10 +47,16 @@ impl CsvParser {
                                     Some(specs[s].code.clone()),
                                     sections,
                                     category,
+                                    specs[s].normal_balance_type,
                                 ));
                                 break;
                             }
-                            specs.push(AccountSpec::new(None, sections, category));
+                            specs.push(AccountSpec::new(
+                                None,
+                                sections,
+                                category,
+                                normal_balance_type,
+                            ));
                             break;
                         }
                         match field.parse::<AccountCodeSection>() {
