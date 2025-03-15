@@ -104,7 +104,7 @@ mod tests {
     #[test]
     fn parse_two_lines() {
         let data = r#"
-        1,,,Assets ,,
+        1,,,Assets ,Debit,
         ,,,,,
         11,,,Assets,,
         ,,,,,
@@ -114,6 +114,8 @@ mod tests {
         assert_eq!(specs.len(), 2);
         assert_eq!(specs[0].code.len_sections(), 1);
         assert_eq!(Some(&specs[0].code), specs[1].parent.as_ref());
+        assert_eq!(specs[0].normal_balance_type, DebitOrCredit::Debit);
+        assert_eq!(specs[1].normal_balance_type, DebitOrCredit::Debit);
     }
 
     #[test]
