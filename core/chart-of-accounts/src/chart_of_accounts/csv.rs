@@ -37,7 +37,10 @@ impl CsvParser {
                         continue;
                     }
 
-                    let normal_balance_type = record.get(4).map(|b| b.parse::<DebitOrCredit>());
+                    let normal_balance_type = record
+                        .get(4)
+                        .and_then(|b| b.parse::<DebitOrCredit>().ok())
+                        .unwrap_or_default();
 
                     for (idx, field) in record.iter().enumerate() {
                         if let Ok(category) = field.parse::<AccountName>() {
