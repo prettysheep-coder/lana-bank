@@ -2,7 +2,7 @@ use async_graphql::{connection::*, *};
 use serde::{Deserialize, Serialize};
 
 use lana_app::{
-    chart_of_accounts::AccountDetails,
+    chart_of_accounts::{AccountCode as DomainAccountCode, AccountDetails},
     ledger_account::{
         LayeredLedgerAccountAmount as DomainLayeredLedgerAccountAmount,
         LedgerAccountEntry as DomainLedgerAccountEntry, LedgerAccountHistoryCursor,
@@ -189,9 +189,9 @@ scalar!(AccountCode);
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct AccountCode(String);
 
-impl From<String> for AccountCode {
-    fn from(value: String) -> Self {
-        AccountCode(value)
+impl From<&DomainAccountCode> for AccountCode {
+    fn from(value: &DomainAccountCode) -> Self {
+        AccountCode(value.to_string())
     }
 }
 

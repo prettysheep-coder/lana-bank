@@ -25,7 +25,7 @@ impl From<lana_app::trial_balance::TrialBalanceAccountSet> for TrialBalanceAccou
         TrialBalanceAccount {
             id: line_item.id.into(),
             name: line_item.name.to_string(),
-            code: AccountCode::from(line_item.code.to_string()),
+            code: AccountCode::from(&line_item.code),
             amounts: line_item.into(),
         }
     }
