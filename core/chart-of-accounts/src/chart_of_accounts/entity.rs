@@ -35,6 +35,9 @@ pub struct Chart {
     pub reference: String,
     pub name: String,
     all_accounts: HashMap<AccountCode, (AccountSpec, LedgerAccountSetId)>,
+    // reverse look up
+    id_to_account_spec: HashMap<LedgerAccountSetId, AccountSpec>,
+
     pub(super) events: EntityEvents<ChartEvent>,
 }
 
@@ -60,6 +63,8 @@ impl Chart {
         };
         self.all_accounts
             .insert(spec.code.clone(), (spec.clone(), ledger_account_set_id));
+        self.id_to_account_spec
+            .insert(ledger_account_set_id, spec.clone());
         Idempotent::Executed((parent, ledger_account_set_id))
     }
 
@@ -103,6 +108,12 @@ impl Chart {
             .ok_or_else(|| ChartError::CodeNotFoundInChart(code.clone()))
     }
 
+    pub fn account_spec_from_id(&self, id: LedgerAccountSetId) -> Result<&AccountSpec, ChartError> {
+        self.id_to_account_spec
+            .get(&id)
+            .ok_or_else(|| ChartError::AccountSetIdNotFoundInChart(id))
+    }
+
     pub fn chart(&self) -> tree::ChartTree {
         tree::project(self.events.iter_all())
     }
@@ -112,6 +123,7 @@ impl TryFromEvents<ChartEvent> for Chart {
     fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ChartBuilder::default();
         let mut all_accounts = HashMap::new();
+        let mut id_to_account_spec = HashMap::new();
         for event in events.iter_all() {
             match event {
                 ChartEvent::Initialized {
@@ -131,10 +143,15 @@ impl TryFromEvents<ChartEvent> for Chart {
                     ..
                 } => {
                     all_accounts.insert(spec.code.clone(), (spec.clone(), *ledger_account_set_id));
+                    id_to_account_spec.insert(*ledger_account_set_id, spec.clone());
                 }
             }
         }
-        builder.all_accounts(all_accounts).events(events).build()
+        builder
+            .all_accounts(all_accounts)
+            .id_to_account_spec(id_to_account_spec)
+            .events(events)
+            .build()
     }
 }
 

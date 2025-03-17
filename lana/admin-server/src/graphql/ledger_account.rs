@@ -187,7 +187,13 @@ impl From<DomainLedgerAccountEntry> for BtcLedgerAccountHistoryEntry {
 
 scalar!(AccountCode);
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
-struct AccountCode(String);
+pub struct AccountCode(String);
+
+impl From<String> for AccountCode {
+    fn from(value: String) -> Self {
+        AccountCode(value)
+    }
+}
 
 #[derive(SimpleObject)]
 pub struct LayeredUsdAccountAmounts {
