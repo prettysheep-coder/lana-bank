@@ -124,9 +124,9 @@ const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null 
     if (response.success) {
       toast.success("Authenticator app setup successfully")
       setOpenTotpDialog(false)
-      router.refresh()
       if (searchParams.has("onboard")) {
-        router.replace("/")
+        router.push("/")
+        router.refresh()
       }
     }
   }

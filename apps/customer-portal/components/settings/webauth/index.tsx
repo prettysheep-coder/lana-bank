@@ -109,9 +109,9 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
 
     toast.success("Passkey added successfully")
     setOpenNameWebAuthnDialog(false)
-    router.refresh()
     if (searchParams.has("onboard")) {
-      router.replace("/")
+      router.push("/")
+      router.refresh()
     }
   }
 

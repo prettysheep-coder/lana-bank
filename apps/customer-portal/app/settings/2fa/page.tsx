@@ -19,11 +19,8 @@ import { SetupAuthenticator } from "@/components/settings/authenticator"
 import { SetupWebAuth } from "@/components/settings/webauth"
 import { kratosPublic } from "@/lib/kratos/sdk"
 
-const SettingsPage = async ({
-  searchParams: { onboard },
-}: {
-  searchParams?: { onboard: string }
-}) => {
+const SettingsPage = async ({ searchParams }: { searchParams?: { onboard: string } }) => {
+  const onboard = searchParams?.onboard === "true"
   let settingsFlowResponse: SettingsFlow
   const cookieParam = cookies()
     .getAll()
