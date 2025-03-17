@@ -99,7 +99,7 @@ EOL
     sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
     sed -i '/^pdf_filename:/d' "temp.md"
 
-    pandoc --metadata title="${file%.md}" -V title="" "temp.md" \
+    pandoc --metadata title="${OUTPUT_FILENAME}" -V title="" "temp.md" \
         -o "${MANUALS_DIR}/${OUTPUT_FILENAME}.pdf" \
         --pdf-engine=wkhtmltopdf \
         --pdf-engine-opt=--enable-local-file-access \
