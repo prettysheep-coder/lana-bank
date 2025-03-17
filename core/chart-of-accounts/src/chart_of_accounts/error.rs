@@ -12,8 +12,6 @@ pub enum ChartError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ChartError - CodeNotFoundInChart: {0}")]
     CodeNotFoundInChart(AccountCode),
-    #[error("ChartError - AccountSetIdNotFoundInChart: {0}")]
-    AccountSetIdNotFoundInChart(cala_ledger::AccountSetId),
 }
 
 es_entity::from_es_entity_error!(ChartError);

@@ -206,30 +206,6 @@ where
         Ok(details)
     }
 
-    #[instrument(name = "chart_of_accounts.account_details_by_id", skip(self, chart))]
-    pub async fn account_details_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: Chart,
-        id: LedgerAccountSetId,
-    ) -> Result<AccountDetails, CoreChartOfAccountsError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreChartOfAccountsObject::chart(chart.id),
-                CoreChartOfAccountsAction::CHART_ACCOUNT_DETAILS_READ,
-            )
-            .await?;
-
-        let AccountSpec { name, code, .. } = chart.account_spec_from_id(id)?;
-
-        Ok(AccountDetails {
-            id,
-            name: name.clone(),
-            code: code.clone(),
-        })
-    }
-
     #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
     pub async fn find_all<T: From<Chart>>(
         &self,

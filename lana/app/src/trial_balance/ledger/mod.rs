@@ -27,6 +27,7 @@ pub struct TrialBalance {
 pub struct TrialBalanceAccountSet {
     pub id: AccountSetId,
     pub name: String,
+    pub code: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,
     pub usd_balance: UsdStatementAccountSetBalanceRange,
@@ -90,12 +91,21 @@ impl TrialBalanceLedger {
             .await?
             .into_values();
 
+        let code = values
+            .external_id
+            .unwrap_or_else(|| "".to_string())
+            .split_once('.')
+            .map(|(_, code)| code)
+            .unwrap_or("")
+            .to_string();
+
         Ok(TrialBalanceAccountSet {
             id: account_set_id,
             name: values.name,
             description: values.description,
             btc_balance: balances_by_id.btc_for_account(account_set_id)?,
             usd_balance: balances_by_id.usd_for_account(account_set_id)?,
+            code,
         })
     }
 
