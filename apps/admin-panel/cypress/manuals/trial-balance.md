@@ -26,15 +26,7 @@ Puedes cambiar entre **USD** y **BTC** haciendo clic en las opciones de moneda.
 
 <!-- new-page -->
 
-### Paso 3: Ver Fuera del Balance
-
-Cambia a la sección **Fuera del Balance** haciendo clic en la opción.
-
-![Fuera del Balance](./screenshots/trial-balance.cy.ts/off-balance-sheet.png)
-
----
-
-### Paso 4: Ver Fila de Totales
+### Paso 3: Ver Fila de Totales
 
 Asegúrate de que la fila de **Totales** se muestre en la parte inferior, mostrando los datos agregados.
 
