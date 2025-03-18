@@ -22,6 +22,7 @@ import {
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import { GetTrialBalanceQuery, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
@@ -44,6 +45,7 @@ gql`
       accounts {
         id
         name
+        code
         amounts {
           ...balancesByCurrency
         }
@@ -206,6 +208,8 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
+  const router = useRouter()
+
   const total = data?.total
   const accounts = data?.accounts
 
@@ -236,7 +240,11 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
         </TableHeader>
         <TableBody>
           {accounts?.map((account, index) => (
-            <TableRow key={index}>
+            <TableRow
+              className="cursor-pointer"
+              onClick={() => router.push(`/ledger-account/${account.code}`)}
+              key={index}
+            >
               <TableCell>{account.name}</TableCell>
               <TableCell className="w-48">
                 <Balance
