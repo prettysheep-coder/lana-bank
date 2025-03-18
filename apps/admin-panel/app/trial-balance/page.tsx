@@ -234,6 +234,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
       <Table className="mt-6">
         <TableHeader>
           <TableHead>{t("table.headers.accountName")}</TableHead>
+          <TableHead>{t("table.headers.accountCode")}</TableHead>
           <TableHead className="text-right">{t("table.headers.debit")}</TableHead>
           <TableHead className="text-right">{t("table.headers.credit")}</TableHead>
           <TableHead className="text-right">{t("table.headers.net")}</TableHead>
@@ -246,6 +247,9 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
               key={index}
             >
               <TableCell>{account.name}</TableCell>
+              <TableCell className="w-48">
+                <div className="font-mono text-xs text-gray-500">{account.code}</div>
+              </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
@@ -273,6 +277,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
         <TableFooter className="border-t-4">
           <TableRow>
             <TableCell className="uppercase font-bold">{t("totals")}</TableCell>
+            <TableCell></TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"

@@ -1221,6 +1221,7 @@
     "table": {
       "headers": {
         "accountName": "Account Name",
+        "accountCode": "Account Code",
         "debit": "Debit",
         "credit": "Credit",
         "net": "Net"
@@ -1329,3 +1330,4 @@
     }
   }
 }
+
