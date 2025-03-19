@@ -1,11 +1,9 @@
 mod config;
 pub mod error;
-mod job;
 mod repo;
 mod sumsub_auth;
 
 use core_customer;
-use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -13,8 +11,7 @@ use tracing::instrument;
 
 use crate::{
     customer::{CustomerId, Customers},
-    job::Jobs,
-    primitives::{DepositId, JobId, Subject, UsdCents, WithdrawalId},
+    primitives::{DepositId, Subject, UsdCents, WithdrawalId},
 };
 
 pub use config::*;
@@ -58,7 +55,6 @@ pub fn usd_cents_to_dollars(cents: UsdCents) -> f64 {
 pub struct Applicants {
     sumsub_client: SumsubClient,
     customers: Arc<Customers>,
-    jobs: Arc<Jobs>,
     repo: ApplicantRepo,
 }
 
@@ -183,15 +179,13 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers, jobs: &Jobs) -> Self {
+    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers) -> Self {
         let sumsub_client = SumsubClient::new(config);
-        jobs.add_initializer(SumsubExportInitializer::new(sumsub_client.clone(), pool));
 
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
             customers: Arc::new(customers.clone()),
-            jobs: Arc::new(jobs.clone()),
         }
     }
 
@@ -201,22 +195,11 @@ impl Applicants {
             .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
             .parse()?;
 
-        let callback_id = &self
-            .repo
+        self.repo
             .persist_webhook_data(customer_id, payload.clone())
             .await?;
 
         let mut db = self.repo.begin_op().await?;
-
-        self.jobs
-            .create_and_spawn_in_op(
-                &mut db,
-                JobId::new(),
-                SumsubExportConfig::Webhook {
-                    callback_id: *callback_id,
-                },
-            )
-            .await?;
 
         match self.process_payload(&mut db, payload).await {
             Ok(_) => (),
@@ -313,16 +296,6 @@ impl Applicants {
                     }
                     Err(e) => return Err(e.into()),
                 }
-
-                self.jobs
-                    .create_and_spawn_in_op(
-                        db,
-                        JobId::new(),
-                        SumsubExportConfig::SensitiveInfo {
-                            customer_id: external_user_id,
-                        },
-                    )
-                    .await?;
             }
             SumsubCallbackPayload::Unknown => {
                 return Err(ApplicantError::UnhandledCallbackType(format!(

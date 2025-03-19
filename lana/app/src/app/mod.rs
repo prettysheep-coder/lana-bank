@@ -130,7 +130,7 @@ impl LanaApp {
             config.customer_onboarding,
         )
         .await?;
-        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers);
 
         let credit_facilities = CreditFacilities::init(
             &pool,
