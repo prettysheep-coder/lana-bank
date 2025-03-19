@@ -444,24 +444,3 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER persistent_outbox_events AFTER INSERT ON persistent_outbox_events
   FOR EACH ROW EXECUTE FUNCTION notify_persistent_outbox_events();
-
-CREATE TABLE ephemeral_outbox_events (
-  sequence BIGSERIAL UNIQUE,
-  type VARCHAR NOT NULL UNIQUE,
-  payload JSONB,
-  seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE FUNCTION notify_ephemeral_outbox_events() RETURNS TRIGGER AS $$
-DECLARE
-  payload TEXT;
-BEGIN
-  payload := row_to_json(NEW);
-  PERFORM pg_notify('ephemeral_outbox_events', payload);
-  RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER ephemeral_outbox_events AFTER INSERT OR UPDATE ON ephemeral_outbox_events
-  FOR EACH ROW EXECUTE FUNCTION notify_ephemeral_outbox_events();
-
