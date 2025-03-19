@@ -15,6 +15,8 @@ pub struct Price {
     bfx: BfxClient,
 }
 
+const VOLATILITY_THRESHOLD: rust_decimal::Decimal = rust_decimal_macros::dec!(5);
+
 impl Price {
     pub fn new() -> Self {
         Self {
@@ -27,7 +29,14 @@ impl Price {
     }
 
     pub async fn avg_btc_price_in_24_hours(&self) -> Result<PriceOfOneBTC, PriceError> {
-        avg_btc_price_in_24_hours_cached(&self.bfx).await
+        let current_price = usd_cents_per_btc_cached(&self.bfx).await?;
+        let avg_btc_price_in_24_hours = avg_btc_price_in_24_hours_cached(&self.bfx).await?;
+
+        if is_price_volatile(current_price, avg_btc_price_in_24_hours) {
+            return Ok(current_price);
+        }
+
+        Ok(avg_btc_price_in_24_hours)
     }
 }
 
@@ -72,4 +81,33 @@ async fn avg_btc_price_in_24_hours_cached(bfx: &BfxClient) -> Result<PriceOfOneB
     )?);
 
     Ok(avg_price)
+}
+
+fn is_price_volatile(current_price: PriceOfOneBTC, avg_daily_price: PriceOfOneBTC) -> bool {
+    let current_price = current_price.into_inner();
+    let avg_daily_price = avg_daily_price.into_inner();
+
+    let diff = rust_decimal::Decimal::from(
+        current_price
+            .into_inner()
+            .abs_diff(avg_daily_price.into_inner()),
+    );
+    let percent_diff = (diff * rust_decimal_macros::dec!(100))
+        / rust_decimal::Decimal::from(avg_daily_price.into_inner());
+    percent_diff > VOLATILITY_THRESHOLD
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn price_volatility() {
+        let current_price =
+            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap());
+        let avg_daily_price =
+            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(95)).unwrap());
+
+        assert!(is_price_volatile(current_price, avg_daily_price));
+    }
 }
