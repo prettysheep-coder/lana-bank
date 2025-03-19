@@ -2,8 +2,10 @@ mod config;
 pub mod error;
 mod repo;
 mod sumsub_auth;
+mod tx_export;
 
 use core_customer;
+use job::Jobs;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -11,7 +13,9 @@ use tracing::instrument;
 
 use crate::{
     customer::{CustomerId, Customers},
-    primitives::{DepositId, Subject, UsdCents, WithdrawalId},
+    deposit::Deposits,
+    outbox::Outbox,
+    primitives::Subject,
 };
 
 pub use config::*;
@@ -22,33 +26,6 @@ use repo::ApplicantRepo;
 pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
 use async_graphql::*;
-
-/// Direction of the transaction from Sumsub's perspective
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum SumsubTransactionDirection {
-    /// Money coming into the customer's account (deposit)
-    #[serde(rename = "in")]
-    In,
-    /// Money going out of the customer's account (withdrawal)
-    #[serde(rename = "out")]
-    Out,
-}
-
-impl std::fmt::Display for SumsubTransactionDirection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SumsubTransactionDirection::In => write!(f, "in"),
-            SumsubTransactionDirection::Out => write!(f, "out"),
-        }
-    }
-}
-
-/// Helper function to format UsdCents as float dollars
-/// FIXME temporary function, remove when we have a proper conversion
-pub fn usd_cents_to_dollars(cents: UsdCents) -> f64 {
-    // Use the into_inner method to get the value in cents
-    (cents.into_inner() as f64) / 100.0
-}
 
 /// Applicants service
 #[derive(Clone)]
@@ -179,14 +156,27 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers) -> Self {
+    pub async fn init(
+        pool: &PgPool,
+        config: &SumsubConfig,
+        customers: &Customers,
+        deposits: &Deposits,
+        jobs: &Jobs,
+        outbox: &Outbox,
+    ) -> Result<Self, ApplicantError> {
         let sumsub_client = SumsubClient::new(config);
 
-        Self {
+        jobs.add_initializer_and_spawn_unique(
+            tx_export::SumsubExportInitializer::new(outbox, &sumsub_client, deposits),
+            tx_export::SumsubExportJobConfig,
+        )
+        .await?;
+
+        Ok(Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
             customers: Arc::new(customers.clone()),
-        }
+        })
     }
 
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
@@ -326,44 +316,6 @@ impl Applicants {
 
         self.sumsub_client
             .create_permalink(customer_id, &level.to_string())
-            .await
-    }
-
-    #[instrument(name = "applicants.submit_withdrawal_transaction", skip(self), err)]
-    pub async fn submit_withdrawal_transaction(
-        &self,
-        withdrawal_id: WithdrawalId,
-        customer_id: CustomerId,
-        amount: UsdCents,
-    ) -> Result<(), ApplicantError> {
-        self.sumsub_client
-            .submit_finance_transaction(
-                customer_id,
-                withdrawal_id.to_string(),
-                "Withdrawal",
-                &SumsubTransactionDirection::Out.to_string(),
-                usd_cents_to_dollars(amount),
-                "USD",
-            )
-            .await
-    }
-
-    #[instrument(name = "applicants.submit_deposit_transaction", skip(self), err)]
-    pub async fn submit_deposit_transaction(
-        &self,
-        deposit_id: DepositId,
-        customer_id: CustomerId,
-        amount: UsdCents,
-    ) -> Result<(), ApplicantError> {
-        self.sumsub_client
-            .submit_finance_transaction(
-                customer_id,
-                deposit_id.to_string(),
-                "Deposit",
-                &SumsubTransactionDirection::In.to_string(),
-                usd_cents_to_dollars(amount),
-                "USD",
-            )
             .await
     }
 }

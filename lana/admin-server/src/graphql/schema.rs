@@ -783,7 +783,7 @@ impl Mutation {
             DepositRecordPayload,
             Deposit,
             ctx,
-            app.confirm_deposit_with_sumsub(
+            app.deposits().record_deposit(
                 sub,
                 input.deposit_account_id,
                 input.amount,
@@ -822,7 +822,7 @@ impl Mutation {
             WithdrawalConfirmPayload,
             Withdrawal,
             ctx,
-            app.confirm_withdrawal_with_sumsub(sub, input.withdrawal_id)
+            app.deposits().confirm_withdrawal(sub, input.withdrawal_id)
         )
     }
 

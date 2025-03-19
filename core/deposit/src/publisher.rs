@@ -45,6 +45,7 @@ where
             .filter_map(|event| match &event.event {
                 Confirmed { .. } => Some(CoreDepositEvent::WithdrawalConfirmed {
                     id: entity.id,
+                    deposit_account_id: entity.deposit_account_id,
                     amount: entity.amount,
                 }),
                 _ => None,
@@ -67,6 +68,7 @@ where
             .map(|event| match &event.event {
                 Initialized { .. } => CoreDepositEvent::DepositInitialized {
                     id: entity.id,
+                    deposit_account_id: entity.deposit_account_id,
                     amount: entity.amount,
                 },
             })
