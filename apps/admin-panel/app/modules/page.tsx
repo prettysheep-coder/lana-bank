@@ -70,7 +70,6 @@ gql`
 
 const Modules: React.FC = () => {
   const t = useTranslations("Modules")
-  const tCommon = useTranslations("Common")
 
   const [openDepositConfigUpdateDialog, setOpenDepositConfigUpdateDialog] =
     useState(false)
