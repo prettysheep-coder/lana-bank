@@ -137,7 +137,7 @@ const Modules: React.FC = () => {
                 onClick={() => setOpenDepositConfigUpdateDialog(true)}
               >
                 <Pencil />
-                {tCommon("set")}
+                {t("deposit.setTitle")}
               </Button>
             </CardFooter>
           </>
@@ -178,7 +178,7 @@ const Modules: React.FC = () => {
                 onClick={() => setOpenCreditConfigUpdateDialog(true)}
               >
                 <Pencil />
-                {tCommon("set")}
+                {t("credit.setTitle")}
               </Button>
             </CardFooter>
           </>
