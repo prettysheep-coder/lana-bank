@@ -163,12 +163,13 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-        reference: &str,
-        name: &str,
-        description: &str,
         active: bool,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
+        let holder_id = holder_id.into();
+
+        let name = &format!("Deposit Account {}", holder_id);
+        let reference = &format!("deposit-customer-account:{}", holder_id);
         let audit_info = self
             .authz
             .enforce_permission(
@@ -184,7 +185,7 @@ where
             .account_holder_id(holder_id)
             .reference(reference.to_string())
             .name(name.to_string())
-            .description(description.to_string())
+            .description(name.to_string())
             .active(active)
             .audit_info(audit_info.clone())
             .build()
@@ -199,7 +200,6 @@ where
                 account_id,
                 account.reference.to_string(),
                 account.name.to_string(),
-                account.description.to_string(),
                 deposit_account_type,
             )
             .await?;

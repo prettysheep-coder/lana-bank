@@ -188,11 +188,9 @@ where
             message.inject_trace_parent();
 
             if self.config.auto_create_deposit_account {
-                let description = &format!("Deposit Account for Customer {}", id);
-                let account_ref = &format!("deposit-customer-account:{}", id);
                 match self.deposit
-                .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
-                "customer-deposits", description, !self.config.customer_status_sync_active, *customer_type)
+                .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id,
+                 !self.config.customer_status_sync_active, *customer_type)
                 .await {
                 Ok(_) => {}
                 Err(e) if e.is_account_already_exists() => {},

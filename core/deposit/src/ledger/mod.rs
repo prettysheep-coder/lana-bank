@@ -496,7 +496,6 @@ impl DepositLedger {
         id: impl Into<LedgerAccountId>,
         deposit_account_reference: String,
         deposit_account_name: String,
-        deposit_account_description: String,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<(), DepositLedgerError> {
         let id = id.into();
@@ -509,7 +508,7 @@ impl DepositLedger {
             self.deposit_internal_account_set_from_type(deposit_account_type.into()),
             &deposit_account_reference,
             &deposit_account_name,
-            &deposit_account_description,
+            &deposit_account_name,
         )
         .await?;
 
