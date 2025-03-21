@@ -146,6 +146,32 @@ impl ProfitAndLossStatementLedger {
         })
     }
 
+    async fn get_all_account_sets(
+        &self,
+        ids: &[AccountSetId],
+        balances_by_id: &BalancesByAccount,
+    ) -> Result<Vec<StatementAccountSet>, ProfitAndLossStatementLedgerError> {
+        let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
+
+        let mut statement_account_sets = Vec::new();
+        for id in ids {
+            let values = account_sets
+                .remove(id)
+                .expect("account set should exist")
+                .into_values();
+
+            statement_account_sets.push(StatementAccountSet {
+                id: *id,
+                name: values.name,
+                description: values.description,
+                btc_balance: balances_by_id.btc_for_account(*id)?,
+                usd_balance: balances_by_id.usd_for_account(*id)?,
+            });
+        }
+
+        Ok(statement_account_sets)
+    }
+
     async fn get_member_account_set_ids(
         &self,
         account_set_id: AccountSetId,
@@ -370,6 +396,10 @@ impl ProfitAndLossStatementLedger {
             self.get_member_account_set_ids(ids.expenses).await?;
         all_account_set_ids.extend(&expenses_member_account_sets_ids);
 
+        let cost_of_revenue_member_account_sets_ids =
+            self.get_member_account_set_ids(ids.cost_of_revenue).await?;
+        all_account_set_ids.extend(&cost_of_revenue_member_account_sets_ids);
+
         let balances_by_id = self
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
@@ -377,22 +407,22 @@ impl ProfitAndLossStatementLedger {
         let statement_account_set = self.get_account_set(ids.id, &balances_by_id).await?;
         let revenue_account_set = self.get_account_set(ids.revenue, &balances_by_id).await?;
         let expenses_account_set = self.get_account_set(ids.expenses, &balances_by_id).await?;
+        let cost_of_revenue_account_set = self
+            .get_account_set(ids.cost_of_revenue, &balances_by_id)
+            .await?;
 
-        let mut revenue_accounts = Vec::new();
-        for account_set_id in revenue_member_account_sets_ids {
-            revenue_accounts.push(
-                self.get_account_set(account_set_id, &balances_by_id)
-                    .await?,
-            );
-        }
-
-        let mut expenses_accounts = Vec::new();
-        for account_set_id in expenses_member_account_sets_ids {
-            expenses_accounts.push(
-                self.get_account_set(account_set_id, &balances_by_id)
-                    .await?,
-            );
-        }
+        let revenue_accounts = self
+            .get_all_account_sets(revenue_member_account_sets_ids.as_slice(), &balances_by_id)
+            .await?;
+        let expenses_accounts = self
+            .get_all_account_sets(expenses_member_account_sets_ids.as_slice(), &balances_by_id)
+            .await?;
+        let cost_of_revenue_accounts = self
+            .get_all_account_sets(
+                cost_of_revenue_member_account_sets_ids.as_slice(),
+                &balances_by_id,
+            )
+            .await?;
 
         Ok(ProfitAndLossStatement {
             id: statement_account_set.id,
@@ -416,6 +446,14 @@ impl ProfitAndLossStatementLedger {
                     btc_balance: expenses_account_set.btc_balance,
                     usd_balance: expenses_account_set.usd_balance,
                     accounts: expenses_accounts,
+                },
+                StatementAccountSetWithAccounts {
+                    id: cost_of_revenue_account_set.id,
+                    name: cost_of_revenue_account_set.name,
+                    description: cost_of_revenue_account_set.description,
+                    btc_balance: cost_of_revenue_account_set.btc_balance,
+                    usd_balance: cost_of_revenue_account_set.usd_balance,
+                    accounts: cost_of_revenue_accounts,
                 },
             ],
         })
