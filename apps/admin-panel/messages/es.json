@@ -1346,6 +1346,7 @@
       "btcBalance": "Saldo en BTC"
     },
     "table": {
+      "noData": "No hay transacciones en esta cuenta",
       "columns": {
         "recordedAt": "Registrado el",
         "currency": "Moneda",

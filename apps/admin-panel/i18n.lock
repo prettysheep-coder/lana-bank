@@ -782,6 +782,7 @@ checksums:
     ChartOfAccountsLedgerAccount/details/name: 5a4c82f1bc517348b64c107345f94f65
     ChartOfAccountsLedgerAccount/details/usdBalance: 857ee8a777580666ef3e60098e442c11
     ChartOfAccountsLedgerAccount/details/btcBalance: b31842ee7a4fedfd1ad43c64e8e772a1
+    ChartOfAccountsLedgerAccount/table/noData: eb4597fbd3bb64994e3a0e1376fbb643
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
