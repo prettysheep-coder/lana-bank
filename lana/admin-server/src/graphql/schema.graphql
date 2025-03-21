@@ -1088,6 +1088,7 @@ type Mutation {
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
+	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }
 
@@ -1174,10 +1175,27 @@ type PolicyEdge {
 	cursor: String!
 }
 
+input ProfitAndLossModuleConfigureInput {
+	chartOfAccountsRevenueCode: String!
+	chartOfAccountsCostOfRevenueCode: String!
+	chartOfAccountsExpensesCode: String!
+}
+
 type ProfitAndLossStatement {
 	name: String!
 	net: AccountAmountsByCurrency!
 	categories: [StatementCategory!]!
+}
+
+type ProfitAndLossStatementModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsRevenueCode: String
+	chartOfAccountsCostOfRevenueCode: String
+	chartOfAccountsExpensesCode: String
+}
+
+type ProfitAndLossStatementModuleConfigurePayload {
+	profitAndLossConfig: ProfitAndLossStatementModuleConfig!
 }
 
 type Query {
@@ -1219,6 +1237,7 @@ type Query {
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
+	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 }
 
 type RealtimePrice {
