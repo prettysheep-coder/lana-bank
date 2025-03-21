@@ -137,7 +137,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
 
   return (
     <>
-      <Card className="mb-10">
+      <Card>
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
@@ -190,7 +190,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           )}
         </CardContent>
       </Card>
-      <Card className="-mt-5">
+      <Card className="mt-2">
         <CardHeader>
           <CardTitle>{t("transactionsTitle")}</CardTitle>
         </CardHeader>
