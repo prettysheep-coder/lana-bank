@@ -1346,6 +1346,7 @@
       "btcBalance": "BTC Balance"
     },
     "table": {
+      "noData": "No transactions in this account",
       "columns": {
         "recordedAt": "Recorded At",
         "currency": "Currency",

@@ -194,6 +194,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
               pageSize={DEFAULT_PAGESIZE}
               fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
               loading={loading}
+              noDataText={t("table.noData")}
             />
           </>
         )}
