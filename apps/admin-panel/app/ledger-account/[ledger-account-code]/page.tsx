@@ -115,9 +115,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       render: (_?: string, record?: LedgerAccountHistoryEntry) => {
         if (!record) return null
         if (record.__typename === "UsdLedgerAccountHistoryEntry") {
-          return <div>{record?.usdAmount?.settled?.debit}</div>
+          return <Balance amount={record?.usdAmount?.settled?.debit} currency="usd" />
         } else if (record.__typename === "BtcLedgerAccountHistoryEntry") {
-          return <div>{record?.btcAmount?.settled?.debit}</div>
+          return <Balance amount={record?.btcAmount?.settled?.debit} currency="btc" />
         }
       },
     },
@@ -127,9 +127,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       render: (_?: string, record?: LedgerAccountHistoryEntry) => {
         if (!record) return null
         if (record.__typename === "UsdLedgerAccountHistoryEntry") {
-          return <div>{record?.usdAmount?.settled?.credit}</div>
+          return <Balance amount={record?.usdAmount?.settled?.credit} currency="usd" />
         } else if (record.__typename === "BtcLedgerAccountHistoryEntry") {
-          return <div>{record?.btcAmount?.settled?.credit}</div>
+          return <Balance amount={record?.btcAmount?.settled?.credit} currency="btc" />
         }
       },
     },
