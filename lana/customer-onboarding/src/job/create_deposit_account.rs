@@ -181,7 +181,10 @@ where
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerCreated { id, .. }) = message.as_event() {
+        if let Some(CoreCustomerEvent::CustomerCreated {
+            id, customer_type, ..
+        }) = message.as_event()
+        {
             message.inject_trace_parent();
 
             if self.config.auto_create_deposit_account {
@@ -189,7 +192,7 @@ where
                 let account_ref = &format!("deposit-customer-account:{}", id);
                 match self.deposit
                 .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
-                "customer-deposits", description, !self.config.customer_status_sync_active)
+                "customer-deposits", description, !self.config.customer_status_sync_active, *customer_type)
                 .await {
                 Ok(_) => {}
                 Err(e) if e.is_account_already_exists() => {},

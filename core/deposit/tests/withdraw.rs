@@ -14,7 +14,6 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 
     let cala_config = CalaLedgerConfig::builder()
@@ -46,6 +45,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
             &format!("Deposit for User {}", account_holder_id),
             "Deposit checking account for user.",
             true,
+            DepositAccountType::Individual,
         )
         .await?;
 
