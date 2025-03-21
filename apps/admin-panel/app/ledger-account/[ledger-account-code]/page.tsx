@@ -162,13 +162,13 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                   <DetailItem
                     label={
                       data?.ledgerAccountByCode?.balance.__typename ===
-                        "BtcLedgerAccountBalance"
+                      "BtcLedgerAccountBalance"
                         ? t("details.btcBalance")
                         : t("details.usdBalance")
                     }
                     value={
                       data?.ledgerAccountByCode?.balance.__typename ===
-                        "UsdLedgerAccountBalance" ? (
+                      "UsdLedgerAccountBalance" ? (
                         <Balance
                           currency="usd"
                           amount={data?.ledgerAccountByCode?.balance?.usdSettledBalance}

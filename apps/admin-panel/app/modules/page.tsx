@@ -218,7 +218,7 @@ const Modules: React.FC = () => {
                 onClick={() => setOpenBalanceSheetConfigUpdateDialog(true)}
               >
                 <Pencil />
-                {tCommon("set")}
+                {t("balanceSheet.setTitle")}
               </Button>
             </CardFooter>
           </>
