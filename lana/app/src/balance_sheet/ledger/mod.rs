@@ -350,7 +350,10 @@ impl BalanceSheetLedger {
         &self,
         reference: String,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, BalanceSheetLedgerError> {
-        let account_set_id = self.get_ids_from_reference(reference).await?.assets;
+        let account_set_id = self
+            .get_ids_from_reference(reference)
+            .await?
+            .account_set_id_for_config();
 
         let account_set = self.cala.account_sets().find(account_set_id).await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
@@ -422,7 +425,7 @@ impl BalanceSheetLedger {
         let mut account_sets = self
             .cala
             .account_sets()
-            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids.as_vec())
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids.internal_ids())
             .await?;
 
         let ChartOfAccountsIntegrationMeta {
