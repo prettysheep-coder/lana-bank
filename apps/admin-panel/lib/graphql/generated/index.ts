@@ -1004,6 +1004,31 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type GeneralLedgerEntry = {
+  __typename?: 'GeneralLedgerEntry';
+  entryId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+};
+
+export type GeneralLedgerEntryConnection = {
+  __typename?: 'GeneralLedgerEntryConnection';
+  /** A list of edges. */
+  edges: Array<GeneralLedgerEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<GeneralLedgerEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type GeneralLedgerEntryEdge = {
+  __typename?: 'GeneralLedgerEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: GeneralLedgerEntry;
+};
+
 export type GovernanceNavigationItems = {
   __typename?: 'GovernanceNavigationItems';
   approvalProcess: Scalars['Boolean']['output'];
@@ -1430,6 +1455,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
+  generalLedgerEntries: GeneralLedgerEntryConnection;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   me: Subject;
   policies: PolicyConnection;
@@ -1551,6 +1577,12 @@ export type QueryDisbursalsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryGeneralLedgerEntriesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 

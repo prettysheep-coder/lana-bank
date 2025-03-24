@@ -986,6 +986,40 @@ type FacilityRemaining {
 }
 
 
+type GeneralLedgerEntry {
+	id: ID!
+	entryId: UUID!
+}
+
+type GeneralLedgerEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [GeneralLedgerEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [GeneralLedgerEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type GeneralLedgerEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: GeneralLedgerEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
@@ -1249,6 +1283,7 @@ type Query {
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
 	ledgerAccountByCode(code: String!): LedgerAccount
+	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
