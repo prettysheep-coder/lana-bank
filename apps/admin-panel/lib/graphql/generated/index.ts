@@ -257,6 +257,16 @@ export type BtcAccountBalanceAmounts = {
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
+export type BtcGeneralLedgerEntry = {
+  __typename?: 'BtcGeneralLedgerEntry';
+  btcAmount: Scalars['Satoshis']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  entryId: Scalars['UUID']['output'];
+  entryType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+};
+
 export type BtcLedgerAccountBalance = {
   __typename?: 'BtcLedgerAccountBalance';
   encumbrance: Scalars['Satoshis']['output'];
@@ -1004,11 +1014,7 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
-export type GeneralLedgerEntry = {
-  __typename?: 'GeneralLedgerEntry';
-  entryId: Scalars['UUID']['output'];
-  id: Scalars['ID']['output'];
-};
+export type GeneralLedgerEntry = BtcGeneralLedgerEntry | UsdGeneralLedgerEntry;
 
 export type GeneralLedgerEntryConnection = {
   __typename?: 'GeneralLedgerEntryConnection';
@@ -1877,6 +1883,16 @@ export type UsdAccountBalanceAmounts = {
   debit: Scalars['UsdCents']['output'];
   netCredit: Scalars['SignedUsdCents']['output'];
   netDebit: Scalars['SignedUsdCents']['output'];
+};
+
+export type UsdGeneralLedgerEntry = {
+  __typename?: 'UsdGeneralLedgerEntry';
+  createdAt: Scalars['Timestamp']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  entryId: Scalars['UUID']['output'];
+  entryType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  usdAmount: Scalars['UsdCents']['output'];
 };
 
 export type UsdLedgerAccountBalance = {

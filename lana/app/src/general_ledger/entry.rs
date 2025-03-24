@@ -1,16 +1,52 @@
 use cala_ledger::{entry::Entry, EntryId};
+use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
-pub struct GeneralLedgerEntry {
+use super::GeneralLedgerError;
+
+pub enum GeneralLedgerEntry {
+    Usd(UsdGeneralLedgerEntry),
+    Btc(BtcGeneralLedgerEntry),
+}
+
+pub struct UsdGeneralLedgerEntry {
     pub entry_id: EntryId,
+    pub entry_type: String,
+    pub usd_amount: UsdCents,
+    pub description: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl From<Entry> for GeneralLedgerEntry {
-    fn from(entry: Entry) -> Self {
-        Self {
-            entry_id: entry.id,
-            created_at: entry.created_at(),
+pub struct BtcGeneralLedgerEntry {
+    pub entry_id: EntryId,
+    pub entry_type: String,
+    pub btc_amount: Satoshis,
+    pub description: Option<String>,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+impl TryFrom<Entry> for GeneralLedgerEntry {
+    type Error = GeneralLedgerError;
+
+    fn try_from(entry: Entry) -> Result<Self, Self::Error> {
+        if entry.values().currency == "USD".parse()? {
+            Ok(Self::Usd(UsdGeneralLedgerEntry {
+                entry_id: entry.id,
+                entry_type: entry.values().entry_type.clone(),
+                usd_amount: UsdCents::try_from_usd(entry.values().units)?,
+                description: entry.values().description.clone(),
+                created_at: entry.created_at(),
+            }))
+        } else if entry.values().currency == "BTC".parse()? {
+            Ok(Self::Btc(BtcGeneralLedgerEntry {
+                entry_id: entry.id,
+                entry_type: entry.values().entry_type.clone(),
+                btc_amount: Satoshis::try_from_btc(entry.values().units)?,
+                description: entry.values().description.clone(),
+                created_at: entry.created_at(),
+            }))
+        } else {
+            Err(GeneralLedgerError::UnexpectedCurrency)
         }
     }
 }
@@ -23,9 +59,15 @@ pub struct GeneralLedgerEntryCursor {
 
 impl From<&GeneralLedgerEntry> for GeneralLedgerEntryCursor {
     fn from(entry: &GeneralLedgerEntry) -> Self {
-        Self {
-            entry_id: entry.entry_id,
-            created_at: entry.created_at,
+        match entry {
+            GeneralLedgerEntry::Usd(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.created_at,
+            },
+            GeneralLedgerEntry::Btc(entry) => Self {
+                entry_id: entry.entry_id,
+                created_at: entry.created_at,
+            },
         }
     }
 }

@@ -58,8 +58,8 @@ impl GeneralLedger {
         let entities = ret
             .entities
             .into_iter()
-            .map(GeneralLedgerEntry::from)
-            .collect();
+            .map(GeneralLedgerEntry::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(es_entity::PaginatedQueryRet {
             entities,

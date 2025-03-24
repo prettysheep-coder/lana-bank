@@ -10,4 +10,10 @@ pub enum GeneralLedgerError {
     CalaEntry(#[from] cala_ledger::entry::error::EntryError),
     #[error("GeneralLedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("GeneralLedgerError - UnexpectedCurrency")]
+    UnexpectedCurrency,
+    #[error("GeneralLedgerError - ConversionError: {0}")]
+    ConversionError(#[from] core_money::ConversionError),
+    #[error("GeneralLedgerError - ParseCurrencyError: {0}")]
+    ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
 }

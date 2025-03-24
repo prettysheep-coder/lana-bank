@@ -234,6 +234,15 @@ type BtcAccountBalanceAmounts {
 	netCredit: SignedSatoshis!
 }
 
+type BtcGeneralLedgerEntry {
+	id: ID!
+	entryId: UUID!
+	entryType: String!
+	btcAmount: Satoshis!
+	description: String
+	createdAt: Timestamp!
+}
+
 type BtcLedgerAccountBalance {
 	settled: Satoshis!
 	pending: Satoshis!
@@ -986,10 +995,7 @@ type FacilityRemaining {
 }
 
 
-type GeneralLedgerEntry {
-	id: ID!
-	entryId: UUID!
-}
+union GeneralLedgerEntry = UsdGeneralLedgerEntry | BtcGeneralLedgerEntry
 
 type GeneralLedgerEntryConnection {
 	"""
@@ -1534,6 +1540,15 @@ type UsdAccountBalanceAmounts {
 }
 
 scalar UsdCents
+
+type UsdGeneralLedgerEntry {
+	id: ID!
+	entryId: UUID!
+	entryType: String!
+	usdAmount: UsdCents!
+	description: String
+	createdAt: Timestamp!
+}
 
 type UsdLedgerAccountBalance {
 	settled: UsdCents!
