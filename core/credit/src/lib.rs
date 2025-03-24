@@ -290,6 +290,7 @@ where
                 credit_facility.id,
                 credit_facility.account_ids,
                 customer.customer_type.into(),
+                terms.duration.duration_type(),
             )
             .await?;
 

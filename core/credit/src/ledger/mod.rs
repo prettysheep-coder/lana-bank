@@ -22,6 +22,7 @@ use crate::{
         CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId,
         LedgerOmnibusAccountIds, Satoshis, UsdCents,
     },
+    terms::DurationType,
     ChartOfAccountsIntegrationConfig, DisbursedReceivableAccountType,
 };
 
@@ -986,9 +987,9 @@ impl CreditLedger {
     fn disbursed_internal_account_set_from_type(
         &self,
         disbursed_account_type: DisbursedReceivableAccountType,
-        is_short_term: bool,
+        duration_type: DurationType,
     ) -> InternalAccountSetDetails {
-        let term_type = if is_short_term {
+        let term_type = if duration_type == DurationType::ShortTerm {
             &self.internal_account_sets.disbursed_receivable.short_term
         } else {
             &self.internal_account_sets.disbursed_receivable.long_term
@@ -1013,6 +1014,7 @@ impl CreditLedger {
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
         disbursed_account_type: DisbursedReceivableAccountType,
+        duration_type: DurationType,
     ) -> Result<(), CreditLedgerError> {
         let collateral_reference = &format!("credit-facility-collateral:{}", credit_facility_id);
         let collateral_name = &format!(
@@ -1055,7 +1057,7 @@ impl CreditLedger {
         self.create_account_in_op(
             op,
             account_ids.disbursed_receivable_account_id,
-            self.disbursed_internal_account_set_from_type(disbursed_account_type, true),
+            self.disbursed_internal_account_set_from_type(disbursed_account_type, duration_type),
             disbursed_receivable_reference,
             disbursed_receivable_name,
             disbursed_receivable_name,
