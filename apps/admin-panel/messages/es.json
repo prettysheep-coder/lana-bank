@@ -1364,5 +1364,17 @@
         "credit": "Haber"
       }
     }
+  },
+  "GeneralLedger": {
+    "title": "Libro mayor",
+    "description": "Un registro completo de transacciones financieras sobre el diario general",
+    "noTableData": "No hay entradas presentes en el libro mayor",
+    "table": {
+      "createdAt": "Creado el",
+      "entryType": "Tipo de entrada",
+      "direction": "Dirección",
+      "amount": "Importe",
+      "description": "Descripción"
+    }
   }
 }
