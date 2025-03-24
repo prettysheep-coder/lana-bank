@@ -240,6 +240,7 @@ type BtcGeneralLedgerEntry {
 	entryType: String!
 	btcAmount: Satoshis!
 	description: String
+	direction: DebitOrCredit!
 	createdAt: Timestamp!
 }
 
@@ -779,6 +780,11 @@ type Dashboard {
 	pendingFacilities: Int!
 	totalDisbursed: UsdCents!
 	totalCollateral: Satoshis!
+}
+
+enum DebitOrCredit {
+	DEBIT
+	CREDIT
 }
 
 type Deposit {
@@ -1547,6 +1553,7 @@ type UsdGeneralLedgerEntry {
 	entryType: String!
 	usdAmount: UsdCents!
 	description: String
+	direction: DebitOrCredit!
 	createdAt: Timestamp!
 }
 

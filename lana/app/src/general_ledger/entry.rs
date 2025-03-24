@@ -1,4 +1,4 @@
-use cala_ledger::{entry::Entry, EntryId};
+use cala_ledger::{entry::Entry, DebitOrCredit, EntryId};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
@@ -14,6 +14,7 @@ pub struct UsdGeneralLedgerEntry {
     pub entry_type: String,
     pub usd_amount: UsdCents,
     pub description: Option<String>,
+    pub direction: DebitOrCredit,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -22,6 +23,7 @@ pub struct BtcGeneralLedgerEntry {
     pub entry_type: String,
     pub btc_amount: Satoshis,
     pub description: Option<String>,
+    pub direction: DebitOrCredit,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -35,6 +37,7 @@ impl TryFrom<Entry> for GeneralLedgerEntry {
                 entry_type: entry.values().entry_type.clone(),
                 usd_amount: UsdCents::try_from_usd(entry.values().units)?,
                 description: entry.values().description.clone(),
+                direction: entry.values().direction,
                 created_at: entry.created_at(),
             }))
         } else if entry.values().currency == "BTC".parse()? {
@@ -43,6 +46,7 @@ impl TryFrom<Entry> for GeneralLedgerEntry {
                 entry_type: entry.values().entry_type.clone(),
                 btc_amount: Satoshis::try_from_btc(entry.values().units)?,
                 description: entry.values().description.clone(),
+                direction: entry.values().direction,
                 created_at: entry.created_at(),
             }))
         } else {

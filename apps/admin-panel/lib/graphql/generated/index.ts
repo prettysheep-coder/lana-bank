@@ -262,6 +262,7 @@ export type BtcGeneralLedgerEntry = {
   btcAmount: Scalars['Satoshis']['output'];
   createdAt: Scalars['Timestamp']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  direction: DebitOrCredit;
   entryId: Scalars['UUID']['output'];
   entryType: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -799,6 +800,11 @@ export type Dashboard = {
   totalCollateral: Scalars['Satoshis']['output'];
   totalDisbursed: Scalars['UsdCents']['output'];
 };
+
+export enum DebitOrCredit {
+  Credit = 'CREDIT',
+  Debit = 'DEBIT'
+}
 
 export type Deposit = {
   __typename?: 'Deposit';
@@ -1889,6 +1895,7 @@ export type UsdGeneralLedgerEntry = {
   __typename?: 'UsdGeneralLedgerEntry';
   createdAt: Scalars['Timestamp']['output'];
   description?: Maybe<Scalars['String']['output']>;
+  direction: DebitOrCredit;
   entryId: Scalars['UUID']['output'];
   entryType: Scalars['String']['output'];
   id: Scalars['ID']['output'];

@@ -1,5 +1,6 @@
 use async_graphql::*;
 
+use cala_ledger::DebitOrCredit;
 use lana_app::general_ledger::{
     BtcGeneralLedgerEntry as DomainBtcGeneralLedgerEntry,
     GeneralLedgerEntry as DomainGeneralLedgerEntry,
@@ -32,6 +33,7 @@ pub struct UsdGeneralLedgerEntry {
     entry_type: String,
     usd_amount: UsdCents,
     description: Option<String>,
+    direction: DebitOrCredit,
     created_at: Timestamp,
 }
 
@@ -43,6 +45,7 @@ impl From<DomainUsdGeneralLedgerEntry> for UsdGeneralLedgerEntry {
             entry_type: entry.entry_type,
             usd_amount: entry.usd_amount.into(),
             description: entry.description,
+            direction: entry.direction,
             created_at: entry.created_at.into(),
         }
     }
@@ -55,6 +58,7 @@ pub struct BtcGeneralLedgerEntry {
     entry_type: String,
     btc_amount: Satoshis,
     description: Option<String>,
+    direction: DebitOrCredit,
     created_at: Timestamp,
 }
 
@@ -66,6 +70,7 @@ impl From<DomainBtcGeneralLedgerEntry> for BtcGeneralLedgerEntry {
             entry_type: entry.entry_type,
             btc_amount: entry.btc_amount.into(),
             description: entry.description,
+            direction: entry.direction,
             created_at: entry.created_at.into(),
         }
     }
