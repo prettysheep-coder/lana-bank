@@ -439,10 +439,8 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let domain_entry =
-                            lana_app::general_ledger::GeneralLedgerEntry::from(entry);
-                        let cursor = GeneralLedgerEntryCursor::from(&domain_entry);
-                        Edge::new(cursor, GeneralLedgerEntry::from(domain_entry))
+                        let cursor = GeneralLedgerEntryCursor::from(&entry);
+                        Edge::new(cursor, GeneralLedgerEntry::from(entry))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },
