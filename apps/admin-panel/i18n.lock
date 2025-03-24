@@ -39,6 +39,7 @@ checksums:
     Sidebar/navItems/auditLogs: c7efb33d09676938d07651774b067bf6
     Sidebar/navItems/committees: c5de346d62a6ad000e90b53d5f4e123c
     Sidebar/navItems/chartOfAccounts: b7e16497105264b631772ce1952e136c
+    Sidebar/navItems/generalLedger: ea559768af78a6d69298b6fd9f4ebd98
     Sidebar/navItems/users: fe42f97809c24d700d3912c8d02ed452
     Sidebar/navItems/balanceSheet: 0c5e5cc9dd1e661a276e1536917a8db8
     Sidebar/navItems/cashFlow: c1973ef8eea5a4e30472be8d8e847e47
