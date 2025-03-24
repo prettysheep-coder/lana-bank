@@ -43,6 +43,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "generalLedger": "General Ledger",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
       "cashFlow": "Cash Flow",
