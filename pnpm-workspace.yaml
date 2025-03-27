@@ -1,2 +1,7 @@
 packages:
   - "apps/*"
+<<<<<<< HEAD
+=======
+  - "lib/js/*"
+  - "package.json"
+>>>>>>> b5311aea9 (chore: install node related package locally with pnpm)
