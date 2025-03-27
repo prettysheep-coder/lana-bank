@@ -61,6 +61,7 @@
           pnpm
           tilt
           pandoc
+          mermaid-cli
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
