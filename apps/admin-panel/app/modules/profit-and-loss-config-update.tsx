@@ -40,7 +40,7 @@ type ProfitAndLossConfigUpdateDialogProps = {
   profitAndLossConfig?: ProfitAndLossStatementModuleConfig
 }
 
-const initialFormData = {
+const initialFormData: ProfitAndLossModuleConfigureInput = {
   chartOfAccountsRevenueCode: "",
   chartOfAccountsCostOfRevenueCode: "",
   chartOfAccountsExpensesCode: "",

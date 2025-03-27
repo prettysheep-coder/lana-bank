@@ -1301,7 +1301,8 @@
       "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Deposit Accounts Private Company Receivable Parent Code",
       "chartOfAccountBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code",
-      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code"
+      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code",
+      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Parent Code for non-domiciled company receivable deposit accounts"
     },
     "credit": {
       "title": "Credit",
