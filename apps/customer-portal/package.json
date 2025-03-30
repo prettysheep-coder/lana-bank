@@ -6,9 +6,9 @@
     "node": "20"
   },
   "scripts": {
-    "dev": "next dev --port 3002",
+    "dev": "next dev --port 3002 --turbo",
     "dev:https": "next dev --experimental-https",
-    "build": "next build",
+    "build": "next build --turbo",
     "start": "next start",
     "lint": "next lint",
     "tsc-check": "tsc --noEmit",
