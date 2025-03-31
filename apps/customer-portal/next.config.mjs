@@ -16,11 +16,11 @@ const nextConfig = {
       rules: {
         "**/*.svg": {
           loaders: ["@svgr/webpack"],
-          as: "default",
+          as: "*.js",
         },
-      }
-    }
-  }
+      },
+    },
+  },
 }
 
 export default nextConfig

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev --port 3001 --turbo",
     "validate-translations": "node ./i18n/validate-translations.mjs",
-    "build": "npm run validate-translations && next build --turbo",
+    "build": "npm run validate-translations && next build",
     "start": "next start",
     "lint": "next lint",
     "tsc-check": "tsc --noEmit",
