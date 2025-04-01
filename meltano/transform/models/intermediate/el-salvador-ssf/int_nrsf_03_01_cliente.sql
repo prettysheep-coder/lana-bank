@@ -18,11 +18,11 @@ customers as (
 select
     left(replace(customer_id, '-', ''), 14) as `NIU`,
     first_name as `Primer Nombre`,
-    'TODO' as `Segundo Nombre`,
-    'TODO' as `Tercer Nombre`,
+    null as `Segundo Nombre`,
+    null as `Tercer Nombre`,
     last_name as `Primer Apellido`,
-    'TODO' as `Segundo Apellido`,
-    'TODO' as `Apellido de casada`,
+    null as `Segundo Apellido`,
+    null as `Apellido de casada`,
     null as `Razón social`,
     '1' as `Tipo de persona`,
     nationality_code as `Nacionalidad`,
@@ -42,7 +42,7 @@ select
     '{{ npb4_17_03_tipos_de_categorias_de_riesgo('Deudores normales') }}'
         as `Clasificación de Riesgo`,
     relationship_to_bank as `Tipo de relación`,
-    'TODO' as `Agencia`,
+    null as `Agencia`,
     least(sum_total_collateral, {{ var('deposits_coverage_limit') }}) as `Saldo garantizado`
 from
     customers
