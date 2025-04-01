@@ -748,6 +748,7 @@ checksums:
     Modules/deposit/chartOfAccountBankDepositAccountsParentCode: 610e0b1896bbd770d6fc956b5156f87b
     Modules/deposit/chartOfAccountFinancialInstitutionDepositAccountsParentCode: bb9dbbc365606f62f5ee9b6dfbe2f898
     Modules/deposit/chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: a64197e527316b216bcf82877591f476
+    Modules/deposit/chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: 46a5432f67afdd288a90400a3be34d3e
     Modules/credit/title: 2d447a71ec815a039f175e94fbb12a56
     Modules/credit/description: 7feb16939959a3c35f74761021ad60d7
     Modules/credit/setTitle: fc23ba4cd507ca596a84e05344b4411d

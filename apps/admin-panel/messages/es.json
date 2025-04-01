@@ -1301,7 +1301,8 @@
       "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de empresas privadas",
       "chartOfAccountBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos bancarios",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de instituciones financieras",
-      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de personas no domiciliadas"
+      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de personas no domiciliadas",
+      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Código matriz para cuentas de depósito por cobrar de empresas no domiciliadas"
     },
     "credit": {
       "title": "Crédito",
