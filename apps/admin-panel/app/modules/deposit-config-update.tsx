@@ -44,7 +44,7 @@ type DepositConfigUpdateDialogProps = {
   depositModuleConfig?: DepositModuleConfig
 }
 
-const initialFormData = {
+const initialFormData: DepositModuleConfigureInput = {
   chartOfAccountsOmnibusParentCode: "",
   chartOfAccountsIndividualDepositAccountsParentCode: "",
   chartOfAccountsGovernmentEntityDepositAccountsParentCode: "",
