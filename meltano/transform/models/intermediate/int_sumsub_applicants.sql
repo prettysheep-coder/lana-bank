@@ -24,6 +24,7 @@ select
             json_value(questions.sections.personalInformation.items.sourceOfFunds.value)as source_of_funds,
             json_value(questions.sections.personalInformation.items.secondNationality.value)as second_nationality,
             json_value(questions.sections.personalInformation.items.maritalStatus.value)as marital_status,
+            json_value(questions.sections.personalInformation.items.marriedName.value)as married_name,
             json_value(questions.sections.personalInformation.items.economicActivity.value)as economic_activity_code,
             json_value(questions.sections.personalInformation.items.countryOfResidence.value)as country_of_residence_iso_alpha_3_code,
             json_value(questions.sections.personalInformation.items.taxIdentificationNum.value) as tax_id_number,

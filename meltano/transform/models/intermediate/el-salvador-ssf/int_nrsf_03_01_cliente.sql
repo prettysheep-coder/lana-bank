@@ -17,12 +17,12 @@ customers as (
 
 select
     left(replace(customer_id, '-', ''), 14) as `NIU`,
-    first_name as `Primer Nombre`,
-    cast(null as string) as `Segundo Nombre`,
+    split(first_name, ' ')[safe_offset(0)] as `Primer Nombre`,
+    split(first_name, ' ')[safe_offset(1)] as `Segundo Nombre`,
     cast(null as string) as `Tercer Nombre`,
-    last_name as `Primer Apellido`,
-    cast(null as string) as `Segundo Apellido`,
-    cast(null as string) as `Apellido de casada`,
+    split(last_name, ' ')[safe_offset(0)] as `Primer Apellido`,
+    split(last_name, ' ')[safe_offset(1)] as `Segundo Apellido`,
+    married_name as `Apellido de casada`,
     cast(null as string) as `Razón social`,
     '1' as `Tipo de persona`,
     cast(nationality_code as string) as `Nacionalidad`,
