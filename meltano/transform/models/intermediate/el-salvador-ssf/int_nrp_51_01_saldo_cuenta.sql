@@ -40,4 +40,3 @@ left join {{ ref('int_account_balances') }} as balances
 
 where
     member_type = "Account"
-

@@ -1,11 +1,10 @@
 {{ config(materialized='table') }}
 
-SELECT
-    LEFT(`id_codigo_banco`, 10) AS `id_codigo_banco`
-  , LEFT(`nom_banco`, 80) AS `nom_banco`
-  , LEFT(`Pais`, 20) AS `Pais`
-  , LEFT(`categoria`, 2) AS `categoria`
-  , CAST(ROUND(`valor_aval_fianza`, 2) AS STRING) AS `valor_aval_fianza`
-  , CURRENT_TIMESTAMP() AS created_at
-FROM
-  {{ ref('int_nrp_51_06_aval_garantizado') }}
+select
+    cast(round(`valor_aval_fianza`, 2) as string) as `valor_aval_fianza`,
+    left(`id_codigo_banco`, 10) as `id_codigo_banco`,
+    left(`nom_banco`, 80) as `nom_banco`,
+    left(`Pais`, 20) as `Pais`,
+    left(`categoria`, 2) as `categoria`
+from
+    {{ ref('int_nrp_51_06_aval_garantizado') }}
