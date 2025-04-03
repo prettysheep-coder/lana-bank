@@ -10,7 +10,7 @@ use cala_ledger::{
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
-use crate::statement::*;
+use core_accounting::statement::*;
 
 use error::*;
 

@@ -4,22 +4,20 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
     account_set::{
         AccountSetMemberByExternalId, AccountSetMemberId, AccountSetMembersByExternalIdCursor,
         NewAccountSet,
     },
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
-use core_accounting::AccountCode;
-
-use crate::statement::*;
+use crate::{AccountCode, primitives::LedgerAccountSetId, statement::*};
 
 use error::*;
 
 #[derive(Clone)]
 pub struct TrialBalanceAccount {
-    pub id: AccountSetId,
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub external_id: String,
     pub code: AccountCode,
@@ -31,7 +29,7 @@ pub struct TrialBalanceAccount {
 
 #[derive(Clone)]
 pub struct TrialBalanceRoot {
-    pub id: AccountSetId,
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,
@@ -42,14 +40,14 @@ pub struct TrialBalanceRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrialBalanceAccountCursor {
-    id: AccountSetId,
+    id: LedgerAccountSetId,
     pub external_id: String,
 }
 
 impl From<TrialBalanceAccountCursor> for AccountSetMembersByExternalIdCursor {
     fn from(cursor: TrialBalanceAccountCursor) -> Self {
         Self {
-            id: AccountSetMemberId::AccountSet(cursor.id),
+            id: AccountSetMemberId::AccountSet(cursor.id.into()),
             external_id: Some(cursor.external_id),
         }
     }
@@ -62,7 +60,7 @@ impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountCursor {
             _ => panic!("Unexpected non-AccountSet cursor id found"),
         };
         Self {
-            id,
+            id: id.into(),
             external_id: cursor.external_id.expect("external_id should exist"),
         }
     }
@@ -81,13 +79,13 @@ impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceA
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
         let json = serde_json::to_string(&self).expect("could not serialize cursor");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;
@@ -157,7 +155,7 @@ impl TrialBalanceLedger {
             .into_values();
 
         Ok(TrialBalanceRoot {
-            id: account_set_id,
+            id: account_set_id.into(),
             name: values.name,
             description: values.description,
             btc_balance: balances_by_id.btc_for_account(account_set_id)?,
@@ -392,7 +390,7 @@ impl TrialBalanceLedger {
                 let code = external_id.parse()?;
 
                 Ok(TrialBalanceAccount {
-                    id: account_set_id,
+                    id: account_set_id.into(),
                     name: values.name,
                     external_id,
                     description: values.description,

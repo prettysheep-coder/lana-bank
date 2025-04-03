@@ -17,10 +17,12 @@ pub use core_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
-    LedgerAccountId;
+    LedgerAccountId,
+    LedgerAccountSetId;
 
     LedgerAccountId => CalaAccountId,
     LedgerAccountId => CalaAccountSetId,
+    LedgerAccountSetId => CalaAccountSetId,
 }
 
 #[derive(Error, Debug)]
@@ -246,6 +248,7 @@ impl AccountSpec {
 pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
+pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountSetId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -254,6 +257,7 @@ pub enum CoreAccountingAction {
     ChartAction(ChartAction),
     JournalAction(JournalAction),
     LedgerAccountAction(LedgerAccountAction),
+    TrialBalanceAction(TrialBalanceAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -262,6 +266,7 @@ pub enum CoreAccountingAction {
 pub enum CoreAccountingObject {
     Chart(ChartAllOrOne),
     Journal(JournalAllOrOne),
+    TrialBalance(TrialBalanceAllOrOne),
     LedgerAccount(LedgerAccountAllOrOne),
 }
 
@@ -289,6 +294,14 @@ impl CoreAccountingObject {
     pub fn ledger_account(id: LedgerAccountId) -> Self {
         CoreAccountingObject::LedgerAccount(AllOrOne::ById(id))
     }
+
+    pub fn all_trial_balance() -> Self {
+        CoreAccountingObject::TrialBalance(AllOrOne::All)
+    }
+
+    pub fn trial_balance(id: LedgerAccountSetId) -> Self {
+        CoreAccountingObject::TrialBalance(AllOrOne::ById(id))
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -299,6 +312,7 @@ impl Display for CoreAccountingObject {
             Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Journal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             LedgerAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            TrialBalance(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -324,6 +338,10 @@ impl FromStr for CoreAccountingObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse LedgerAccount")?;
                 CoreAccountingObject::LedgerAccount(obj_ref)
             }
+            TrialBalance => {
+                let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
+                CoreAccountingObject::TrialBalance(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -344,6 +362,13 @@ impl CoreAccountingAction {
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::List);
     pub const LEDGER_ACCOUNT_READ_HISTORY: Self =
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadHistory);
+
+    pub const TRIAL_BALANCE_CREATE: Self =
+        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Create);
+    pub const TRIAL_BALANCE_UPDATE: Self =
+        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Update);
+    pub const TRIAL_BALANCE_READ: Self =
+        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Read);
 }
 
 impl Display for CoreAccountingAction {
@@ -354,6 +379,7 @@ impl Display for CoreAccountingAction {
             ChartAction(action) => action.fmt(f),
             JournalAction(action) => action.fmt(f),
             LedgerAccountAction(action) => action.fmt(f),
+            TrialBalanceAction(action) => action.fmt(f),
         }
     }
 }
@@ -372,6 +398,9 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::LedgerAccountAction => {
                 CoreAccountingAction::from(action.parse::<LedgerAccountAction>()?)
+            }
+            CoreAccountingActionDiscriminants::TrialBalanceAction => {
+                CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
             }
         };
         Ok(res)
@@ -415,6 +444,20 @@ pub enum JournalAction {
 impl From<JournalAction> for CoreAccountingAction {
     fn from(action: JournalAction) -> Self {
         CoreAccountingAction::JournalAction(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum TrialBalanceAction {
+    Create,
+    Update,
+    Read,
+}
+
+impl From<TrialBalanceAction> for CoreAccountingAction {
+    fn from(action: TrialBalanceAction) -> Self {
+        CoreAccountingAction::TrialBalanceAction(action)
     }
 }
 

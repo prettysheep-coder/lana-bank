@@ -13,10 +13,8 @@ pub mod primitives;
 pub mod profit_and_loss;
 pub mod report;
 pub mod service_account;
-pub mod statement;
 pub mod storage;
 pub mod terms_template;
-pub mod trial_balance;
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;
@@ -103,6 +101,17 @@ pub mod accounting {
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
     pub type ChartOfAccounts =
         core_accounting::ChartOfAccounts<crate::authorization::Authorization>;
+}
+
+pub mod trial_balance {
+    pub use core_accounting::trial_balance::{
+        error, TrialBalanceAccount, TrialBalanceAccountCursor, TrialBalanceRoot,
+    };
+    pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
+}
+
+pub mod statement {
+    pub use core_accounting::statement::*;
 }
 
 pub mod credit_facility {

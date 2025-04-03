@@ -40,6 +40,7 @@ impl TrialBalance {
                 let first = first.expect("First always exists");
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
                 let res = app
+                    .accounting()
                     .trial_balances()
                     .trial_balance_accounts(
                         sub,

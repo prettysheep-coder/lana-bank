@@ -14,7 +14,7 @@ core-money = { path = "../money" }
 outbox = { path = "../../lib/outbox" }
 
 cala-ledger = { workspace = true }
-es-entity = { workspace = true }
+es-entity = { workspace = true, features = ["graphql"] }
 sqlx = { workspace = true }
 
 base64 = { workspace = true }

@@ -30,7 +30,6 @@ use crate::{
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
-    trial_balance::TrialBalances,
     user::Users,
     user_onboarding::UserOnboarding,
 };
@@ -50,7 +49,6 @@ pub struct LanaApp {
     applicants: Applicants,
     users: Users,
     credit_facilities: CreditFacilities,
-    trial_balances: TrialBalances,
     profit_and_loss_statements: ProfitAndLossStatements,
     balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
@@ -91,23 +89,22 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_init = JournalInit::journal(&cala).await?;
-        let trial_balances =
-            TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let pl_statements =
             ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let balance_sheets =
             BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
+        ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
         StatementsInit::statements(
-            &trial_balances,
+            accounting.trial_balances(),
             &pl_statements,
             &balance_sheets,
             &cash_flow_statements,
         )
         .await?;
-        let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
-        ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
+
         let general_ledger = GeneralLedger::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
@@ -160,7 +157,6 @@ impl LanaApp {
             price,
             report,
             credit_facilities,
-            trial_balances,
             profit_and_loss_statements: pl_statements,
             balance_sheets,
             cash_flow_statements,
@@ -232,10 +228,6 @@ impl LanaApp {
 
     pub fn credit_facilities(&self) -> &CreditFacilities {
         &self.credit_facilities
-    }
-
-    pub fn trial_balances(&self) -> &TrialBalances {
-        &self.trial_balances
     }
 
     pub fn profit_and_loss_statements(&self) -> &ProfitAndLossStatements {

@@ -3,39 +3,19 @@ mod helpers;
 use chrono::Utc;
 use rand::Rng;
 
-use lana_app::{authorization::Authorization, trial_balance::TrialBalances};
+use authz::dummy::{DummyPerms, DummySubject};
+use helpers::{action, object};
+
+use core_accounting::{CalaJournalId, Chart, CoreAccounting, TrialBalances};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 
-use core_accounting::*;
-use rbac_types::Subject;
-
-pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
-    let pg_host = std::env::var("PG_HOST").unwrap_or("localhost".to_string());
-    let pg_con = format!("postgres://user:password@{pg_host}:5433/pg");
-    let pool = sqlx::PgPool::connect(&pg_con).await?;
-    Ok(pool)
-}
-
-pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
-    use cala_ledger::journal::*;
-
-    let id = JournalId::new();
-    let new = NewJournal::builder()
-        .id(id)
-        .name("Test journal")
-        .build()
-        .unwrap();
-    let journal = cala.journals().create(new).await?;
-    Ok(journal.id)
-}
-
 pub async fn init_chart(
     pool: &sqlx::Pool<sqlx::Postgres>,
-    authz: &Authorization,
+    authz: &DummyPerms<action::DummyAction, object::DummyObject>,
     cala: &CalaLedger,
     journal_id: CalaJournalId,
-    subject: &Subject,
+    subject: &DummySubject,
 ) -> anyhow::Result<Chart> {
     let accounting = CoreAccounting::new(pool, authz, cala, journal_id);
 
@@ -65,9 +45,8 @@ pub async fn init_chart(
 
 #[tokio::test]
 async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
-    use lana_app::{audit::*, authorization::init as init_authz};
-
-    let pool = init_pool().await?;
+    let pool = helpers::init_pool().await?;
+    let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -75,22 +54,19 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
-    let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
-    let journal_id = init_journal(&cala).await?;
-    let (_, superuser_subject) = helpers::init_users(&pool, &authz).await?;
+    let journal_id = helpers::init_journal(&cala).await?;
 
     let trial_balance_name = format!(
         "Trial Balance #{:05}",
         rand::thread_rng().gen_range(0..100000)
     );
-    let trial_balances = TrialBalances::init(&pool, &authz, &cala, journal_id).await?;
+    let trial_balances = TrialBalances::new(&pool, &authz, &cala, journal_id);
     trial_balances
         .create_trial_balance_statement(trial_balance_name.to_string())
         .await?;
     let trial_balance = trial_balances
         .trial_balance_accounts(
-            &superuser_subject,
+            &DummySubject,
             trial_balance_name.to_string(),
             Utc::now(),
             None,
@@ -99,13 +75,13 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .await?;
     assert_eq!(trial_balance.entities.len(), 0);
 
-    let chart = init_chart(&pool, &authz, &cala, journal_id, &superuser_subject).await?;
+    let chart = init_chart(&pool, &authz, &cala, journal_id, &DummySubject).await?;
     trial_balances
         .add_chart_to_trial_balance(trial_balance_name.to_string(), chart)
         .await?;
     let trial_balance = trial_balances
         .trial_balance_accounts(
-            &superuser_subject,
+            &DummySubject,
             trial_balance_name.to_string(),
             Utc::now(),
             None,

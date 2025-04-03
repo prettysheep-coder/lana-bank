@@ -8,12 +8,11 @@ use cala_ledger::CalaLedger;
 use chrono::{DateTime, Utc};
 use rbac_types::{BalanceSheetAction, BalanceSheetConfigurationAction, Subject};
 
-use core_accounting::Chart;
+use core_accounting::{statement::*, Chart};
 
 use crate::{
     authorization::{Authorization, Object},
     primitives::CalaAccountSetId,
-    statement::*,
 };
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
