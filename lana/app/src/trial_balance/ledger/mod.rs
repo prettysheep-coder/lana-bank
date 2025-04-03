@@ -18,9 +18,10 @@ use crate::statement::*;
 use error::*;
 
 #[derive(Clone)]
-pub struct TrialBalanceAccountSet {
+pub struct TrialBalanceAccount {
     pub id: AccountSetId,
     pub name: String,
+    pub external_id: String,
     pub code: AccountCode,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,
@@ -40,13 +41,13 @@ pub struct TrialBalanceRoot {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrialBalanceAccountSetsCursor {
+pub struct TrialBalanceAccountCursor {
     id: AccountSetId,
     pub external_id: String,
 }
 
-impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersByExternalIdCursor {
-    fn from(cursor: TrialBalanceAccountSetsCursor) -> Self {
+impl From<TrialBalanceAccountCursor> for AccountSetMembersByExternalIdCursor {
+    fn from(cursor: TrialBalanceAccountCursor) -> Self {
         Self {
             id: AccountSetMemberId::AccountSet(cursor.id),
             external_id: Some(cursor.external_id),
@@ -54,7 +55,7 @@ impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersByExternalIdCursor
     }
 }
 
-impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountSetsCursor {
+impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountCursor {
     fn from(cursor: AccountSetMembersByExternalIdCursor) -> Self {
         let id = match cursor.id {
             AccountSetMemberId::AccountSet(id) => id,
@@ -67,16 +68,16 @@ impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountSetsCursor
     }
 }
 
-impl From<&TrialBalanceAccountSet> for TrialBalanceAccountSetsCursor {
-    fn from(account_set: &TrialBalanceAccountSet) -> Self {
+impl From<&TrialBalanceAccount> for TrialBalanceAccountCursor {
+    fn from(account: &TrialBalanceAccount) -> Self {
         Self {
-            id: account_set.id,
-            external_id: account_set.code.to_string(),
+            id: account.id,
+            external_id: account.external_id.clone(),
         }
     }
 }
 
-impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceAccountSetsCursor {
+impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceAccountCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -323,15 +324,15 @@ impl TrialBalanceLedger {
         name: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-        query: es_entity::PaginatedQueryArgs<TrialBalanceAccountSetsCursor>,
+        query: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<TrialBalanceAccountSet, TrialBalanceAccountSetsCursor>,
+        es_entity::PaginatedQueryRet<TrialBalanceAccount, TrialBalanceAccountCursor>,
         TrialBalanceLedgerError,
     > {
         let statement_id = self.get_id_from_reference(name).await?;
 
         let member_account_sets = self
-            .get_member_account_sets::<TrialBalanceAccountSetsCursor>(statement_id, query)
+            .get_member_account_sets::<TrialBalanceAccountCursor>(statement_id, query)
             .await?;
         let member_account_sets_tuples = member_account_sets
             .entities
@@ -365,7 +366,7 @@ impl TrialBalanceLedger {
         &self,
         member_account_sets_tuples: Vec<(AccountSetId, Option<String>)>,
         balances_by_id: &BalancesByAccount,
-    ) -> Result<Vec<TrialBalanceAccountSet>, TrialBalanceLedgerError> {
+    ) -> Result<Vec<TrialBalanceAccount>, TrialBalanceLedgerError> {
         let mut account_sets = self
             .cala
             .account_sets()
@@ -387,16 +388,17 @@ impl TrialBalanceLedger {
                 let created_at = account_set.created_at();
                 let values = account_set.into_values();
 
-                Ok(TrialBalanceAccountSet {
+                let external_id = values.external_id.expect("external_id should exist");
+                let code = external_id.parse()?;
+
+                Ok(TrialBalanceAccount {
                     id: account_set_id,
                     name: values.name,
+                    external_id,
                     description: values.description,
                     btc_balance: balances_by_id.btc_for_account(account_set_id)?,
                     usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-                    code: values
-                        .external_id
-                        .expect("external_id should exist")
-                        .parse()?,
+                    code,
                     member_created_at: created_at,
                 })
             })
