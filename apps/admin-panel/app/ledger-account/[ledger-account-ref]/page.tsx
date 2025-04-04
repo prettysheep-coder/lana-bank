@@ -226,8 +226,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                 value={
                   <DataTable
                     autoFocus={false}
-                    compact
-                    noHeader
                     data={ledgerAccount?.ancestors || []}
                     columns={[
                       { key: "name", header: t("details.name") },
