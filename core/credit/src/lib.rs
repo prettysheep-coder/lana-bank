@@ -416,7 +416,7 @@ where
             .find_by_id(sub, customer_id)
             .await?
             .ok_or(CoreCreditError::CustomerNotFound)?;
-        if customer.status.is_inactive() {
+        if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
         }
 
