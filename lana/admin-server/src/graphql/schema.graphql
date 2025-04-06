@@ -838,6 +838,7 @@ type Deposit {
 type DepositAccount {
 	id: ID!
 	depositAccountId: UUID!
+	shortCodeId: String!
 	customerId: UUID!
 	createdAt: Timestamp!
 	deposits: [Deposit!]!

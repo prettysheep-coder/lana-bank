@@ -179,6 +179,16 @@ where
             )
             .await?;
 
+        let mut op = self.accounts.begin_op().await?;
+
+        let next_short_code_id_val: i64 =
+            sqlx::query_scalar!("SELECT nextval('core_deposit_accounts_short_code_id_seq')")
+                .fetch_one(&mut **op.tx())
+                .await?
+                .expect("Database sequence failed to return a value");
+
+        let short_code_id = DepositShortCodeId::from(next_short_code_id_val);
+
         let account_id = DepositAccountId::new();
         let new_account = NewDepositAccount::builder()
             .id(account_id)
@@ -188,10 +198,10 @@ where
             .description(name.to_string())
             .active(active)
             .audit_info(audit_info.clone())
+            .short_code_id(short_code_id)
             .build()
             .expect("Could not build new account");
 
-        let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         self.ledger
@@ -224,6 +234,31 @@ where
 
         match self.accounts.find_by_id(id).await {
             Ok(accounts) => Ok(Some(accounts)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[instrument(name = "deposit.find_account_by_short_code_id", skip(self), err)]
+    pub async fn find_account_by_short_code_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        short_code_id: impl Into<DepositShortCodeId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        let short_code_id = short_code_id.into();
+
+        match self.accounts.find_by_short_code_id(short_code_id).await {
+            // FIXME: what is the right pattern to handle permission when not access from the primary ID?
+            Ok(account) => {
+                self.authz
+                    .enforce_permission(
+                        sub,
+                        CoreDepositObject::deposit_account(account.id),
+                        CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+                    )
+                    .await?;
+                Ok(Some(account))
+            }
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
         }

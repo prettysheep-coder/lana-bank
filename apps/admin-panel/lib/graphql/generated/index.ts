@@ -865,6 +865,7 @@ export type DepositAccount = {
   deposits: Array<Deposit>;
   history: DepositAccountHistoryEntryConnection;
   id: Scalars['ID']['output'];
+  shortCodeId: Scalars['String']['output'];
   withdrawals: Array<Withdrawal>;
 };
 

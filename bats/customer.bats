@@ -104,6 +104,9 @@ wait_for_approval() {
   deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
   cache_value "deposit_account_id" $deposit_account_id
 
+  deposit_short_id=$(graphql_output .data.customer.depositAccount.shortCodeId)
+  [[ "$deposit_short_id" -ge 1000 && "$deposit_short_id" -le 2000 ]] || { echo "Expected deposit_short_id between 1000 and 2000, got $deposit_short_id"; exit 1; }
+
   variables=$(
     jq -n \
       --arg depositAccountId "$deposit_account_id" \
