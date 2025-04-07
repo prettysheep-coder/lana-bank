@@ -13,11 +13,12 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use manual_transactions::ManualTransactions;
 use tracing::instrument;
 
-pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
+pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 use error::CoreAccountingError;
-pub use journal::{error as journal_error, Journal};
+pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use manual_transactions::ManualEntryInput;
 pub use primitives::*;
@@ -30,6 +31,7 @@ where
     chart_of_accounts: ChartOfAccounts<Perms>,
     journal: Journal<Perms>,
     ledger_accounts: LedgerAccounts<Perms>,
+    manual_transactions: ManualTransactions<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -42,6 +44,7 @@ where
             chart_of_accounts: self.chart_of_accounts.clone(),
             journal: self.journal.clone(),
             ledger_accounts: self.ledger_accounts.clone(),
+            manual_transactions: self.manual_transactions.clone(),
         }
     }
 }
@@ -61,11 +64,13 @@ where
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
+        let manual_transactions = ManualTransactions::new(authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
             journal,
             ledger_accounts,
+            manual_transactions,
         }
     }
 
@@ -79,6 +84,10 @@ where
 
     pub fn ledger_accounts(&self) -> &LedgerAccounts<Perms> {
         &self.ledger_accounts
+    }
+
+    pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
+        &self.manual_transactions
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
@@ -148,9 +157,10 @@ where
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
-        // self.manual_transactions
-        //     .execute(sub, chart, description, entries)
-        //     .await?;
+        let x = self
+            .manual_transactions
+            .execute(sub, &chart, description, entries)
+            .await?;
         Ok(())
     }
 }

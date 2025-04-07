@@ -7,7 +7,7 @@ use crate::primitives::{AccountCode, LedgerAccountId};
 
 #[derive(Builder)]
 pub struct ManualEntryInput {
-    account_ref: AccountRef,
+    pub(super) account_ref: AccountRef,
     amount: Decimal,
     currency: Currency,
     direction: DebitOrCredit,
