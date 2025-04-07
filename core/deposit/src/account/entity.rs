@@ -7,6 +7,8 @@ use audit::AuditInfo;
 
 use crate::primitives::*;
 
+use super::primitives::DepositAccountShortCodeId;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DepositAccountId")]

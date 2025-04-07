@@ -1,13 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
-use sqlx::Type;
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
-
-use crate::error::CoreDepositError;
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
@@ -26,45 +23,6 @@ es_entity::entity_id! {
     DepositId => CalaTransactionId,
     WithdrawalId => CalaTransactionId,
     WithdrawalId => ApprovalProcessId
-}
-
-// Manually define DepositShortCodeId to wrap i64 (BIGINT)
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, Type)]
-#[sqlx(transparent)]
-pub struct DepositAccountShortCodeId(i64);
-
-impl DepositAccountShortCodeId {
-    pub fn new(id: i64) -> Self {
-        // Add validation if necessary
-        Self(id)
-    }
-
-    pub fn into_inner(self) -> i64 {
-        self.0
-    }
-}
-
-impl From<i64> for DepositAccountShortCodeId {
-    fn from(value: i64) -> Self {
-        Self::new(value)
-    }
-}
-
-impl std::fmt::Display for DepositAccountShortCodeId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl FromStr for DepositAccountShortCodeId {
-    type Err = CoreDepositError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let inner = s
-            .parse()
-            .map_err(|_| CoreDepositError::AccountCodeParseError)?;
-        Ok(Self::new(inner))
-    }
 }
 
 pub use core_customer::AccountStatus;

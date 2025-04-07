@@ -73,7 +73,7 @@ CREATE SEQUENCE core_deposit_accounts_short_code_id_seq
     START WITH 1000
     INCREMENT BY 1
     NO MINVALUE
-    MAXVALUE 99999999999999
+    MAXVALUE 9999999
     NO CYCLE
     OWNED BY core_deposit_accounts.short_code_id;
 

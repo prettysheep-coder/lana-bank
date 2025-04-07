@@ -27,7 +27,7 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub use account::DepositAccount;
-use account::*;
+use account::{primitives::DepositAccountShortCodeId, *};
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
@@ -181,13 +181,7 @@ where
 
         let mut op = self.accounts.begin_op().await?;
 
-        let next_short_code_id_val: i64 =
-            sqlx::query_scalar!("SELECT nextval('core_deposit_accounts_short_code_id_seq')")
-                .fetch_one(&mut **op.tx())
-                .await?
-                .expect("Database sequence failed to return a value");
-
-        let short_code_id = DepositShortCodeId::from(next_short_code_id_val);
+        let short_code_id = self.accounts.next_short_code_id(op.tx()).await?;
 
         let account_id = DepositAccountId::new();
         let new_account = NewDepositAccount::builder()
@@ -243,9 +237,9 @@ where
     pub async fn find_account_by_short_code_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        short_code_id: impl Into<DepositShortCodeId> + std::fmt::Debug,
+        code: String,
     ) -> Result<Option<DepositAccount>, CoreDepositError> {
-        let short_code_id = short_code_id.into();
+        let short_code_id = code.parse::<DepositAccountShortCodeId>()?;
 
         match self.accounts.find_by_short_code_id(short_code_id).await {
             // FIXME: what is the right pattern to handle permission when not access from the primary ID?
