@@ -14,6 +14,8 @@ pub enum ManualTransactionError {
     AccountError(#[from] cala_ledger::account::error::AccountError),
     #[error("ManualTransactionError - CalaTxTemplateError: {0}")]
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
+    #[error("ManualTransactionError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);

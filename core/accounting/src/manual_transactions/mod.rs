@@ -9,10 +9,14 @@ use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, JournalId};
 use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 
-use crate::{Chart, LedgerAccountId};
+use crate::{
+    primitives::{CoreAccountingAction, CoreAccountingObject},
+    Chart, LedgerAccountId,
+};
 
 use error::*;
 pub use primitives::*;
+use repo::*;
 
 #[derive(Clone)]
 pub struct ManualTransactions<Perms>
@@ -22,17 +26,27 @@ where
     ledger: ManualTransactionLedger,
     authz: Perms,
     journal_id: JournalId,
+    repo: ManualTransactionRepo,
 }
 
 impl<Perms> ManualTransactions<Perms>
 where
     Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn new(authz: &Perms, cala: &CalaLedger, journal_id: JournalId) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        cala: &CalaLedger,
+        journal_id: JournalId,
+    ) -> Self {
+        let repo = ManualTransactionRepo::new(pool);
         Self {
             ledger: ManualTransactionLedger::new(cala, journal_id),
             authz: authz.clone(),
             journal_id,
+            repo,
         }
     }
 
@@ -43,12 +57,14 @@ where
         description: String,
         entries: Vec<ManualEntryInput>,
     ) -> Result<(), ManualTransactionError> {
-        // check how many entries exist
-        // lookup template for that amount of entries
-        //   If it does not exist yet - create it
-        // resolve all account ids to leaf accounts
-        //   if its an account code -> lazy create the 'manual' account that backs the COA account
-        //   set
+        let _audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_manual_transactions(),
+                CoreAccountingAction::MANUAL_TRANSACTION_CREATE,
+            )
+            .await?;
 
         let mut account_ids: Vec<LedgerAccountId> = vec![];
 

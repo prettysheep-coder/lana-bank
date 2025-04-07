@@ -16,9 +16,9 @@ use cala_ledger::CalaLedger;
 use manual_transactions::ManualTransactions;
 use tracing::instrument;
 
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
 use error::CoreAccountingError;
-pub use journal::{Journal, error as journal_error};
+pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use manual_transactions::ManualEntryInput;
 pub use primitives::*;
@@ -64,7 +64,7 @@ where
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
-        let manual_transactions = ManualTransactions::new(authz, cala, journal_id);
+        let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
