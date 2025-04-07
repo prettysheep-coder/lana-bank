@@ -46,13 +46,13 @@ gql`
     balanceRange {
       __typename
       ... on UsdLedgerAccountBalanceRange {
-        diff {
-          usdSettledDiff: settled
+        end {
+          usdSettled: settled
         }
       }
       ... on BtcLedgerAccountBalanceRange {
-        diff {
-          btcSettledDiff: settled
+        end {
+          btcSettled: settled
         }
       }
     }
@@ -208,13 +208,13 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                       "UsdLedgerAccountBalanceRange" ? (
                         <Balance
                           currency="usd"
-                          amount={ledgerAccount?.balanceRange?.diff?.usdSettledDiff}
+                          amount={ledgerAccount?.balanceRange?.end?.usdSettled}
                         />
                       ) : ledgerAccount?.balanceRange.__typename ===
                         "BtcLedgerAccountBalanceRange" ? (
                         <Balance
                           currency="btc"
-                          amount={ledgerAccount?.balanceRange?.diff?.btcSettledDiff}
+                          amount={ledgerAccount?.balanceRange?.end?.btcSettled}
                         />
                       ) : (
                         "-"
