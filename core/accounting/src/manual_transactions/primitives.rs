@@ -12,6 +12,7 @@ pub struct ManualEntryInput {
     pub(super) account_ref: AccountRef,
     pub(super) amount: Decimal,
     pub(super) currency: Currency,
+    #[builder(setter(into))]
     pub(super) description: String,
     pub(super) direction: DebitOrCredit,
 }

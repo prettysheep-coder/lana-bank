@@ -1,10 +1,7 @@
 mod helpers;
 
 use authz::dummy::DummySubject;
-use cala_ledger::{
-    account::NewAccount, account_set::NewAccountSet, AccountId, AccountSetId, CalaLedger,
-    CalaLedgerConfig, Currency, DebitOrCredit,
-};
+use cala_ledger::{CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit};
 use core_accounting::{CoreAccounting, ManualEntryInput};
 use helpers::{action, object};
 use rust_decimal_macros::dec;
@@ -27,12 +24,11 @@ async fn manual_transaction_with_two_entries() -> anyhow::Result<()> {
         2,,Liabilities
         "#;
     let chart_id = chart.id;
-    let chart = accounting.chart_of_accounts().import_from_csv(&DummySubject, chart_id, import).await?;
-
+    let _ = accounting.chart_of_accounts().import_from_csv(&DummySubject, chart_id, import).await?;
 
     let entries = vec![
-        ManualEntryInput::builder().account_ref("1".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).build().unwrap(),
-        ManualEntryInput::builder().account_ref("2".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).build().unwrap(),
+        ManualEntryInput::builder().account_ref("1".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).description("test debit").build().unwrap(),
+        ManualEntryInput::builder().account_ref("2".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test credit").build().unwrap(),
     ];
     accounting.execute_manual_transaction(&DummySubject, &chart_ref, "Test transaction".to_string(), entries).await?;
     Ok(())
