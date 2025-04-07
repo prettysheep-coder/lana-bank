@@ -9,7 +9,7 @@ pub use cala_ledger::TransactionId as CalaTransactionId;
 
 #[derive(Builder)]
 pub struct ManualEntryInput {
-    pub(super) account_ref: AccountRef,
+    pub(super) account_ref: AccountIdOrCode,
     pub(super) amount: Decimal,
     pub(super) currency: Currency,
     #[builder(setter(into))]
@@ -18,19 +18,19 @@ pub struct ManualEntryInput {
 }
 
 #[derive(Clone, Debug)]
-pub enum AccountRef {
+pub enum AccountIdOrCode {
     Id(LedgerAccountId),
     Code(AccountCode),
 }
 
-impl std::str::FromStr for AccountRef {
+impl std::str::FromStr for AccountIdOrCode {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if let Ok(id) = s.parse::<LedgerAccountId>() {
-            Ok(AccountRef::Id(id))
+            Ok(AccountIdOrCode::Id(id))
         } else {
-            Ok(AccountRef::Code(s.parse()?))
+            Ok(AccountIdOrCode::Code(s.parse()?))
         }
     }
 }

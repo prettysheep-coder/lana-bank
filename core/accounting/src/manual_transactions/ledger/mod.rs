@@ -2,16 +2,15 @@ mod template;
 
 use cala_ledger::{CalaLedger, JournalId};
 
-use cala_ledger::{
-    account_set::{error::AccountSetError, NewAccountSet},
-    AccountSetId,
-};
+use cala_ledger::{account::NewAccount, AccountId, AccountSetId};
+
+use crate::{primitives::AccountCode, Chart, LedgerAccountId};
 
 use super::{
     error::ManualTransactionError,
-    primitives::{AccountRef, CalaTransactionId},
+    primitives::{AccountIdOrCode, CalaTransactionId},
 };
-use crate::{Chart, LedgerAccountId};
+
 use template::*;
 pub use template::{EntryParams, ManualTransactionParams};
 
@@ -39,18 +38,18 @@ impl ManualTransactionLedger {
         Ok(())
     }
 
-    /// Returns account ID representing `account_ref`.
     pub async fn resolve_account_ref(
         &self,
         chart: &Chart,
-        account_ref: &AccountRef,
+        account_ref: &AccountIdOrCode,
     ) -> Result<LedgerAccountId, ManualTransactionError> {
         match account_ref {
-            AccountRef::Id(account_id) => Ok(*account_id),
-            AccountRef::Code(code) => match chart.account_spec(code) {
-                Some((_, coa_parent)) => {
-                    self.find_or_create_manual_account_set(
-                        coa_parent,
+            AccountIdOrCode::Id(account_id) => Ok(*account_id),
+            AccountIdOrCode::Code(code) => match chart.account_spec(code) {
+                Some((_, parent_id)) => {
+                    self.find_or_create_manual_account(
+                        parent_id,
+                        code,
                         code.manual_account_external_id(chart.id),
                     )
                     .await
@@ -60,45 +59,43 @@ impl ManualTransactionLedger {
         }
     }
 
-    /// Returns account set for manual transactions with `external_id` if it exists,
-    /// otherwise creates new one under `parent` (which is expected to be in the Chart of Accounts).
-    /// Returns ID of the existing or new account set.
-    async fn find_or_create_manual_account_set(
+    async fn find_or_create_manual_account(
         &self,
-        parent: &AccountSetId,
+        parent_id: &AccountSetId,
+        parent_code: &AccountCode,
         external_id: String,
     ) -> Result<LedgerAccountId, ManualTransactionError> {
-        let manual_account_set = self
+        let manual_account = self
             .cala
-            .account_sets()
+            .accounts()
             .find_by_external_id(external_id.clone())
             .await;
 
-        match manual_account_set {
+        match manual_account {
             Ok(existing) => Ok(existing.id().into()),
-            Err(AccountSetError::CouldNotFindByExternalId(_)) => {
-                self.create_manual_account_set(parent, &external_id).await
+            Err(e) if e.was_not_found() => {
+                self.create_manual_account_set(parent_id, parent_code, &external_id)
+                    .await
             }
             Err(err) => Err(err.into()),
         }
     }
 
-    /// Creates new account set for manual transactions with `external_id`
-    /// under `parent`. Returns ID of the new account set.
     async fn create_manual_account_set(
         &self,
-        parent: &AccountSetId,
+        parent_id: &AccountSetId,
+        parent_code: &AccountCode,
         external_id: &str,
     ) -> Result<LedgerAccountId, ManualTransactionError> {
-        let manual_account_set = self
+        let manual_account = self
             .cala
-            .account_sets()
+            .accounts()
             .create(
-                NewAccountSet::builder()
-                    .id(AccountSetId::new())
+                NewAccount::builder()
+                    .name(format!("{} Manual", parent_code))
+                    .id(AccountId::new())
+                    .code(external_id)
                     .external_id(external_id)
-                    .name("???")
-                    .journal_id(self.journal_id)
                     .build()
                     .unwrap(),
             )
@@ -106,9 +103,9 @@ impl ManualTransactionLedger {
 
         self.cala
             .account_sets()
-            .add_member(*parent, manual_account_set.id)
+            .add_member(*parent_id, manual_account.id)
             .await?;
 
-        Ok(manual_account_set.id.into())
+        Ok(manual_account.id.into())
     }
 }

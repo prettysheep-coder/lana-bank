@@ -52,14 +52,13 @@ where
 
         let mut account_ids: Vec<LedgerAccountId> = vec![];
 
-        // NEEDED TO COMMENT THIS TO GET TEST TO PASS
-        // for i in &entries {
-        //     account_ids.push(
-        //         self.ledger
-        //             .resolve_account_ref(chart, &i.account_ref)
-        //             .await?,
-        //     );
-        // }
+        for i in &entries {
+            account_ids.push(
+                self.ledger
+                    .resolve_account_ref(chart, &i.account_ref)
+                    .await?,
+            );
+        }
 
         let tx_id = CalaTransactionId::new();
         self.ledger
