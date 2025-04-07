@@ -20,6 +20,7 @@ use crate::{
 use error::*;
 use ledger::*;
 
+#[derive(Debug, Clone)]
 pub struct LedgerAccount {
     pub id: LedgerAccountId,
     pub name: String,
@@ -29,7 +30,7 @@ pub struct LedgerAccount {
 
     pub ancestor_ids: Vec<LedgerAccountId>,
 
-    is_leaf: bool,
+    pub is_leaf: bool,
 }
 
 impl LedgerAccount {

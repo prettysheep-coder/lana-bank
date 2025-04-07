@@ -7,3 +7,8 @@ pub use journal_entry::*;
 pub use ledger_account::*;
 pub use ledger_transaction::*;
 pub use manual_transaction::*;
+mod profit_and_loss;
+
+pub use journal_entry::*;
+pub use ledger_account::*;
+pub use profit_and_loss::*;
