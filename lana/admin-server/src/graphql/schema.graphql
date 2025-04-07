@@ -1341,6 +1341,8 @@ type Query {
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
+	depositAccount(id: UUID!): DepositAccount
+	depositAccountByCode(code: String!): DepositAccount
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
 	journalEntries(first: Int!, after: String): JournalEntryConnection!

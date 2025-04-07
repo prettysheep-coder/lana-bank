@@ -1508,6 +1508,8 @@ export type Query = {
   customers: CustomerConnection;
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
+  depositAccount?: Maybe<DepositAccount>;
+  depositAccountByCode?: Maybe<DepositAccount>;
   depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
@@ -1615,6 +1617,16 @@ export type QueryCustomersArgs = {
 
 export type QueryDepositArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDepositAccountArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDepositAccountByCodeArgs = {
+  code: Scalars['String']['input'];
 };
 
 

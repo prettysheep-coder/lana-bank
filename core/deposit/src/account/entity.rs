@@ -14,7 +14,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
-        short_code_id: DepositShortCodeId,
+        short_code_id: DepositAccountShortCodeId,
         ledger_account_id: CalaAccountId,
         reference: String,
         name: String,
@@ -33,7 +33,7 @@ pub enum DepositAccountEvent {
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
-    pub short_code_id: DepositShortCodeId,
+    pub short_code_id: DepositAccountShortCodeId,
     pub reference: String,
     pub name: String,
     pub description: String,
@@ -103,7 +103,7 @@ pub struct NewDepositAccount {
     pub(super) id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
-    pub(super) short_code_id: DepositShortCodeId,
+    pub(super) short_code_id: DepositAccountShortCodeId,
     pub(super) reference: String,
     pub(super) name: String,
     pub(super) description: String,

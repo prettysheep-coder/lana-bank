@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::{DepositAccountHolderId, DepositAccountId, DepositShortCodeId};
+use crate::primitives::{DepositAccountHolderId, DepositAccountId, DepositAccountShortCodeId};
 
 use super::{entity::*, error::*};
 
@@ -12,7 +12,7 @@ use super::{entity::*, error::*};
     err = "DepositAccountError",
     columns(
         account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false)),
-        short_code_id(ty = "DepositShortCodeId", list_for)
+        short_code_id(ty = "DepositAccountShortCodeId", list_for)
     ),
     tbl_prefix = "core"
 )]
