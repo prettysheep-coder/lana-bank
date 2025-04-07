@@ -46,37 +46,13 @@ gql`
     balanceRange {
       __typename
       ... on UsdLedgerAccountBalanceRange {
-        start {
-          usdSettled: settled
-          usdPending: pending
-          usdEncumbrance: encumbrance
-        }
         diff {
           usdSettledDiff: settled
-          usdPendingDiff: pending
-          usdEncumbranceDiff: encumbrance
-        }
-        end {
-          usdSettledEnd: settled
-          usdPendingEnd: pending
-          usdEncumbranceEnd: encumbrance
         }
       }
       ... on BtcLedgerAccountBalanceRange {
-        start {
-          btcSettled: settled
-          btcPending: pending
-          btcEncumbrance: encumbrance
-        }
         diff {
           btcSettledDiff: settled
-          btcPendingDiff: pending
-          btcEncumbranceDiff: encumbrance
-        }
-        end {
-          btcSettledEnd: settled
-          btcPendingEnd: pending
-          btcEncumbranceEnd: encumbrance
         }
       }
     }
@@ -241,7 +217,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                           amount={ledgerAccount?.balanceRange?.diff?.btcSettledDiff}
                         />
                       ) : (
-                        <>N/A</>
+                        "-"
                       )
                     }
                   />
