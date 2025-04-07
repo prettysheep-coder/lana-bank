@@ -43,13 +43,41 @@ gql`
       name
       code
     }
-    balance {
+    balanceRange {
       __typename
-      ... on UsdLedgerAccountBalance {
-        usdSettledBalance: settled
+      ... on UsdLedgerAccountBalanceRange {
+        start {
+          usdSettled: settled
+          usdPending: pending
+          usdEncumbrance: encumbrance
+        }
+        diff {
+          usdSettledDiff: settled
+          usdPendingDiff: pending
+          usdEncumbranceDiff: encumbrance
+        }
+        end {
+          usdSettledEnd: settled
+          usdPendingEnd: pending
+          usdEncumbranceEnd: encumbrance
+        }
       }
-      ... on BtcLedgerAccountBalance {
-        btcSettledBalance: settled
+      ... on BtcLedgerAccountBalanceRange {
+        start {
+          btcSettled: settled
+          btcPending: pending
+          btcEncumbrance: encumbrance
+        }
+        diff {
+          btcSettledDiff: settled
+          btcPendingDiff: pending
+          btcEncumbranceDiff: encumbrance
+        }
+        end {
+          btcSettledEnd: settled
+          btcPendingEnd: pending
+          btcEncumbranceEnd: encumbrance
+        }
       }
     }
     history(first: $first, after: $after) {
@@ -194,21 +222,23 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                   />
                   <DetailItem
                     label={
-                      ledgerAccount?.balance.__typename === "BtcLedgerAccountBalance"
+                      ledgerAccount?.balanceRange.__typename ===
+                      "BtcLedgerAccountBalanceRange"
                         ? t("details.btcBalance")
                         : t("details.usdBalance")
                     }
                     value={
-                      ledgerAccount?.balance.__typename === "UsdLedgerAccountBalance" ? (
+                      ledgerAccount?.balanceRange.__typename ===
+                      "UsdLedgerAccountBalanceRange" ? (
                         <Balance
                           currency="usd"
-                          amount={ledgerAccount?.balance?.usdSettledBalance}
+                          amount={ledgerAccount?.balanceRange?.diff?.usdSettledDiff}
                         />
-                      ) : ledgerAccount?.balance.__typename ===
-                        "BtcLedgerAccountBalance" ? (
+                      ) : ledgerAccount?.balanceRange.__typename ===
+                        "BtcLedgerAccountBalanceRange" ? (
                         <Balance
                           currency="btc"
-                          amount={ledgerAccount?.balance?.btcSettledBalance}
+                          amount={ledgerAccount?.balanceRange?.diff?.btcSettledDiff}
                         />
                       ) : (
                         <>N/A</>
