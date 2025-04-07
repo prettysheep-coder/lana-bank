@@ -147,6 +147,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
+        reference: Option<String>,
         description: String,
         entries: Vec<ManualEntryInput>,
     ) -> Result<(), CoreAccountingError> {
@@ -157,9 +158,8 @@ where
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
-        let x = self
-            .manual_transactions
-            .execute(sub, &chart, description, entries)
+        self.manual_transactions
+            .execute(sub, &chart, reference, description, entries)
             .await?;
         Ok(())
     }

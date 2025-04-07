@@ -30,11 +30,19 @@ impl ManualTransactionLedger {
 
     pub async fn execute(
         &self,
-        _tx_id: impl Into<CalaTransactionId>,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<CalaTransactionId>,
         params: ManualTransactionParams,
     ) -> Result<(), ManualTransactionError> {
+        let tx_id = tx_id.into();
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
         let _ = ManualTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;
+
         // self.post_transaction();
+        //
+        //
+        op.commit().await?;
         Ok(())
     }
 

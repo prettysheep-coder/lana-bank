@@ -10,10 +10,11 @@ use cala_ledger::{CalaLedger, JournalId};
 use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 
 use crate::{
-    primitives::{CoreAccountingAction, CoreAccountingObject},
+    primitives::{CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
     Chart, LedgerAccountId,
 };
 
+use entity::NewManualTransaction;
 use error::*;
 pub use primitives::*;
 use repo::*;
@@ -54,10 +55,11 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
+        reference: Option<String>,
         description: String,
         entries: Vec<ManualEntryInput>,
     ) -> Result<(), ManualTransactionError> {
-        let _audit_info = self
+        let audit_info = self
             .authz
             .enforce_permission(
                 sub,
@@ -76,10 +78,22 @@ where
             );
         }
 
-        let tx_id = CalaTransactionId::new();
+        let id = ManualTransactionId::new();
+        let new_tx = NewManualTransaction::builder()
+            .id(id)
+            .description(description.clone())
+            .reference(reference)
+            .audit_info(audit_info)
+            .build()
+            .expect("Couldn't build new manual transaction");
+
+        let mut db = self.repo.begin_op().await?;
+        self.repo.create_in_op(&mut db, new_tx).await?;
+
         self.ledger
             .execute(
-                tx_id,
+                db,
+                id,
                 ManualTransactionParams {
                     journal_id: self.journal_id,
                     description,
