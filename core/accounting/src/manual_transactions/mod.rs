@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod ledger;
 mod primitives;
 mod repo;
 
