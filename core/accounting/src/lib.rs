@@ -19,6 +19,7 @@ pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, Chart
 use error::CoreAccountingError;
 pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
+pub use manual_transactions::ManualEntryInput;
 pub use primitives::*;
 
 pub struct CoreAccounting<Perms>
@@ -131,5 +132,15 @@ where
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
+    }
+
+    pub async fn execute_manual_transaction(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        description: String,
+        entries: Vec<ManualEntryInput>,
+    ) -> Result<(), CoreAccountingError> {
+        Ok(())
     }
 }
