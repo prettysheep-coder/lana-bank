@@ -1,22 +1,23 @@
-mod templates;
+mod template;
 
-use std::num::NonZeroU8;
+use cala_ledger::{CalaLedger, JournalId};
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, JournalId,
-    account_set::{NewAccountSet, error::AccountSetError},
-    transaction::Transaction,
+    account_set::{error::AccountSetError, NewAccountSet},
+    AccountSetId,
 };
-use templates::ManualTransactionTemplates;
 
+use super::{
+    error::ManualTransactionError,
+    primitives::{AccountRef, CalaTransactionId},
+};
 use crate::{Chart, LedgerAccountId};
-
-use super::{AccountRef, error::ManualTransactionError};
+use template::*;
+pub use template::{EntryParams, ManualTransactionParams};
 
 #[derive(Clone)]
 pub struct ManualTransactionLedger {
     cala: CalaLedger,
-    templates: ManualTransactionTemplates,
     journal_id: JournalId,
 }
 
@@ -24,18 +25,18 @@ impl ManualTransactionLedger {
     pub fn new(cala: &CalaLedger, journal_id: JournalId) -> Self {
         Self {
             cala: cala.clone(),
-            templates: ManualTransactionTemplates::new(cala.tx_templates()),
             journal_id,
         }
     }
 
-    pub async fn create_transaction(
+    pub async fn execute(
         &self,
-        n: NonZeroU8,
-    ) -> Result<Transaction, ManualTransactionError> {
-        let _template = self.templates.get_template_for_n_entries(n).await?;
-
-        Ok(todo!())
+        _tx_id: impl Into<CalaTransactionId>,
+        params: ManualTransactionParams,
+    ) -> Result<(), ManualTransactionError> {
+        let _ = ManualTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;
+        // self.post_transaction();
+        Ok(())
     }
 
     /// Returns account ID representing `account_ref`.

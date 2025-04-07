@@ -1,7 +1,6 @@
 use sqlx::PgPool;
 
 use es_entity::*;
-use outbox::OutboxEventMarker;
 
 use crate::primitives::ManualTransactionId;
 

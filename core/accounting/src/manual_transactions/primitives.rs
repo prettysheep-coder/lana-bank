@@ -5,12 +5,15 @@ use rust_decimal::Decimal;
 
 use crate::primitives::{AccountCode, LedgerAccountId};
 
+pub use cala_ledger::TransactionId as CalaTransactionId;
+
 #[derive(Builder)]
 pub struct ManualEntryInput {
     pub(super) account_ref: AccountRef,
-    amount: Decimal,
-    currency: Currency,
-    direction: DebitOrCredit,
+    pub(super) amount: Decimal,
+    pub(super) currency: Currency,
+    pub(super) description: String,
+    pub(super) direction: DebitOrCredit,
 }
 
 #[derive(Clone, Debug)]

@@ -4,12 +4,10 @@ mod ledger;
 mod primitives;
 mod repo;
 
-use std::num::{NonZeroU8, NonZeroUsize};
-
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, JournalId};
-use ledger::ManualTransactionLedger;
+use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 
 use crate::{Chart, LedgerAccountId};
 
@@ -62,9 +60,26 @@ where
             );
         }
 
-        let n = NonZeroU8::try_from(NonZeroUsize::try_from(entries.len()).unwrap()).unwrap();
-
-        let x = self.ledger.create_transaction(n).await?;
+        let tx_id = CalaTransactionId::new();
+        self.ledger
+            .execute(
+                tx_id,
+                ManualTransactionParams {
+                    journal_id: self.journal_id,
+                    description,
+                    entry_params: entries
+                        .into_iter()
+                        .map(|e| EntryParams {
+                            account_id: cala_ledger::AccountId::new(),
+                            amount: e.amount,
+                            currency: e.currency,
+                            direction: e.direction,
+                            description: e.description,
+                        })
+                        .collect(),
+                },
+            )
+            .await?;
 
         unimplemented!()
     }
