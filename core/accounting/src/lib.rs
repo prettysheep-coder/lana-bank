@@ -137,10 +137,20 @@ where
     pub async fn execute_manual_transaction(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
+        chart_ref: &str,
         description: String,
         entries: Vec<ManualEntryInput>,
     ) -> Result<(), CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+        // self.manual_transactions
+        //     .execute(sub, chart, description, entries)
+        //     .await?;
         Ok(())
     }
 }

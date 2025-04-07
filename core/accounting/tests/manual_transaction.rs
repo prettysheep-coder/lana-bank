@@ -34,6 +34,6 @@ async fn manual_transaction_with_two_entries() -> anyhow::Result<()> {
         ManualEntryInput::builder().account_ref("1".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).build().unwrap(),
         ManualEntryInput::builder().account_ref("2".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).build().unwrap(),
     ];
-    accounting.execute_manual_transaction(&DummySubject, chart_id, "Test transaction".to_string(), entries).await?;
+    accounting.execute_manual_transaction(&DummySubject, &chart_ref, "Test transaction".to_string(), entries).await?;
     Ok(())
 }

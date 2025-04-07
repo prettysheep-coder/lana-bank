@@ -118,6 +118,10 @@ impl AccountCode {
         format!("{}.{}", chart_id, self)
     }
 
+    pub(super) fn manual_account_external_id(&self, chart_id: ChartId) -> String {
+        format!("{}.{}.manual", chart_id, self)
+    }
+
     pub fn len_sections(&self) -> usize {
         self.sections.len()
     }
