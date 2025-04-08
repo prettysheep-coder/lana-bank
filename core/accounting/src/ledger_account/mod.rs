@@ -1,5 +1,6 @@
 pub mod error;
 mod ledger;
+mod value;
 
 use std::collections::HashMap;
 use tracing::instrument;
@@ -12,36 +13,13 @@ use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::{
     chart_of_accounts::Chart,
     primitives::{
-        AccountCode, BalanceRange, CalaAccountId, CalaAccountSetId, CalaJournalId,
-        CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+        AccountCode, CalaJournalId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
     },
 };
 
 use error::*;
 use ledger::*;
-
-#[derive(Debug, Clone)]
-pub struct LedgerAccount {
-    pub id: LedgerAccountId,
-    pub name: String,
-    pub code: Option<AccountCode>,
-    pub btc_balance_range: Option<BalanceRange>,
-    pub usd_balance_range: Option<BalanceRange>,
-
-    pub ancestor_ids: Vec<LedgerAccountId>,
-
-    pub is_leaf: bool,
-}
-
-impl LedgerAccount {
-    fn account_set_member_id(&self) -> cala_ledger::account_set::AccountSetMemberId {
-        if self.is_leaf {
-            CalaAccountId::from(self.id).into()
-        } else {
-            CalaAccountSetId::from(self.id).into()
-        }
-    }
-}
+pub use value::*;
 
 #[derive(Clone)]
 pub struct LedgerAccounts<Perms>

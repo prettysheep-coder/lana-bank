@@ -6,6 +6,8 @@ use authz::AllOrOne;
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
+    account::Account as CalaAccount,
+    account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
         AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,

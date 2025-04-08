@@ -11,7 +11,7 @@ use cala_ledger::{
 
 use audit::AuditInfo;
 
-use crate::primitives::{BalanceRange, CalaBalanceRange};
+use crate::primitives::CalaBalanceRange;
 
 use super::{
     COST_OF_REVENUE_NAME, ChartOfAccountsIntegrationConfig, EXPENSES_NAME, LedgerAccount,
@@ -540,44 +540,4 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub revenue_child_account_set_id_from_chart: AccountSetId,
     pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
     pub expenses_child_account_set_id_from_chart: AccountSetId,
-}
-
-impl
-    From<(
-        AccountSet,
-        Option<CalaBalanceRange>,
-        Option<CalaBalanceRange>,
-    )> for LedgerAccount
-{
-    fn from(
-        (account_set, btc_balance_range, usd_balance_range): (
-            AccountSet,
-            Option<CalaBalanceRange>,
-            Option<CalaBalanceRange>,
-        ),
-    ) -> Self {
-        let values = account_set.into_values();
-        let code = values.external_id.and_then(|id| id.parse().ok());
-
-        let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
-        });
-        let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
-            start: Some(range.start),
-            end: Some(range.end),
-            diff: Some(range.diff),
-        });
-
-        LedgerAccount {
-            id: values.id.into(),
-            name: values.name,
-            code,
-            btc_balance_range,
-            usd_balance_range,
-            ancestor_ids: Vec::new(),
-            is_leaf: false,
-        }
-    }
 }
