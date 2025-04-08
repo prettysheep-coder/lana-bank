@@ -1,12 +1,11 @@
-use crate::primitives::*;
-
 use async_graphql::*;
 
-// use lana_app::accounting::journal::JournalEntry;
 pub use lana_app::accounting::manual_transactions::{
     ManualEntryInput, ManualTransaction as DomainManualTransaction,
     ManualTransactionsByCreatedAtCursor,
 };
+
+use crate::{graphql::primitives::*, primitives::*};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -43,10 +42,17 @@ impl From<DomainManualTransaction> for ManualTransaction {
 }
 
 #[derive(InputObject)]
+pub struct ManualTransactionEntryInput {
+    pub account_ref: String,
+    pub amount: Decimal,
+    pub currency: String,
+    pub description: Option<String>,
+}
+
+#[derive(InputObject)]
 pub struct ManualTransactionExecuteInput {
-    pub chart_ref: String,
     pub description: String,
-    pub entries: Vec<ManualEntryInput>,
     pub reference: Option<String>,
+    pub entries: Vec<ManualTransactionEntryInput>,
 }
 crate::mutation_payload! { ManualTransactionExecutePayload, manual_transaction: ManualTransaction }

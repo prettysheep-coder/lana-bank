@@ -934,7 +934,7 @@ impl Mutation {
             ctx,
             app.accounting().execute_manual_transaction(
                 sub,
-                &input.chart_ref,
+                &CHART_REF.0,
                 input.reference,
                 input.description,
                 input.entries
