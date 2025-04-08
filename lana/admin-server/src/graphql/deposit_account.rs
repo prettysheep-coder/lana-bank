@@ -12,6 +12,7 @@ use super::{customer::Customer, deposit::*, deposit_account_history::*, withdraw
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct DepositAccount {
+    // question: when is it a UUID and an ID?
     id: ID,
     deposit_account_id: UUID,
     short_code_id: String,

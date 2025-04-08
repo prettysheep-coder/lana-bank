@@ -14,7 +14,7 @@ use sqlx::Transaction;
     err = "DepositAccountError",
     columns(
         account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false)),
-        short_code_id(ty = "DepositAccountShortCodeId", list_for)
+        short_code_id(ty = "DepositAccountShortCodeId")
     ),
     tbl_prefix = "core"
 )]
