@@ -13,10 +13,12 @@ use crate::{
     Chart,
     primitives::{CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
 };
-
-use entity::NewManualTransaction;
 use error::*;
+
+pub use entity::ManualTransaction;
+pub(super) use entity::*;
 pub use primitives::*;
+pub use repo::manual_transaction_cursor::ManualTransactionsByCreatedAtCursor;
 use repo::*;
 
 #[derive(Clone)]
@@ -49,6 +51,48 @@ where
             journal_id,
             repo,
         }
+    }
+
+    pub async fn find_manual_transaction_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ManualTransactionId> + std::fmt::Debug,
+    ) -> Result<Option<ManualTransaction>, ManualTransactionError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::manual_transaction(id),
+                CoreAccountingAction::MANUAL_TRANSACTION_LIST,
+            )
+            .await?;
+
+        match self.repo.find_by_id(id).await {
+            Ok(tx) => Ok(Some(tx)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn list_manual_transactions(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<ManualTransactionsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<ManualTransaction, ManualTransactionsByCreatedAtCursor>,
+        ManualTransactionError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_manual_transactions(),
+                CoreAccountingAction::MANUAL_TRANSACTION_LIST,
+            )
+            .await?;
+
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 
     pub async fn execute(

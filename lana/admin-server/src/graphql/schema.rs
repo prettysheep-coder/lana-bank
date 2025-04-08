@@ -168,6 +168,48 @@ impl Query {
         )
     }
 
+    async fn manual_transaction(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<ManualTransaction>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            ManualTransaction,
+            ctx,
+            app.accounting()
+                .manual_transactions()
+                .find_manual_transaction_by_id(sub, id)
+        )
+    }
+
+    async fn manual_transactions(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            ManualTransactionsByCreatedAtCursor,
+            ManualTransaction,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            ManualTransactionsByCreatedAtCursor,
+            ManualTransaction,
+            ctx,
+            after,
+            first,
+            |query| app
+                .accounting()
+                .manual_transactions()
+                .list_manual_transactions(sub, query)
+        )
+    }
+
     async fn terms_template(
         &self,
         ctx: &Context<'_>,
@@ -878,6 +920,21 @@ impl Mutation {
             DepositModuleConfig::from(config),
         ))
     }
+
+    // pub async fn manual_transaction_execute(
+    //     &self,
+    //     ctx: &Context<'_>,
+    //     input: ManualTransactionExecuteInput,
+    // ) -> async_graphql::Result<ManualTransactionExecutePayload> {
+    //     let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+    //     exec_mutation!(
+    //         ManualTransactionExecutePayload,
+    //         ManualTransaction,
+    //         ctx,
+    //         todo!()
+    //     )
+    // }
 
     pub async fn deposit_record(
         &self,

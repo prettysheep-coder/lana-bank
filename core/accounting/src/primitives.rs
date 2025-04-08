@@ -315,6 +315,10 @@ impl CoreAccountingObject {
     pub fn all_manual_transactions() -> Self {
         CoreAccountingObject::ManualTransaction(AllOrOne::All)
     }
+
+    pub fn manual_transaction(id: ManualTransactionId) -> Self {
+        CoreAccountingObject::ManualTransaction(AllOrOne::ById(id))
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -386,8 +390,12 @@ impl CoreAccountingAction {
     pub const LEDGER_TRANSACTION_READ: Self =
         CoreAccountingAction::LedgerTransactionAction(LedgerTransactionAction::Read);
 
+    pub const MANUAL_TRANSACTION_READ: Self =
+        CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::Read);
     pub const MANUAL_TRANSACTION_CREATE: Self =
         CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::Create);
+    pub const MANUAL_TRANSACTION_LIST: Self =
+        CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::List);
 }
 
 impl Display for CoreAccountingAction {
@@ -487,7 +495,9 @@ impl From<JournalAction> for CoreAccountingAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ManualTransactionAction {
+    Read,
     Create,
+    List,
 }
 
 impl From<ManualTransactionAction> for CoreAccountingAction {
