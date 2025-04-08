@@ -23,11 +23,13 @@ pub enum ManualTransactionEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct ManualTransaction {
     pub id: ManualTransactionId,
+    #[allow(dead_code)]
     pub reference: String,
     pub(super) events: EntityEvents<ManualTransactionEvent>,
 }
 
 impl ManualTransaction {
+    #[allow(dead_code)]
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
             .entity_first_persisted_at()

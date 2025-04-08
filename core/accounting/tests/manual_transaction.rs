@@ -27,8 +27,8 @@ async fn manual_transaction_with_two_entries() -> anyhow::Result<()> {
     let _ = accounting.chart_of_accounts().import_from_csv(&DummySubject, chart_id, import).await?;
 
     let entries = vec![
-        ManualEntryInput::builder().account_ref("1".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).description("test debit").build().unwrap(),
-        ManualEntryInput::builder().account_ref("2".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test credit").build().unwrap(),
+        ManualEntryInput::builder().account_id_or_code("1".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).description("test debit").build().unwrap(),
+        ManualEntryInput::builder().account_id_or_code("2".parse().unwrap()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test credit").build().unwrap(),
     ];
     accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction".to_string(), entries).await?;
     Ok(())

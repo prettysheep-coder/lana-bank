@@ -1,11 +1,13 @@
 use rust_decimal::Decimal;
 
 use cala_ledger::{
+    AccountId as CalaAccountId,
     primitives::DebitOrCredit,
-    tx_template::{error::TxTemplateError, Params, *},
-    AccountId as CalaAccountId, *,
+    tx_template::{Params, error::TxTemplateError, *},
+    *,
 };
 
+#[derive(Debug)]
 pub struct EntryParams {
     pub account_id: CalaAccountId,
     pub currency: Currency,
@@ -15,6 +17,14 @@ pub struct EntryParams {
 }
 
 impl EntryParams {
+    pub fn populate_params(&self, params: &mut Params, n: usize) {
+        params.insert(Self::account_id_param_name(n), self.account_id);
+        params.insert(Self::currency_param_name(n), self.currency);
+        params.insert(Self::amount_param_name(n), self.amount);
+        params.insert(Self::description_param_name(n), self.description.clone());
+        params.insert(Self::direction_param_name(n), self.direction);
+    }
+
     fn defs_for_entry(n: usize) -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -76,6 +86,7 @@ impl EntryParams {
     }
 }
 
+#[derive(Debug)]
 pub struct ManualTransactionParams {
     pub journal_id: JournalId,
     pub description: String,
@@ -93,10 +104,16 @@ impl From<ManualTransactionParams> for Params {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("description", description);
+        params.insert("effective", chrono::Utc::now().date_naive());
+
+        for (n, entry) in entry_params.iter().enumerate() {
+            entry.populate_params(&mut params, n);
+        }
 
         params
     }
 }
+
 impl ManualTransactionParams {
     pub fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
@@ -128,7 +145,7 @@ pub(super) struct ManualTransactionTemplate {
 }
 
 impl ManualTransactionTemplate {
-    fn code(&self) -> String {
+    pub fn code(&self) -> String {
         format!("MANUAL_TRANSACTION_{}", self.n_entries)
     }
 
@@ -161,7 +178,7 @@ impl ManualTransactionTemplate {
             .expect("Couldn't build template");
         match ledger.tx_templates().create(template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
-            Err(e) => Err(e.into()),
+            Err(e) => Err(e),
             Ok(_) => Ok(()),
         }
     }
@@ -171,7 +188,10 @@ impl ManualTransactionTemplate {
         for i in 0..self.n_entries {
             entries.push(
                 NewTxTemplateEntry::builder()
-                    .entry_type(format!("MANUAL_TRANSACTION_{}_ENTRY_{}", self.n_entries, i))
+                    .entry_type(format!(
+                        "'MANUAL_TRANSACTION_{}_ENTRY_{}'",
+                        self.n_entries, i
+                    ))
                     .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
                     .units(format!("params.{}", EntryParams::amount_param_name(i)))
                     .currency(format!("params.{}", EntryParams::currency_param_name(i)))

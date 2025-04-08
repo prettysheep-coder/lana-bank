@@ -9,7 +9,7 @@ pub use cala_ledger::TransactionId as CalaTransactionId;
 
 #[derive(Builder)]
 pub struct ManualEntryInput {
-    pub(super) account_ref: AccountIdOrCode,
+    pub(super) account_id_or_code: AccountIdOrCode,
     pub(super) amount: Decimal,
     pub(super) currency: Currency,
     #[builder(setter(into))]

@@ -8,6 +8,8 @@ pub enum ManualTransactionError {
     EsEntityError(es_entity::EsEntityError),
     #[error("ManualTransactionError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("ManualTransactionError - CalaError: {0}")]
+    LedgerError(#[from] cala_ledger::error::LedgerError),
     #[error("ManualTransactionError - CalaAccountSetError: {0}")]
     AccountSetError(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("ManualTransactionError - CalaAccountError: {0}")]

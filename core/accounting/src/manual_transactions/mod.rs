@@ -10,8 +10,8 @@ use cala_ledger::{CalaLedger, JournalId};
 use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 
 use crate::{
+    Chart,
     primitives::{CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
-    Chart, LedgerAccountId,
 };
 
 use entity::NewManualTransaction;
@@ -44,7 +44,7 @@ where
     ) -> Self {
         let repo = ManualTransactionRepo::new(pool);
         Self {
-            ledger: ManualTransactionLedger::new(cala, journal_id),
+            ledger: ManualTransactionLedger::new(cala),
             authz: authz.clone(),
             journal_id,
             repo,
@@ -68,16 +68,6 @@ where
             )
             .await?;
 
-        let mut account_ids: Vec<LedgerAccountId> = vec![];
-
-        for i in &entries {
-            account_ids.push(
-                self.ledger
-                    .resolve_account_ref(chart, &i.account_ref)
-                    .await?,
-            );
-        }
-
         let id = ManualTransactionId::new();
         let new_tx = NewManualTransaction::builder()
             .id(id)
@@ -90,6 +80,21 @@ where
         let mut db = self.repo.begin_op().await?;
         self.repo.create_in_op(&mut db, new_tx).await?;
 
+        let mut entry_params = vec![];
+        for e in entries {
+            let account_id = self
+                .ledger
+                .resolve_account_id(chart, &e.account_id_or_code)
+                .await?;
+            entry_params.push(EntryParams {
+                account_id,
+                amount: e.amount,
+                currency: e.currency,
+                direction: e.direction,
+                description: e.description,
+            });
+        }
+
         self.ledger
             .execute(
                 db,
@@ -97,16 +102,7 @@ where
                 ManualTransactionParams {
                     journal_id: self.journal_id,
                     description,
-                    entry_params: entries
-                        .into_iter()
-                        .map(|e| EntryParams {
-                            account_id: cala_ledger::AccountId::new(),
-                            amount: e.amount,
-                            currency: e.currency,
-                            direction: e.direction,
-                            description: e.description,
-                        })
-                        .collect(),
+                    entry_params,
                 },
             )
             .await?;
