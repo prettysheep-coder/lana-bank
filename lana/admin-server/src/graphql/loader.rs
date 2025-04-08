@@ -3,7 +3,10 @@ use async_graphql::dataloader::{DataLoader, Loader};
 use std::collections::HashMap;
 
 use lana_app::{
-    accounting::{chart_of_accounts::error::ChartOfAccountsError, Chart, LedgerAccountId},
+    accounting::{
+        chart_of_accounts::error::ChartOfAccountsError,
+        manual_transactions::error::ManualTransactionError, Chart, LedgerAccountId,
+    },
     app::LanaApp,
     deposit::error::CoreDepositError,
     user::error::UserError,
@@ -12,9 +15,19 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::LedgerAccount, approval_process::*, chart_of_accounts::*, committee::*,
-    credit_facility::*, customer::*, deposit::*, deposit_account::*, document::*, policy::*,
-    terms_template::*, user::*, withdrawal::*,
+    accounting::{LedgerAccount, ManualTransaction},
+    approval_process::*,
+    chart_of_accounts::*,
+    committee::*,
+    credit_facility::*,
+    customer::*,
+    deposit::*,
+    deposit_account::*,
+    document::*,
+    policy::*,
+    terms_template::*,
+    user::*,
+    withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -191,6 +204,23 @@ impl Loader<DepositAccountId> for LanaLoader {
         self.app
             .deposits()
             .find_all_deposit_accounts(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<ManualTransactionId> for LanaLoader {
+    type Value = ManualTransaction;
+    type Error = Arc<ManualTransactionError>;
+
+    async fn load(
+        &self,
+        keys: &[ManualTransactionId],
+    ) -> Result<HashMap<ManualTransactionId, Self::Value>, Self::Error> {
+        self.app
+            .accounting()
+            .manual_transactions()
+            .find_all(keys)
             .await
             .map_err(Arc::new)
     }

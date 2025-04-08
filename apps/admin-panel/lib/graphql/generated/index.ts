@@ -1184,6 +1184,30 @@ export type Loan = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
 
+export type ManualTransaction = {
+  __typename?: 'ManualTransaction';
+  id: Scalars['ID']['output'];
+};
+
+export type ManualTransactionConnection = {
+  __typename?: 'ManualTransactionConnection';
+  /** A list of edges. */
+  edges: Array<ManualTransactionEdge>;
+  /** A list of nodes. */
+  nodes: Array<ManualTransaction>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type ManualTransactionEdge = {
+  __typename?: 'ManualTransactionEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: ManualTransaction;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   approvalProcessApprove: ApprovalProcessApprovePayload;
@@ -1516,6 +1540,8 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
+  manualTransaction?: Maybe<ManualTransaction>;
+  manualTransactions: ManualTransactionConnection;
   me: Subject;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1658,6 +1684,17 @@ export type QueryLedgerAccountArgs = {
 
 export type QueryLedgerAccountByCodeArgs = {
   code: Scalars['String']['input'];
+};
+
+
+export type QueryManualTransactionArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryManualTransactionsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 

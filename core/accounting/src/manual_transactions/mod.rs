@@ -4,6 +4,8 @@ mod ledger;
 mod primitives;
 mod repo;
 
+use std::collections::HashMap;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, JournalId};
@@ -93,6 +95,13 @@ where
         self.repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await
+    }
+
+    pub async fn find_all<T: From<ManualTransaction>>(
+        &self,
+        ids: &[ManualTransactionId],
+    ) -> Result<HashMap<ManualTransactionId, T>, ManualTransactionError> {
+        self.repo.find_all(ids).await
     }
 
     pub async fn execute(
