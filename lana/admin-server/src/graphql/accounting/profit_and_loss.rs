@@ -1,9 +1,6 @@
 use async_graphql::*;
 
-use lana_app::{
-    primitives::Currency as CalaCurrency,
-    profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement,
-};
+use lana_app::profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStatement;
 
 use crate::primitives::*;
 

@@ -186,12 +186,6 @@ type AuditEntryEdge {
 
 union AuditSubject = User | System
 
-type BalanceRange {
-	start: LedgerAccountBalance!
-	end: LedgerAccountBalance!
-	diff: LedgerAccountBalance!
-}
-
 type BalanceSheet {
 	name: String!
 	balance: AccountAmountsByCurrency!
@@ -1336,7 +1330,7 @@ input ProfitAndLossModuleConfigureInput {
 
 type ProfitAndLossStatement {
 	name: String!
-	net: BalanceRange!
+	net: LedgerAccountBalanceRange!
 }
 
 type ProfitAndLossStatementModuleConfig {

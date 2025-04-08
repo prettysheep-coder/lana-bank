@@ -98,7 +98,7 @@ impl LanaApp {
         let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
         StatementsInit::statements(
             &trial_balances,
-            &accounting.profit_and_loss(),
+            accounting.profit_and_loss(),
             &balance_sheets,
             &cash_flow_statements,
         )
