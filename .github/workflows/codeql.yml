@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'rust' ]
+        language: [ 'rust', "javascript-typescript" ]
 
     steps:
     - name: Checkout repository
@@ -32,9 +32,13 @@ jobs:
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
-        queries: +security-and-quality
+
+    - name: Autobuild for JavaScript
+      if: matrix.language == 'javascript-typescript'
+      uses: github/codeql-action/autobuild@v3
 
     - name: Build Rust project
+      if: matrix.language == 'rust'
       uses: actions-rs/toolchain@v1
       with:
         profile: minimal
@@ -42,6 +46,7 @@ jobs:
         override: true
     
     - name: Build with cargo
+      if: matrix.language == 'rust'
       run: cargo build --release
 
     - name: Perform CodeQL Analysis
