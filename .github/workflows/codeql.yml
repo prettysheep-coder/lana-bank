@@ -18,6 +18,7 @@ jobs:
       security-events: write
     env:
       CODEQL_ENABLE_EXPERIMENTAL_FEATURES: true
+      SQLX_OFFLINE: true
 
     strategy:
       fail-fast: false
