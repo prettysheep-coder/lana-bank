@@ -921,20 +921,26 @@ impl Mutation {
         ))
     }
 
-    // pub async fn manual_transaction_execute(
-    //     &self,
-    //     ctx: &Context<'_>,
-    //     input: ManualTransactionExecuteInput,
-    // ) -> async_graphql::Result<ManualTransactionExecutePayload> {
-    //     let (app, sub) = app_and_sub_from_ctx!(ctx);
+    pub async fn manual_transaction_execute(
+        &self,
+        ctx: &Context<'_>,
+        input: ManualTransactionExecuteInput,
+    ) -> async_graphql::Result<ManualTransactionExecutePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-    //     exec_mutation!(
-    //         ManualTransactionExecutePayload,
-    //         ManualTransaction,
-    //         ctx,
-    //         todo!()
-    //     )
-    // }
+        exec_mutation!(
+            ManualTransactionExecutePayload,
+            ManualTransaction,
+            ctx,
+            app.accounting().execute_manual_transaction(
+                sub,
+                &input.chart_ref,
+                input.reference,
+                input.description,
+                input.entries
+            )
+        )
+    }
 
     pub async fn deposit_record(
         &self,

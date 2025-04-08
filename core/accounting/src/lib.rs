@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use manual_transactions::ManualTransactions;
+use manual_transactions::{ManualTransaction, ManualTransactions};
 use tracing::instrument;
 
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
@@ -151,7 +151,7 @@ where
         reference: Option<String>,
         description: String,
         entries: Vec<ManualEntryInput>,
-    ) -> Result<(), CoreAccountingError> {
+    ) -> Result<ManualTransaction, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
             .find_by_reference(chart_ref)
@@ -162,6 +162,7 @@ where
         self.manual_transactions
             .execute(sub, &chart, reference, description, entries)
             .await?;
-        Ok(())
+
+        Ok(todo!("return ManualTransaction"))
     }
 }
