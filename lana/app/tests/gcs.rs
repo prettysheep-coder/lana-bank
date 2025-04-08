@@ -16,10 +16,9 @@ async fn upload_doc() -> anyhow::Result<()> {
     let sa = ServiceAccountConfig::default().set_sa_creds_base64(Some(sa_creds_base64))?;
 
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
-        StorageConfig::new_dev_mode(name_prefix, sa)
+        StorageConfig::new_dev_mode(name_prefix)
     } else {
         StorageConfig {
-            service_account: Some(sa),
             root_folder: "gha".to_string(),
             bucket_name: "gha-lana-documents".to_string(),
         }
