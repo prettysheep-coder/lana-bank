@@ -2,7 +2,7 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit};
-use core_accounting::{manual_transactions::AccountIdOrCode, CoreAccounting, ManualEntryInput};
+use core_accounting::{CoreAccounting, ManualEntryInput, manual_transactions::AccountIdOrCode};
 use helpers::{action, object};
 use rust_decimal_macros::dec;
 
