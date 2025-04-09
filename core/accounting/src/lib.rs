@@ -159,10 +159,10 @@ where
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
-        self.manual_transactions
-            .execute(sub, &chart, reference, description, entries)
-            .await?;
 
-        Ok(todo!("return ManualTransaction"))
+        Ok(self
+            .manual_transactions
+            .execute(sub, &chart, reference, description, entries)
+            .await?)
     }
 }

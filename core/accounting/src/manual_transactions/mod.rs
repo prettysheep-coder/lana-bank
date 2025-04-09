@@ -111,7 +111,7 @@ where
         reference: Option<String>,
         description: String,
         entries: Vec<ManualEntryInput>,
-    ) -> Result<(), ManualTransactionError> {
+    ) -> Result<ManualTransaction, ManualTransactionError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -131,7 +131,7 @@ where
             .expect("Couldn't build new manual transaction");
 
         let mut db = self.repo.begin_op().await?;
-        self.repo.create_in_op(&mut db, new_tx).await?;
+        let manual_transaction = self.repo.create_in_op(&mut db, new_tx).await?;
 
         let mut entry_params = vec![];
         for e in entries {
@@ -160,6 +160,6 @@ where
             )
             .await?;
 
-        Ok(())
+        Ok(manual_transaction)
     }
 }

@@ -38,6 +38,7 @@ impl ManualTransactionLedger {
             .await?;
 
         op.commit().await?;
+
         Ok(())
     }
 
