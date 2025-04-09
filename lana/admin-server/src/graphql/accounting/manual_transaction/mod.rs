@@ -1,5 +1,8 @@
+mod error;
+
 use async_graphql::*;
 
+use error::ManualTransactionInputError;
 pub use lana_app::accounting::manual_transactions::{
     ManualEntryInput, ManualTransaction as DomainManualTransaction,
     ManualTransactionsByCreatedAtCursor,
@@ -57,6 +60,40 @@ pub struct ManualTransactionEntryInput {
     pub currency: String,
     pub direction: String,
     pub description: Option<String>,
+}
+
+impl TryFrom<ManualTransactionEntryInput> for ManualEntryInput {
+    type Error = ManualTransactionInputError;
+
+    fn try_from(i: ManualTransactionEntryInput) -> Result<Self, Self::Error> {
+        let mut builder = ManualEntryInput::builder();
+
+        builder.currency(
+            i.currency
+                .parse()
+                .map_err(|_| ManualTransactionInputError::CurrencyNotSupported(i.currency))?,
+        );
+
+        builder.account_id_or_code(
+            i.account_ref
+                .parse()
+                .map_err(|_| ManualTransactionInputError::AccountIdOrCodeInvalid(i.account_ref))?,
+        );
+
+        builder.direction(
+            i.direction
+                .parse()
+                .map_err(|_| ManualTransactionInputError::DirectionInvalid(i.direction))?,
+        );
+
+        builder.amount(i.amount.into());
+
+        if let Some(description) = i.description {
+            builder.description(description);
+        }
+
+        Ok(builder.build().expect("all fields provided"))
+    }
 }
 
 #[derive(InputObject)]

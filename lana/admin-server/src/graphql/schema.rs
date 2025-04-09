@@ -928,25 +928,10 @@ impl Mutation {
     ) -> async_graphql::Result<ManualTransactionExecutePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let entries = input
-            .entries
-            .into_iter()
-            .map(|i| {
-                let mut builder = ManualEntryInput::builder();
-
-                builder
-                    .account_id_or_code(i.account_ref.parse().unwrap())
-                    .currency(i.currency.parse().unwrap())
-                    .direction(i.direction.parse().unwrap())
-                    .amount(i.amount.into());
-
-                if let Some(description) = i.description {
-                    builder.description(description);
-                }
-
-                builder.build().unwrap()
-            })
-            .collect();
+        let mut entries = Vec::with_capacity(input.entries.len());
+        for entry in input.entries.into_iter() {
+            entries.push(entry.try_into()?);
+        }
 
         exec_mutation!(
             ManualTransactionExecutePayload,
@@ -954,7 +939,7 @@ impl Mutation {
             ctx,
             app.accounting().execute_manual_transaction(
                 sub,
-                &CHART_REF.0,
+                CHART_REF.0,
                 input.reference,
                 input.description,
                 entries
