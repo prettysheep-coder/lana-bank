@@ -25,6 +25,7 @@ pub struct ManualTransaction {
     pub id: ManualTransactionId,
     pub reference: String,
     pub description: String,
+    pub ledger_transaction_id: CalaTxId,
     pub(super) events: EntityEvents<ManualTransactionEvent>,
 }
 
@@ -47,12 +48,14 @@ impl TryFromEvents<ManualTransactionEvent> for ManualTransaction {
                     id,
                     reference,
                     description,
+                    ledger_transaction_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .reference(reference.clone())
                         .description(description.clone())
+                        .ledger_transaction_id(*ledger_transaction_id)
                 }
             }
         }

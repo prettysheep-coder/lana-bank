@@ -1189,6 +1189,7 @@ export type ManualTransaction = {
   __typename?: 'ManualTransaction';
   createdAt: Scalars['Timestamp']['output'];
   description: Scalars['String']['output'];
+  entries: Array<JournalEntry>;
   id: Scalars['ID']['output'];
   reference: Scalars['String']['output'];
 };

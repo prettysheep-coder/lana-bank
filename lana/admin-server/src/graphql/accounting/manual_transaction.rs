@@ -5,7 +5,12 @@ pub use lana_app::accounting::manual_transactions::{
     ManualTransactionsByCreatedAtCursor,
 };
 
-use crate::{graphql::primitives::*, primitives::*};
+use crate::{
+    graphql::{loader::*, primitives::*},
+    primitives::*,
+};
+
+use super::JournalEntry;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -26,9 +31,13 @@ impl ManualTransaction {
     async fn reference(&self) -> &str {
         &self.entity.reference
     }
-    // async fn entries(&self) -> Vec<JournalEntry> {
-    // vec![]
-    // }
+
+    async fn entries(&self, ctx: &Context<'_>) -> Vec<JournalEntry> {
+        let _loader = ctx.data_unchecked::<LanaDataLoader>();
+        // let x = loader.load_one(self.entity.ledger_transaction_id).await.unwrap();
+
+        vec![]
+    }
 }
 
 impl From<DomainManualTransaction> for ManualTransaction {
