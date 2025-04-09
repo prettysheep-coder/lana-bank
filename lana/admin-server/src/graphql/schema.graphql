@@ -1172,42 +1172,12 @@ type LedgerAccount {
 
 union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
 
-type ManualTransaction {
+type LedgerTransaction {
 	id: ID!
 	createdAt: Timestamp!
 	ledgerTransactionId: UUID!
-	description: String!
-	reference: String!
+	description: String
 	entries: [JournalEntry!]!
-}
-
-type ManualTransactionConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [ManualTransactionEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [ManualTransaction!]!
-}
-
-"""
-An edge in a connection.
-"""
-type ManualTransactionEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: ManualTransaction!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
 }
 
 input ManualTransactionEntryInput {
@@ -1225,7 +1195,7 @@ input ManualTransactionExecuteInput {
 }
 
 type ManualTransactionExecutePayload {
-	manualTransaction: ManualTransaction!
+	transaction: LedgerTransaction!
 }
 
 type Mutation {
@@ -1386,8 +1356,6 @@ type Query {
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
 	deposits(first: Int!, after: String): DepositConnection!
-	manualTransaction(id: UUID!): ManualTransaction
-	manualTransactions(first: Int!, after: String): ManualTransactionConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility

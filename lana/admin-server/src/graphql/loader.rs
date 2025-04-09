@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use lana_app::{
     accounting::{
         chart_of_accounts::error::ChartOfAccountsError,
-        manual_transactions::error::ManualTransactionError, Chart, LedgerAccountId,
+        ledger_transaction::error::LedgerTransactionError, Chart, LedgerAccountId,
     },
     app::LanaApp,
     deposit::error::CoreDepositError,
@@ -15,19 +15,9 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::{LedgerAccount, ManualTransaction},
-    approval_process::*,
-    chart_of_accounts::*,
-    committee::*,
-    credit_facility::*,
-    customer::*,
-    deposit::*,
-    deposit_account::*,
-    document::*,
-    policy::*,
-    terms_template::*,
-    user::*,
-    withdrawal::*,
+    accounting::*, approval_process::*, chart_of_accounts::*, committee::*, credit_facility::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
+    user::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -209,17 +199,17 @@ impl Loader<DepositAccountId> for LanaLoader {
     }
 }
 
-impl Loader<ManualTransactionId> for LanaLoader {
-    type Value = ManualTransaction;
-    type Error = Arc<ManualTransactionError>;
+impl Loader<LedgerTransactionId> for LanaLoader {
+    type Value = LedgerTransaction;
+    type Error = Arc<LedgerTransactionError>;
 
     async fn load(
         &self,
-        keys: &[ManualTransactionId],
-    ) -> Result<HashMap<ManualTransactionId, Self::Value>, Self::Error> {
+        keys: &[LedgerTransactionId],
+    ) -> Result<HashMap<LedgerTransactionId, Self::Value>, Self::Error> {
         self.app
             .accounting()
-            .manual_transactions()
+            .ledger_transactions()
             .find_all(keys)
             .await
             .map_err(Arc::new)

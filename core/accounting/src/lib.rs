@@ -14,13 +14,14 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use manual_transactions::{ManualTransaction, ManualTransactions};
+use manual_transactions::ManualTransactions;
 use tracing::instrument;
 
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
 use error::CoreAccountingError;
-pub use journal::{Journal, error as journal_error};
+pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
+pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transactions::ManualEntryInput;
 pub use primitives::*;
 
@@ -32,6 +33,7 @@ where
     chart_of_accounts: ChartOfAccounts<Perms>,
     journal: Journal<Perms>,
     ledger_accounts: LedgerAccounts<Perms>,
+    ledger_transactions: LedgerTransactions<Perms>,
     manual_transactions: ManualTransactions<Perms>,
 }
 
@@ -46,6 +48,7 @@ where
             journal: self.journal.clone(),
             ledger_accounts: self.ledger_accounts.clone(),
             manual_transactions: self.manual_transactions.clone(),
+            ledger_transactions: self.ledger_transactions.clone(),
         }
     }
 }
@@ -66,11 +69,13 @@ where
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
+        let ledger_transactions = LedgerTransactions::new(authz, cala);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
             journal,
             ledger_accounts,
+            ledger_transactions,
             manual_transactions,
         }
     }
@@ -85,6 +90,10 @@ where
 
     pub fn ledger_accounts(&self) -> &LedgerAccounts<Perms> {
         &self.ledger_accounts
+    }
+
+    pub fn ledger_transactions(&self) -> &LedgerTransactions<Perms> {
+        &self.ledger_transactions
     }
 
     pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
@@ -151,7 +160,7 @@ where
         reference: Option<String>,
         description: String,
         entries: Vec<ManualEntryInput>,
-    ) -> Result<ManualTransaction, CoreAccountingError> {
+    ) -> Result<LedgerTransaction, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
             .find_by_reference(chart_ref)
@@ -160,9 +169,15 @@ where
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
 
-        Ok(self
+        let tx = self
             .manual_transactions
             .execute(sub, &chart, reference, description, entries)
-            .await?)
+            .await?;
+
+        let ledger_tx_id = tx.ledger_transaction_id;
+        let mut txs = self.ledger_transactions.find_all(&[ledger_tx_id]).await?;
+        Ok(txs
+            .remove(&ledger_tx_id)
+            .expect("Could not find LedgerTransaction"))
     }
 }
