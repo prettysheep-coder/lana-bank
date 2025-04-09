@@ -825,6 +825,8 @@ enum DebitOrCredit {
 	CREDIT
 }
 
+scalar Decimal
+
 type Deposit {
 	id: ID!
 	depositId: UUID!
@@ -1172,6 +1174,9 @@ union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccoun
 
 type ManualTransaction {
 	id: ID!
+	createdAt: Timestamp!
+	description: String!
+	reference: String!
 }
 
 type ManualTransactionConnection {
@@ -1203,6 +1208,24 @@ type ManualTransactionEdge {
 	cursor: String!
 }
 
+input ManualTransactionEntryInput {
+	accountRef: String!
+	amount: Decimal!
+	currency: String!
+	direction: String!
+	description: String
+}
+
+input ManualTransactionExecuteInput {
+	description: String!
+	reference: String
+	entries: [ManualTransactionEntryInput!]!
+}
+
+type ManualTransactionExecutePayload {
+	manualTransaction: ManualTransaction!
+}
+
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -1212,6 +1235,7 @@ type Mutation {
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
+	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!

@@ -24,6 +24,7 @@ export type Scalars = {
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  Decimal: { input: any; output: any; }
   DisbursalIdx: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
@@ -1186,7 +1187,10 @@ export type Loan = {
 
 export type ManualTransaction = {
   __typename?: 'ManualTransaction';
+  createdAt: Scalars['Timestamp']['output'];
+  description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  reference: Scalars['String']['output'];
 };
 
 export type ManualTransactionConnection = {
@@ -1206,6 +1210,25 @@ export type ManualTransactionEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: ManualTransaction;
+};
+
+export type ManualTransactionEntryInput = {
+  accountRef: Scalars['String']['input'];
+  amount: Scalars['Decimal']['input'];
+  currency: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  direction: Scalars['String']['input'];
+};
+
+export type ManualTransactionExecuteInput = {
+  description: Scalars['String']['input'];
+  entries: Array<ManualTransactionEntryInput>;
+  reference?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ManualTransactionExecutePayload = {
+  __typename?: 'ManualTransactionExecutePayload';
+  manualTransaction: ManualTransaction;
 };
 
 export type Mutation = {
@@ -1231,6 +1254,7 @@ export type Mutation = {
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
+  manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportCreate: ReportCreatePayload;
@@ -1351,6 +1375,11 @@ export type MutationDocumentDeleteArgs = {
 
 export type MutationDocumentDownloadLinkGenerateArgs = {
   input: DocumentDownloadLinksGenerateInput;
+};
+
+
+export type MutationManualTransactionExecuteArgs = {
+  input: ManualTransactionExecuteInput;
 };
 
 
