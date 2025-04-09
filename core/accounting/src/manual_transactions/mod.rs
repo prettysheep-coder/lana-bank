@@ -13,7 +13,7 @@ use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 
 use crate::{
     Chart,
-    primitives::{CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
+    primitives::{CalaTxId, CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
 };
 use error::*;
 
@@ -121,9 +121,12 @@ where
             )
             .await?;
 
-        let id = ManualTransactionId::new();
+        let ledger_tx_id = CalaTxId::new();
+        let manual_tx_id = ManualTransactionId::new();
+
         let new_tx = NewManualTransaction::builder()
-            .id(id)
+            .id(manual_tx_id)
+            .ledger_transaction_id(ledger_tx_id)
             .description(description.clone())
             .reference(reference)
             .audit_info(audit_info)
@@ -151,7 +154,7 @@ where
         self.ledger
             .execute(
                 db,
-                id,
+                ledger_tx_id,
                 ManualTransactionParams {
                     journal_id: self.journal_id,
                     description,

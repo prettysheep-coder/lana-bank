@@ -21,8 +21,7 @@ es_entity::entity_id! {
     LedgerAccountId;
 
     LedgerAccountId => CalaAccountId,
-    LedgerAccountId => CalaAccountSetId,
-    ManualTransactionId => CalaTxId,
+    LedgerAccountId => CalaAccountSetId
 }
 
 pub type LedgerTransactionId = CalaTxId;

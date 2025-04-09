@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::primitives::ManualTransactionId;
+use crate::primitives::{CalaTxId, ManualTransactionId};
 
 use super::{entity::*, error::*};
 
@@ -10,7 +10,10 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "ManualTransaction",
     err = "ManualTransactionError",
-    columns(reference(ty = "String", create(accessor = "reference()"))),
+    columns(
+        reference(ty = "String", create(accessor = "reference()")),
+        ledger_transaction_id(ty = "CalaTxId")
+    ),
     tbl_prefix = "core"
 )]
 pub struct ManualTransactionRepo {

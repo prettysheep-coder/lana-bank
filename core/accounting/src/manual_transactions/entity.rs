@@ -68,6 +68,7 @@ pub struct NewManualTransaction {
     #[builder(setter(into))]
     pub(super) id: ManualTransactionId,
     reference: Option<String>,
+    pub(super) ledger_transaction_id: CalaTxId,
     description: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -94,7 +95,7 @@ impl IntoEvents<ManualTransactionEvent> for NewManualTransaction {
             [ManualTransactionEvent::Initialized {
                 reference: self.reference(),
                 id: self.id,
-                ledger_transaction_id: self.id.into(),
+                ledger_transaction_id: self.ledger_transaction_id,
                 description: self.description,
                 audit_info: self.audit_info,
             }],

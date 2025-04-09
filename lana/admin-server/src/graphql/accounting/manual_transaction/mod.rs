@@ -20,6 +20,7 @@ use super::JournalEntry;
 pub struct ManualTransaction {
     id: ID,
     created_at: Timestamp,
+    ledger_transaction_id: UUID,
 
     #[graphql(skip)]
     pub entity: Arc<DomainManualTransaction>,
@@ -48,6 +49,7 @@ impl From<DomainManualTransaction> for ManualTransaction {
         Self {
             id: tx.id.to_global_id(),
             created_at: tx.created_at().into(),
+            ledger_transaction_id: tx.ledger_transaction_id.into(),
             entity: Arc::new(tx),
         }
     }
