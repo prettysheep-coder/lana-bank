@@ -4,7 +4,10 @@
   "devDependencies": {
     "@anthropic-ai/claude-code": "^0.2.55",
     "@mermaid-js/mermaid-cli": "^11.4.2",
-    "md-to-pdf": "^5.2.4",
-    "mermaid-cli": "^0.2.4"
+    "md-to-pdf": "^5.2.4"
+  },
+  "resolutions": {
+    "cross-spawn": "^7.0.5",
+    "image-size": "^1.2.1"
   }
 }
