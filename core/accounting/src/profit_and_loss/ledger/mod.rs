@@ -413,34 +413,66 @@ impl ProfitAndLossStatementLedger {
             .await?;
 
         let statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
-        let revenue_account_set = self
+
+        let mut revenue_account_set = self
             .get_account_set(ids.revenue, &mut balances_by_id)
             .await?;
-        let expenses_account_set = self
+
+        revenue_account_set
+            .ancestor_ids
+            .push(statement_account_set.id);
+
+        let mut expenses_account_set = self
             .get_account_set(ids.expenses, &mut balances_by_id)
             .await?;
-        let cost_of_revenue_account_set = self
+
+        expenses_account_set
+            .ancestor_ids
+            .push(statement_account_set.id);
+
+        let mut cost_of_revenue_account_set = self
             .get_account_set(ids.cost_of_revenue, &mut balances_by_id)
             .await?;
 
-        let revenue_accounts = self
+        cost_of_revenue_account_set
+            .ancestor_ids
+            .push(statement_account_set.id);
+
+        let mut revenue_accounts = self
             .get_all_account_sets(
                 revenue_member_account_sets_ids.as_slice(),
                 &mut balances_by_id,
             )
             .await?;
-        let expenses_accounts = self
+        for account in revenue_accounts.iter_mut() {
+            account
+                .ancestor_ids
+                .extend([revenue_account_set.id, statement_account_set.id]);
+        }
+
+        let mut expenses_accounts = self
             .get_all_account_sets(
                 expenses_member_account_sets_ids.as_slice(),
                 &mut balances_by_id,
             )
             .await?;
-        let cost_of_revenue_accounts = self
+        for account in expenses_accounts.iter_mut() {
+            account
+                .ancestor_ids
+                .extend([expenses_account_set.id, statement_account_set.id]);
+        }
+
+        let mut cost_of_revenue_accounts = self
             .get_all_account_sets(
                 cost_of_revenue_member_account_sets_ids.as_slice(),
                 &mut balances_by_id,
             )
             .await?;
+        for account in cost_of_revenue_accounts.iter_mut() {
+            account
+                .ancestor_ids
+                .extend([cost_of_revenue_account_set.id, statement_account_set.id]);
+        }
 
         Ok(ProfitAndLossStatement {
             id: statement_account_set.id,
