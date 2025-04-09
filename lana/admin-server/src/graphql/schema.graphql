@@ -1175,6 +1175,7 @@ union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccoun
 type ManualTransaction {
 	id: ID!
 	createdAt: Timestamp!
+	ledgerTransactionId: UUID!
 	description: String!
 	reference: String!
 	entries: [JournalEntry!]!

@@ -1191,6 +1191,7 @@ export type ManualTransaction = {
   description: Scalars['String']['output'];
   entries: Array<JournalEntry>;
   id: Scalars['ID']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
   reference: Scalars['String']['output'];
 };
 
