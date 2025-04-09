@@ -10,8 +10,8 @@ use super::JournalEntry;
 #[graphql(complex)]
 pub struct LedgerTransaction {
     id: ID,
-    created_at: Timestamp,
     ledger_transaction_id: UUID,
+    created_at: Timestamp,
 
     #[graphql(skip)]
     pub entity: Arc<DomainLedgerTransaction>,

@@ -99,7 +99,7 @@ pub mod deposit {
 
 pub mod accounting {
     pub use core_accounting::{
-        chart_of_accounts, error, journal, ledger_account, ledger_transaction, manual_transactions,
+        chart_of_accounts, error, journal, ledger_account, ledger_transaction, manual_transaction,
         AccountCode, CalaAccountId, LedgerAccountId, {tree, Chart},
     };
 

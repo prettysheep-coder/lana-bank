@@ -6,7 +6,7 @@ pub mod error;
 pub mod journal;
 pub mod ledger_account;
 pub mod ledger_transaction;
-pub mod manual_transactions;
+pub mod manual_transaction;
 mod primitives;
 
 use std::collections::HashMap;
@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use manual_transactions::ManualTransactions;
+use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
@@ -22,7 +22,7 @@ use error::CoreAccountingError;
 pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
-pub use manual_transactions::ManualEntryInput;
+pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
 
 pub struct CoreAccounting<Perms>
