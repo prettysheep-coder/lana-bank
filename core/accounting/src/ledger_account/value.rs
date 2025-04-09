@@ -12,6 +12,7 @@ pub struct LedgerAccount {
     pub usd_balance_range: Option<BalanceRange>,
 
     pub ancestor_ids: Vec<LedgerAccountId>,
+    pub children_ids: Vec<LedgerAccountId>,
 
     is_leaf: bool,
 }
@@ -62,45 +63,8 @@ impl
             btc_balance_range,
             usd_balance_range,
             ancestor_ids: Vec::new(),
+            children_ids: Vec::new(),
             is_leaf: false,
-        }
-    }
-}
-
-impl
-    From<(
-        CalaAccount,
-        Option<CalaAccountBalance>,
-        Option<CalaAccountBalance>,
-    )> for LedgerAccount
-{
-    fn from(
-        (account, usd_balance, btc_balance): (
-            CalaAccount,
-            Option<CalaAccountBalance>,
-            Option<CalaAccountBalance>,
-        ),
-    ) -> Self {
-        let usd_balance_range = usd_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
-        });
-
-        let btc_balance_range = btc_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
-        });
-
-        LedgerAccount {
-            id: account.id.into(),
-            name: account.into_values().name,
-            code: None,
-            usd_balance_range,
-            btc_balance_range,
-            ancestor_ids: Vec::new(),
-            is_leaf: true,
         }
     }
 }
@@ -140,7 +104,47 @@ impl
             btc_balance_range,
             usd_balance_range,
             ancestor_ids: Vec::new(),
+            children_ids: Vec::new(),
             is_leaf: false,
+        }
+    }
+}
+
+impl
+    From<(
+        CalaAccount,
+        Option<CalaAccountBalance>,
+        Option<CalaAccountBalance>,
+    )> for LedgerAccount
+{
+    fn from(
+        (account, usd_balance, btc_balance): (
+            CalaAccount,
+            Option<CalaAccountBalance>,
+            Option<CalaAccountBalance>,
+        ),
+    ) -> Self {
+        let usd_balance_range = usd_balance.map(|balance| BalanceRange {
+            start: None,
+            end: Some(balance.clone()),
+            diff: Some(balance),
+        });
+
+        let btc_balance_range = btc_balance.map(|balance| BalanceRange {
+            start: None,
+            end: Some(balance.clone()),
+            diff: Some(balance),
+        });
+
+        LedgerAccount {
+            id: account.id.into(),
+            name: account.into_values().name,
+            code: None,
+            usd_balance_range,
+            btc_balance_range,
+            ancestor_ids: Vec::new(),
+            children_ids: Vec::new(),
+            is_leaf: true,
         }
     }
 }

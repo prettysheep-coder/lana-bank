@@ -101,6 +101,7 @@ where
             .await?
         {
             self.populate_ancestors(chart, &mut account).await?;
+            self.populate_children(chart, &mut account).await?;
             Ok(Some(account))
         } else {
             Ok(None)
@@ -116,6 +117,7 @@ where
         let mut res = HashMap::new();
         for (k, mut v) in accounts.into_iter() {
             self.populate_ancestors(chart, &mut v).await?;
+            self.populate_children(chart, &mut v).await?;
             res.insert(k, v.into());
         }
         Ok(res)
@@ -139,6 +141,31 @@ where
             let mut ancestors = chart.ancestors(&code);
             ancestors.insert(0, id.into());
             account.ancestor_ids = ancestors;
+        }
+        Ok(())
+    }
+
+    async fn populate_children(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+    ) -> Result<(), LedgerAccountError> {
+        if let cala_ledger::account_set::AccountSetMemberId::AccountSet(id) =
+            account.account_set_member_id()
+        {
+            account.children_ids = match account.code.as_ref() {
+                Some(code) => chart.children::<LedgerAccountId>(code),
+                None => self
+                    .ledger
+                    .find_children_for_id(id)
+                    .await?
+                    .into_iter()
+                    .map(|child_id| match child_id {
+                        cala_ledger::account_set::AccountSetMemberId::Account(id) => id.into(),
+                        cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => id.into(),
+                    })
+                    .collect(),
+            };
         }
         Ok(())
     }

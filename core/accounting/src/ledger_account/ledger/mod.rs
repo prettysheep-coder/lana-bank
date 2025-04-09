@@ -131,6 +131,21 @@ impl LedgerAccountLedger {
         })
     }
 
+    pub async fn find_children_for_id(
+        &self,
+        id: AccountSetId,
+    ) -> Result<Vec<AccountSetMemberId>, LedgerAccountLedgerError> {
+        Ok(self
+            .cala
+            .account_sets()
+            .list_members_by_external_id(id, Default::default())
+            .await?
+            .entities
+            .into_iter()
+            .map(|m| m.id)
+            .collect())
+    }
+
     pub async fn load_ledger_account_by_external_id(
         &self,
         external_id: String,
