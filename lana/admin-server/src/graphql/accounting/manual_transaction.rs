@@ -46,6 +46,7 @@ pub struct ManualTransactionEntryInput {
     pub account_ref: String,
     pub amount: Decimal,
     pub currency: String,
+    pub direction: String,
     pub description: Option<String>,
 }
 
