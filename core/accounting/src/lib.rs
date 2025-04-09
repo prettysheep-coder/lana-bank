@@ -3,6 +3,7 @@
 
 pub mod balance_sheet;
 pub mod chart_of_accounts;
+pub mod csv;
 pub mod error;
 pub mod journal;
 pub mod ledger_account;
