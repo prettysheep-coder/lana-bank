@@ -1,15 +1,15 @@
 use cala_ledger::entry::Entry;
-use cala_ledger::{Currency, DebitOrCredit, EntryId, Layer, TransactionId};
+use cala_ledger::{Currency, DebitOrCredit, EntryId, Layer};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
 use super::error::JournalError;
-use crate::primitives::LedgerAccountId;
+use crate::primitives::{CalaTxId, LedgerAccountId};
 
 pub struct JournalEntry {
     pub ledger_account_id: LedgerAccountId,
     pub entry_id: EntryId,
-    pub tx_id: TransactionId,
+    pub tx_id: CalaTxId,
     pub entry_type: String,
     pub amount: JournalEntryAmount,
     pub description: Option<String>,
