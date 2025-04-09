@@ -1102,6 +1102,7 @@ type JournalEntry {
 	entryType: String!
 	description: String
 	ledgerAccount: LedgerAccount!
+	ledgerTransaction: LedgerTransaction!
 }
 
 union JournalEntryAmount = UsdAmount | BtcAmount
@@ -1371,6 +1372,7 @@ type Query {
 	document(id: UUID!): Document
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
+	ledgerTransaction(id: UUID!): LedgerTransaction
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!

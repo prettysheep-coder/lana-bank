@@ -1414,6 +1414,7 @@ export const mockJournalEntry = (overrides?: Partial<JournalEntry>, _relationshi
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         layer: overrides && overrides.hasOwnProperty('layer') ? overrides.layer! : Layer.Encumbrance,
         ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        ledgerTransaction: overrides && overrides.hasOwnProperty('ledgerTransaction') ? overrides.ledgerTransaction! : relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit),
         txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
@@ -1731,6 +1732,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         journalEntries: overrides && overrides.hasOwnProperty('journalEntries') ? overrides.journalEntries! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         ledgerAccountByCode: overrides && overrides.hasOwnProperty('ledgerAccountByCode') ? overrides.ledgerAccountByCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        ledgerTransaction: overrides && overrides.hasOwnProperty('ledgerTransaction') ? overrides.ledgerTransaction! : relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit),
         me: overrides && overrides.hasOwnProperty('me') ? overrides.me! : relationshipsToOmit.has('Subject') ? {} as Subject : mockSubject({}, relationshipsToOmit),
         policies: overrides && overrides.hasOwnProperty('policies') ? overrides.policies! : relationshipsToOmit.has('PolicyConnection') ? {} as PolicyConnection : mockPolicyConnection({}, relationshipsToOmit),
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),

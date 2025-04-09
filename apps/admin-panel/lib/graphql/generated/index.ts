@@ -1110,6 +1110,7 @@ export type JournalEntry = {
   id: Scalars['ID']['output'];
   layer: Layer;
   ledgerAccount: LedgerAccount;
+  ledgerTransaction: LedgerTransaction;
   txId: Scalars['UUID']['output'];
 };
 
@@ -1551,6 +1552,7 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
+  ledgerTransaction?: Maybe<LedgerTransaction>;
   me: Subject;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1693,6 +1695,11 @@ export type QueryLedgerAccountArgs = {
 
 export type QueryLedgerAccountByCodeArgs = {
   code: Scalars['String']['input'];
+};
+
+
+export type QueryLedgerTransactionArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
