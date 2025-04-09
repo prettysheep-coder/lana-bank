@@ -2,7 +2,7 @@ mod error;
 
 use async_graphql::*;
 
-use error::ManualTransactionInputError;
+use cala_ledger::DebitOrCredit;
 pub use lana_app::accounting::manual_transactions::{
     ManualEntryInput, ManualTransaction as DomainManualTransaction,
     ManualTransactionsByCreatedAtCursor,
@@ -14,6 +14,7 @@ use crate::{
 };
 
 use super::JournalEntry;
+use error::ManualTransactionInputError;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -60,7 +61,7 @@ pub struct ManualTransactionEntryInput {
     pub account_ref: String,
     pub amount: Decimal,
     pub currency: String,
-    pub direction: String,
+    pub direction: DebitOrCredit,
     pub description: Option<String>,
 }
 
@@ -82,13 +83,7 @@ impl TryFrom<ManualTransactionEntryInput> for ManualEntryInput {
                 .map_err(|_| ManualTransactionInputError::AccountIdOrCodeInvalid(i.account_ref))?,
         );
 
-        builder.direction(
-            i.direction
-                .parse()
-                .map_err(|_| ManualTransactionInputError::DirectionInvalid(i.direction))?,
-        );
-
-        builder.amount(i.amount.into());
+        builder.direction(i.direction).amount(i.amount.into());
 
         if let Some(description) = i.description {
             builder.description(description);

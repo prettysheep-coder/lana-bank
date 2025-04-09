@@ -1529,7 +1529,7 @@ export const mockManualTransactionEntryInput = (overrides?: Partial<ManualTransa
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : faker.lorem.word(),
         currency: overrides && overrides.hasOwnProperty('currency') ? overrides.currency! : faker.lorem.word(),
         description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
-        direction: overrides && overrides.hasOwnProperty('direction') ? overrides.direction! : faker.lorem.word(),
+        direction: overrides && overrides.hasOwnProperty('direction') ? overrides.direction! : DebitOrCredit.Credit,
     };
 };
 

@@ -6,6 +6,4 @@ pub enum ManualTransactionInputError {
     CurrencyNotSupported(String),
     #[error("ManualTransactionError - {0} is neither a valid account ID nor code")]
     AccountIdOrCodeInvalid(String),
-    #[error("ManualTransactionError - {0} is not a valid direction")]
-    DirectionInvalid(String),
 }

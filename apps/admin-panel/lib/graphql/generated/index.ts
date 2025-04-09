@@ -1219,7 +1219,7 @@ export type ManualTransactionEntryInput = {
   amount: Scalars['Decimal']['input'];
   currency: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
-  direction: Scalars['String']['input'];
+  direction: DebitOrCredit;
 };
 
 export type ManualTransactionExecuteInput = {
