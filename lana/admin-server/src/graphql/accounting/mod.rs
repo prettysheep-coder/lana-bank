@@ -1,5 +1,6 @@
 mod journal_entry;
 mod ledger_account;
+mod ledger_transaction;
 mod manual_transaction;
 
 pub use journal_entry::*;

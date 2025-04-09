@@ -90,7 +90,8 @@ impl_to_global_id! {
     DepositId,
     ManualTransactionId,
     ApprovalProcessId,
-    DepositAccountId
+    DepositAccountId,
+    cala_ledger::TransactionId
 }
 
 use cala_ledger::EntryId;
