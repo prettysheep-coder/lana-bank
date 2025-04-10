@@ -40,15 +40,14 @@ final as (
 
     select *
     from deposit_balances
-    left join deposit_accounts using(deposit_account_id)
-    left join customers using(customer_id)
-    left join approved_credit_facilities using(customer_id)
+    left join deposit_accounts using (deposit_account_id)
+    left join customers using (customer_id)
+    left join approved_credit_facilities using (customer_id)
 )
 
 
 select
     'BTCL' as `Código del Producto`,
-    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`,
     '1234567' as `Agencia`,
     'O' as `Tipo de Periodicidad`,
     0.0 as `Tasa vigente`,
@@ -59,7 +58,6 @@ select
     'OT' as `Forma de pago de interés`,
     0.0 as `Tasa de referencia`,
     0.0 as `Porcentaje a pagar por intereses`,
-    last_day(current_date(), month) as `Día de corte`,
     0.0 as `Porcentaje de comisión`,
     '1' as `Tipo de titularidad`,
     1 as `Número de titulares`,
@@ -77,9 +75,13 @@ select
     'BTC' as `Moneda`,
     deposit_account_balance as `Saldo del depósito en la moneda original`,
     latest_recorded_at as `Fecha de la última transacción`,
-    safe_multiply(safe_divide(deposit_account_balance, 100000000.0),(select last_price_usd from btc_price)) as `Saldo de capital`,
     0.0 as `Saldo de intereses`,
     deposit_account_balance as `Saldo total`,
-    '1' as `Estado`
- FROM
-     final
+    '1' as `Estado`,
+    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`,
+    last_day(current_date(), month) as `Día de corte`,
+    safe_multiply(
+        safe_divide(deposit_account_balance, 100000000.0), (select last_price_usd from btc_price)
+    ) as `Saldo de capital`
+from
+    final

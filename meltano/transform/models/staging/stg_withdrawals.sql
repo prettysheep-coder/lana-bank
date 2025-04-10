@@ -29,8 +29,7 @@ with ordered as (
 
 )
 
-select
-    * except (order_received_desc)
+select * except (order_received_desc)
 
 from ordered
 
