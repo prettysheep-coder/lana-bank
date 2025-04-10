@@ -20,7 +20,6 @@ import { Account } from "./account"
 
 import {
   ProfitAndLossStatementQuery,
-  StatementCategory,
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
@@ -37,29 +36,122 @@ gql`
     profitAndLossStatement(from: $from, until: $until) {
       name
       net {
-        ...balancesByCurrency
+        __typename
+        ... on UsdLedgerAccountBalanceRange {
+          usdStart: start {
+            settled
+            pending
+            encumbrance
+          }
+          usdDiff: diff {
+            settled
+            pending
+            encumbrance
+          }
+          usdEnd: end {
+            settled
+            pending
+            encumbrance
+          }
+        }
+        ... on BtcLedgerAccountBalanceRange {
+          btcStart: start {
+            settled
+            pending
+            encumbrance
+          }
+          btcDiff: diff {
+            settled
+            pending
+            encumbrance
+          }
+          btcEnd: end {
+            settled
+            pending
+            encumbrance
+          }
+        }
       }
       categories {
+        id
         name
-        amounts {
-          ...balancesByCurrency
-        }
-        accounts {
-          ... on Account {
-            __typename
-            id
-            name
-            amounts {
-              ...balancesByCurrency
+        code
+        balanceRange {
+          __typename
+          ... on UsdLedgerAccountBalanceRange {
+            usdStart: start {
+              settled
+              pending
+              encumbrance
+            }
+            usdDiff: diff {
+              settled
+              pending
+              encumbrance
+            }
+            usdEnd: end {
+              settled
+              pending
+              encumbrance
             }
           }
-          ... on AccountSet {
+          ... on BtcLedgerAccountBalanceRange {
+            btcStart: start {
+              settled
+              pending
+              encumbrance
+            }
+            btcDiff: diff {
+              settled
+              pending
+              encumbrance
+            }
+            btcEnd: end {
+              settled
+              pending
+              encumbrance
+            }
+          }
+        }
+        children {
+          id
+          name
+          code
+          balanceRange {
             __typename
-            id
-            name
-
-            amounts {
-              ...balancesByCurrency
+            ... on UsdLedgerAccountBalanceRange {
+              usdStart: start {
+                settled
+                pending
+                encumbrance
+              }
+              usdDiff: diff {
+                settled
+                pending
+                encumbrance
+              }
+              usdEnd: end {
+                settled
+                pending
+                encumbrance
+              }
+            }
+            ... on BtcLedgerAccountBalanceRange {
+              btcStart: start {
+                settled
+                pending
+                encumbrance
+              }
+              btcDiff: diff {
+                settled
+                pending
+                encumbrance
+              }
+              btcEnd: end {
+                settled
+                pending
+                encumbrance
+              }
             }
           }
         }
@@ -67,6 +159,7 @@ gql`
     }
   }
 `
+
 const LoadingSkeleton = () => {
   return (
     <div className="space-y-6">
@@ -213,7 +306,7 @@ const ProfitAndLossStatement = ({
               return (
                 <CategoryRow
                   key={category.name}
-                  category={category as StatementCategory}
+                  category={category}
                   currency={currency}
                   layer={layer}
                   transactionType={
