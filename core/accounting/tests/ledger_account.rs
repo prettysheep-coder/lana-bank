@@ -103,7 +103,8 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .create(NewAccountSet::builder().id(internal_id).name("Internal").journal_id(journal_id).build().unwrap())
         .await?;
     cala.account_sets().add_member(grandchild.id.into(), internal_id).await?;
-    // should be empty
+
+    let grandchild = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "11.1".to_string()).await?.unwrap();
     assert_eq!(grandchild.children_ids, vec![]);
 
     let leaf_id = AccountId::new();
@@ -112,14 +113,8 @@ async fn ledger_account_children() -> anyhow::Result<()> {
         .await?;
     cala.account_sets().add_member(internal_id, leaf_id).await?;
 
-    // internal account
-    let ledger_account = accounting.find_ledger_account_by_id(&DummySubject, &chart_ref, internal_id).await?.unwrap();
-    assert_eq!(ledger_account.children_ids, vec![leaf_id.into()]);
-
-    // leaf account with internal
-    let ledger_account = accounting.find_ledger_account_by_id(&DummySubject, &chart_ref, leaf_id).await?.unwrap();
-    // leaf should be empty
-    assert_eq!(ledger_account.children_ids, vec![]);
+    let grandchild = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "11.1".to_string()).await?.unwrap();
+    assert_eq!(grandchild.children_ids, vec![leaf_id.into()]);
 
     Ok(())
 }

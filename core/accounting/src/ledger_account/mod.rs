@@ -150,23 +150,11 @@ where
         chart: &Chart,
         account: &mut LedgerAccount,
     ) -> Result<(), LedgerAccountError> {
-        if let cala_ledger::account_set::AccountSetMemberId::AccountSet(id) =
-            account.account_set_member_id()
-        {
-            account.children_ids = match account.code.as_ref() {
-                Some(code) => chart.children::<LedgerAccountId>(code),
-                None => self
-                    .ledger
-                    .find_children_for_id(id)
-                    .await?
-                    .into_iter()
-                    .map(|child_id| match child_id {
-                        cala_ledger::account_set::AccountSetMemberId::Account(id) => id.into(),
-                        cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => id.into(),
-                    })
-                    .collect(),
-            };
-        }
+        account.children_ids = if account.is_in_chart_of_accounts() {
+            chart.children::<LedgerAccountId>(&account.code.as_ref().expect("code is not set"))
+        } else {
+            self.ledger.find_children_for_id(account.id).await?
+        };
         Ok(())
     }
 }

@@ -3,12 +3,12 @@ pub mod error;
 use std::collections::HashMap;
 
 use cala_ledger::{
-    CalaLedger, Currency, JournalId,
     account::Account,
     account_set::{AccountSet, AccountSetId, AccountSetMemberId},
+    CalaLedger, Currency, JournalId,
 };
 
-use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
+use crate::{journal_error::JournalError, AccountCode, LedgerAccount, LedgerAccountId};
 
 use error::*;
 
@@ -133,16 +133,16 @@ impl LedgerAccountLedger {
 
     pub async fn find_children_for_id(
         &self,
-        id: AccountSetId,
-    ) -> Result<Vec<AccountSetMemberId>, LedgerAccountLedgerError> {
+        id: LedgerAccountId,
+    ) -> Result<Vec<LedgerAccountId>, LedgerAccountLedgerError> {
         Ok(self
             .cala
             .account_sets()
-            .list_members_by_external_id(id, Default::default())
+            .list_members_by_external_id(id.into(), Default::default())
             .await?
             .entities
             .into_iter()
-            .map(|m| m.id)
+            .map(|m| m.id.into())
             .collect())
     }
 

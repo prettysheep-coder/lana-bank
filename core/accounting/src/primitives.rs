@@ -5,7 +5,6 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::{
-    Currency as CalaCurrency, DebitOrCredit,
     account::Account as CalaAccount,
     account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
@@ -13,6 +12,7 @@ pub use cala_ledger::{
         AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
         JournalId as CalaJournalId, TransactionId as CalaTxId,
     },
+    Currency as CalaCurrency, DebitOrCredit,
 };
 
 pub use core_money::{Satoshis, UsdCents};
@@ -24,6 +24,15 @@ es_entity::entity_id! {
 
     LedgerAccountId => CalaAccountId,
     LedgerAccountId => CalaAccountSetId
+}
+
+impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
+    fn from(value: cala_ledger::account_set::AccountSetMemberId) -> Self {
+        match value {
+            cala_ledger::account_set::AccountSetMemberId::Account(id) => id.into(),
+            cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => id.into(),
+        }
+    }
 }
 
 pub type LedgerTransactionId = CalaTxId;
