@@ -151,7 +151,7 @@ where
         account: &mut LedgerAccount,
     ) -> Result<(), LedgerAccountError> {
         let children = if let Some(code) = &account.code {
-            chart.children::<LedgerAccountId>(&code)
+            chart.children::<LedgerAccountId>(code)
         } else {
             Vec::new()
         };

@@ -29,7 +29,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "admin-server"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -329,7 +329,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -341,7 +341,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -839,9 +839,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.24"
+version = "4.5.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9560b07a799281c7e0958b9296854d6fafd4c5f31444a7e5bb1ad6dde5ccf1bd"
+checksum = "d8aa86934b44c19c50f87cc2790e19f54f7a67aedb64101c2e1a2e5ecfb73944"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -849,9 +849,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.24"
+version = "4.5.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "874e0dd3eb68bf99058751ac9712f622e61e6f393a94f7128fa26e3f02f5c7cd"
+checksum = "2414dbb2dd0695280da6ea9261e327479e9d37b0630f6b53ba2a11c60c679fd9"
 dependencies = [
  "anstream",
  "anstyle",
@@ -861,9 +861,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.5.24"
+version = "4.5.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54b755194d6389280185988721fffba69495eed5ee9feeee9a599b53db80318c"
+checksum = "09176aae279615badda0765c0c0b3f6ed53f4709118af73cf4655d85d1530cd7"
 dependencies = [
  "heck 0.5.0",
  "proc-macro2",
@@ -879,7 +879,7 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "cloud-storage"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "google-cloud-storage",
@@ -952,7 +952,7 @@ dependencies = [
 
 [[package]]
 name = "core-accounting"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -981,7 +981,7 @@ dependencies = [
 
 [[package]]
 name = "core-credit"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1018,7 +1018,7 @@ dependencies = [
 
 [[package]]
 name = "core-customer"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1064,7 +1064,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core-money"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "async-graphql",
  "rust_decimal",
@@ -1075,7 +1075,7 @@ dependencies = [
 
 [[package]]
 name = "core-price"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "cached 0.53.1",
@@ -1091,7 +1091,7 @@ dependencies = [
 
 [[package]]
 name = "core-user"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "audit",
@@ -1195,7 +1195,7 @@ dependencies = [
 
 [[package]]
 name = "customer-onboarding"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1224,7 +1224,7 @@ dependencies = [
 
 [[package]]
 name = "customer-server"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1283,7 +1283,7 @@ dependencies = [
 
 [[package]]
 name = "dashboard"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1315,7 +1315,7 @@ checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "deposit"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1919,7 +1919,7 @@ dependencies = [
 
 [[package]]
 name = "governance"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2574,7 +2574,7 @@ checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
 
 [[package]]
 name = "job"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2620,7 +2620,7 @@ dependencies = [
 
 [[package]]
 name = "jwks-utils"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "axum",
  "axum-extra",
@@ -2633,7 +2633,7 @@ dependencies = [
 
 [[package]]
 name = "kratos-admin"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "ory-kratos-client",
  "serde",
@@ -2676,7 +2676,7 @@ dependencies = [
 
 [[package]]
 name = "lana-app"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2740,7 +2740,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -2759,7 +2759,7 @@ dependencies = [
 
 [[package]]
 name = "lana-events"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "core-credit",
  "core-customer",
@@ -2772,7 +2772,7 @@ dependencies = [
 
 [[package]]
 name = "lana-ids"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "cala-ledger",
  "deposit",
@@ -3174,7 +3174,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "chrono",
  "es-entity",
@@ -3657,7 +3657,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -3966,9 +3966,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal_macros"
-version = "1.37.0"
+version = "1.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0dde81640648b810262386d671ad939ca2b138c89e5cf5d91af31f17c9832e8d"
+checksum = "f6268b74858287e1a062271b988a0c534bf85bbeb567fe09331bf40ed78113d5"
 dependencies = [
  "quote",
  "syn 2.0.100",
@@ -4358,7 +4358,7 @@ dependencies = [
 
 [[package]]
 name = "sim-bootstrap"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4990,9 +4990,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.44.1"
+version = "1.44.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f382da615b842244d4b8738c82ed1275e6c5dd90c459a30941cd07080b06c91a"
+checksum = "e6b88822cbe49de4185e3a4cbf8321dd487cf5fe0c5c65695fef6346371e9c48"
 dependencies = [
  "backtrace",
  "bytes",
@@ -5322,7 +5322,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -5481,7 +5481,7 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "user-onboarding"
-version = "0.3.274-dev"
+version = "0.3.277-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
