@@ -1427,5 +1427,52 @@
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor"
     }
+  },
+  "ManualTransactions": {
+    "title": "Ejecutar transacción manual",
+    "description": "Crea una transacción manual proporcionando los detalles requeridos",
+    "fields": {
+      "description": "Descripción de la transacción",
+      "reference": "Referencia de la transacción",
+      "entries": "Asientos contables para esta transacción"
+    },
+    "placeholders": {
+      "description": "Ingrese la descripción de la transacción",
+      "reference": "Ingrese la referencia de la transacción"
+    },
+    "noEntries": "No hay asientos contables para esta transacción. Por favor, añada uno.",
+    "addEntryBtn": "Añadir",
+    "execute": "Ejecutar",
+    "EntryInput": {
+      "title": "Entrada de asiento contable para transacción manual",
+      "description": "Añadir asiento contable para esta transacción",
+      "fields": {
+        "accountRef": "Referencia de cuenta",
+        "amount": "Monto decimal",
+        "currency": "Moneda",
+        "direction": "Dirección",
+        "usd": "USD",
+        "btc": "BTC",
+        "credit": "Crédito",
+        "debit": "Débito",
+        "description": "Descripción"
+      },
+      "placeholders": {
+        "accountRef": "Ingrese la referencia de cuenta",
+        "currency": "Seleccione moneda",
+        "amount": "Ingrese el monto",
+        "direction": "Seleccione dirección",
+        "description": "Ingrese descripción"
+      },
+      "add": "Añadir entrada"
+    },
+    "table": {
+      "accountRef": "Cuenta",
+      "amount": "Monto",
+      "currency": "Moneda",
+      "direction": "Dirección",
+      "description": "Descripción"
+    },
+    "errored": "Ocurrió un error al ejecutar la transacción"
   }
 }
