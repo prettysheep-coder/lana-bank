@@ -53,13 +53,13 @@ gql`
   }
 `
 
-type LedgerAccountPageProps = {
+type LedgerTransactionPageProps = {
   params: {
     "ledger-transaction-id": string
   }
 }
 
-const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
+const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params }) => {
   const t = useTranslations("LedgerTransaction")
   const { "ledger-transaction-id": id } = params
 
@@ -154,4 +154,4 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   )
 }
 
-export default LedgerAccountPage
+export default LedgerTransactionPage
