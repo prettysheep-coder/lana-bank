@@ -102,7 +102,7 @@ impl LedgerAccountLedger {
         >,
     > {
         Box::pin(async move {
-            if current_depth > 2 {
+            if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
                 return Ok(None);
             }
             let all_parents = self
