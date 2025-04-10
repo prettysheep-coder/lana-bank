@@ -3,14 +3,16 @@ pub mod error;
 use std::collections::HashMap;
 
 use cala_ledger::{
+    CalaLedger, Currency, JournalId,
     account::Account,
     account_set::{AccountSet, AccountSetId, AccountSetMemberId},
-    CalaLedger, Currency, JournalId,
 };
 
-use crate::{journal_error::JournalError, AccountCode, LedgerAccount, LedgerAccountId};
+use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
 use error::*;
+
+const MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE: usize = 2; // coa_edge -> internal_account -> leaf
 
 #[derive(Clone)]
 pub struct LedgerAccountLedger {
@@ -100,7 +102,7 @@ impl LedgerAccountLedger {
         >,
     > {
         Box::pin(async move {
-            if current_depth > 2 {
+            if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
                 return Ok(None);
             }
             let all_parents = self
@@ -131,19 +133,46 @@ impl LedgerAccountLedger {
         })
     }
 
-    pub async fn find_children_for_id(
+    #[allow(clippy::type_complexity)]
+    pub fn find_leaf_children(
         &self,
         id: LedgerAccountId,
-    ) -> Result<Vec<LedgerAccountId>, LedgerAccountLedgerError> {
-        Ok(self
-            .cala
-            .account_sets()
-            .list_members_by_external_id(id.into(), Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(|m| m.id.into())
-            .collect())
+        current_depth: usize,
+    ) -> std::pin::Pin<
+        Box<
+            dyn Future<Output = Result<Vec<LedgerAccountId>, LedgerAccountLedgerError>> + Send + '_,
+        >,
+    > {
+        Box::pin(async move {
+            if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
+                return Ok(Vec::new());
+            }
+
+            let children = self
+                .cala
+                .account_sets()
+                .list_members_by_external_id(id.into(), Default::default())
+                .await?
+                .entities;
+
+            let mut results = Vec::new();
+
+            for child in children {
+                match child.id {
+                    cala_ledger::account_set::AccountSetMemberId::Account(id) => {
+                        results.push(id.into());
+                    }
+                    cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => {
+                        let nested_children = self
+                            .find_leaf_children(id.into(), current_depth + 1)
+                            .await?;
+                        results.extend(nested_children);
+                    }
+                }
+            }
+
+            Ok(results)
+        })
     }
 
     pub async fn load_ledger_account_by_external_id(

@@ -150,10 +150,15 @@ where
         chart: &Chart,
         account: &mut LedgerAccount,
     ) -> Result<(), LedgerAccountError> {
-        account.children_ids = if account.is_in_chart_of_accounts() {
-            chart.children::<LedgerAccountId>(&account.code.as_ref().expect("code is not set"))
+        let children = if let Some(code) = &account.code {
+            chart.children::<LedgerAccountId>(&code)
         } else {
-            self.ledger.find_children_for_id(account.id).await?
+            Vec::new()
+        };
+        account.children_ids = if children.is_empty() {
+            self.ledger.find_leaf_children(account.id, 1).await?
+        } else {
+            children
         };
         Ok(())
     }

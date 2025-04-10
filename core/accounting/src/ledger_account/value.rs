@@ -18,10 +18,6 @@ pub struct LedgerAccount {
 }
 
 impl LedgerAccount {
-    pub(super) fn is_in_chart_of_accounts(&self) -> bool {
-        self.code.is_some()
-    }
-
     pub(super) fn account_set_member_id(&self) -> cala_ledger::account_set::AccountSetMemberId {
         if self.is_leaf {
             CalaAccountId::from(self.id).into()
