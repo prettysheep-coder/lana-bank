@@ -292,7 +292,7 @@ pub enum CoreAccountingObject {
     LedgerTransaction(LedgerTransactionAllOrOne),
     ManualTransaction(ManualTransactionAllOrOne),
     ProfitAndLoss(ProfitAndLossAllOrOne),
-    ProfitAndLossConfigration(ProfitAndLossConfigurationAllOrOne),
+    ProfitAndLossConfiguration(ProfitAndLossConfigurationAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -345,7 +345,7 @@ impl CoreAccountingObject {
     }
 
     pub fn all_profit_and_loss_configuration() -> Self {
-        CoreAccountingObject::ProfitAndLossConfigration(AllOrOne::All)
+        CoreAccountingObject::ProfitAndLossConfiguration(AllOrOne::All)
     }
 }
 
@@ -360,7 +360,7 @@ impl Display for CoreAccountingObject {
             LedgerTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ManualTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ProfitAndLoss(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ProfitAndLossConfigration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ProfitAndLossConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -404,7 +404,7 @@ impl FromStr for CoreAccountingObject {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse ProfitAndLossConfiguration")?;
-                CoreAccountingObject::ProfitAndLossConfigration(obj_ref)
+                CoreAccountingObject::ProfitAndLossConfiguration(obj_ref)
             }
         };
         Ok(res)
