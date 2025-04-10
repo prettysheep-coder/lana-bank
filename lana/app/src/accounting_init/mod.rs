@@ -24,27 +24,6 @@ impl JournalInit {
 }
 
 #[derive(Clone)]
-pub struct StatementsInit;
-
-impl StatementsInit {
-    pub async fn statements(
-        trial_balances: &TrialBalances,
-        pl_statements: &ProfitAndLossStatements,
-        balance_sheets: &BalanceSheets,
-        cash_flow_statements: &CashFlowStatements,
-    ) -> Result<(), AccountingInitError> {
-        seed::statements::init(
-            trial_balances,
-            pl_statements,
-            balance_sheets,
-            cash_flow_statements,
-        )
-        .await?;
-        Ok(())
-    }
-}
-
-#[derive(Clone)]
 pub struct ChartsInit;
 
 impl ChartsInit {
