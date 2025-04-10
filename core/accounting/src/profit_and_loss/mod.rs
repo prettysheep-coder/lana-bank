@@ -107,7 +107,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreAccountingObject::all_profit_and_loss(),
+                CoreAccountingObject::all_profit_and_loss_configuration(),
                 CoreAccountingAction::PROFIT_AND_LOSS_READ,
             )
             .await?;
@@ -128,6 +128,15 @@ where
             return Err(ProfitAndLossStatementError::ChartIdMismatch);
         }
 
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_profit_and_loss_configuration(),
+                CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
+            )
+            .await?;
+
         if self
             .pl_statement_ledger
             .get_chart_of_accounts_integration_config(reference.to_string())
@@ -143,15 +152,6 @@ where
             chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
         let expenses_child_account_set_id_from_chart =
             chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
-
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_profit_and_loss(),
-                CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
-            )
-            .await?;
 
         let charts_integration_meta = ChartOfAccountsIntegrationMeta {
             audit_info,
@@ -255,7 +255,6 @@ where
 pub struct ProfitAndLossStatement {
     pub id: LedgerAccountId,
     pub name: String,
-    // pub description: Option<String>,
     pub usd_balance_range: Option<BalanceRange>,
     pub btc_balance_range: Option<BalanceRange>,
     pub categories: Vec<LedgerAccount>,

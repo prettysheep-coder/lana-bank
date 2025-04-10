@@ -485,7 +485,6 @@ impl ProfitAndLossStatementLedger {
         Ok(ProfitAndLossStatement {
             id: statement_account_set.id,
             name: statement_account_set.name,
-            // description: statement_account_set.description,
             usd_balance_range: statement_account_set.usd_balance_range,
             btc_balance_range: statement_account_set.btc_balance_range,
             categories: vec![
