@@ -4,21 +4,24 @@ use lana_app::profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStat
 
 use crate::primitives::*;
 
-use super::LedgerAccountBalanceRange;
+use super::{LedgerAccount, LedgerAccountBalanceRange};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct ProfitAndLossStatement {
     pub name: String,
-
+    pub categories: Vec<LedgerAccount>,
     #[graphql(skip)]
     pub entity: Arc<DomainProfitAndLossStatement>,
 }
 
 impl From<DomainProfitAndLossStatement> for ProfitAndLossStatement {
     fn from(profit_and_loss: DomainProfitAndLossStatement) -> Self {
+        let categories = profit_and_loss.categories.clone();
+
         ProfitAndLossStatement {
             name: profit_and_loss.name.to_string(),
+            categories: categories.into_iter().map(LedgerAccount::from).collect(),
             entity: Arc::new(profit_and_loss),
         }
     }
