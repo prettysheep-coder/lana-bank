@@ -258,16 +258,5 @@ pub struct ProfitAndLossStatement {
     // pub description: Option<String>,
     pub usd_balance_range: Option<BalanceRange>,
     pub btc_balance_range: Option<BalanceRange>,
-    pub categories: Vec<StatementAccountSetWithAccounts>,
-}
-
-#[derive(Debug, Clone)]
-pub struct StatementAccountSetWithAccounts {
-    pub id: LedgerAccountId,
-    pub name: String,
-    // pub description: Option<String>,
-    pub usd_balance_range: Option<BalanceRange>,
-    pub btc_balance_range: Option<BalanceRange>,
-
-    pub accounts: Vec<LedgerAccount>,
+    pub categories: Vec<LedgerAccount>,
 }

@@ -16,7 +16,6 @@ use crate::primitives::CalaBalanceRange;
 use super::{
     COST_OF_REVENUE_NAME, ChartOfAccountsIntegrationConfig, EXPENSES_NAME, LedgerAccount,
     ProfitAndLossStatement, ProfitAndLossStatementIds, REVENUE_NAME,
-    StatementAccountSetWithAccounts,
 };
 
 use error::*;
@@ -412,7 +411,7 @@ impl ProfitAndLossStatementLedger {
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
 
-        let statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
+        let mut statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
 
         let mut revenue_account_set = self
             .get_account_set(ids.revenue, &mut balances_by_id)
@@ -438,6 +437,12 @@ impl ProfitAndLossStatementLedger {
             .ancestor_ids
             .push(statement_account_set.id);
 
+        statement_account_set.children_ids.extend([
+            revenue_account_set.id,
+            expenses_account_set.id,
+            cost_of_revenue_account_set.id,
+        ]);
+
         let mut revenue_accounts = self
             .get_all_account_sets(
                 revenue_member_account_sets_ids.as_slice(),
@@ -448,6 +453,7 @@ impl ProfitAndLossStatementLedger {
             account
                 .ancestor_ids
                 .extend([revenue_account_set.id, statement_account_set.id]);
+            revenue_account_set.children_ids.push(account.id);
         }
 
         let mut expenses_accounts = self
@@ -460,6 +466,7 @@ impl ProfitAndLossStatementLedger {
             account
                 .ancestor_ids
                 .extend([expenses_account_set.id, statement_account_set.id]);
+            expenses_account_set.children_ids.push(account.id);
         }
 
         let mut cost_of_revenue_accounts = self
@@ -472,6 +479,7 @@ impl ProfitAndLossStatementLedger {
             account
                 .ancestor_ids
                 .extend([cost_of_revenue_account_set.id, statement_account_set.id]);
+            cost_of_revenue_account_set.children_ids.push(account.id);
         }
 
         Ok(ProfitAndLossStatement {
@@ -481,30 +489,9 @@ impl ProfitAndLossStatementLedger {
             usd_balance_range: statement_account_set.usd_balance_range,
             btc_balance_range: statement_account_set.btc_balance_range,
             categories: vec![
-                StatementAccountSetWithAccounts {
-                    id: revenue_account_set.id,
-                    name: revenue_account_set.name,
-                    // description: revenue_account_set.description,
-                    usd_balance_range: revenue_account_set.usd_balance_range,
-                    btc_balance_range: revenue_account_set.btc_balance_range,
-                    accounts: revenue_accounts,
-                },
-                StatementAccountSetWithAccounts {
-                    id: expenses_account_set.id,
-                    name: expenses_account_set.name,
-                    // description: expenses_account_set.description,
-                    usd_balance_range: expenses_account_set.usd_balance_range,
-                    btc_balance_range: expenses_account_set.btc_balance_range,
-                    accounts: expenses_accounts,
-                },
-                StatementAccountSetWithAccounts {
-                    id: cost_of_revenue_account_set.id,
-                    name: cost_of_revenue_account_set.name,
-                    // description: cost_of_revenue_account_set.description,
-                    usd_balance_range: cost_of_revenue_account_set.usd_balance_range,
-                    btc_balance_range: cost_of_revenue_account_set.btc_balance_range,
-                    accounts: cost_of_revenue_accounts,
-                },
+                expenses_account_set,
+                revenue_account_set,
+                cost_of_revenue_account_set,
             ],
         })
     }
