@@ -400,7 +400,7 @@ impl FromStr for CoreAccountingObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse ProfitAndLoss")?;
                 CoreAccountingObject::ProfitAndLoss(obj_ref)
             }
-            ProfitAndLossConfigration => {
+            ProfitAndLossConfiguration => {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse ProfitAndLossConfiguration")?;

@@ -128,16 +128,16 @@ impl ProfitAndLossStatementLedger {
     async fn get_account_set(
         &self,
         account_set_id: AccountSetId,
-        balances_by_id: &mut HashMap<BalanceId, Option<CalaBalanceRange>>,
+        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
     ) -> Result<LedgerAccount, ProfitAndLossStatementLedgerError> {
         let account_set = self.cala.account_sets().find(account_set_id).await?;
+        dbg!(&account_set.id);
+        dbg!(&balances_by_id);
 
-        let btc_balance = balances_by_id
-            .remove(&(self.journal_id, account_set_id.into(), Currency::BTC))
-            .expect("value should exist for balance id");
-        let usd_balance = balances_by_id
-            .remove(&(self.journal_id, account_set_id.into(), Currency::USD))
-            .expect("value should exist for balance id");
+        let btc_balance =
+            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::BTC));
+        let usd_balance =
+            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD));
 
         let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
 
@@ -147,20 +147,18 @@ impl ProfitAndLossStatementLedger {
     async fn get_all_account_sets(
         &self,
         ids: &[AccountSetId],
-        balances_by_id: &mut HashMap<BalanceId, Option<CalaBalanceRange>>,
+        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
     ) -> Result<Vec<LedgerAccount>, ProfitAndLossStatementLedgerError> {
         let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
 
         let mut ledger_accounts = Vec::new();
         for id in ids {
             let account_set = account_sets.remove(id).expect("account set should exist");
-            let usd_balance = balances_by_id
-                .remove(&(self.journal_id, (*id).into(), Currency::USD))
-                .expect("value should exist for balance id");
+            let usd_balance =
+                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::USD));
 
-            let btc_balance = balances_by_id
-                .remove(&(self.journal_id, (*id).into(), Currency::BTC))
-                .expect("value should exist for balance id");
+            let btc_balance =
+                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::BTC));
 
             let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
 
@@ -192,8 +190,7 @@ impl ProfitAndLossStatementLedger {
         all_account_set_ids: Vec<AccountSetId>,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-    ) -> Result<HashMap<BalanceId, Option<CalaBalanceRange>>, ProfitAndLossStatementLedgerError>
-    {
+    ) -> Result<HashMap<BalanceId, CalaBalanceRange>, ProfitAndLossStatementLedgerError> {
         let balance_ids = all_account_set_ids
             .iter()
             .flat_map(|id| {
