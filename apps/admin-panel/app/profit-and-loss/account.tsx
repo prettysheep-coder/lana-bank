@@ -1,6 +1,8 @@
 "use client"
 import { TableCell, TableRow } from "@lana/web/ui/table"
 
+import Link from "next/link"
+
 import Balance, { Currency } from "@/components/balance/balance"
 import { ProfitAndLossStatementQuery } from "@/lib/graphql/generated"
 
@@ -26,13 +28,15 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
 
   return (
     <TableRow data-testid={`account-${account.id}`}>
-      <TableCell className="flex items-center">
-        {Array.from({ length: depth }).map((_, i) => (
-          <div key={i} className="w-8" />
-        ))}
-        <div className="w-8" />
-        <div>{account.name}</div>
-      </TableCell>
+      <Link href={`/ledger-account/${account.code}`}>
+        <TableCell className="flex items-center">
+          {Array.from({ length: depth }).map((_, i) => (
+            <div key={i} className="w-8" />
+          ))}
+          <div className="w-8" />
+          <div>{account.name}</div>
+        </TableCell>
+      </Link>
       <TableCell>
         <Balance align="end" currency={currency} amount={accountEnd as CurrencyType} />
       </TableCell>
