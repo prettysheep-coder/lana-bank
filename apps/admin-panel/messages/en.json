@@ -1434,7 +1434,11 @@
     "fields": {
       "description": "Transaction Description",
       "reference": "Transaction Reference",
-      "entries": "Journal Entries for this transaction"
+      "entries": "Journal Entries for this transaction",
+      "usd": "USD",
+      "btc": "BTC",
+      "debit": "Debit",
+      "credit": "Credit"
     },
     "placeholders": {
       "description": "Enter transaction description",
@@ -1443,28 +1447,12 @@
     "noEntries": "No journal entry for this transaction. Please add one.",
     "addEntryBtn": "Add",
     "execute": "Execute",
-    "EntryInput": {
-      "title": "Journal Entry Input for Manual Transaction",
-      "description": "Add journal entry for this transaction",
-      "fields": {
-        "accountRef": "Account Reference",
-        "amount": "Decimal Amount",
-        "currency": "Currency",
-        "direction": "Direction",
-        "usd": "USD",
-        "btc": "BTC",
-        "credit": "Credit",
-        "debit": "Debit",
-        "description": "Description"
-      },
-      "placeholders": {
-        "accountRef": "Enter account reference",
-        "currency": "Select currency",
-        "amount": "Enter amount",
-        "direction": "Select direction",
-        "description": "Enter description"
-      },
-      "add": "Add Entry"
+    "placeholdersJournalEntry": {
+      "accountRef": "Enter account ref",
+      "currency": "Select currency",
+      "amount": "Enter amount",
+      "direction": "Select direction",
+      "description": "Enter description"
     },
     "table": {
       "accountRef": "Account",
@@ -1473,6 +1461,7 @@
       "direction": "Direction",
       "description": "Description"
     },
-    "errored": "An error occurred while executing the transaction"
+    "errored": "An error occurred while executing the transaction",
+    "success": "Transaction executed successfully"
   }
 }

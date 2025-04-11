@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@lana/web/ui/select"
 
-import { Plus } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 
 import {
   DebitOrCredit,
@@ -74,22 +74,11 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
 
   const isLoading = loading || isNavigating
 
-  const [
-    openExecuteManualTransactionEntryInput,
-    setOpenExecuteManualTransactionEntryInput,
-  ] = useState(false)
   const [formValues, setFormValues] = useState<ManualTransactionExecuteInput>({
     description: "",
     reference: "",
-    entries: [],
+    entries: [defaultEntry, defaultEntry],
   })
-  const addEntry = (entry: ManualTransactionEntryInput) => {
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      entries: [...prevValues.entries, entry],
-    }))
-  }
-
   const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -137,10 +126,24 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
     setFormValues({
       description: "",
       reference: "",
-      entries: [],
+      entries: [defaultEntry, defaultEntry],
     })
     setError(null)
     reset()
+  }
+
+  const addJournalEntryRow = () => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      entries: [...prevValues.entries, defaultEntry],
+    }))
+  }
+
+  const deleteJournalEntryRow = (index: number) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      entries: prevValues.entries.filter((_, i) => i !== index),
+    }))
   }
 
   return (
@@ -154,7 +157,7 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="sm:min-w-[1024px]">
           <DialogHeader>
             <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>{t("description")}</DialogDescription>
@@ -190,14 +193,13 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
             </div>
 
             <div>
-              <div className="flex justify-between items-center w-full">
+              <div className="flex justify-between items-center w-full mb-2">
                 <Label htmlFor="entries">{t("fields.entries")}</Label>
                 <Button
+                  size="sm"
                   type="button"
                   variant="secondary"
-                  onClick={() => {
-                    setOpenExecuteManualTransactionEntryInput(true)
-                  }}
+                  onClick={addJournalEntryRow}
                   disabled={isLoading}
                   data-testid="execute-manual-transaction-entry-input-button"
                 >
@@ -213,22 +215,157 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                   {
                     key: "accountRef",
                     header: t("table.accountRef"),
+                    render: (_, __, index) => (
+                      <Input
+                        type="text"
+                        required
+                        placeholder={t("placeholdersJournalEntry.accountRef")}
+                        value={formValues.entries[index].accountRef}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setFormValues((prevValues) => ({
+                            ...prevValues,
+                            entries: [
+                              ...prevValues.entries.slice(0, index),
+                              { ...prevValues.entries[index], accountRef: value },
+                              ...prevValues.entries.slice(index + 1),
+                            ],
+                          }))
+                        }}
+                      />
+                    ),
                   },
                   {
                     key: "amount",
                     header: t("table.amount"),
+                    render: (_, __, index) => (
+                      <Input
+                        type="number"
+                        required
+                        placeholder={t("placeholdersJournalEntry.amount")}
+                        value={formValues.entries[index].amount}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setFormValues((prevValues) => ({
+                            ...prevValues,
+                            entries: [
+                              ...prevValues.entries.slice(0, index),
+                              { ...prevValues.entries[index], amount: value },
+                              ...prevValues.entries.slice(index + 1),
+                            ],
+                          }))
+                        }}
+                      />
+                    ),
                   },
                   {
                     key: "currency",
                     header: t("table.currency"),
+                    render: (_, __, index) => (
+                      <Select
+                        value={formValues.entries[index].currency}
+                        onValueChange={(value) => {
+                          setFormValues((prevValues) => ({
+                            ...prevValues,
+                            entries: [
+                              ...prevValues.entries.slice(0, index),
+                              { ...prevValues.entries[index], currency: value },
+                              ...prevValues.entries.slice(index + 1),
+                            ],
+                          }))
+                        }}
+                      >
+                        <SelectTrigger
+                          id={`currency${index}`}
+                          data-testid={`currency${index}`}
+                        >
+                          <SelectValue
+                            placeholder={t("placeholdersJournalEntry.currency")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={"USD"}>{t("fields.usd")}</SelectItem>
+                          <SelectItem value={"BTC"}>{t("fields.btc")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ),
                   },
                   {
                     key: "direction",
                     header: t("table.direction"),
+                    render: (_, __, index) => (
+                      <Select
+                        value={formValues.entries[index].direction}
+                        onValueChange={(value) => {
+                          setFormValues((prevValues) => ({
+                            ...prevValues,
+                            entries: [
+                              ...prevValues.entries.slice(0, index),
+                              {
+                                ...prevValues.entries[index],
+                                direction: value as DebitOrCredit,
+                              },
+                              ...prevValues.entries.slice(index + 1),
+                            ],
+                          }))
+                        }}
+                      >
+                        <SelectTrigger
+                          id={`direction${index}`}
+                          data-testid={`direction${index}`}
+                        >
+                          <SelectValue
+                            placeholder={t("placeholdersJournalEntry.direction")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={DebitOrCredit.Debit}>
+                            {t("fields.debit")}
+                          </SelectItem>
+                          <SelectItem value={DebitOrCredit.Credit}>
+                            {t("fields.credit")}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ),
                   },
                   {
                     key: "description",
                     header: t("table.description"),
+                    render: (_, __, index) => (
+                      <Input
+                        type="text"
+                        placeholder={t("placeholdersJournalEntry.description")}
+                        value={formValues.entries[index].description}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setFormValues((prevValues) => ({
+                            ...prevValues,
+                            entries: [
+                              ...prevValues.entries.slice(0, index),
+                              { ...prevValues.entries[index], description: value },
+                              ...prevValues.entries.slice(index + 1),
+                            ],
+                          }))
+                        }}
+                      />
+                    ),
+                  },
+                  {
+                    key: "accountRef",
+                    header: "",
+                    render: (_, __, index) => (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        disabled={isLoading}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                        onClick={() => deleteJournalEntryRow(index)}
+                      >
+                        <Trash2 />
+                      </Button>
+                    ),
                   },
                 ]}
               />
@@ -248,167 +385,14 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
           </form>
         </DialogContent>
       </Dialog>
-      <ManualTransactionsEntryInput
-        setOpenExecuteManualTransactionEntryInput={
-          setOpenExecuteManualTransactionEntryInput
-        }
-        openExecuteManualTransactionEntryInput={openExecuteManualTransactionEntryInput}
-        addEntry={addEntry}
-      />
     </>
   )
 }
 
-type ManualTransactionsEntryInputProps = {
-  setOpenExecuteManualTransactionEntryInput: (isOpen: boolean) => void
-  openExecuteManualTransactionEntryInput: boolean
-  addEntry: (entry: ManualTransactionEntryInput) => void
-}
-
-const ManualTransactionsEntryInput: React.FC<ManualTransactionsEntryInputProps> = ({
-  setOpenExecuteManualTransactionEntryInput,
-  openExecuteManualTransactionEntryInput,
-  addEntry,
-}) => {
-  const t = useTranslations("ManualTransactions.EntryInput")
-  const { isNavigating } = useModalNavigation({
-    closeModal: () => {
-      setOpenExecuteManualTransactionEntryInput(false)
-      resetForm()
-    },
-  })
-
-  const [formValues, setFormValues] = useState<ManualTransactionEntryInput>({
-    accountRef: "",
-    amount: 0.0,
-    currency: "USD",
-    direction: DebitOrCredit.Credit,
-    description: "",
-  })
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [name]: value,
-    }))
-  }
-
-  const resetForm = () => {
-    setFormValues({
-      accountRef: "",
-      amount: 0.0,
-      currency: "USD",
-      direction: DebitOrCredit.Credit,
-      description: "",
-    })
-  }
-
-  return (
-    <Dialog
-      open={openExecuteManualTransactionEntryInput}
-      onOpenChange={setOpenExecuteManualTransactionEntryInput}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
-        </DialogHeader>
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={(e) => {
-            e.preventDefault()
-            addEntry(formValues)
-            setOpenExecuteManualTransactionEntryInput(false)
-          }}
-        >
-          <div>
-            <Label htmlFor="accountRef">{t("fields.accountRef")}</Label>
-            <Input
-              id="accountRef"
-              name="accountRef"
-              type="text"
-              required
-              placeholder={t("placeholders.accountRef")}
-              value={formValues.accountRef}
-              onChange={handleChange}
-            />
-          </div>
-          <div>
-            <Label htmlFor="amount">{t("fields.amount")}</Label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              required
-              placeholder={t("placeholders.amount")}
-              value={formValues.amount}
-              onChange={handleChange}
-            />
-          </div>
-          <div>
-            <Label htmlFor="currency">{t("fields.currency")}</Label>
-            <Select
-              value={formValues.currency}
-              onValueChange={(value) => {
-                setFormValues((prevValues) => ({
-                  ...prevValues,
-                  currency: value,
-                }))
-              }}
-            >
-              <SelectTrigger id="currency" data-testid="currency">
-                <SelectValue placeholder={t("placeholders.currency")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={"USD"}>{t("fields.usd")}</SelectItem>
-                <SelectItem value={"BTC"}>{t("fields.btc")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="direction">{t("fields.direction")}</Label>
-            <Select
-              value={formValues.direction}
-              onValueChange={(value) => {
-                setFormValues((prevValues) => ({
-                  ...prevValues,
-                  direction: value as DebitOrCredit,
-                }))
-              }}
-            >
-              <SelectTrigger id="direction" data-testid="direction">
-                <SelectValue placeholder={t("placeholders.direction")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={DebitOrCredit.Debit}>{t("fields.debit")}</SelectItem>
-                <SelectItem value={DebitOrCredit.Credit}>{t("fields.credit")}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="description">{t("fields.description")}</Label>
-            <Input
-              id="description"
-              name="description"
-              type="text"
-              required
-              placeholder={t("placeholders.description")}
-              value={formValues.description}
-              onChange={handleChange}
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              type="submit"
-              loading={isNavigating}
-              data-testid="execute-manual-transaction-entry-input-submit-button"
-            >
-              {t("add")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
+const defaultEntry: ManualTransactionEntryInput = {
+  accountRef: "",
+  amount: 0,
+  currency: "USD",
+  direction: DebitOrCredit.Credit,
+  description: "",
 }
