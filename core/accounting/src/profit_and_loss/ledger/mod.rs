@@ -131,8 +131,6 @@ impl ProfitAndLossStatementLedger {
         balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
     ) -> Result<LedgerAccount, ProfitAndLossStatementLedgerError> {
         let account_set = self.cala.account_sets().find(account_set_id).await?;
-        dbg!(&account_set.id);
-        dbg!(&balances_by_id);
 
         let btc_balance =
             balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::BTC));
