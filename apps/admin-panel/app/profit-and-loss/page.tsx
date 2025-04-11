@@ -260,7 +260,7 @@ const ProfitAndLossStatement = ({
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={netEnd as CurrencyTypes}
+                  amount={netEnd as CurrencyType}
                 />
               </TableCell>
             </TableRow>
@@ -290,11 +290,7 @@ const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowPr
         {category.name}
       </TableCell>
       <TableCell className="w-48">
-        <Balance
-          align="end"
-          currency={currency}
-          amount={endingBalance as CurrencyTypes}
-        />
+        <Balance align="end" currency={currency} amount={endingBalance as CurrencyType} />
       </TableCell>
     </TableRow>
     {category.children.map(

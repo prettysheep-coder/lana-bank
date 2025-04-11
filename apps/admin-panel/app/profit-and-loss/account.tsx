@@ -34,7 +34,7 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
         <div>{account.name}</div>
       </TableCell>
       <TableCell>
-        <Balance align="end" currency={currency} amount={accountEnd as CurrencyTypes} />
+        <Balance align="end" currency={currency} amount={accountEnd as CurrencyType} />
       </TableCell>
     </TableRow>
   )

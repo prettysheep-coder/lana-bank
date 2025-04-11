@@ -1,6 +1,6 @@
 type Layers = "all" | "settled" | "pending"
 type TransactionType = "netCredit" | "netDebit" | "debit" | "credit"
-type CurrencyTypes = UsdCents | Satoshis | SignedSatoshis | SignedUsdCents
+type CurrencyType = UsdCents | Satoshis | SignedSatoshis | SignedUsdCents
 type PnlLayers = "settled" | "pending"
 
 type WithdrawalWithCustomer = {
