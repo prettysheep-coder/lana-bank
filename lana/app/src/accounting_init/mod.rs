@@ -3,7 +3,11 @@ mod seed;
 
 pub mod error;
 
-use crate::{accounting::ChartOfAccounts, primitives::CalaJournalId};
+use crate::{
+    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
+    primitives::CalaJournalId, profit_and_loss::ProfitAndLossStatements,
+    trial_balance::TrialBalances,
+};
 
 use cala_ledger::CalaLedger;
 use error::*;
@@ -16,6 +20,16 @@ pub struct JournalInit {
 impl JournalInit {
     pub async fn journal(cala: &CalaLedger) -> Result<Self, AccountingInitError> {
         seed::journal::init(cala).await
+    }
+}
+
+#[derive(Clone)]
+pub struct StatementsInit;
+
+impl StatementsInit {
+    pub async fn statements(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
+        seed::statements::init(trial_balances).await?;
+        Ok(())
     }
 }
 
