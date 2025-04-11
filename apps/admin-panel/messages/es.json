@@ -1434,7 +1434,11 @@
     "fields": {
       "description": "Descripción de la transacción",
       "reference": "Referencia de la transacción",
-      "entries": "Asientos contables para esta transacción"
+      "entries": "Asientos contables para esta transacción",
+      "usd": "USD",
+      "btc": "BTC",
+      "debit": "Débito",
+      "credit": "Crédito"
     },
     "placeholders": {
       "description": "Ingrese la descripción de la transacción",
@@ -1443,28 +1447,12 @@
     "noEntries": "No hay asientos contables para esta transacción. Por favor, añada uno.",
     "addEntryBtn": "Añadir",
     "execute": "Ejecutar",
-    "EntryInput": {
-      "title": "Entrada de asiento contable para transacción manual",
-      "description": "Añadir asiento contable para esta transacción",
-      "fields": {
-        "accountRef": "Referencia de cuenta",
-        "amount": "Monto decimal",
-        "currency": "Moneda",
-        "direction": "Dirección",
-        "usd": "USD",
-        "btc": "BTC",
-        "credit": "Crédito",
-        "debit": "Débito",
-        "description": "Descripción"
-      },
-      "placeholders": {
-        "accountRef": "Ingrese la referencia de cuenta",
-        "currency": "Seleccione moneda",
-        "amount": "Ingrese el monto",
-        "direction": "Seleccione dirección",
-        "description": "Ingrese descripción"
-      },
-      "add": "Añadir entrada"
+    "placeholdersJournalEntry": {
+      "accountRef": "Introduce la referencia de cuenta",
+      "currency": "Seleccione moneda",
+      "amount": "Ingrese el monto",
+      "direction": "Seleccione dirección",
+      "description": "Ingrese descripción"
     },
     "table": {
       "accountRef": "Cuenta",
@@ -1473,6 +1461,7 @@
       "direction": "Dirección",
       "description": "Descripción"
     },
-    "errored": "Ocurrió un error al ejecutar la transacción"
+    "errored": "Ocurrió un error al ejecutar la transacción",
+    "success": "Transacción ejecutada con éxito"
   }
 }
