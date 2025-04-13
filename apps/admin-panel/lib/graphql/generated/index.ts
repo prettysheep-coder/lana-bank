@@ -1206,6 +1206,7 @@ export type ManualTransactionEntryInput = {
 
 export type ManualTransactionExecuteInput = {
   description: Scalars['String']['input'];
+  effective?: InputMaybe<Scalars['Timestamp']['input']>;
   entries: Array<ManualTransactionEntryInput>;
   reference?: InputMaybe<Scalars['String']['input']>;
 };

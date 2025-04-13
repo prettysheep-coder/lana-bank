@@ -1518,6 +1518,7 @@ export const mockManualTransactionExecuteInput = (overrides?: Partial<ManualTran
     relationshipsToOmit.add('ManualTransactionExecuteInput');
     return {
         description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
+        effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : generateMockValue.timestamp(),
         entries: overrides && overrides.hasOwnProperty('entries') ? overrides.entries! : [relationshipsToOmit.has('ManualTransactionEntryInput') ? {} as ManualTransactionEntryInput : mockManualTransactionEntryInput({}, relationshipsToOmit)],
         reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
     };

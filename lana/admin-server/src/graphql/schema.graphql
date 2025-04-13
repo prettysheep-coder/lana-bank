@@ -1193,6 +1193,7 @@ input ManualTransactionEntryInput {
 input ManualTransactionExecuteInput {
 	description: String!
 	reference: String
+	effective: Timestamp
 	entries: [ManualTransactionEntryInput!]!
 }
 
