@@ -90,7 +90,7 @@ impl EntryParams {
 pub struct ManualTransactionParams {
     pub journal_id: JournalId,
     pub description: String,
-    pub effective: chrono::DateTime<chrono::Utc>,
+    pub effective: chrono::NaiveDate,
     pub entry_params: Vec<EntryParams>,
 }
 
@@ -99,7 +99,7 @@ impl From<ManualTransactionParams> for Params {
         let mut params = Self::default();
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
-        params.insert("effective", input_params.effective.date_naive());
+        params.insert("effective", input_params.effective);
 
         for (n, entry) in input_params.entry_params.iter().enumerate() {
             entry.populate_params(&mut params, n);

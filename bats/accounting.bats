@@ -101,7 +101,7 @@ teardown_file() {
     '{
       input: {
         description: "Manual transaction - test",
-        effective: "2025-01-01T00:00:00Z",
+        effective: "2025-01-01",
         entries: [
           {
              "accountRef": "201",

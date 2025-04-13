@@ -169,7 +169,7 @@ where
         chart_ref: &str,
         reference: Option<String>,
         description: String,
-        effective: Option<chrono::DateTime<chrono::Utc>>,
+        effective: Option<chrono::NaiveDate>,
         entries: Vec<ManualEntryInput>,
     ) -> Result<LedgerTransaction, CoreAccountingError> {
         let chart = self
@@ -187,7 +187,7 @@ where
                 &chart,
                 reference,
                 description,
-                effective.unwrap_or_else(chrono::Utc::now),
+                effective.unwrap_or_else(|| chrono::Utc::now().date_naive()),
                 entries,
             )
             .await?;

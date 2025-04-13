@@ -110,7 +110,7 @@ where
         chart: &Chart,
         reference: Option<String>,
         description: String,
-        effective: chrono::DateTime<chrono::Utc>,
+        effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
     ) -> Result<ManualTransaction, ManualTransactionError> {
         let audit_info = self
