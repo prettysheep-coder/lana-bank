@@ -1,9 +1,10 @@
 use csv::Writer;
+use rust_decimal::Decimal;
 use std::io::Cursor;
 
-use crate::journal::JournalEntry;
+use crate::journal::{JournalEntry, JournalEntryAmount};
 use crate::ledger_account::LedgerAccounts;
-use crate::primitives::LedgerAccountId;
+use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
 use crate::{CoreAccountingAction, CoreAccountingObject};
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -56,8 +57,12 @@ where
 
         for entry in history_result.entities {
             let (debit_amount, credit_amount) = match entry.direction {
-                DebitOrCredit::Debit => (format_amount(&entry.amount), "0".to_string()),
-                DebitOrCredit::Credit => ("0".to_string(), format_amount(&entry.amount)),
+                DebitOrCredit::Debit => {
+                    (format_amount(&entry.amount), Decimal::from(0).to_string())
+                }
+                DebitOrCredit::Credit => {
+                    (Decimal::from(0).to_string(), format_amount(&entry.amount))
+                }
             };
 
             wtr.write_record(&[
@@ -70,7 +75,6 @@ where
             ])
             .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
         }
-
         let csv_data = wtr
             .into_inner()
             .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
@@ -79,16 +83,24 @@ where
     }
 }
 
-fn format_amount(amount: &crate::journal::JournalEntryAmount) -> String {
+fn format_amount(amount: &JournalEntryAmount) -> String {
     match amount {
-        crate::journal::JournalEntryAmount::Usd(cents) => cents.to_string(),
-        crate::journal::JournalEntryAmount::Btc(sats) => sats.to_string(),
+        JournalEntryAmount::Usd(cents) => {
+            let cents_decimal = Decimal::from(cents.into_inner());
+            let usd_decimal = cents_decimal / Decimal::new(100, 0);
+            format!("{:.2}", usd_decimal)
+        }
+        JournalEntryAmount::Btc(sats) => {
+            let sats_decimal = Decimal::from(sats.into_inner());
+            let btc_decimal = sats_decimal / Decimal::new(100_000_000, 0);
+            format!("{:.8}", btc_decimal)
+        }
     }
 }
 
-fn format_currency(amount: &crate::journal::JournalEntryAmount) -> String {
+fn format_currency(amount: &JournalEntryAmount) -> String {
     match amount {
-        crate::journal::JournalEntryAmount::Usd(_) => String::from("USD"),
-        crate::journal::JournalEntryAmount::Btc(_) => String::from("BTC"),
+        JournalEntryAmount::Usd(_) => String::from("USD"),
+        JournalEntryAmount::Btc(_) => String::from("BTC"),
     }
 }
