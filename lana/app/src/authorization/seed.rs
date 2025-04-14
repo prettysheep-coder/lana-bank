@@ -537,6 +537,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
+            CoreAccountingObject::all_transaction_templates(),
+            CoreAccountingAction::TRANSACTION_TEMPLATE_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
             CoreAccountingObject::all_ledger_accounts(),
             CoreAccountingAction::LEDGER_ACCOUNT_READ,
         )

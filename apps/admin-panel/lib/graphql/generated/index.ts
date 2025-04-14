@@ -2688,6 +2688,14 @@ export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
 
+export type TransactionTemplatesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type TransactionTemplatesQuery = { __typename?: 'Query', transactionTemplates: { __typename?: 'TransactionTemplateConnection', edges: Array<{ __typename?: 'TransactionTemplateEdge', cursor: string, node: { __typename?: 'TransactionTemplate', id: string, code: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type GetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
   until: Scalars['Timestamp']['input'];
@@ -6227,6 +6235,54 @@ export function useTermsTemplatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type TermsTemplatesQueryHookResult = ReturnType<typeof useTermsTemplatesQuery>;
 export type TermsTemplatesLazyQueryHookResult = ReturnType<typeof useTermsTemplatesLazyQuery>;
 export type TermsTemplatesQueryResult = Apollo.QueryResult<TermsTemplatesQuery, TermsTemplatesQueryVariables>;
+export const TransactionTemplatesDocument = gql`
+    query TransactionTemplates($first: Int!, $after: String) {
+  transactionTemplates(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        code
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useTransactionTemplatesQuery__
+ *
+ * To run a query within a React component, call `useTransactionTemplatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTransactionTemplatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTransactionTemplatesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useTransactionTemplatesQuery(baseOptions: Apollo.QueryHookOptions<TransactionTemplatesQuery, TransactionTemplatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TransactionTemplatesQuery, TransactionTemplatesQueryVariables>(TransactionTemplatesDocument, options);
+      }
+export function useTransactionTemplatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TransactionTemplatesQuery, TransactionTemplatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TransactionTemplatesQuery, TransactionTemplatesQueryVariables>(TransactionTemplatesDocument, options);
+        }
+export type TransactionTemplatesQueryHookResult = ReturnType<typeof useTransactionTemplatesQuery>;
+export type TransactionTemplatesLazyQueryHookResult = ReturnType<typeof useTransactionTemplatesLazyQuery>;
+export type TransactionTemplatesQueryResult = Apollo.QueryResult<TransactionTemplatesQuery, TransactionTemplatesQueryVariables>;
 export const GetTrialBalanceDocument = gql`
     query GetTrialBalance($from: Timestamp!, $until: Timestamp!, $first: Int!, $after: String) {
   trialBalance(from: $from, until: $until) {
