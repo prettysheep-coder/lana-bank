@@ -159,11 +159,6 @@ where
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
 
-        dbg!("ACCOUNTING CSV");
-        self.accounting_csvs
-            .create_ledger_account_csv(sub, id.into())
-            .await?;
-
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
 

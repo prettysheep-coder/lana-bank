@@ -85,7 +85,6 @@ where
             .build()
             .expect("Could not build new Accounting CSV");
 
-        dbg!(&new_csv);
         let mut db = self.repo.begin_op().await?;
         let csv = self.repo.create_in_op(&mut db, new_csv).await?;
         self.jobs

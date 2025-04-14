@@ -25,7 +25,7 @@ pub struct GenerateAccountingCsvConfig<Perms> {
 
 impl<Perms> JobConfig for GenerateAccountingCsvConfig<Perms>
 where
-    Perms: authz::PermissionCheck + 'static,
+    Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
@@ -69,7 +69,7 @@ pub const GENERATE_ACCOUNTING_CSV_JOB: JobType = JobType::new("generate-accounti
 
 impl<Perms> JobInitializer for GenerateAccountingCsvInitializer<Perms>
 where
-    Perms: authz::PermissionCheck + 'static,
+    Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
@@ -107,7 +107,7 @@ where
 #[async_trait]
 impl<Perms> JobRunner for GenerateAccountingCsvJobRunner<Perms>
 where
-    Perms: authz::PermissionCheck + 'static,
+    Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
@@ -115,7 +115,6 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        dbg!(&self.config.accounting_csv_id);
         let mut export = self.repo.find_by_id(self.config.accounting_csv_id).await?;
         let mut db = self.repo.begin_op().await?;
         let audit_info = self
@@ -128,7 +127,6 @@ where
             .await?;
 
         let csv_type = export.csv_type();
-        dbg!(&csv_type);
         let csv_result = match csv_type {
             AccountingCsvType::LedgerAccount => {
                 let ledger_account_id = export.ledger_account_id().ok_or_else(|| {
