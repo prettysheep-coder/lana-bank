@@ -1470,5 +1470,16 @@
     "description": "Templates for transactions",
     "code": "Code",
     "noData": "No transaction templates found"
+  },
+  "LedgerTransactionsForTemplateCode": {
+    "title": "Ledger Transactions for {code}",
+    "description": "Ledger transactions associated with this template code",
+    "table": {
+      "noData": "No ledger transactions found for this template code",
+      "headers": {
+        "createdAt": "Created At",
+        "description": "Description"
+      }
+    }
   }
 }

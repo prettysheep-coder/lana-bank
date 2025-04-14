@@ -58,6 +58,7 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
           generalLedgerEntries: relayStylePagination(),
           journalEntries: relayStylePagination(),
           transactionTemplates: relayStylePagination(),
+          ledgerTransactionsForTemplateCode: relayStylePagination(),
         },
       },
     },
