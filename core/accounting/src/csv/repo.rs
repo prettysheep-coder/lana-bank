@@ -59,8 +59,7 @@ mod accounting_csv_type_sqlx {
     impl<'r> sqlx::Decode<'r, Postgres> for AccountingCsvType {
         fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
             let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
-            Ok(s.parse()
-                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?)
+            Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
         }
     }
 

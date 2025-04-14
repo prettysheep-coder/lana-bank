@@ -44,7 +44,7 @@ where
             .map_err(AccountingCsvError::LedgerAccountError)?;
 
         let mut wtr = Writer::from_writer(vec![]);
-        wtr.write_record(&[
+        wtr.write_record([
             "Recorded At",
             "Currency",
             "Debit Amount",

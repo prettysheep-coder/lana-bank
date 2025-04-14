@@ -206,14 +206,10 @@ impl TryFromEvents<AccountingCsvEvent> for AccountingCsv {
         let mut builder = AccountingCsvBuilder::default();
 
         for event in events.iter_all() {
-            match event {
-                AccountingCsvEvent::Initialized { id, .. } => {
-                    builder = builder.id(*id);
-                }
-                _ => {}
+            if let AccountingCsvEvent::Initialized { id, .. } = event {
+                builder = builder.id(*id);
             }
         }
-
         builder.events(events).build()
     }
 }
