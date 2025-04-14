@@ -4,15 +4,16 @@ mod generate;
 mod job;
 mod repo;
 
-use super::CoreAccountingAction;
-use super::CoreAccountingObject;
-use super::ledger_account::LedgerAccounts;
-use super::primitives::{AccountingCsvId, LedgerAccountId};
-
 use crate::Jobs;
 use crate::Storage;
 use audit::AuditSvc;
 use authz::PermissionCheck;
+
+use super::{
+    CoreAccountingAction, CoreAccountingObject,
+    ledger_account::LedgerAccounts,
+    primitives::{AccountingCsvId, LedgerAccountId},
+};
 
 pub use entity::*;
 use error::*;
@@ -132,7 +133,7 @@ where
         Ok(GeneratedAccountingCsvDownloadLink {
             accounting_csv_id,
             link: AccountingCsvDownloadLink {
-                csv_type: csv.csv_type(),
+                csv_type: csv.csv_type,
                 url,
             },
         })

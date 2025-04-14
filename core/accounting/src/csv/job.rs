@@ -2,19 +2,16 @@ use async_trait::async_trait;
 
 use authz::PermissionCheck;
 
-use crate::{
-    CoreAccountingAction, CoreAccountingObject, ledger_account::LedgerAccounts,
-    primitives::AccountingCsvId,
-};
-
 use audit::{AuditSvc, SystemSubject};
 use cloud_storage::Storage;
 use job::*;
 use serde::{Deserialize, Serialize};
 
+use crate::{ledger_account::LedgerAccounts, primitives::AccountingCsvId};
+
 use super::{
-    entity::AccountingCsvType, error::AccountingCsvError, generate::GenerateCsv,
-    repo::AccountingCsvRepo,
+    CoreAccountingAction, CoreAccountingObject, entity::AccountingCsvType,
+    error::AccountingCsvError, generate::GenerateCsv, repo::AccountingCsvRepo,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -126,10 +123,10 @@ where
             )
             .await?;
 
-        let csv_type = export.csv_type();
+        let csv_type = export.csv_type;
         let csv_result = match csv_type {
             AccountingCsvType::LedgerAccount => {
-                let ledger_account_id = export.ledger_account_id().ok_or_else(|| {
+                let ledger_account_id = export.ledger_account_id.ok_or_else(|| {
                     AccountingCsvError::MissingRequiredField("ledger_account_id".to_string())
                 })?;
 
@@ -152,7 +149,7 @@ where
 
         match csv_result {
             Ok(csv_data) => {
-                let path_in_bucket = format!("accounting_csvs/{}.csv", export.id,);
+                let path_in_bucket = format!("accounting_csvs/{}.csv", export.id);
                 match self
                     .storage
                     .upload(csv_data, &path_in_bucket, "text/csv")

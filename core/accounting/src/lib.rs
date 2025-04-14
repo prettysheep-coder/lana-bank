@@ -149,7 +149,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
-        id: impl Into<LedgerAccountId> + std::fmt::Debug + std::marker::Copy,
+        id: impl Into<LedgerAccountId> + std::fmt::Debug,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
         let chart = self
             .chart_of_accounts

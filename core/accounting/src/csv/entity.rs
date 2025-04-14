@@ -7,14 +7,15 @@ use es_entity::*;
 
 use crate::primitives::{AccountingCsvId, LedgerAccountId};
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, strum::Display, strum::EnumString)]
+#[derive(
+    Debug, Clone, Serialize, Deserialize, PartialEq, strum::Display, strum::EnumString, Copy,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum AccountingCsvType {
     LedgerAccount,
     ProfitAndLoss,
     BalanceSheet,
 }
-
 #[derive(Debug)]
 pub struct AccountingCsvLocationInCloud {
     pub csv_type: AccountingCsvType,
@@ -76,6 +77,9 @@ pub enum AccountingCsvEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingCsv {
     pub id: AccountingCsvId,
+    pub csv_type: AccountingCsvType,
+    #[builder(setter(strip_option), default)]
+    pub ledger_account_id: Option<LedgerAccountId>,
     pub(super) events: EntityEvents<AccountingCsvEvent>,
 }
 
@@ -91,27 +95,6 @@ impl AccountingCsv {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
-    }
-
-    pub fn csv_type(&self) -> AccountingCsvType {
-        for e in self.events.iter_all() {
-            if let AccountingCsvEvent::Initialized { csv_type, .. } = e {
-                return csv_type.clone();
-            }
-        }
-        unreachable!("AccountingCsv must have Initialized event")
-    }
-
-    pub fn ledger_account_id(&self) -> Option<LedgerAccountId> {
-        for e in self.events.iter_all() {
-            if let AccountingCsvEvent::Initialized {
-                ledger_account_id, ..
-            } = e
-            {
-                return *ledger_account_id;
-            }
-        }
-        None
     }
 
     pub fn status(&self) -> AccountingCsvStatus {
@@ -178,7 +161,7 @@ impl AccountingCsv {
             } = e
             {
                 return Some(AccountingCsvLocationInCloud {
-                    csv_type: self.csv_type(),
+                    csv_type: self.csv_type,
                     bucket: bucket.clone(),
                     path_in_bucket: path_in_bucket.clone(),
                 });
@@ -206,8 +189,17 @@ impl TryFromEvents<AccountingCsvEvent> for AccountingCsv {
         let mut builder = AccountingCsvBuilder::default();
 
         for event in events.iter_all() {
-            if let AccountingCsvEvent::Initialized { id, .. } = event {
-                builder = builder.id(*id);
+            if let AccountingCsvEvent::Initialized {
+                id,
+                csv_type,
+                ledger_account_id,
+                ..
+            } = event
+            {
+                builder = builder.id(*id).csv_type(*csv_type);
+                if let Some(account_id) = ledger_account_id {
+                    builder = builder.ledger_account_id(*account_id);
+                }
             }
         }
         builder.events(events).build()
@@ -225,7 +217,6 @@ pub struct NewAccountingCsv {
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
-
 impl NewAccountingCsv {
     pub fn builder() -> NewAccountingCsvBuilder {
         NewAccountingCsvBuilder::default()

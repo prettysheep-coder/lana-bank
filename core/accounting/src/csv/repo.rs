@@ -11,16 +11,8 @@ use super::{entity::*, error::*};
     entity = "AccountingCsv",
     err = "AccountingCsvError",
     columns(
-        csv_type(
-            ty = "AccountingCsvType",
-            create(persist = true),
-            update(accessor = "csv_type()")
-        ),
-        ledger_account_id(
-            ty = "Option<LedgerAccountId>",
-            create(persist = true),
-            update(accessor = "ledger_account_id()")
-        )
+        csv_type(ty = "AccountingCsvType"),
+        ledger_account_id(ty = "Option<LedgerAccountId>")
     )
 )]
 pub struct AccountingCsvRepo {
