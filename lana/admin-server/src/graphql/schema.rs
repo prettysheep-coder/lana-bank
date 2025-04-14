@@ -559,6 +559,7 @@ impl Query {
     ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
+            .accounting()
             .balance_sheets()
             .balance_sheet(
                 sub,
@@ -721,6 +722,7 @@ impl Query {
     ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
+            .accounting()
             .balance_sheets()
             .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
             .await?;
@@ -1509,6 +1511,7 @@ impl Mutation {
             .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
             .build()?;
         let config = app
+            .accounting()
             .balance_sheets()
             .set_chart_of_accounts_integration_config(
                 sub,
