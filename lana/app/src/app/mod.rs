@@ -96,7 +96,7 @@ impl LanaApp {
         StatementsInit::statements(
             &trial_balances,
             accounting.profit_and_loss(),
-            &balance_sheets,
+            accounting.balance_sheets(),
             &cash_flow_statements,
         )
         .await?;

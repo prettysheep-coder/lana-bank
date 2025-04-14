@@ -37,10 +37,10 @@ describe("Balance Sheet", () => {
 
       if (response.data?.balanceSheet?.categories) {
         response.data.balanceSheet.categories.forEach((category) => {
-          if (category?.accounts) {
-            category.accounts.forEach((account) => {
-              if (account?.name) {
-                cy.contains(account.name).should("be.visible")
+          if (category?.children) {
+            category.children.forEach((child) => {
+              if (child?.name) {
+                cy.contains(child.name).should("be.visible")
               }
             })
           }
