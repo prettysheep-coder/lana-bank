@@ -579,13 +579,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            CoreAccountingObject::all_accounting_csvs(),
-            CoreAccountingAction::ACCOUNTING_CSV_GENERATE,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
             CoreDepositObject::all_deposits(),
             CoreDepositAction::DEPOSIT_CREATE,
         )
