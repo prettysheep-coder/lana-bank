@@ -10,7 +10,18 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "AccountingCsv",
     err = "AccountingCsvError",
-    columns(csv_type(ty = "AccountingCsvType", list_by = true))
+    columns(
+        csv_type(
+            ty = "AccountingCsvType",
+            create(persist = true),
+            update(accessor = "csv_type()")
+        ),
+        ledger_account_id(
+            ty = "Option<LedgerAccountId>",
+            create(persist = true),
+            update(accessor = "ledger_account_id()")
+        )
+    )
 )]
 pub struct AccountingCsvRepo {
     pool: PgPool,
@@ -19,5 +30,43 @@ pub struct AccountingCsvRepo {
 impl AccountingCsvRepo {
     pub fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
+    }
+}
+
+mod accounting_csv_type_sqlx {
+    use crate::csv::entity::AccountingCsvType;
+    use sqlx::{Type, postgres::*};
+
+    impl Type<Postgres> for AccountingCsvType {
+        fn type_info() -> PgTypeInfo {
+            <String as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <String as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for AccountingCsvType {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            <String as sqlx::Encode<'_, Postgres>>::encode(self.to_string(), buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for AccountingCsvType {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(s.parse()
+                .map_err(|e| Box::new(e) as Box<dyn std::error::Error + Sync + Send>)?)
+        }
+    }
+
+    impl PgHasArrayType for AccountingCsvType {
+        fn array_type_info() -> PgTypeInfo {
+            <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
     }
 }

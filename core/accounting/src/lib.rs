@@ -18,11 +18,14 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use cloud_storage::Storage;
+use job::Jobs;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use csv::AccountingCsvs;
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
@@ -45,6 +48,7 @@ where
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
     balance_sheet: BalanceSheets<Perms>,
+    accounting_csvs: AccountingCsvs<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -62,6 +66,7 @@ where
             profit_and_loss: self.profit_and_loss.clone(),
             transaction_templates: self.transaction_templates.clone(),
             balance_sheet: self.balance_sheet.clone(),
+            accounting_csvs: self.accounting_csvs.clone(),
         }
     }
 }
@@ -77,6 +82,8 @@ where
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
+        storage: &Storage,
+        jobs: &Jobs,
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
@@ -86,6 +93,7 @@ where
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
         let balance_sheet = BalanceSheets::new(pool, authz, cala, journal_id);
+        let accounting_csvs = AccountingCsvs::new(pool, authz, jobs, storage, &ledger_accounts);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -96,6 +104,7 @@ where
             profit_and_loss,
             transaction_templates,
             balance_sheet,
+            accounting_csvs,
         }
     }
 
@@ -123,6 +132,10 @@ where
         &self.profit_and_loss
     }
 
+    pub fn accounting_csvs(&self) -> &AccountingCsvs<Perms> {
+        &self.accounting_csvs
+    }
+
     pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {
         &self.transaction_templates
     }
@@ -136,7 +149,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
-        id: impl Into<LedgerAccountId> + std::fmt::Debug,
+        id: impl Into<LedgerAccountId> + std::fmt::Debug + std::marker::Copy,
     ) -> Result<Option<LedgerAccount>, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
@@ -145,6 +158,12 @@ where
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
+
+        dbg!("ACCOUNTING CSV");
+        self.accounting_csvs
+            .create_ledger_account_csv(sub, id.into())
+            .await?;
+
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
 

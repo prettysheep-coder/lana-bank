@@ -4,14 +4,14 @@ mod generate;
 mod job;
 mod repo;
 
-use tracing::instrument;
-
 use super::CoreAccountingAction;
 use super::CoreAccountingObject;
-use super::audit::AuditSvc;
 use super::ledger_account::LedgerAccounts;
-use super::primitives::{AccountingCsvId, LedgerAccountId, Subject};
-use super::storage::Storage;
+use super::primitives::{AccountingCsvId, LedgerAccountId};
+
+use crate::Jobs;
+use crate::Storage;
+use audit::AuditSvc;
 use authz::PermissionCheck;
 
 pub use entity::*;
@@ -45,10 +45,12 @@ where
         ledger_accounts: &LedgerAccounts<Perms>,
     ) -> Self {
         let repo = AccountingCsvRepo::new(pool);
+
         jobs.add_initializer(GenerateAccountingCsvInitializer::new(
             &repo,
             storage,
             ledger_accounts,
+            authz.audit(),
         ));
 
         Self {
@@ -61,27 +63,39 @@ where
 
     pub async fn create_ledger_account_csv(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         ledger_account_id: impl Into<LedgerAccountId> + std::fmt::Debug,
     ) -> Result<AccountingCsv, AccountingCsvError> {
         let ledger_account_id = ledger_account_id.into();
+        let id = AccountingCsvId::new();
 
-        let csv_type = AccountingCsvType::LedgerAccount { ledger_account_id };
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_csvs(),
+                CoreAccountingAction::ACCOUNTING_CSV_CREATE,
+            )
+            .await?;
+
         let new_csv = NewAccountingCsv::builder()
-            .id(AccountingCsvId::new())
-            .csv_type(csv_type)
+            .id(id)
+            .csv_type(AccountingCsvType::LedgerAccount)
+            .ledger_account_id(ledger_account_id)
+            .audit_info(audit_info)
             .build()
             .expect("Could not build new Accounting CSV");
 
+        dbg!(&new_csv);
         let mut db = self.repo.begin_op().await?;
         let csv = self.repo.create_in_op(&mut db, new_csv).await?;
-
         self.jobs
-            .create_and_spawn_in_op(
+            .create_and_spawn_in_op::<GenerateAccountingCsvConfig<Perms>>(
                 &mut db,
                 csv.id,
                 GenerateAccountingCsvConfig {
                     accounting_csv_id: csv.id,
+                    _phantom: std::marker::PhantomData,
                 },
             )
             .await?;
@@ -92,9 +106,37 @@ where
 
     pub async fn generate_download_link(
         &self,
-        sub: &Subject,
-        id: impl Into<AccountingCsvId> + std::fmt::Debug,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        accounting_csv_id: AccountingCsvId,
     ) -> Result<GeneratedAccountingCsvDownloadLink, AccountingCsvError> {
-        unimplemented!()
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_csvs(),
+                CoreAccountingAction::ACCOUNTING_CSV_GENERATE_DOWNLOAD_LINK,
+            )
+            .await?;
+
+        let mut csv = self.repo.find_by_id(accounting_csv_id).await?;
+
+        if csv.status() != AccountingCsvStatus::Completed {
+            return Err(AccountingCsvError::CsvNotReady);
+        }
+        let location = csv
+            .download_link()
+            .ok_or(AccountingCsvError::CsvFileNotFound)?;
+
+        let url = self.storage.generate_download_link(&location).await?;
+        csv.download_link_generated(audit_info, location);
+        self.repo.update(&mut csv).await?;
+
+        Ok(GeneratedAccountingCsvDownloadLink {
+            accounting_csv_id,
+            link: AccountingCsvDownloadLink {
+                csv_type: csv.csv_type(),
+                url,
+            },
+        })
     }
 }

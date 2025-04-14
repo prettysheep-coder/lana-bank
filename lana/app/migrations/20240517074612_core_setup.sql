@@ -277,6 +277,8 @@ CREATE TABLE report_events (
 
 CREATE TABLE accounting_csvs (
   id UUID PRIMARY KEY,
+  csv_type VARCHAR NOT NULL,
+  ledger_account_id UUID, -- REFERENCES cala_accounts(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
