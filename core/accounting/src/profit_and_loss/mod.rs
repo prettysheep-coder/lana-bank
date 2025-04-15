@@ -257,5 +257,5 @@ pub struct ProfitAndLossStatement {
     pub name: String,
     pub usd_balance_range: Option<BalanceRange>,
     pub btc_balance_range: Option<BalanceRange>,
-    pub categories: Vec<LedgerAccount>,
+    pub categories: Vec<LedgerAccountId>,
 }
