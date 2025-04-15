@@ -4,16 +4,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
     account_set::{
         AccountSetMemberByExternalId, AccountSetMemberId, AccountSetMembersByExternalIdCursor,
         NewAccountSet,
     },
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
-use core_accounting::AccountCode;
-
-use crate::statement::*;
+use crate::{AccountCode, BalanceRange};
 
 use error::*;
 
@@ -24,18 +22,20 @@ pub struct TrialBalanceAccount {
     pub external_id: String,
     pub code: AccountCode,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalanceRange,
-    pub usd_balance: UsdStatementAccountSetBalanceRange,
+    pub usd_balance_range: Option<BalanceRange>,
+    pub btc_balance_range: Option<BalanceRange>,
     pub member_created_at: DateTime<Utc>,
 }
+
+// use LedgerAccount
 
 #[derive(Clone)]
 pub struct TrialBalanceRoot {
     pub id: AccountSetId,
     pub name: String,
     pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalanceRange,
-    pub usd_balance: UsdStatementAccountSetBalanceRange,
+    pub usd_balance_range: Option<BalanceRange>,
+    pub btc_balance_range: Option<BalanceRange>,
     pub from: DateTime<Utc>,
     pub until: Option<DateTime<Utc>>,
 }
@@ -81,13 +81,13 @@ impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceA
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
         let json = serde_json::to_string(&self).expect("could not serialize cursor");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;

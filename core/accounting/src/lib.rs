@@ -12,6 +12,7 @@ pub mod manual_transaction;
 mod primitives;
 pub mod profit_and_loss;
 pub mod transaction_templates;
+pub mod trial_balance;
 
 use std::collections::HashMap;
 
