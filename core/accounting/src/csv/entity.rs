@@ -98,19 +98,12 @@ impl AccountingCsv {
         Idempotent::Executed(())
     }
 
-    pub fn upload_failed(&mut self, error: String, audit_info: AuditInfo) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            AccountingCsvEvent::UploadFailed { error: e, .. } if e == &error
-        );
-
+    pub fn upload_failed(&mut self, error: String, audit_info: AuditInfo) {
         self.events.push(AccountingCsvEvent::UploadFailed {
             error,
             audit_info,
             recorded_at: Utc::now(),
         });
-
-        Idempotent::Executed(())
     }
 
     pub fn bucket(&self) -> Option<&str> {
