@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod error;
 pub mod journal;
@@ -8,6 +9,8 @@ pub mod ledger_account;
 pub mod ledger_transaction;
 pub mod manual_transaction;
 mod primitives;
+pub mod profit_and_loss;
+pub mod transaction_templates;
 
 use std::collections::HashMap;
 
@@ -17,6 +20,7 @@ use cala_ledger::CalaLedger;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
+pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
@@ -24,6 +28,8 @@ pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
+pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
+pub use transaction_templates::TransactionTemplates;
 
 pub struct CoreAccounting<Perms>
 where
@@ -35,6 +41,9 @@ where
     ledger_accounts: LedgerAccounts<Perms>,
     ledger_transactions: LedgerTransactions<Perms>,
     manual_transactions: ManualTransactions<Perms>,
+    profit_and_loss: ProfitAndLossStatements<Perms>,
+    transaction_templates: TransactionTemplates<Perms>,
+    balance_sheet: BalanceSheets<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -49,6 +58,9 @@ where
             ledger_accounts: self.ledger_accounts.clone(),
             manual_transactions: self.manual_transactions.clone(),
             ledger_transactions: self.ledger_transactions.clone(),
+            profit_and_loss: self.profit_and_loss.clone(),
+            transaction_templates: self.transaction_templates.clone(),
+            balance_sheet: self.balance_sheet.clone(),
         }
     }
 }
@@ -70,6 +82,9 @@ where
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
         let ledger_transactions = LedgerTransactions::new(authz, cala);
+        let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
+        let transaction_templates = TransactionTemplates::new(authz, cala);
+        let balance_sheet = BalanceSheets::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -77,6 +92,9 @@ where
             ledger_accounts,
             ledger_transactions,
             manual_transactions,
+            profit_and_loss,
+            transaction_templates,
+            balance_sheet,
         }
     }
 
@@ -98,6 +116,18 @@ where
 
     pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
         &self.manual_transactions
+    }
+
+    pub fn profit_and_loss(&self) -> &ProfitAndLossStatements<Perms> {
+        &self.profit_and_loss
+    }
+
+    pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {
+        &self.transaction_templates
+    }
+
+    pub fn balance_sheets(&self) -> &BalanceSheets<Perms> {
+        &self.balance_sheet
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
@@ -159,6 +189,7 @@ where
         chart_ref: &str,
         reference: Option<String>,
         description: String,
+        effective: Option<chrono::NaiveDate>,
         entries: Vec<ManualEntryInput>,
     ) -> Result<LedgerTransaction, CoreAccountingError> {
         let chart = self
@@ -171,7 +202,14 @@ where
 
         let tx = self
             .manual_transactions
-            .execute(sub, &chart, reference, description, entries)
+            .execute(
+                sub,
+                &chart,
+                reference,
+                description,
+                effective.unwrap_or_else(|| chrono::Utc::now().date_naive()),
+                entries,
+            )
             .await?;
 
         let ledger_tx_id = tx.ledger_transaction_id;

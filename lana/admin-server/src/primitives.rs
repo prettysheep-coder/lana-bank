@@ -6,10 +6,9 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::{
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
-        DepositId, DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, LanaRole,
-        LedgerTransactionId, ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress,
-        Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId,
-        WithdrawalId,
+        DepositId, DisbursalId, DisbursalStatus, DocumentId, LanaRole, LedgerTransactionId,
+        ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress, Satoshis,
+        SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
 };
@@ -43,6 +42,22 @@ impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
 impl Timestamp {
     #[allow(dead_code)]
     pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
+        self.0
+    }
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Date(chrono::NaiveDate);
+scalar!(Date);
+impl From<chrono::NaiveDate> for Date {
+    fn from(value: chrono::NaiveDate) -> Self {
+        Self(value)
+    }
+}
+impl Date {
+    #[allow(dead_code)]
+    pub fn into_inner(self) -> chrono::NaiveDate {
         self.0
     }
 }

@@ -199,11 +199,7 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(
-            CreditFacility,
-            ctx,
-            app.credit_facilities().find_by_id(sub, id)
-        )
+        maybe_fetch_one!(CreditFacility, ctx, app.credit().find_by_id(sub, id))
     }
 
     async fn credit_facilities(
@@ -253,7 +249,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.credit_facilities().list(sub, query, filter, sort)
+            |query| app.credit().list(sub, query, filter, sort)
         )
     }
 
@@ -266,7 +262,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().find_disbursal_by_id(sub, id)
+            app.credit().find_disbursal_by_id(sub, id)
         )
     }
 
@@ -292,10 +288,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| {
-                app.credit_facilities()
-                    .list_disbursals(sub, query, filter, sort)
-            }
+            |query| { app.credit().list_disbursals(sub, query, filter, sort) }
         )
     }
 
@@ -424,6 +417,25 @@ impl Query {
         )
     }
 
+    async fn transaction_templates(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<TransactionTemplateCursor, TransactionTemplate, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            TransactionTemplateCursor,
+            TransactionTemplate,
+            ctx,
+            after,
+            first,
+            |query| app.accounting().transaction_templates().list(sub, query)
+        )
+    }
+
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,
@@ -434,6 +446,29 @@ impl Query {
             LedgerTransaction,
             ctx,
             app.accounting().ledger_transactions().find_by_id(sub, id)
+        )
+    }
+
+    async fn ledger_transactions_for_template_code(
+        &self,
+        ctx: &Context<'_>,
+        template_code: String,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<LedgerTransactionCursor, LedgerTransaction, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            LedgerTransactionCursor,
+            LedgerTransaction,
+            ctx,
+            after,
+            first,
+            |query| app
+                .accounting()
+                .ledger_transactions()
+                .list_for_template_code(sub, &template_code, query)
         )
     }
 
@@ -540,6 +575,7 @@ impl Query {
     ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
+            .accounting()
             .balance_sheets()
             .balance_sheet(
                 sub,
@@ -559,7 +595,8 @@ impl Query {
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .pl_statement(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
@@ -689,7 +726,7 @@ impl Query {
     ) -> async_graphql::Result<Option<CreditModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .credit_facilities()
+            .credit()
             .get_chart_of_accounts_integration_config(sub)
             .await?;
         Ok(config.map(CreditModuleConfig::from))
@@ -701,6 +738,7 @@ impl Query {
     ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
+            .accounting()
             .balance_sheets()
             .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
             .await?;
@@ -713,7 +751,8 @@ impl Query {
     ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .get_chart_of_accounts_integration_config(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
@@ -913,6 +952,7 @@ impl Mutation {
                 CHART_REF.0,
                 input.reference,
                 input.description,
+                input.effective.map(|ts| ts.into_inner()),
                 entries
             )
         )
@@ -1105,7 +1145,7 @@ impl Mutation {
             chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
         } = input;
 
-        let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
+        let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
             .chart_of_account_facility_omnibus_parent_code(
                 chart_of_account_facility_omnibus_parent_code
@@ -1167,7 +1207,7 @@ impl Mutation {
 
             .build()?;
         let config = app
-            .credit_facilities()
+            .credit()
             .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditModuleConfigurePayload::from(
@@ -1204,7 +1244,7 @@ impl Mutation {
             CreditFacilityCreatePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities().initiate(
+            app.credit().initiate(
                 sub,
                 customer_id,
                 disbursal_credit_account_id,
@@ -1228,7 +1268,7 @@ impl Mutation {
             CreditFacilityCollateralUpdatePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities()
+            app.credit()
                 .update_collateral(sub, credit_facility_id.into(), collateral)
         )
     }
@@ -1243,11 +1283,8 @@ impl Mutation {
             CreditFacilityPartialPaymentPayload,
             CreditFacility,
             ctx,
-            app.credit_facilities().record_payment(
-                sub,
-                input.credit_facility_id.into(),
-                input.amount
-            )
+            app.credit()
+                .record_payment(sub, input.credit_facility_id.into(), input.amount)
         )
     }
 
@@ -1261,11 +1298,8 @@ impl Mutation {
             CreditFacilityDisbursalInitiatePayload,
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().initiate_disbursal(
-                sub,
-                input.credit_facility_id.into(),
-                input.amount
-            )
+            app.credit()
+                .initiate_disbursal(sub, input.credit_facility_id.into(), input.amount)
         )
     }
 
@@ -1279,7 +1313,7 @@ impl Mutation {
             CreditFacilityCompletePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities()
+            app.credit()
                 .complete_facility(sub, input.credit_facility_id)
         )
     }
@@ -1487,6 +1521,7 @@ impl Mutation {
             .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
             .build()?;
         let config = app
+            .accounting()
             .balance_sheets()
             .set_chart_of_accounts_integration_config(
                 sub,
@@ -1522,7 +1557,8 @@ impl Mutation {
             .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
             .build()?;
         let config = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .set_chart_of_accounts_integration_config(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),

@@ -12,9 +12,8 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
-    balance_sheet::BalanceSheets,
     cash_flow::CashFlowStatements,
-    credit_facility::CreditFacilities,
+    credit::Credit,
     customer::Customers,
     customer_onboarding::CustomerOnboarding,
     dashboard::Dashboard,
@@ -26,7 +25,6 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::Subject,
-    profit_and_loss::ProfitAndLossStatements,
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
@@ -49,10 +47,8 @@ pub struct LanaApp {
     deposits: Deposits,
     applicants: Applicants,
     users: Users,
-    credit_facilities: CreditFacilities,
+    credit: Credit,
     trial_balances: TrialBalances,
-    profit_and_loss_statements: ProfitAndLossStatements,
-    balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
     general_ledger: GeneralLedger,
     price: Price,
@@ -93,20 +89,18 @@ impl LanaApp {
         let journal_init = JournalInit::journal(&cala).await?;
         let trial_balances =
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let pl_statements =
-            ProfitAndLossStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let balance_sheets =
-            BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
+
         StatementsInit::statements(
             &trial_balances,
-            &pl_statements,
-            &balance_sheets,
+            accounting.profit_and_loss(),
+            accounting.balance_sheets(),
             &cash_flow_statements,
         )
         .await?;
-        let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
+
         ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
         let general_ledger = GeneralLedger::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
@@ -131,9 +125,9 @@ impl LanaApp {
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
-        let credit_facilities = CreditFacilities::init(
+        let credit = Credit::init(
             &pool,
-            config.credit_facility,
+            config.credit,
             &governance,
             &jobs,
             &authz,
@@ -159,10 +153,8 @@ impl LanaApp {
             users,
             price,
             report,
-            credit_facilities,
+            credit,
             trial_balances,
-            profit_and_loss_statements: pl_statements,
-            balance_sheets,
             cash_flow_statements,
             general_ledger,
             terms_templates,
@@ -230,20 +222,12 @@ impl LanaApp {
         &self.applicants
     }
 
-    pub fn credit_facilities(&self) -> &CreditFacilities {
-        &self.credit_facilities
+    pub fn credit(&self) -> &Credit {
+        &self.credit
     }
 
     pub fn trial_balances(&self) -> &TrialBalances {
         &self.trial_balances
-    }
-
-    pub fn profit_and_loss_statements(&self) -> &ProfitAndLossStatements {
-        &self.profit_and_loss_statements
-    }
-
-    pub fn balance_sheets(&self) -> &BalanceSheets {
-        &self.balance_sheets
     }
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {

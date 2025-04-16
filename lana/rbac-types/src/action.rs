@@ -127,10 +127,6 @@ pub enum AppAction {
     LedgerAccount(LedgerAccountAction),
     GeneralLedger(GeneralLedgerAction),
     TrialBalance(TrialBalanceAction),
-    ProfitAndLossStatement(ProfitAndLossStatementAction),
-    ProfitAndLossStatementConfiguration(ProfitAndLossStatementConfigurationAction),
-    BalanceSheet(BalanceSheetAction),
-    BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     CashFlowStatement(CashFlowStatementAction),
     Document(DocumentAction),
 }
@@ -147,10 +143,6 @@ impl Display for AppAction {
             LedgerAccount(action) => action.fmt(f),
             GeneralLedger(action) => action.fmt(f),
             TrialBalance(action) => action.fmt(f),
-            ProfitAndLossStatement(action) => action.fmt(f),
-            ProfitAndLossStatementConfiguration(action) => action.fmt(f),
-            BalanceSheet(action) => action.fmt(f),
-            BalanceSheetConfiguration(action) => action.fmt(f),
             CashFlowStatement(action) => action.fmt(f),
             Document(action) => action.fmt(f),
         }
@@ -173,16 +165,6 @@ impl FromStr for AppAction {
             LedgerAccount => AppAction::from(action.parse::<LedgerAccountAction>()?),
             GeneralLedger => AppAction::from(action.parse::<GeneralLedgerAction>()?),
             TrialBalance => AppAction::from(action.parse::<TrialBalanceAction>()?),
-            ProfitAndLossStatement => {
-                AppAction::from(action.parse::<ProfitAndLossStatementAction>()?)
-            }
-            ProfitAndLossStatementConfiguration => {
-                AppAction::from(action.parse::<ProfitAndLossStatementConfigurationAction>()?)
-            }
-            BalanceSheet => AppAction::from(action.parse::<BalanceSheetAction>()?),
-            BalanceSheetConfiguration => {
-                AppAction::from(action.parse::<BalanceSheetConfigurationAction>()?)
-            }
             CashFlowStatement => AppAction::from(action.parse::<CashFlowStatementAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
@@ -199,49 +181,6 @@ pub enum TrialBalanceAction {
 }
 
 impl_trivial_action!(TrialBalanceAction, TrialBalance);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum ProfitAndLossStatementAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(ProfitAndLossStatementAction, ProfitAndLossStatement);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum ProfitAndLossStatementConfigurationAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(
-    ProfitAndLossStatementConfigurationAction,
-    ProfitAndLossStatementConfiguration
-);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum BalanceSheetAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(BalanceSheetAction, BalanceSheet);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum BalanceSheetConfigurationAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(BalanceSheetConfigurationAction, BalanceSheetConfiguration);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]

@@ -332,13 +332,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             CoreCreditObject::all_credit_facilities(),
-            CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
         )
         .await?;
@@ -354,6 +347,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_obligations(),
+            CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
         )
         .await?;
     authz
@@ -417,63 +417,73 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         )
         .await?;
     authz
-        .add_permission_to_role(
-            &role,
-            CoreCreditObject::all_credit_facilities(),
-            CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
-        )
-        .await?;
-    authz
         .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Read)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::BalanceSheet, BalanceSheetAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::BalanceSheet, BalanceSheetAction::Update)
-        .await?;
-    authz
         .add_permission_to_role(
             &role,
-            Object::BalanceSheetConfiguration,
-            BalanceSheetConfigurationAction::Read,
+            CoreAccountingObject::all_balance_sheet(),
+            CoreAccountingAction::BALANCE_SHEET_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::BalanceSheetConfiguration,
-            BalanceSheetConfigurationAction::Update,
+            CoreAccountingObject::all_balance_sheet(),
+            CoreAccountingAction::BALANCE_SHEET_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Read,
+            CoreAccountingObject::all_balance_sheet_configuration(),
+            CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_UPDATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Update,
+            CoreAccountingObject::all_balance_sheet_configuration(),
+            CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatementConfiguration,
-            ProfitAndLossStatementConfigurationAction::Read,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatementConfiguration,
-            ProfitAndLossStatementConfigurationAction::Update,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
         )
         .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss_configuration(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss_configuration(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
+        )
+        .await?;
+
     authz
         .add_permission_to_role(
             &role,

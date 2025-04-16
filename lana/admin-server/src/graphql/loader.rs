@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use lana_app::{
     accounting::{
         chart_of_accounts::error::ChartOfAccountsError,
-        ledger_transaction::error::LedgerTransactionError, Chart, LedgerAccountId,
+        ledger_transaction::error::LedgerTransactionError,
+        transaction_templates::error::TransactionTemplateError, Chart, LedgerAccountId,
+        TransactionTemplateId,
     },
     app::LanaApp,
     deposit::error::CoreDepositError,
@@ -216,6 +218,23 @@ impl Loader<LedgerTransactionId> for LanaLoader {
     }
 }
 
+impl Loader<TransactionTemplateId> for LanaLoader {
+    type Value = TransactionTemplate;
+    type Error = Arc<TransactionTemplateError>;
+
+    async fn load(
+        &self,
+        keys: &[TransactionTemplateId],
+    ) -> Result<HashMap<TransactionTemplateId, Self::Value>, Self::Error> {
+        self.app
+            .accounting()
+            .transaction_templates()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
 impl Loader<TermsTemplateId> for LanaLoader {
     type Value = TermsTemplate;
     type Error = Arc<lana_app::terms_template::error::TermsTemplateError>;
@@ -234,30 +253,26 @@ impl Loader<TermsTemplateId> for LanaLoader {
 
 impl Loader<CreditFacilityId> for LanaLoader {
     type Value = CreditFacility;
-    type Error = Arc<lana_app::credit_facility::error::CoreCreditError>;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
     async fn load(
         &self,
         keys: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
-        self.app
-            .credit_facilities()
-            .find_all(keys)
-            .await
-            .map_err(Arc::new)
+        self.app.credit().find_all(keys).await.map_err(Arc::new)
     }
 }
 
 impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
-    type Error = Arc<lana_app::credit_facility::error::CoreCreditError>;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
 
     async fn load(
         &self,
         keys: &[DisbursalId],
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
-            .credit_facilities()
+            .credit()
             .find_all_disbursals(keys)
             .await
             .map_err(Arc::new)

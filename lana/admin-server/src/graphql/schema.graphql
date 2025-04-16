@@ -188,8 +188,8 @@ union AuditSubject = User | System
 
 type BalanceSheet {
 	name: String!
-	balance: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
+	categories: [LedgerAccount!]!
+	balance: LedgerAccountBalanceRange!
 }
 
 type BalanceSheetModuleConfig {
@@ -492,7 +492,6 @@ type CreditFacilityCreatePayload {
 type CreditFacilityDisbursal {
 	id: ID!
 	disbursalId: UUID!
-	index: DisbursalIdx!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
@@ -820,6 +819,8 @@ type Dashboard {
 	totalCollateral: Satoshis!
 }
 
+scalar Date
+
 enum DebitOrCredit {
 	DEBIT
 	CREDIT
@@ -958,8 +959,6 @@ type DisbursalEntry {
 	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
 }
-
-scalar DisbursalIdx
 
 enum DisbursalStatus {
 	NEW
@@ -1182,6 +1181,35 @@ type LedgerTransaction {
 	entries: [JournalEntry!]!
 }
 
+type LedgerTransactionConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerTransactionEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerTransaction!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerTransactionEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerTransaction!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -1193,6 +1221,7 @@ input ManualTransactionEntryInput {
 input ManualTransactionExecuteInput {
 	description: String!
 	reference: String
+	effective: Date
 	entries: [ManualTransactionEntryInput!]!
 }
 
@@ -1331,8 +1360,8 @@ input ProfitAndLossModuleConfigureInput {
 
 type ProfitAndLossStatement {
 	name: String!
-	net: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
+	categories: [LedgerAccount!]!
+	net: LedgerAccountBalanceRange!
 }
 
 type ProfitAndLossStatementModuleConfig {
@@ -1373,7 +1402,9 @@ type Query {
 	document(id: UUID!): Document
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
+	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
+	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!
@@ -1554,6 +1585,40 @@ scalar Timestamp
 
 type Total {
 	usdBalance: UsdCents!
+}
+
+type TransactionTemplate {
+	id: UUID!
+	code: String!
+}
+
+type TransactionTemplateConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [TransactionTemplateEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [TransactionTemplate!]!
+}
+
+"""
+An edge in a connection.
+"""
+type TransactionTemplateEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: TransactionTemplate!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type TrialBalance {
