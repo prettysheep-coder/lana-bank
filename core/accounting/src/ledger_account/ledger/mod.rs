@@ -163,7 +163,7 @@ impl LedgerAccountLedger {
                         Some(external_id),
                         cala_ledger::account_set::AccountSetMemberId::AccountSet(id),
                     ) if external_id.parse::<AccountCode>().is_ok() => {
-                        return Ok(vec![id.into()]);
+                        results.push(id.into());
                     }
                     (_, cala_ledger::account_set::AccountSetMemberId::Account(id)) => {
                         results.push(id.into());
