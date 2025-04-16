@@ -1,19 +1,11 @@
 {
   "db_name": "PostgreSQL",
-<<<<<<<< HEAD:lana/dashboard/.sqlx/query-a6bce8438f662121e15f9f58c53994c0f5fc0706a4afba9dacb10d4b20dd7300.json
-  "query": "WITH entities AS (SELECT id FROM core_disbursals WHERE obligation_id = $1) SELECT i.id AS \"entity_id: DisbursalId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_disbursal_events e ON i.id = e.id ORDER BY i.id, e.sequence",
-========
   "query": "WITH entities AS (SELECT id FROM accounting_csvs WHERE id = $1) SELECT i.id AS \"entity_id: AccountingCsvId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN accounting_csv_events e ON i.id = e.id ORDER BY i.id, e.sequence",
->>>>>>>> 35b7e686d (chore: sqlx-prepare):lana/app/.sqlx/query-a26ffeebeecd66de30c5d9e50e8f42a2a6e44e714fd61b12446d7e3bf12566e3.json
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-<<<<<<<< HEAD:lana/dashboard/.sqlx/query-a6bce8438f662121e15f9f58c53994c0f5fc0706a4afba9dacb10d4b20dd7300.json
-        "name": "entity_id: DisbursalId",
-========
         "name": "entity_id: AccountingCsvId",
->>>>>>>> 35b7e686d (chore: sqlx-prepare):lana/app/.sqlx/query-a26ffeebeecd66de30c5d9e50e8f42a2a6e44e714fd61b12446d7e3bf12566e3.json
         "type_info": "Uuid"
       },
       {
@@ -44,9 +36,5 @@
       false
     ]
   },
-<<<<<<<< HEAD:lana/dashboard/.sqlx/query-a6bce8438f662121e15f9f58c53994c0f5fc0706a4afba9dacb10d4b20dd7300.json
-  "hash": "a6bce8438f662121e15f9f58c53994c0f5fc0706a4afba9dacb10d4b20dd7300"
-========
   "hash": "a26ffeebeecd66de30c5d9e50e8f42a2a6e44e714fd61b12446d7e3bf12566e3"
->>>>>>>> 35b7e686d (chore: sqlx-prepare):lana/app/.sqlx/query-a26ffeebeecd66de30c5d9e50e8f42a2a6e44e714fd61b12446d7e3bf12566e3.json
 }
