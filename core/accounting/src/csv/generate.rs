@@ -56,8 +56,8 @@ where
         .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
 
         for entry in history_result.entities {
-            let formatted_amount = entry.amount.formatted_amount();
-            let currency = entry.amount.currency_string();
+            let formatted_amount = entry.amount.to_display_amount();
+            let currency = entry.amount.currency_code();
 
             let (debit_amount, credit_amount) = match entry.direction {
                 DebitOrCredit::Debit => (formatted_amount, Decimal::from(0).to_string()),

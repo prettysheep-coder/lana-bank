@@ -131,7 +131,7 @@ impl AccountingCsv {
         None
     }
 
-    fn csv_uploaded(&self) -> Result<(), AccountingCsvError> {
+    fn validate_upload_complete(&self) -> Result<(), AccountingCsvError> {
         if self.status() != AccountingCsvStatus::Completed {
             return Err(AccountingCsvError::CsvNotReady);
         }
@@ -139,7 +139,7 @@ impl AccountingCsv {
     }
 
     pub fn location_in_cloud(&self) -> Result<AccountingCsvLocationInCloud, AccountingCsvError> {
-        self.csv_uploaded()?;
+        self.validate_upload_complete()?;
 
         for e in self.events.iter_all().rev() {
             if let AccountingCsvEvent::FileUploaded {
@@ -222,5 +222,68 @@ impl IntoEvents<AccountingCsvEvent> for NewAccountingCsv {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use audit::AuditEntryId;
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "test_user".to_string(),
+        }
+    }
+
+    fn initial_events() -> Vec<AccountingCsvEvent> {
+        vec![AccountingCsvEvent::Initialized {
+            id: AccountingCsvId::new(),
+            csv_type: AccountingCsvType::LedgerAccount,
+            ledger_account_id: Some(LedgerAccountId::new()),
+            audit_info: dummy_audit_info(),
+        }]
+    }
+
+    fn csv_from(events: Vec<AccountingCsvEvent>) -> AccountingCsv {
+        let id = AccountingCsvId::new();
+        AccountingCsv::try_from_events(EntityEvents::init(id, events))
+            .expect("Failed to create AccountingCsv from events")
+    }
+
+    mod validate_upload_complete {
+        use super::*;
+
+        #[test]
+        fn returns_ok_when_completed() {
+            let mut events = initial_events();
+            events.push(AccountingCsvEvent::FileUploaded {
+                path_in_bucket: "test/path".to_string(),
+                bucket: "test-bucket".to_string(),
+                audit_info: dummy_audit_info(),
+                recorded_at: Utc::now(),
+            });
+
+            let csv = csv_from(events);
+            assert!(csv.validate_upload_complete().is_ok());
+        }
+
+        #[test]
+        fn returns_error_when_failed() {
+            let mut events = initial_events();
+            events.push(AccountingCsvEvent::UploadFailed {
+                error: "Test error".to_string(),
+                audit_info: dummy_audit_info(),
+                recorded_at: Utc::now(),
+            });
+
+            let csv = csv_from(events);
+            assert!(matches!(
+                csv.validate_upload_complete(),
+                Err(AccountingCsvError::CsvNotReady)
+            ));
+        }
     }
 }

@@ -51,14 +51,14 @@ impl TryFrom<Entry> for JournalEntry {
 }
 
 impl JournalEntryAmount {
-    pub fn formatted_amount(&self) -> String {
+    pub fn to_display_amount(&self) -> String {
         match self {
             JournalEntryAmount::Usd(cents) => cents.formatted_usd(),
             JournalEntryAmount::Btc(sats) => sats.formatted_btc(),
         }
     }
 
-    pub fn currency_string(&self) -> String {
+    pub fn currency_code(&self) -> String {
         match self {
             JournalEntryAmount::Usd(_) => String::from("USD"),
             JournalEntryAmount::Btc(_) => String::from("BTC"),
