@@ -35,9 +35,11 @@ impl ProfitAndLossStatement {
 
     async fn categories(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let mut categories = loader.load_many(self.entity.categories.clone()).await?;
-        let mut result = Vec::with_capacity(self.entity.categories.len());
-        for id in self.entity.categories.iter() {
+        let mut categories = loader
+            .load_many(self.entity.category_ids.iter().copied())
+            .await?;
+        let mut result = Vec::with_capacity(self.entity.category_ids.len());
+        for id in self.entity.category_ids.iter() {
             if let Some(account) = categories.remove(id) {
                 result.push(account);
             }

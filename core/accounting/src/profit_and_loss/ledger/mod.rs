@@ -402,7 +402,7 @@ impl ProfitAndLossStatementLedger {
             name: statement_account_set.name,
             usd_balance_range: statement_account_set.usd_balance_range,
             btc_balance_range: statement_account_set.btc_balance_range,
-            categories: vec![
+            category_ids: vec![
                 ids.revenue.into(),
                 ids.cost_of_revenue.into(),
                 ids.expenses.into(),
