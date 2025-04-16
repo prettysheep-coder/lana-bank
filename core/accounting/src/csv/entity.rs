@@ -5,44 +5,12 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
+use crate::csv::primitives::{
+    AccountingCsvLocationInCloud, AccountingCsvStatus, AccountingCsvType,
+};
 use crate::primitives::{AccountingCsvId, LedgerAccountId};
 
-#[derive(
-    Debug, Clone, Serialize, Deserialize, PartialEq, strum::Display, strum::EnumString, Copy,
-)]
-#[serde(rename_all = "snake_case")]
-pub enum AccountingCsvType {
-    LedgerAccount,
-    ProfitAndLoss,
-    BalanceSheet,
-}
-#[derive(Debug)]
-pub struct AccountingCsvLocationInCloud {
-    pub csv_type: AccountingCsvType,
-    pub bucket: String,
-    pub path_in_bucket: String,
-}
-
-impl<'a> From<&'a AccountingCsvLocationInCloud> for cloud_storage::LocationInCloud<'a> {
-    fn from(meta: &'a AccountingCsvLocationInCloud) -> Self {
-        cloud_storage::LocationInCloud {
-            bucket: &meta.bucket,
-            path_in_bucket: &meta.path_in_bucket,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct AccountingCsvDownloadLink {
-    pub csv_type: AccountingCsvType,
-    pub url: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct GeneratedAccountingCsvDownloadLink {
-    pub accounting_csv_id: AccountingCsvId,
-    pub link: AccountingCsvDownloadLink,
-}
+use super::error::AccountingCsvError;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -83,13 +51,6 @@ pub struct AccountingCsv {
     pub(super) events: EntityEvents<AccountingCsvEvent>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-pub enum AccountingCsvStatus {
-    Pending,
-    Completed,
-    Failed,
-}
-
 impl AccountingCsv {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
@@ -108,51 +69,78 @@ impl AccountingCsv {
         AccountingCsvStatus::Pending
     }
 
-    pub fn last_error(&self) -> Option<String> {
+    pub fn last_error(&self) -> Option<&str> {
         for e in self.events.iter_all().rev() {
             if let AccountingCsvEvent::UploadFailed { error, .. } = e {
-                return Some(error.clone());
+                return Some(error);
             }
         }
         None
     }
 
-    pub fn file_uploaded(&mut self, path_in_bucket: String, bucket: String, audit_info: AuditInfo) {
+    pub fn file_uploaded(
+        &mut self,
+        path_in_bucket: String,
+        bucket: String,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            AccountingCsvEvent::FileUploaded { .. }
+        );
+
         self.events.push(AccountingCsvEvent::FileUploaded {
             path_in_bucket,
             bucket,
             audit_info,
             recorded_at: Utc::now(),
         });
+        Idempotent::Executed(())
     }
 
-    pub fn upload_failed(&mut self, error: String, audit_info: AuditInfo) {
+    pub fn upload_failed(&mut self, error: String, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            AccountingCsvEvent::UploadFailed { error: e, .. } if e == &error
+        );
+
         self.events.push(AccountingCsvEvent::UploadFailed {
             error,
             audit_info,
             recorded_at: Utc::now(),
         });
+
+        Idempotent::Executed(())
     }
 
-    pub fn bucket(&self) -> Option<String> {
+    pub fn bucket(&self) -> Option<&str> {
         for e in self.events.iter_all().rev() {
             if let AccountingCsvEvent::FileUploaded { bucket, .. } = e {
-                return Some(bucket.clone());
+                return Some(bucket);
             }
         }
         None
     }
 
-    pub fn path_in_bucket(&self) -> Option<String> {
+    pub fn path_in_bucket(&self) -> Option<&str> {
         for e in self.events.iter_all().rev() {
             if let AccountingCsvEvent::FileUploaded { path_in_bucket, .. } = e {
-                return Some(path_in_bucket.clone());
+                return Some(path_in_bucket);
             }
         }
         None
     }
 
-    pub fn download_link(&self) -> Option<AccountingCsvLocationInCloud> {
+    fn csv_uploaded(&self) -> Result<(), AccountingCsvError> {
+        if self.status() != AccountingCsvStatus::Completed {
+            return Err(AccountingCsvError::CsvNotReady);
+        }
+        Ok(())
+    }
+
+    pub fn location_in_cloud(&self) -> Result<AccountingCsvLocationInCloud, AccountingCsvError> {
+        self.csv_uploaded()?;
+
         for e in self.events.iter_all().rev() {
             if let AccountingCsvEvent::FileUploaded {
                 bucket,
@@ -160,14 +148,14 @@ impl AccountingCsv {
                 ..
             } = e
             {
-                return Some(AccountingCsvLocationInCloud {
+                return Ok(AccountingCsvLocationInCloud {
                     csv_type: self.csv_type,
                     bucket: bucket.clone(),
                     path_in_bucket: path_in_bucket.clone(),
                 });
             }
         }
-        None
+        Err(AccountingCsvError::CsvFileNotFound)
     }
 
     pub fn download_link_generated(

@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::{ledger_account::LedgerAccounts, primitives::AccountingCsvId};
 
 use super::{
-    CoreAccountingAction, CoreAccountingObject, entity::AccountingCsvType,
-    error::AccountingCsvError, generate::GenerateCsv, repo::AccountingCsvRepo,
+    CoreAccountingAction, CoreAccountingObject, error::AccountingCsvError, generate::GenerateCsv,
+    primitives::AccountingCsvType, repo::AccountingCsvRepo,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -137,14 +137,8 @@ where
                     )
                     .await
             }
-            AccountingCsvType::ProfitAndLoss => {
-                // TODO:  profit and loss report generation
-                Err(AccountingCsvError::UnsupportedCsvType)
-            }
-            AccountingCsvType::BalanceSheet => {
-                // TODO:  balance sheet report generation
-                Err(AccountingCsvError::UnsupportedCsvType)
-            }
+            AccountingCsvType::ProfitAndLoss => Err(AccountingCsvError::UnsupportedCsvType),
+            AccountingCsvType::BalanceSheet => Err(AccountingCsvError::UnsupportedCsvType),
         };
 
         match csv_result {
@@ -156,25 +150,25 @@ where
                     .await
                 {
                     Ok(_) => {
-                        export.file_uploaded(
+                        let _ = export.file_uploaded(
                             path_in_bucket,
                             self.storage.bucket_name().to_string(),
                             audit_info,
                         );
                     }
                     Err(e) => {
-                        export.upload_failed(e.to_string(), audit_info);
+                        let _ = export.upload_failed(e.to_string(), audit_info);
                     }
                 }
             }
             Err(e) => {
-                export.upload_failed(e.to_string(), audit_info);
+                let _ = export.upload_failed(e.to_string(), audit_info);
             }
         }
 
         self.repo.update_in_op(&mut db, &mut export).await?;
-        db.commit().await?;
-
-        Ok(JobCompletion::Complete)
+        let (now, tx) = (db.now(), db.into_tx());
+        let db_static = es_entity::DbOp::new(tx, now);
+        Ok(JobCompletion::CompleteWithOp(db_static))
     }
 }

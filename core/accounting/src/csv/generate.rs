@@ -6,8 +6,8 @@ use authz::PermissionCheck;
 use cala_ledger::DebitOrCredit;
 
 use crate::{
-    CoreAccountingAction, CoreAccountingObject, journal::JournalEntryAmount,
-    ledger_account::LedgerAccounts, primitives::LedgerAccountId,
+    CoreAccountingAction, CoreAccountingObject, ledger_account::LedgerAccounts,
+    primitives::LedgerAccountId,
 };
 
 use super::error::AccountingCsvError;
@@ -56,18 +56,17 @@ where
         .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
 
         for entry in history_result.entities {
+            let formatted_amount = entry.amount.formatted_amount();
+            let currency = entry.amount.currency_string();
+
             let (debit_amount, credit_amount) = match entry.direction {
-                DebitOrCredit::Debit => {
-                    (format_amount(&entry.amount), Decimal::from(0).to_string())
-                }
-                DebitOrCredit::Credit => {
-                    (Decimal::from(0).to_string(), format_amount(&entry.amount))
-                }
+                DebitOrCredit::Debit => (formatted_amount, Decimal::from(0).to_string()),
+                DebitOrCredit::Credit => (Decimal::from(0).to_string(), formatted_amount),
             };
 
             wtr.write_record(&[
                 entry.created_at.to_rfc3339(),
-                format_currency(&entry.amount),
+                currency,
                 debit_amount,
                 credit_amount,
                 entry.description.unwrap_or_default(),
@@ -80,27 +79,5 @@ where
             .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
 
         Ok(csv_data)
-    }
-}
-
-fn format_amount(amount: &JournalEntryAmount) -> String {
-    match amount {
-        JournalEntryAmount::Usd(cents) => {
-            let cents_decimal = Decimal::from(cents.into_inner());
-            let usd_decimal = cents_decimal / Decimal::new(100, 0);
-            format!("{:.2}", usd_decimal)
-        }
-        JournalEntryAmount::Btc(sats) => {
-            let sats_decimal = Decimal::from(sats.into_inner());
-            let btc_decimal = sats_decimal / Decimal::new(100_000_000, 0);
-            format!("{:.8}", btc_decimal)
-        }
-    }
-}
-
-fn format_currency(amount: &JournalEntryAmount) -> String {
-    match amount {
-        JournalEntryAmount::Usd(_) => String::from("USD"),
-        JournalEntryAmount::Btc(_) => String::from("BTC"),
     }
 }

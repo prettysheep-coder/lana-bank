@@ -48,7 +48,7 @@ where
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
     balance_sheet: BalanceSheets<Perms>,
-    accounting_csvs: AccountingCsvs<Perms>,
+    csvs: AccountingCsvs<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -66,7 +66,7 @@ where
             profit_and_loss: self.profit_and_loss.clone(),
             transaction_templates: self.transaction_templates.clone(),
             balance_sheet: self.balance_sheet.clone(),
-            accounting_csvs: self.accounting_csvs.clone(),
+            csvs: self.csvs.clone(),
         }
     }
 }
@@ -93,7 +93,7 @@ where
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
         let balance_sheet = BalanceSheets::new(pool, authz, cala, journal_id);
-        let accounting_csvs = AccountingCsvs::new(pool, authz, jobs, storage, &ledger_accounts);
+        let csvs = AccountingCsvs::new(pool, authz, jobs, storage, &ledger_accounts);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -104,7 +104,7 @@ where
             profit_and_loss,
             transaction_templates,
             balance_sheet,
-            accounting_csvs,
+            csvs,
         }
     }
 
@@ -132,8 +132,8 @@ where
         &self.profit_and_loss
     }
 
-    pub fn accounting_csvs(&self) -> &AccountingCsvs<Perms> {
-        &self.accounting_csvs
+    pub fn csvs(&self) -> &AccountingCsvs<Perms> {
+        &self.csvs
     }
 
     pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {

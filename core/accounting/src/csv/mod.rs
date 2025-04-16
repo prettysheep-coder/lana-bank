@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod generate;
 mod job;
+mod primitives;
 mod repo;
 
 use crate::Jobs;
@@ -18,6 +19,7 @@ use super::{
 pub use entity::*;
 use error::*;
 use job::*;
+use primitives::*;
 use repo::*;
 
 #[derive(Clone)]
@@ -118,13 +120,7 @@ where
             .await?;
 
         let mut csv = self.repo.find_by_id(accounting_csv_id).await?;
-
-        if csv.status() != AccountingCsvStatus::Completed {
-            return Err(AccountingCsvError::CsvNotReady);
-        }
-        let location = csv
-            .download_link()
-            .ok_or(AccountingCsvError::CsvFileNotFound)?;
+        let location = csv.location_in_cloud()?;
 
         let url = self.storage.generate_download_link(&location).await?;
         csv.download_link_generated(audit_info, location);

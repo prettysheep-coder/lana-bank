@@ -50,6 +50,22 @@ impl TryFrom<Entry> for JournalEntry {
     }
 }
 
+impl JournalEntryAmount {
+    pub fn formatted_amount(&self) -> String {
+        match self {
+            JournalEntryAmount::Usd(cents) => cents.formatted_usd(),
+            JournalEntryAmount::Btc(sats) => sats.formatted_btc(),
+        }
+    }
+
+    pub fn currency_string(&self) -> String {
+        match self {
+            JournalEntryAmount::Usd(_) => String::from("USD"),
+            JournalEntryAmount::Btc(_) => String::from("BTC"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JournalEntryCursor {
     pub entry_id: EntryId,

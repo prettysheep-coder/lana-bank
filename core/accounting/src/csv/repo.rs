@@ -4,7 +4,7 @@ use es_entity::*;
 
 use crate::primitives::{AccountingCsvId, LedgerAccountId};
 
-use super::{entity::*, error::*};
+use super::{entity::*, error::*, primitives::*};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -26,7 +26,7 @@ impl AccountingCsvRepo {
 }
 
 mod accounting_csv_type_sqlx {
-    use crate::csv::entity::AccountingCsvType;
+    use crate::csv::AccountingCsvType;
     use sqlx::{Type, postgres::*};
 
     impl Type<Postgres> for AccountingCsvType {
