@@ -188,8 +188,8 @@ union AuditSubject = User | System
 
 type BalanceSheet {
 	name: String!
-	categories: [LedgerAccount!]!
 	balance: LedgerAccountBalanceRange!
+	categories: [LedgerAccount!]!
 }
 
 type BalanceSheetModuleConfig {
