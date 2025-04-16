@@ -1,13 +1,11 @@
 use chrono::{DateTime, Utc};
 
-use crate::primitives::*;
+use crate::{payment_allocation::NewPaymentAllocation, primitives::*};
 
-use super::{
-    entity::{Obligation, ObligationType},
-    error::*,
-};
+use super::{entity::Obligation, error::*};
 
 pub struct PaymentAllocator {
+    credit_facility_id: CreditFacilityId,
     payment_id: PaymentId,
     amount: UsdCents,
 }
@@ -39,22 +37,17 @@ impl From<&Obligation> for ObligationDataForAllocation {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct NewPaymentAllocation {
-    pub id: LedgerTxId,    // TODO: change to PaymentAllocationId
-    pub tx_id: LedgerTxId, // TODO: change to PaymentAllocationId
-    pub payment_id: PaymentId,
-    pub obligation_id: ObligationId,
-    pub obligation_type: ObligationType,
-    pub receivable_account_id: CalaAccountId,
-    pub account_to_be_debited_id: CalaAccountId,
-    pub amount: UsdCents,
-    pub recorded_at: DateTime<Utc>,
-}
-
 impl PaymentAllocator {
-    pub fn new(payment_id: PaymentId, amount: UsdCents) -> Self {
-        Self { payment_id, amount }
+    pub fn new(
+        credit_facility_id: CreditFacilityId,
+        payment_id: PaymentId,
+        amount: UsdCents,
+    ) -> Self {
+        Self {
+            credit_facility_id,
+            payment_id,
+            amount,
+        }
     }
 
     pub fn allocate(
@@ -88,25 +81,25 @@ impl PaymentAllocator {
         sorted_obligations.extend(interest_obligations);
         sorted_obligations.extend(disbursal_obligations);
 
-        let now = crate::time::now();
         let mut remaining = self.amount;
         let mut new_payment_allocations = vec![];
         for obligation in sorted_obligations {
             let payment_amount = std::cmp::min(remaining, obligation.outstanding);
             remaining -= payment_amount;
 
-            let id = LedgerTxId::new();
-            new_payment_allocations.push(NewPaymentAllocation {
-                id,
-                tx_id: id,
-                payment_id: self.payment_id,
-                obligation_id: obligation.id,
-                obligation_type: obligation.obligation_type,
-                receivable_account_id: obligation.receivable_account_id,
-                account_to_be_debited_id: obligation.account_to_be_debited_id,
-                amount: payment_amount,
-                recorded_at: now,
-            });
+            new_payment_allocations.push(
+                NewPaymentAllocation::builder()
+                    .id(PaymentAllocationId::new())
+                    .payment_id(self.payment_id)
+                    .credit_facility_id(self.credit_facility_id)
+                    .obligation_id(obligation.id)
+                    .obligation_type(obligation.obligation_type)
+                    .receivable_account_id(obligation.receivable_account_id)
+                    .account_to_be_debited_id(obligation.account_to_be_debited_id)
+                    .amount(payment_amount)
+                    .build()
+                    .expect("could not build new payment allocation"),
+            );
 
             if remaining == UsdCents::ZERO {
                 break;
@@ -123,7 +116,8 @@ mod test {
 
     #[test]
     fn can_allocate_interest() {
-        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::ONE);
+        let allocator =
+            PaymentAllocator::new(CreditFacilityId::new(), PaymentId::new(), UsdCents::ONE);
 
         let obligation_type = ObligationType::Interest;
         let obligations = vec![ObligationDataForAllocation {
@@ -141,7 +135,8 @@ mod test {
 
     #[test]
     fn can_allocate_disbursal() {
-        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::ONE);
+        let allocator =
+            PaymentAllocator::new(CreditFacilityId::new(), PaymentId::new(), UsdCents::ONE);
 
         let obligation_type = ObligationType::Disbursal;
         let obligations = vec![ObligationDataForAllocation {
@@ -159,7 +154,8 @@ mod test {
 
     #[test]
     fn can_allocate_interest_and_disbursal() {
-        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(2));
+        let allocator =
+            PaymentAllocator::new(CreditFacilityId::new(), PaymentId::new(), UsdCents::from(2));
 
         let obligations = vec![
             ObligationDataForAllocation {
@@ -186,7 +182,8 @@ mod test {
 
     #[test]
     fn can_allocate_partially() {
-        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(5));
+        let allocator =
+            PaymentAllocator::new(CreditFacilityId::new(), PaymentId::new(), UsdCents::from(5));
 
         let obligations = vec![
             ObligationDataForAllocation {
@@ -215,7 +212,8 @@ mod test {
 
     #[test]
     fn errors_if_greater_than_outstanding() {
-        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(3));
+        let allocator =
+            PaymentAllocator::new(CreditFacilityId::new(), PaymentId::new(), UsdCents::from(3));
 
         let obligations = vec![
             ObligationDataForAllocation {
@@ -241,7 +239,11 @@ mod test {
 
     #[test]
     fn allocates_interest_first() {
-        let allocator = PaymentAllocator::new(PaymentId::new(), UsdCents::from(10));
+        let allocator = PaymentAllocator::new(
+            CreditFacilityId::new(),
+            PaymentId::new(),
+            UsdCents::from(10),
+        );
 
         let obligations = vec![
             ObligationDataForAllocation {
