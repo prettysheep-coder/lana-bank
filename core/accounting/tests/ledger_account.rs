@@ -85,15 +85,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
     
-    let storage_config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
-        StorageConfig::new_dev_mode(name_prefix)
-    } else {
-        StorageConfig {
-            root_folder: "gha".to_string(),
-            bucket_name: "gha-lana-documents".to_string(),
-        }
-    };
-    let storage = Storage::new(&storage_config);
+    let storage = Storage::new(&StorageConfig::default());
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
