@@ -142,47 +142,6 @@ impl ProfitAndLossStatementLedger {
         Ok(ledger_account)
     }
 
-    // async fn get_all_account_sets(
-    //     &self,
-    //     ids: &[AccountSetId],
-    //     balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
-    // ) -> Result<Vec<LedgerAccount>, ProfitAndLossStatementLedgerError> {
-    //     let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
-
-    //     let mut ledger_accounts = Vec::new();
-    //     for id in ids {
-    //         let account_set = account_sets.remove(id).expect("account set should exist");
-    //         let usd_balance =
-    //             balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::USD));
-
-    //         let btc_balance =
-    //             balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::BTC));
-
-    //         let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
-
-    //         ledger_accounts.push(ledger_account);
-    //     }
-
-    //     Ok(ledger_accounts)
-    // }
-
-    // async fn get_member_account_set_ids(
-    //     &self,
-    //     account_set_id: AccountSetId,
-    // ) -> Result<Vec<AccountSetId>, ProfitAndLossStatementLedgerError> {
-    //     self.cala
-    //         .account_sets()
-    //         .list_members_by_created_at(account_set_id, Default::default())
-    //         .await?
-    //         .entities
-    //         .into_iter()
-    //         .map(|m| match m.id {
-    //             AccountSetMemberId::AccountSet(id) => Ok(id),
-    //             _ => Err(ProfitAndLossStatementLedgerError::NonAccountSetMemberTypeFound),
-    //         })
-    //         .collect::<Result<Vec<AccountSetId>, ProfitAndLossStatementLedgerError>>()
-    // }
-
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
