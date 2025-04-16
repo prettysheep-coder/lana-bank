@@ -40,7 +40,7 @@ pub async fn init_chart(
     subject: &Subject,
 ) -> anyhow::Result<Chart> {
     let storage = Storage::new(&StorageConfig::default());
-    let jobs = Jobs::new(&pool, JobExecutorConfig::default());
+    let jobs = Jobs::new(pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(pool, authz, cala, journal_id, &storage, &jobs);
 

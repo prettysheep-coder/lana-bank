@@ -11,9 +11,9 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 
 use super::{
-    CoreAccountingAction, CoreAccountingObject,
     ledger_account::LedgerAccounts,
     primitives::{AccountingCsvId, LedgerAccountId},
+    CoreAccountingAction, CoreAccountingObject,
 };
 
 pub use entity::*;
@@ -120,10 +120,9 @@ where
             .await?;
 
         let mut csv = self.repo.find_by_id(accounting_csv_id).await?;
-        let location = csv.location_in_cloud()?;
+        let location = csv.download_link_generated(audit_info)?;
 
         let url = self.storage.generate_download_link(&location).await?;
-        csv.download_link_generated(audit_info, location);
         self.repo.update(&mut csv).await?;
 
         Ok(GeneratedAccountingCsvDownloadLink {

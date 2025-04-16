@@ -20,17 +20,17 @@ pub enum AccountingCsvStatus {
 }
 
 #[derive(Debug)]
-pub struct AccountingCsvLocationInCloud {
+pub struct AccountingCsvLocationInCloud<'a> {
     pub csv_type: AccountingCsvType,
-    pub bucket: String,
-    pub path_in_bucket: String,
+    pub bucket: &'a str,
+    pub path_in_bucket: &'a str,
 }
 
-impl<'a> From<&'a AccountingCsvLocationInCloud> for cloud_storage::LocationInCloud<'a> {
-    fn from(meta: &'a AccountingCsvLocationInCloud) -> Self {
+impl<'a> From<&AccountingCsvLocationInCloud<'a>> for cloud_storage::LocationInCloud<'a> {
+    fn from(meta: &AccountingCsvLocationInCloud<'a>) -> Self {
         cloud_storage::LocationInCloud {
-            bucket: &meta.bucket,
-            path_in_bucket: &meta.path_in_bucket,
+            bucket: meta.bucket,
+            path_in_bucket: meta.path_in_bucket,
         }
     }
 }
