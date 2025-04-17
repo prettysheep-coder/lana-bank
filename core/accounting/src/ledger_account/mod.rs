@@ -125,14 +125,16 @@ where
         Ok(res)
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn list_account_children(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
         id: cala_ledger::AccountSetId,
-        args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
+        mut args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
         from: chrono::DateTime<chrono::Utc>,
         until: Option<chrono::DateTime<chrono::Utc>>,
+        filter_non_zero: bool,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         LedgerAccountError,
@@ -144,20 +146,32 @@ where
                 CoreAccountingAction::LEDGER_ACCOUNT_LIST,
             )
             .await?;
-        let res = self.ledger.list_children(id, args, from, until).await?;
-        let mut entities = Vec::with_capacity(res.entities.len());
+        let mut entities = Vec::with_capacity(args.first);
+        loop {
+            let res = self
+                .ledger
+                .list_children(id, args.clone(), from, until)
+                .await?;
 
-        for mut account in res.entities {
-            self.populate_ancestors(chart, &mut account).await?;
-            self.populate_children(chart, &mut account).await?;
-            entities.push(account);
+            for mut account in res.entities {
+                if filter_non_zero && !account.has_non_zero_balance() {
+                    continue;
+                }
+                self.populate_ancestors(chart, &mut account).await?;
+                self.populate_children(chart, &mut account).await?;
+                entities.push(account);
+            }
+
+            if !res.has_next_page || entities.len() >= args.first {
+                return Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page: res.has_next_page,
+                    end_cursor: res.end_cursor,
+                });
+            }
+
+            args.after = res.end_cursor;
         }
-
-        Ok(es_entity::PaginatedQueryRet {
-            entities,
-            has_next_page: res.has_next_page,
-            end_cursor: res.end_cursor,
-        })
     }
 
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors

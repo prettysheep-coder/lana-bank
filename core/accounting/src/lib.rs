@@ -230,7 +230,7 @@ where
 
         Ok(self
             .ledger_accounts()
-            .list_account_children(sub, &chart, id, args, from, until)
+            .list_account_children(sub, &chart, id, args, from, until, true)
             .await?)
     }
 

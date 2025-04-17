@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
@@ -5,7 +6,6 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::{
-    Currency as CalaCurrency, DebitOrCredit,
     account::Account as CalaAccount,
     account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
@@ -13,6 +13,7 @@ pub use cala_ledger::{
         AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
         JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
     },
+    Currency as CalaCurrency, DebitOrCredit,
 };
 
 pub use core_money::{Satoshis, UsdCents};
@@ -276,7 +277,7 @@ pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
-// option
+                                                           // option
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -799,6 +800,18 @@ pub struct BalanceRange {
     pub start: Option<CalaAccountBalance>,
     pub end: Option<CalaAccountBalance>,
     pub diff: Option<CalaAccountBalance>,
+}
+
+impl BalanceRange {
+    pub(crate) fn has_non_zero_balance(&self) -> bool {
+        if let Some(end) = self.end.as_ref() {
+            end.settled() != Decimal::ZERO
+                || end.pending() != Decimal::ZERO
+                || end.encumbrance() != Decimal::ZERO
+        } else {
+            false
+        }
+    }
 }
 
 #[cfg(test)]
