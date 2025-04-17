@@ -1389,6 +1389,37 @@
         "debit": "Debit",
         "credit": "Credit"
       }
+    },
+    "exportCsv": {
+      "title": "Export Account Data",
+      "description": "Generate and download CSV exports of this ledger account",
+      "existingExports": "Existing Exports",
+      "createNew": "Create New Export",
+      "selectExport": "Select an export",
+      "noCsvs": "No exports available for this account",
+      "createDescription": "Generate a new CSV export of this ledger account's data. This may take a moment to complete.",
+      "processing": "Processing, please wait...",
+      "csvCreating": "CSV export is being generated",
+      "csvReady": "CSV export is ready for download",
+      "csvFailed": "CSV export generation failed",
+      "status": {
+        "pending": "Processing",
+        "completed": "Ready",
+        "failed": "Failed"
+      },
+      "buttons": {
+        "export": "Export CSV",
+        "generate": "Generate New CSV",
+        "generating": "Generating...",
+        "getLink": "Get Download Link",
+        "download": "Download"
+      },
+      "errors": {
+        "loadFailed": "Failed to load exports",
+        "createFailed": "Failed to create export",
+        "downloadFailed": "Failed to generate download link",
+        "notReady": "This export is not ready for download yet"
+      }
     }
   },
   "Journal": {
