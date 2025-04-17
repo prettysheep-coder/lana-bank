@@ -147,10 +147,19 @@ where
             )
             .await?;
         let mut entities = Vec::with_capacity(args.first);
+        let mut after = args.after.take();
         loop {
             let res = self
                 .ledger
-                .list_children(id, args.clone(), from, until)
+                .list_children(
+                    id,
+                    es_entity::PaginatedQueryArgs {
+                        first: args.first,
+                        after: after.take(),
+                    },
+                    from,
+                    until,
+                )
                 .await?;
 
             for mut account in res.entities {
@@ -160,6 +169,9 @@ where
                 self.populate_ancestors(chart, &mut account).await?;
                 self.populate_children(chart, &mut account).await?;
                 entities.push(account);
+                if entities.len() >= args.first {
+                    break;
+                }
             }
 
             if !res.has_next_page || entities.len() >= args.first {
@@ -170,7 +182,7 @@ where
                 });
             }
 
-            args.after = res.end_cursor;
+            after = res.end_cursor;
         }
     }
 
