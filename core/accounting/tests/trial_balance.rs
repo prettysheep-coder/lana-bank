@@ -2,6 +2,7 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
+use chrono::Utc;
 use cloud_storage::{Storage, config::StorageConfig};
 use job::{JobExecutorConfig, Jobs};
 
@@ -58,27 +59,42 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     let trial_balance = accounting
         .trial_balances()
-        .trial_balance_accounts(
+        .trial_balance(
             &DummySubject,
             trial_balance_name.to_string(),
-            Default::default(),
+            Utc::now(),
+            Utc::now(),
         )
         .await?;
-    assert_eq!(trial_balance.entities.len(), 0);
+
+    let accounts = accounting
+        .find_account_children(
+            &DummySubject,
+            &chart_ref,
+            trial_balance.id,
+            Default::default(),
+            Utc::now(),
+            Some(Utc::now()),
+        )
+        .await?;
+    assert_eq!(accounts.entities.len(), 0);
 
     accounting
         .trial_balances()
         .add_chart_to_trial_balance(trial_balance_name.to_string(), chart)
         .await?;
-    let trial_balance = accounting
-        .trial_balances()
-        .trial_balance_accounts(
+
+    let accounts = accounting
+        .find_account_children(
             &DummySubject,
-            trial_balance_name.to_string(),
+            &chart_ref,
+            trial_balance.id,
             Default::default(),
+            Utc::now(),
+            Some(Utc::now()),
         )
         .await?;
-    assert_eq!(trial_balance.entities.len(), 2);
+    assert_eq!(accounts.entities.len(), 2);
 
     Ok(())
 }

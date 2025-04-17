@@ -1,17 +1,13 @@
 pub mod error;
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
-    account_set::{
-        AccountSet, AccountSetMemberByExternalId, AccountSetMemberId,
-        AccountSetMembersByExternalIdCursor, NewAccountSet,
-    },
+    account_set::{AccountSet, NewAccountSet},
 };
 
-use crate::primitives::{BalanceRange, CalaBalanceRange, LedgerAccountId};
+use crate::primitives::{BalanceRange, CalaBalanceRange};
 
 use error::*;
 
@@ -24,62 +20,6 @@ pub struct TrialBalanceRoot {
     pub btc_balance_range: Option<BalanceRange>,
     pub from: DateTime<Utc>,
     pub until: Option<DateTime<Utc>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrialBalanceAccountCursor {
-    pub id: AccountSetId,
-    pub external_id: String,
-}
-
-impl From<TrialBalanceAccountCursor> for AccountSetMembersByExternalIdCursor {
-    fn from(cursor: TrialBalanceAccountCursor) -> Self {
-        Self {
-            id: AccountSetMemberId::AccountSet(cursor.id),
-            external_id: Some(cursor.external_id),
-        }
-    }
-}
-
-impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountCursor {
-    fn from(cursor: AccountSetMembersByExternalIdCursor) -> Self {
-        let id = match cursor.id {
-            AccountSetMemberId::AccountSet(id) => id,
-            _ => panic!("Unexpected non-AccountSet cursor id found"),
-        };
-        Self {
-            id,
-            external_id: cursor.external_id.expect("external_id should exist"),
-        }
-    }
-}
-
-impl From<(LedgerAccountId, String)> for TrialBalanceAccountCursor {
-    fn from((id, external_id): (LedgerAccountId, String)) -> Self {
-        TrialBalanceAccountCursor {
-            id: id.into(),
-            external_id,
-        }
-    }
-}
-
-impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceAccountCursor {
-    type Error = String;
-
-    fn encode_cursor(&self) -> String {
-        use base64::{Engine as _, engine::general_purpose};
-        let json = serde_json::to_string(&self).expect("could not serialize cursor");
-        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-    }
-
-    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{Engine as _, engine::general_purpose};
-        let bytes = general_purpose::STANDARD_NO_PAD
-            .decode(s.as_bytes())
-            .map_err(|e| e.to_string())?;
-        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-        serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
 }
 
 #[derive(Clone)]
@@ -147,37 +87,6 @@ impl TrialBalanceLedger {
             balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD));
 
         Ok((account_set, (btc_balance, usd_balance)))
-    }
-
-    async fn get_member_account_sets<U>(
-        &self,
-        account_set_id: AccountSetId,
-        cursor: es_entity::PaginatedQueryArgs<U>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<AccountSetMemberByExternalId, U>,
-        TrialBalanceLedgerError,
-    >
-    where
-        U: std::fmt::Debug
-            + From<AccountSetMembersByExternalIdCursor>
-            + Into<AccountSetMembersByExternalIdCursor>,
-    {
-        let cala_cursor = es_entity::PaginatedQueryArgs {
-            after: cursor.after.map(|u| u.into()),
-            first: cursor.first,
-        };
-
-        let ret = self
-            .cala
-            .account_sets()
-            .list_members_by_external_id(account_set_id, cala_cursor)
-            .await?;
-
-        Ok(es_entity::PaginatedQueryRet {
-            entities: ret.entities,
-            has_next_page: ret.has_next_page,
-            end_cursor: ret.end_cursor.map(|c| c.into()),
-        })
     }
 
     async fn get_balances_by_id(
@@ -300,35 +209,6 @@ impl TrialBalanceLedger {
             .await?;
 
         Ok(TrialBalanceRoot::from((account, balances, from, until)))
-    }
-
-    pub async fn accounts(
-        &self,
-        name: String,
-        query: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<(LedgerAccountId, Option<String>), TrialBalanceAccountCursor>,
-        TrialBalanceLedgerError,
-    > {
-        let statement_id = self.get_id_from_reference(name).await?;
-
-        let member_account_sets = self
-            .get_member_account_sets::<TrialBalanceAccountCursor>(statement_id, query)
-            .await?;
-        let member_account_sets_tuples = member_account_sets
-            .entities
-            .into_iter()
-            .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok((id.into(), m.external_id)),
-                _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
-            })
-            .collect::<Result<Vec<(LedgerAccountId, Option<String>)>, TrialBalanceLedgerError>>()?;
-
-        Ok(es_entity::PaginatedQueryRet {
-            entities: member_account_sets_tuples,
-            has_next_page: member_account_sets.has_next_page,
-            end_cursor: member_account_sets.end_cursor,
-        })
     }
 }
 

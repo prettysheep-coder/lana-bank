@@ -29,7 +29,7 @@ pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_e
 pub use csv::AccountingCsvs;
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
-pub use ledger_account::{LedgerAccount, LedgerAccounts};
+pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
@@ -208,14 +208,18 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
-    #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self))]
-    pub async fn find_all_ledger_accounts_with_ranged_balance<T: From<LedgerAccount>>(
+    pub async fn find_account_children(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
-        ids: &[LedgerAccountId],
+        id: cala_ledger::AccountSetId,
+        args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
         from: chrono::DateTime<chrono::Utc>,
         until: Option<chrono::DateTime<chrono::Utc>>,
-    ) -> Result<HashMap<LedgerAccountId, T>, CoreAccountingError> {
+    ) -> Result<
+        es_entity::PaginatedQueryRet<(LedgerAccount, Option<String>), LedgerAccountChildrenCursor>,
+        CoreAccountingError,
+    > {
         let chart = self
             .chart_of_accounts
             .find_by_reference(chart_ref)
@@ -223,9 +227,10 @@ where
             .ok_or_else(move || {
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
+
         Ok(self
-            .ledger_accounts
-            .find_all_with_ranged_balance(&chart, ids, from, until)
+            .ledger_accounts()
+            .list_account_children(sub, &chart, id, args, from, until)
             .await?)
     }
 

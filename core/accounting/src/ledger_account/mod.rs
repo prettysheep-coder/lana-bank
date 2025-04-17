@@ -1,3 +1,4 @@
+mod cursor;
 pub mod error;
 mod ledger;
 mod value;
@@ -17,6 +18,7 @@ use crate::{
     },
 };
 
+pub use cursor::LedgerAccountChildrenCursor;
 use error::*;
 use ledger::*;
 pub use value::*;
@@ -123,25 +125,39 @@ where
         Ok(res)
     }
 
-    pub async fn find_all_with_ranged_balance<T: From<LedgerAccount>>(
+    pub async fn list_account_children(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
-        id: &[LedgerAccountId],
+        id: cala_ledger::AccountSetId,
+        args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
         from: chrono::DateTime<chrono::Utc>,
         until: Option<chrono::DateTime<chrono::Utc>>,
-    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
-        let accounts = self
-            .ledger
-            .load_ledger_accounts_with_ranged_balance(id, from, until)
+    ) -> Result<
+        es_entity::PaginatedQueryRet<(LedgerAccount, Option<String>), LedgerAccountChildrenCursor>,
+        LedgerAccountError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_ledger_accounts(),
+                CoreAccountingAction::LEDGER_ACCOUNT_LIST,
+            )
             .await?;
-        let mut res = HashMap::new();
+        let res = self.ledger.list_children(id, args, from, until).await?;
+        let mut entities = Vec::with_capacity(res.entities.len());
 
-        for (k, mut v) in accounts.into_iter() {
-            self.populate_ancestors(chart, &mut v).await?;
-            self.populate_children(chart, &mut v).await?;
-            res.insert(k, v.into());
+        for (mut account, external_id) in res.entities {
+            self.populate_ancestors(chart, &mut account).await?;
+            self.populate_children(chart, &mut account).await?;
+            entities.push((account, external_id));
         }
-        Ok(res)
+
+        Ok(es_entity::PaginatedQueryRet {
+            entities,
+            has_next_page: res.has_next_page,
+            end_cursor: res.end_cursor,
+        })
     }
 
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors

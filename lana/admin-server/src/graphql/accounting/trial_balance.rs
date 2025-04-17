@@ -1,6 +1,6 @@
 use async_graphql::{connection::*, *};
 
-use lana_app::{accounting::LedgerAccountId, trial_balance::TrialBalanceAccountCursor};
+use lana_app::accounting::ledger_account::LedgerAccountChildrenCursor;
 
 use crate::{graphql::loader::CHART_REF, primitives::*};
 
@@ -35,10 +35,9 @@ impl TrialBalance {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<TrialBalanceAccountCursor, LedgerAccount, EmptyFields, EmptyFields>,
+        Connection<LedgerAccountChildrenCursor, LedgerAccount, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
         query(
             after,
             None,
@@ -49,42 +48,24 @@ impl TrialBalance {
                 let query_args = es_entity::PaginatedQueryArgs { first, after };
                 let res = app
                     .accounting()
-                    .trial_balances()
-                    .trial_balance_accounts(sub, self.name.to_string(), query_args)
-                    .await?;
-
-                let mut account_ids = Vec::with_capacity(res.entities.len());
-                let mut external_ids = Vec::with_capacity(res.entities.len());
-
-                for (account_id, external_id) in res.entities {
-                    account_ids.push(account_id);
-                    external_ids.push(external_id);
-                }
-
-                let mut accounts: std::collections::HashMap<LedgerAccountId, LedgerAccount> = app
-                    .accounting()
-                    .find_all_ledger_accounts_with_ranged_balance(
+                    .find_account_children(
+                        sub,
                         CHART_REF.0,
-                        account_ids.as_slice(),
+                        self.entity.id,
+                        query_args,
                         self.from.into_inner(),
                         Some(self.until.into_inner()),
                     )
                     .await?;
-
                 let mut connection = Connection::new(false, res.has_next_page);
-                for (account_id, external_id) in
-                    account_ids.into_iter().zip(external_ids.into_iter())
-                {
-                    if let Some(account) = accounts.remove(&account_id) {
-                        connection.edges.push(Edge::new(
-                            TrialBalanceAccountCursor::from((
-                                account_id,
-                                external_id.expect("external_id should exist"),
-                            )),
-                            account,
-                        ));
-                        continue;
-                    }
+                for (account, external_id) in res.entities {
+                    connection.edges.push(Edge::new(
+                        LedgerAccountChildrenCursor::from((
+                            account.id,
+                            external_id.expect("should exist"),
+                        )),
+                        LedgerAccount::from(account),
+                    ));
                 }
                 Ok::<_, async_graphql::Error>(connection)
             },

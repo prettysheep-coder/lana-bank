@@ -13,8 +13,8 @@ use crate::{
 };
 
 use error::*;
+pub use ledger::TrialBalanceRoot;
 use ledger::*;
-pub use ledger::{TrialBalanceAccountCursor, TrialBalanceRoot};
 
 #[derive(Clone)]
 pub struct TrialBalances<Perms>
@@ -120,28 +120,5 @@ where
             .trial_balance_ledger
             .get_trial_balance(name, from, Some(until))
             .await?)
-    }
-
-    pub async fn trial_balance_accounts(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        name: String,
-        args: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<
-            (crate::LedgerAccountId, Option<String>),
-            TrialBalanceAccountCursor,
-        >,
-        TrialBalanceError,
-    > {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_trial_balance(),
-                CoreAccountingAction::TRIAL_BALANCE_READ,
-            )
-            .await?;
-
-        Ok(self.trial_balance_ledger.accounts(name, args).await?)
     }
 }
