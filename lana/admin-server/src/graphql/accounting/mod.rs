@@ -15,4 +15,3 @@ pub use manual_transaction::*;
 pub use profit_and_loss::*;
 pub use transaction_templates::*;
 pub use trial_balance::*;
-
