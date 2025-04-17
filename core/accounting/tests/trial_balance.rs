@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chrono::Utc;
-use cloud_storage::{config::StorageConfig, Storage};
+use cloud_storage::{Storage, config::StorageConfig};
 use job::{JobExecutorConfig, Jobs};
 
 use core_accounting::*;
