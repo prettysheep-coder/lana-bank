@@ -64,19 +64,11 @@ where
         Ok(self.ledger.ledger_account_history(id, args).await?)
     }
 
-    pub async fn complete_history(
+    pub(crate) async fn complete_history(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<LedgerAccountId> + Copy,
     ) -> Result<Vec<JournalEntry>, LedgerAccountError> {
         let id = id.into();
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::ledger_account(id),
-                CoreAccountingAction::LEDGER_ACCOUNT_READ_HISTORY,
-            )
-            .await?;
 
         let mut all_entries = Vec::new();
         let mut cursor: Option<JournalEntryCursor> = None;
