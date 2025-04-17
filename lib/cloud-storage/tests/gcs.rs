@@ -1,4 +1,6 @@
 use cloud_storage::{config::StorageConfig, LocationInCloud, Storage};
+use std::time::Duration;
+use tokio::time::sleep;
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {
@@ -48,6 +50,8 @@ async fn upload_doc() -> anyhow::Result<()> {
 
     // remove docs
     let _ = storage.remove(location).await;
+
+    sleep(Duration::from_millis(1000)).await;
 
     // verify list is now empty
     let res = storage._list("".to_string()).await?;
