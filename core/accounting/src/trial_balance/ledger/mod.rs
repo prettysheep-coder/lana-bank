@@ -4,30 +4,16 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
     account_set::{
-        AccountSetMemberByExternalId, AccountSetMemberId, AccountSetMembersByExternalIdCursor,
-        NewAccountSet,
+        AccountSet, AccountSetMemberByExternalId, AccountSetMemberId,
+        AccountSetMembersByExternalIdCursor, NewAccountSet,
     },
 };
 
-use crate::{AccountCode, BalanceRange};
+use crate::primitives::{BalanceRange, CalaBalanceRange, LedgerAccountId};
 
 use error::*;
-
-#[derive(Clone)]
-pub struct TrialBalanceAccount {
-    pub id: AccountSetId,
-    pub name: String,
-    pub external_id: String,
-    pub code: AccountCode,
-    pub description: Option<String>,
-    pub usd_balance_range: Option<BalanceRange>,
-    pub btc_balance_range: Option<BalanceRange>,
-    pub member_created_at: DateTime<Utc>,
-}
-
-// use LedgerAccount
 
 #[derive(Clone)]
 pub struct TrialBalanceRoot {
@@ -42,7 +28,7 @@ pub struct TrialBalanceRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrialBalanceAccountCursor {
-    id: AccountSetId,
+    pub id: AccountSetId,
     pub external_id: String,
 }
 
@@ -68,11 +54,11 @@ impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountCursor {
     }
 }
 
-impl From<&TrialBalanceAccount> for TrialBalanceAccountCursor {
-    fn from(account: &TrialBalanceAccount) -> Self {
-        Self {
-            id: account.id,
-            external_id: account.external_id.clone(),
+impl From<(LedgerAccountId, String)> for TrialBalanceAccountCursor {
+    fn from((id, external_id): (LedgerAccountId, String)) -> Self {
+        TrialBalanceAccountCursor {
+            id: id.into(),
+            external_id,
         }
     }
 }
@@ -142,29 +128,25 @@ impl TrialBalanceLedger {
         Ok(id)
     }
 
-    async fn trial_balance_root(
+    async fn get_account_set_with_balances(
         &self,
         account_set_id: AccountSetId,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
-        balances_by_id: &BalancesByAccount,
-    ) -> Result<TrialBalanceRoot, TrialBalanceLedgerError> {
-        let values = self
-            .cala
-            .account_sets()
-            .find(account_set_id)
-            .await?
-            .into_values();
+        balances_by_id: &mut std::collections::HashMap<BalanceId, CalaBalanceRange>,
+    ) -> Result<
+        (
+            AccountSet,
+            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+        ),
+        TrialBalanceLedgerError,
+    > {
+        let account_set = self.cala.account_sets().find(account_set_id).await?;
 
-        Ok(TrialBalanceRoot {
-            id: account_set_id,
-            name: values.name,
-            description: values.description,
-            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
-            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-            from,
-            until,
-        })
+        let btc_balance =
+            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::BTC));
+        let usd_balance =
+            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD));
+
+        Ok((account_set, (btc_balance, usd_balance)))
     }
 
     async fn get_member_account_sets<U>(
@@ -203,15 +185,24 @@ impl TrialBalanceLedger {
         all_account_set_ids: Vec<AccountSetId>,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-    ) -> Result<BalancesByAccount, TrialBalanceLedgerError> {
-        let balance_ids =
-            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
-        Ok(self
+    ) -> Result<std::collections::HashMap<BalanceId, CalaBalanceRange>, TrialBalanceLedgerError>
+    {
+        let balance_ids = all_account_set_ids
+            .iter()
+            .flat_map(|id| {
+                [
+                    (self.journal_id, (*id).into(), Currency::USD),
+                    (self.journal_id, (*id).into(), Currency::BTC),
+                ]
+            })
+            .collect::<Vec<_>>();
+        let res = self
             .cala
             .balances()
             .find_all_in_range(&balance_ids, from, until)
-            .await?
-            .into())
+            .await?;
+
+        Ok(res)
     }
 
     pub async fn add_member(
@@ -300,33 +291,23 @@ impl TrialBalanceLedger {
     ) -> Result<TrialBalanceRoot, TrialBalanceLedgerError> {
         let statement_id = self.get_id_from_reference(name).await?;
 
-        let balances_by_id = self
+        let mut balances_by_id = self
             .get_balances_by_id(vec![statement_id], from, until)
             .await?;
 
-        let statement_account_set = self
-            .trial_balance_root(statement_id, from, until, &balances_by_id)
+        let (account, balances) = self
+            .get_account_set_with_balances(statement_id, &mut balances_by_id)
             .await?;
 
-        Ok(TrialBalanceRoot {
-            id: statement_account_set.id,
-            name: statement_account_set.name,
-            description: statement_account_set.description,
-            btc_balance: statement_account_set.btc_balance,
-            usd_balance: statement_account_set.usd_balance,
-            from,
-            until,
-        })
+        Ok(TrialBalanceRoot::from((account, balances, from, until)))
     }
 
     pub async fn accounts(
         &self,
         name: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
         query: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<TrialBalanceAccount, TrialBalanceAccountCursor>,
+        es_entity::PaginatedQueryRet<(LedgerAccountId, Option<String>), TrialBalanceAccountCursor>,
         TrialBalanceLedgerError,
     > {
         let statement_id = self.get_id_from_reference(name).await?;
@@ -338,70 +319,54 @@ impl TrialBalanceLedger {
             .entities
             .into_iter()
             .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok((id, m.external_id)),
+                AccountSetMemberId::AccountSet(id) => Ok((id.into(), m.external_id)),
                 _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
             })
-            .collect::<Result<Vec<(AccountSetId, Option<String>)>, TrialBalanceLedgerError>>()?;
-
-        let member_account_sets_ids = member_account_sets_tuples
-            .iter()
-            .map(|&(id, _)| id)
-            .collect();
-        let balances_by_id = self
-            .get_balances_by_id(member_account_sets_ids, from, until)
-            .await?;
-
-        let accounts = self
-            .get_all_member_account_sets(member_account_sets_tuples, &balances_by_id)
-            .await?;
+            .collect::<Result<Vec<(LedgerAccountId, Option<String>)>, TrialBalanceLedgerError>>()?;
 
         Ok(es_entity::PaginatedQueryRet {
-            entities: accounts,
+            entities: member_account_sets_tuples,
             has_next_page: member_account_sets.has_next_page,
             end_cursor: member_account_sets.end_cursor,
         })
     }
+}
 
-    async fn get_all_member_account_sets(
-        &self,
-        member_account_sets_tuples: Vec<(AccountSetId, Option<String>)>,
-        balances_by_id: &BalancesByAccount,
-    ) -> Result<Vec<TrialBalanceAccount>, TrialBalanceLedgerError> {
-        let mut account_sets = self
-            .cala
-            .account_sets()
-            .find_all::<cala_ledger::account_set::AccountSet>(
-                member_account_sets_tuples
-                    .iter()
-                    .map(|(id, _)| *id)
-                    .collect::<Vec<_>>()
-                    .as_slice(),
-            )
-            .await?;
-
-        member_account_sets_tuples
-            .into_iter()
-            .map(|(account_set_id, ..)| {
-                let account_set = account_sets
-                    .remove(&account_set_id)
-                    .expect("account set should exist");
-                let created_at = account_set.created_at();
-                let values = account_set.into_values();
-
-                let external_id = values.external_id.expect("external_id should exist");
-                let code = external_id.parse()?;
-
-                Ok(TrialBalanceAccount {
-                    id: account_set_id,
-                    name: values.name,
-                    external_id,
-                    description: values.description,
-                    btc_balance: balances_by_id.btc_for_account(account_set_id)?,
-                    usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-                    code,
-                    member_created_at: created_at,
-                })
-            })
-            .collect()
+impl
+    From<(
+        AccountSet,
+        (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+        DateTime<Utc>,
+        Option<DateTime<Utc>>,
+    )> for TrialBalanceRoot
+{
+    fn from(
+        (account_set, (btc_balance, usd_balance), from, until): (
+            AccountSet,
+            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+            DateTime<Utc>,
+            Option<DateTime<Utc>>,
+        ),
+    ) -> Self {
+        let values = account_set.into_values();
+        let usd_balance_range = usd_balance.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+        let btc_balance_range = btc_balance.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+        TrialBalanceRoot {
+            id: values.id,
+            name: values.name,
+            description: values.description,
+            btc_balance_range,
+            usd_balance_range,
+            from,
+            until,
+        }
     }
 }

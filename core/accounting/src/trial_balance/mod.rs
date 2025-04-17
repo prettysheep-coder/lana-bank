@@ -14,7 +14,7 @@ use crate::{
 
 use error::*;
 use ledger::*;
-pub use ledger::{TrialBalanceAccount, TrialBalanceAccountCursor, TrialBalanceRoot};
+pub use ledger::{TrialBalanceAccountCursor, TrialBalanceRoot};
 
 #[derive(Clone)]
 pub struct TrialBalances<Perms>
@@ -55,7 +55,11 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Create)
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_CREATE,
+            )
             .await?;
 
         match self.trial_balance_ledger.create(op, &reference).await {
@@ -79,7 +83,11 @@ where
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Update)
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_UPDATE,
+            )
             .await?;
 
         self.trial_balance_ledger
@@ -95,13 +103,17 @@ where
 
     pub async fn trial_balance(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         from: DateTime<Utc>,
         until: DateTime<Utc>,
     ) -> Result<TrialBalanceRoot, TrialBalanceError> {
         self.authz
-            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_READ,
+            )
             .await?;
 
         Ok(self
@@ -112,22 +124,24 @@ where
 
     pub async fn trial_balance_accounts(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
         args: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<TrialBalanceAccount, TrialBalanceAccountCursor>,
+        es_entity::PaginatedQueryRet<
+            (crate::LedgerAccountId, Option<String>),
+            TrialBalanceAccountCursor,
+        >,
         TrialBalanceError,
     > {
         self.authz
-            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_READ,
+            )
             .await?;
 
-        Ok(self
-            .trial_balance_ledger
-            .accounts(name, from, until, args)
-            .await?)
+        Ok(self.trial_balance_ledger.accounts(name, args).await?)
     }
 }

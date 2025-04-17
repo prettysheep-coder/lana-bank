@@ -123,6 +123,27 @@ where
         Ok(res)
     }
 
+    pub async fn find_all_with_ranged_balance<T: From<LedgerAccount>>(
+        &self,
+        chart: &Chart,
+        id: &[LedgerAccountId],
+        from: chrono::DateTime<chrono::Utc>,
+        until: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountError> {
+        let accounts = self
+            .ledger
+            .load_ledger_accounts_with_ranged_balance(id, from, until)
+            .await?;
+        let mut res = HashMap::new();
+
+        for (k, mut v) in accounts.into_iter() {
+            self.populate_ancestors(chart, &mut v).await?;
+            self.populate_children(chart, &mut v).await?;
+            res.insert(k, v.into());
+        }
+        Ok(res)
+    }
+
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors
     /// are pushed in ascending order, the root of the chart of accounts is pushed last. `account`
     /// itself is not pushed.

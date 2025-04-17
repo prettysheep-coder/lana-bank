@@ -275,22 +275,8 @@ pub type ProfitAndLossConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum AccountingCsvAction {
-    Create,
-    Generate,
-    Read,
-    List,
-    Download,
-}
-
-impl From<AccountingCsvAction> for CoreAccountingAction {
-    fn from(action: AccountingCsvAction) -> Self {
-        CoreAccountingAction::AccountingCsv(action)
-    }
-}
+pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
+// option
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -307,6 +293,7 @@ pub enum CoreAccountingAction {
     BalanceSheetAction(BalanceSheetAction),
     BalanceSheetConfigurationAction(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
+    TrialBalanceAction(TrialBalanceAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -324,6 +311,7 @@ pub enum CoreAccountingObject {
     BalanceSheet(BalanceSheetAllOrOne),
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
     AccountingCsv(AccountingCsvAllOrOne),
+    TrialBalance(TrialBalanceAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -401,6 +389,10 @@ impl CoreAccountingObject {
     pub fn all_accounting_csvs() -> Self {
         CoreAccountingObject::AccountingCsv(AllOrOne::All)
     }
+
+    pub fn all_trial_balance() -> Self {
+        CoreAccountingObject::TrialBalance(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -419,6 +411,7 @@ impl Display for CoreAccountingObject {
             BalanceSheet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             BalanceSheetConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             AccountingCsv(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            TrialBalance(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -484,6 +477,10 @@ impl FromStr for CoreAccountingObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse AccountingCsv")?;
                 CoreAccountingObject::AccountingCsv(obj_ref)
             }
+            TrialBalance => {
+                let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
+                CoreAccountingObject::TrialBalance(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -546,6 +543,7 @@ impl CoreAccountingAction {
         CoreAccountingAction::BalanceSheetConfigurationAction(
             BalanceSheetConfigurationAction::Update,
         );
+
     pub const ACCOUNTING_CSV_CREATE: Self =
         CoreAccountingAction::AccountingCsv(AccountingCsvAction::Create);
     pub const ACCOUNTING_CSV_GENERATE: Self =
@@ -556,6 +554,13 @@ impl CoreAccountingAction {
         CoreAccountingAction::AccountingCsv(AccountingCsvAction::List);
     pub const ACCOUNTING_CSV_GENERATE_DOWNLOAD_LINK: Self =
         CoreAccountingAction::AccountingCsv(AccountingCsvAction::Download);
+
+    pub const TRIAL_BALANCE_READ: Self =
+        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Read);
+    pub const TRIAL_BALANCE_CREATE: Self =
+        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Create);
+    pub const TRIAL_BALANCE_UPDATE: Self =
+        CoreAccountingAction::TrialBalanceAction(TrialBalanceAction::Update);
 }
 
 impl Display for CoreAccountingAction {
@@ -574,6 +579,7 @@ impl Display for CoreAccountingAction {
             BalanceSheetAction(action) => action.fmt(f),
             BalanceSheetConfigurationAction(action) => action.fmt(f),
             AccountingCsv(action) => action.fmt(f),
+            TrialBalanceAction(action) => action.fmt(f),
         }
     }
 }
@@ -616,6 +622,9 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::AccountingCsv => {
                 CoreAccountingAction::from(action.parse::<AccountingCsvAction>()?)
+            }
+            CoreAccountingActionDiscriminants::TrialBalanceAction => {
+                CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
             }
         };
         Ok(res)
@@ -702,13 +711,6 @@ impl From<ManualTransactionAction> for CoreAccountingAction {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct BalanceRange {
-    pub start: Option<CalaAccountBalance>,
-    pub end: Option<CalaAccountBalance>,
-    pub diff: Option<CalaAccountBalance>,
-}
-
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ProfitAndLossAction {
@@ -755,10 +757,48 @@ pub enum BalanceSheetConfigurationAction {
     Read,
     Update,
 }
+
 impl From<BalanceSheetConfigurationAction> for CoreAccountingAction {
     fn from(action: BalanceSheetConfigurationAction) -> Self {
         CoreAccountingAction::BalanceSheetConfigurationAction(action)
     }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AccountingCsvAction {
+    Create,
+    Generate,
+    Read,
+    List,
+    Download,
+}
+
+impl From<AccountingCsvAction> for CoreAccountingAction {
+    fn from(action: AccountingCsvAction) -> Self {
+        CoreAccountingAction::AccountingCsv(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum TrialBalanceAction {
+    Create,
+    Read,
+    Update,
+}
+
+impl From<TrialBalanceAction> for CoreAccountingAction {
+    fn from(action: TrialBalanceAction) -> Self {
+        CoreAccountingAction::TrialBalanceAction(action)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BalanceRange {
+    pub start: Option<CalaAccountBalance>,
+    pub end: Option<CalaAccountBalance>,
+    pub diff: Option<CalaAccountBalance>,
 }
 
 #[cfg(test)]

@@ -148,3 +148,41 @@ impl
         }
     }
 }
+
+impl
+    From<(
+        CalaAccount,
+        Option<CalaBalanceRange>,
+        Option<CalaBalanceRange>,
+    )> for LedgerAccount
+{
+    fn from(
+        (account, usd_balance_range, btc_balance_range): (
+            CalaAccount,
+            Option<CalaBalanceRange>,
+            Option<CalaBalanceRange>,
+        ),
+    ) -> Self {
+        let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+        let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+
+        LedgerAccount {
+            id: account.id.into(),
+            name: account.into_values().name,
+            code: None,
+            usd_balance_range,
+            btc_balance_range,
+            ancestor_ids: Vec::new(),
+            children_ids: Vec::new(),
+            is_leaf: true,
+        }
+    }
+}

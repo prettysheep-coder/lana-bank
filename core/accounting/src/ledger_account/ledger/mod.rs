@@ -256,4 +256,62 @@ impl LedgerAccountLedger {
 
         Ok(result)
     }
+
+    pub async fn load_ledger_accounts_with_ranged_balance(
+        &self,
+        ids: &[LedgerAccountId],
+        from: chrono::DateTime<chrono::Utc>,
+        until: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, LedgerAccountLedgerError> {
+        let account_set_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
+        let account_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
+        let balance_ids = ids
+            .iter()
+            .flat_map(|id| {
+                [
+                    (self.journal_id, (*id).into(), Currency::USD),
+                    (self.journal_id, (*id).into(), Currency::BTC),
+                ]
+            })
+            .collect::<Vec<_>>();
+
+        let (account_sets_result, accounts_result, balances_result) = tokio::join!(
+            self.cala
+                .account_sets()
+                .find_all::<AccountSet>(&account_set_ids),
+            self.cala.accounts().find_all::<Account>(&account_ids),
+            self.cala
+                .balances()
+                .find_all_in_range(&balance_ids, from, until)
+        );
+
+        let account_sets = account_sets_result?;
+        let accounts = accounts_result?;
+        let mut balances = balances_result?;
+        let mut result = HashMap::new();
+
+        for (id, account_set) in account_sets {
+            let account_id: LedgerAccountId = id.into();
+
+            let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
+            let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
+
+            let ledger_account = LedgerAccount::from((account_set, usd_balance, btc_balance));
+            result.insert(account_id, ledger_account);
+        }
+
+        for (id, account) in accounts {
+            let account_id: LedgerAccountId = id.into();
+            if result.contains_key(&account_id) {
+                continue;
+            }
+            let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
+            let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
+
+            let ledger_account = LedgerAccount::from((account, usd_balance, btc_balance));
+            result.insert(account_id, ledger_account);
+        }
+
+        Ok(result)
+    }
 }
