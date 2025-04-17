@@ -150,7 +150,15 @@ where
         loop {
             let res = self
                 .ledger
-                .list_children(id, args.clone(), from, until)
+                .list_children(
+                    id,
+                    es_entity::PaginatedQueryArgs {
+                        first: args.first,
+                        after: args.after.take(),
+                    },
+                    from,
+                    until,
+                )
                 .await?;
 
             for mut account in res.entities {
