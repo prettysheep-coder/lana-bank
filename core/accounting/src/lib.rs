@@ -25,10 +25,10 @@ use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use chart_of_accounts::{error as chart_of_accounts_error, tree, Chart, ChartOfAccounts};
 pub use csv::AccountingCsvs;
 use error::CoreAccountingError;
-pub use journal::{Journal, error as journal_error};
+pub use journal::{error as journal_error, Journal};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
@@ -208,7 +208,7 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
-    pub async fn find_account_children(
+    pub async fn list_account_children(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
@@ -217,7 +217,7 @@ where
         from: chrono::DateTime<chrono::Utc>,
         until: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<(LedgerAccount, Option<String>), LedgerAccountChildrenCursor>,
+        es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         CoreAccountingError,
     > {
         let chart = self

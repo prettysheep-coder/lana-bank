@@ -4,17 +4,19 @@ use cala_ledger::account_set::{AccountSetMemberId, AccountSetMembersByExternalId
 
 use crate::primitives::LedgerAccountId;
 
+use super::value::LedgerAccount;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LedgerAccountChildrenCursor {
     pub id: LedgerAccountId,
-    pub external_id: String,
+    pub external_id: Option<String>,
 }
 
 impl From<LedgerAccountChildrenCursor> for AccountSetMembersByExternalIdCursor {
     fn from(cursor: LedgerAccountChildrenCursor) -> Self {
         Self {
             id: AccountSetMemberId::AccountSet(cursor.id.into()),
-            external_id: Some(cursor.external_id),
+            external_id: cursor.external_id,
         }
     }
 }
@@ -27,14 +29,17 @@ impl From<AccountSetMembersByExternalIdCursor> for LedgerAccountChildrenCursor {
         };
         Self {
             id,
-            external_id: cursor.external_id.expect("external_id should exist"),
+            external_id: cursor.external_id,
         }
     }
 }
 
-impl From<(LedgerAccountId, String)> for LedgerAccountChildrenCursor {
-    fn from((id, external_id): (LedgerAccountId, String)) -> Self {
-        Self { id, external_id }
+impl From<&LedgerAccount> for LedgerAccountChildrenCursor {
+    fn from(account: &LedgerAccount) -> Self {
+        Self {
+            id: account.id,
+            external_id: account.cala_external_id.clone(),
+        }
     }
 }
 
@@ -42,13 +47,13 @@ impl es_entity::graphql::async_graphql::connection::CursorType for LedgerAccount
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let json = serde_json::to_string(self).expect("could not serialize cursor");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{Engine as _, engine::general_purpose};
+        use base64::{engine::general_purpose, Engine as _};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;

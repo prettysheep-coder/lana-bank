@@ -3,7 +3,7 @@ mod helpers;
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chrono::Utc;
-use cloud_storage::{Storage, config::StorageConfig};
+use cloud_storage::{config::StorageConfig, Storage};
 use job::{JobExecutorConfig, Jobs};
 
 use core_accounting::*;
@@ -68,7 +68,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .await?;
 
     let accounts = accounting
-        .find_account_children(
+        .list_account_children(
             &DummySubject,
             &chart_ref,
             trial_balance.id,
@@ -85,7 +85,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .await?;
 
     let accounts = accounting
-        .find_account_children(
+        .list_account_children(
             &DummySubject,
             &chart_ref,
             trial_balance.id,

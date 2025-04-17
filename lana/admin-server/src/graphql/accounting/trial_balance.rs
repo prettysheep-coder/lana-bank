@@ -2,7 +2,10 @@ use async_graphql::{connection::*, *};
 
 use lana_app::accounting::ledger_account::LedgerAccountChildrenCursor;
 
-use crate::{graphql::loader::CHART_REF, primitives::*};
+use crate::{
+    graphql::loader::{LanaDataLoader, CHART_REF},
+    primitives::*,
+};
 
 use super::{LedgerAccount, LedgerAccountBalanceRange};
 
@@ -38,39 +41,21 @@ impl TrialBalance {
         Connection<LedgerAccountChildrenCursor, LedgerAccount, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        query(
+        crate::list_with_cursor!(
+            LedgerAccountChildrenCursor,
+            LedgerAccount,
+            ctx,
             after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let query_args = es_entity::PaginatedQueryArgs { first, after };
-                let res = app
-                    .accounting()
-                    .find_account_children(
-                        sub,
-                        CHART_REF.0,
-                        self.entity.id,
-                        query_args,
-                        self.from.into_inner(),
-                        Some(self.until.into_inner()),
-                    )
-                    .await?;
-                let mut connection = Connection::new(false, res.has_next_page);
-                for (account, external_id) in res.entities {
-                    connection.edges.push(Edge::new(
-                        LedgerAccountChildrenCursor::from((
-                            account.id,
-                            external_id.expect("should exist"),
-                        )),
-                        LedgerAccount::from(account),
-                    ));
-                }
-                Ok::<_, async_graphql::Error>(connection)
-            },
+            first,
+            |query| app.accounting().list_account_children(
+                sub,
+                CHART_REF.0,
+                self.entity.id,
+                query,
+                self.from.into_inner(),
+                Some(self.until.into_inner()),
+            )
         )
-        .await
     }
 }
 

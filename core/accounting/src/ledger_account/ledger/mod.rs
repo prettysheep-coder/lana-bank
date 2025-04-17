@@ -3,15 +3,15 @@ pub mod error;
 use std::collections::HashMap;
 
 use cala_ledger::{
-    CalaLedger, Currency, JournalId,
     account::Account,
     account_set::{
         AccountSet, AccountSetId, AccountSetMemberByExternalId, AccountSetMemberId,
         AccountSetMembersByExternalIdCursor,
     },
+    CalaLedger, Currency, JournalId,
 };
 
-use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
+use crate::{journal_error::JournalError, AccountCode, LedgerAccount, LedgerAccountId};
 
 use super::LedgerAccountChildrenCursor;
 
@@ -269,7 +269,7 @@ impl LedgerAccountLedger {
         from: chrono::DateTime<chrono::Utc>,
         until: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<(LedgerAccount, Option<String>), LedgerAccountChildrenCursor>,
+        es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         LedgerAccountLedgerError,
     > {
         let member_account_sets = self
@@ -335,8 +335,7 @@ impl LedgerAccountLedger {
                 let btc_balance =
                     balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
                 let ledger_account = LedgerAccount::from((account_set, usd_balance, btc_balance));
-                let external_id = external_ids.remove(&account_id);
-                result.push((ledger_account, external_id));
+                result.push(ledger_account);
             }
         }
 
@@ -348,8 +347,7 @@ impl LedgerAccountLedger {
                 let btc_balance =
                     balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
                 let ledger_account = LedgerAccount::from((account, usd_balance, btc_balance));
-                let external_id = external_ids.remove(&account_id);
-                result.push((ledger_account, external_id));
+                result.push(ledger_account);
             }
         }
 

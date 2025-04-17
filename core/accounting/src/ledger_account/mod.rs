@@ -134,7 +134,7 @@ where
         from: chrono::DateTime<chrono::Utc>,
         until: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<(LedgerAccount, Option<String>), LedgerAccountChildrenCursor>,
+        es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         LedgerAccountError,
     > {
         self.authz
@@ -147,10 +147,10 @@ where
         let res = self.ledger.list_children(id, args, from, until).await?;
         let mut entities = Vec::with_capacity(res.entities.len());
 
-        for (mut account, external_id) in res.entities {
+        for mut account in res.entities {
             self.populate_ancestors(chart, &mut account).await?;
             self.populate_children(chart, &mut account).await?;
-            entities.push((account, external_id));
+            entities.push(account);
         }
 
         Ok(es_entity::PaginatedQueryRet {
