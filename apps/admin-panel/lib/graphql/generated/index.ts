@@ -96,6 +96,54 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export type AccountingCsv = {
+  __typename?: 'AccountingCsv';
+  createdAt: Scalars['Timestamp']['output'];
+  csvId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  status: AccountingCsvStatus;
+};
+
+export type AccountingCsvConnection = {
+  __typename?: 'AccountingCsvConnection';
+  /** A list of edges. */
+  edges: Array<AccountingCsvEdge>;
+  /** A list of nodes. */
+  nodes: Array<AccountingCsv>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type AccountingCsvDownloadLink = {
+  __typename?: 'AccountingCsvDownloadLink';
+  csvId: Scalars['UUID']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type AccountingCsvDownloadLinkGenerateInput = {
+  accountingCsvId: Scalars['UUID']['input'];
+};
+
+export type AccountingCsvDownloadLinkGeneratePayload = {
+  __typename?: 'AccountingCsvDownloadLinkGeneratePayload';
+  link: AccountingCsvDownloadLink;
+};
+
+/** An edge in a connection. */
+export type AccountingCsvEdge = {
+  __typename?: 'AccountingCsvEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountingCsv;
+};
+
+export enum AccountingCsvStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING'
+}
+
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
@@ -1181,6 +1229,7 @@ export type LedgerAccountHistoryArgs = {
 
 export type LedgerAccountBalanceRange = BtcLedgerAccountBalanceRange | UsdLedgerAccountBalanceRange;
 
+<<<<<<< HEAD
 export type LedgerAccountConnection = {
   __typename?: 'LedgerAccountConnection';
   /** A list of edges. */
@@ -1198,6 +1247,15 @@ export type LedgerAccountEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: LedgerAccount;
+=======
+export type LedgerAccountCsvCreateInput = {
+  ledgerAccountId: Scalars['UUID']['input'];
+};
+
+export type LedgerAccountCsvCreatePayload = {
+  __typename?: 'LedgerAccountCsvCreatePayload';
+  accountingCsv: AccountingCsv;
+>>>>>>> c42e7ebb5 (chore: adding gql)
 };
 
 export type LedgerTransaction = {
@@ -1255,6 +1313,7 @@ export type ManualTransactionExecutePayload = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
@@ -1276,6 +1335,7 @@ export type Mutation = {
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
+  ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
@@ -1291,6 +1351,11 @@ export type Mutation = {
   withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
+};
+
+
+export type MutationAccountingCsvDownloadLinkGenerateArgs = {
+  input: AccountingCsvDownloadLinkGenerateInput;
 };
 
 
@@ -1397,6 +1462,11 @@ export type MutationDocumentDeleteArgs = {
 
 export type MutationDocumentDownloadLinkGenerateArgs = {
   input: DocumentDownloadLinksGenerateInput;
+};
+
+
+export type MutationLedgerAccountCsvCreateArgs = {
+  input: LedgerAccountCsvCreateInput;
 };
 
 
@@ -1565,6 +1635,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
 export type Query = {
   __typename?: 'Query';
   accountSet?: Maybe<AccountSetAndSubAccounts>;
+  accountingCsvsForLedgerAccountId: AccountingCsvConnection;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -1591,6 +1662,7 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
+  ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   me: Subject;
@@ -1616,6 +1688,13 @@ export type QueryAccountSetArgs = {
   accountSetId: Scalars['UUID']['input'];
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
+};
+
+
+export type QueryAccountingCsvsForLedgerAccountIdArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+  ledgerAccountId: Scalars['UUID']['input'];
 };
 
 
@@ -1736,6 +1815,11 @@ export type QueryLedgerAccountArgs = {
 
 export type QueryLedgerAccountByCodeArgs = {
   code: Scalars['String']['input'];
+};
+
+
+export type QueryLedgerAccountCsvCreateArgs = {
+  input: LedgerAccountCsvCreateInput;
 };
 
 

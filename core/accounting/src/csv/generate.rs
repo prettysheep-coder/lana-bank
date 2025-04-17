@@ -40,7 +40,7 @@ where
     ) -> Result<Vec<u8>, AccountingCsvError> {
         let history_result = self
             .ledger_accounts
-            .history(sub, ledger_account_id, Default::default())
+            .complete_history(sub, ledger_account_id)
             .await
             .map_err(AccountingCsvError::LedgerAccountError)?;
 
@@ -55,7 +55,7 @@ where
         ])
         .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
 
-        for entry in history_result.entities {
+        for entry in history_result {
             let formatted_amount = entry.amount.to_display_amount();
             let currency = entry.amount.currency_code();
 
