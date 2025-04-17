@@ -1389,6 +1389,37 @@
         "debit": "Debe",
         "credit": "Haber"
       }
+    },
+    "exportCsv": {
+      "title": "Exportar datos de cuenta",
+      "description": "Generar y descargar exportaciones CSV de esta cuenta contable",
+      "existingExports": "Exportaciones existentes",
+      "createNew": "Crear nueva exportación",
+      "selectExport": "Seleccionar una exportación",
+      "noCsvs": "No hay exportaciones disponibles para esta cuenta",
+      "createDescription": "Generar una nueva exportación CSV de los datos de esta cuenta contable. Esto puede tardar un momento en completarse.",
+      "processing": "Procesando, por favor espere...",
+      "csvCreating": "La exportación CSV se está generando",
+      "csvReady": "La exportación CSV está lista para descargar",
+      "csvFailed": "La generación de la exportación CSV ha fallado",
+      "status": {
+        "pending": "Procesando",
+        "completed": "Listo",
+        "failed": "Fallido"
+      },
+      "buttons": {
+        "export": "Exportar CSV",
+        "generate": "Generar nuevo CSV",
+        "generating": "Generando...",
+        "getLink": "Obtener enlace de descarga",
+        "download": "Descargar"
+      },
+      "errors": {
+        "loadFailed": "Error al cargar exportaciones",
+        "createFailed": "Error al crear exportación",
+        "downloadFailed": "Error al generar enlace de descarga",
+        "notReady": "Esta exportación aún no está lista para descargar"
+      }
     }
   },
   "Journal": {
