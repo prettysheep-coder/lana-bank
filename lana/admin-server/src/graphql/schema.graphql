@@ -1652,7 +1652,7 @@ type TransactionTemplateEdge {
 
 type TrialBalance {
 	name: String!
-	net: LedgerAccountBalanceRange!
+	total: LedgerAccountBalanceRange!
 	accounts(first: Int!, after: String): LedgerAccountConnection!
 }
 

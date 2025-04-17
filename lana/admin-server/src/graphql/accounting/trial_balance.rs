@@ -21,7 +21,7 @@ pub struct TrialBalance {
 
 #[ComplexObject]
 impl TrialBalance {
-    async fn net(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
+    async fn total(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
         if let Some(balance) = self.entity.btc_balance_range.as_ref() {
             Ok(Some(balance).into())
         } else {
