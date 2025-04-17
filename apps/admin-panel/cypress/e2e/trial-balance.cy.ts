@@ -50,11 +50,9 @@ describe(t(TB + ".title"), () => {
   })
 
   it("should switch between balance layers", () => {
-    cy.contains(t(CLS + ".layer.options.all")).should("exist")
     cy.contains(t(CLS + ".layer.options.settled")).should("exist")
     cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains(t(CLS + ".layer.options.all")).click()
     cy.contains(t(CLS + ".layer.options.settled")).click()
     cy.contains(t(CLS + ".layer.options.pending")).click()
   })
