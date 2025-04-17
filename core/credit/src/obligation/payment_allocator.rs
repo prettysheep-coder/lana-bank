@@ -53,6 +53,7 @@ impl PaymentAllocator {
     pub fn allocate(
         &self,
         obligations: impl Iterator<Item = impl Into<ObligationDataForAllocation>> + Clone,
+        audit_info: &audit::AuditInfo,
     ) -> Result<Vec<NewPaymentAllocation>, ObligationError> {
         let outstanding = obligations
             .clone()
@@ -97,6 +98,7 @@ impl PaymentAllocator {
                     .receivable_account_id(obligation.receivable_account_id)
                     .account_to_be_debited_id(obligation.account_to_be_debited_id)
                     .amount(payment_amount)
+                    .audit_info(audit_info.clone())
                     .build()
                     .expect("could not build new payment allocation"),
             );
@@ -112,7 +114,16 @@ impl PaymentAllocator {
 
 #[cfg(test)]
 mod test {
+    use audit::{AuditEntryId, AuditInfo};
+
     use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
 
     #[test]
     fn can_allocate_interest() {
@@ -129,7 +140,9 @@ mod test {
             account_to_be_debited_id: CalaAccountId::new(),
         }];
 
-        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
+        let new_allocations = allocator
+            .allocate(obligations.into_iter(), &dummy_audit_info())
+            .unwrap();
         assert_eq!(new_allocations.len(), 1);
     }
 
@@ -148,7 +161,9 @@ mod test {
             account_to_be_debited_id: CalaAccountId::new(),
         }];
 
-        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
+        let new_allocations = allocator
+            .allocate(obligations.into_iter(), &dummy_audit_info())
+            .unwrap();
         assert_eq!(new_allocations.len(), 1);
     }
 
@@ -176,7 +191,9 @@ mod test {
             },
         ];
 
-        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
+        let new_allocations = allocator
+            .allocate(obligations.into_iter(), &dummy_audit_info())
+            .unwrap();
         assert_eq!(new_allocations.len(), 2);
     }
 
@@ -204,7 +221,9 @@ mod test {
             },
         ];
 
-        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
+        let new_allocations = allocator
+            .allocate(obligations.into_iter(), &dummy_audit_info())
+            .unwrap();
 
         assert_eq!(new_allocations[0].amount, UsdCents::from(4));
         assert_eq!(new_allocations[1].amount, UsdCents::from(1));
@@ -234,7 +253,9 @@ mod test {
             },
         ];
 
-        assert!(allocator.allocate(obligations.into_iter()).is_err());
+        assert!(allocator
+            .allocate(obligations.into_iter(), &dummy_audit_info())
+            .is_err());
     }
 
     #[test]
@@ -280,7 +301,9 @@ mod test {
             },
         ];
 
-        let new_allocations = allocator.allocate(obligations.into_iter()).unwrap();
+        let new_allocations = allocator
+            .allocate(obligations.into_iter(), &dummy_audit_info())
+            .unwrap();
         assert_eq!(new_allocations.len(), 4);
 
         assert_eq!(new_allocations[0].amount, UsdCents::from(4));

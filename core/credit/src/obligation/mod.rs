@@ -124,7 +124,7 @@ where
         let mut obligations = self.facility_obligations(credit_facility_id).await?;
 
         let new_allocations = PaymentAllocator::new(credit_facility_id, payment_id, amount)
-            .allocate(obligations.values())?;
+            .allocate(obligations.values(), &audit_info)?;
 
         let now = crate::time::now();
         for allocation in new_allocations.iter() {
