@@ -81,7 +81,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     accounting
         .trial_balances()
-        .add_chart_to_trial_balance(trial_balance_name.to_string(), &chart)
+        .add_chart_to_trial_balance(&trial_balance_name, &chart)
         .await?;
 
     let accounts = accounting
