@@ -1492,7 +1492,7 @@ impl Mutation {
 
         app.accounting()
             .trial_balances()
-            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME.to_string(), chart)
+            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME.to_string(), &chart)
             .await?;
 
         Ok(ChartOfAccountsCsvImportPayload { success: true })

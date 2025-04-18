@@ -72,7 +72,7 @@ where
     pub async fn add_chart_to_trial_balance(
         &self,
         name: String,
-        chart: Chart,
+        chart: &Chart,
     ) -> Result<(), TrialBalanceError> {
         let trial_balance_id = self
             .trial_balance_ledger
