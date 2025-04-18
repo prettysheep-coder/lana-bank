@@ -1229,7 +1229,6 @@ export type LedgerAccountHistoryArgs = {
 
 export type LedgerAccountBalanceRange = BtcLedgerAccountBalanceRange | UsdLedgerAccountBalanceRange;
 
-<<<<<<< HEAD
 export type LedgerAccountConnection = {
   __typename?: 'LedgerAccountConnection';
   /** A list of edges. */
@@ -1240,14 +1239,6 @@ export type LedgerAccountConnection = {
   pageInfo: PageInfo;
 };
 
-/** An edge in a connection. */
-export type LedgerAccountEdge = {
-  __typename?: 'LedgerAccountEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: LedgerAccount;
-=======
 export type LedgerAccountCsvCreateInput = {
   ledgerAccountId: Scalars['UUID']['input'];
 };
@@ -1255,7 +1246,15 @@ export type LedgerAccountCsvCreateInput = {
 export type LedgerAccountCsvCreatePayload = {
   __typename?: 'LedgerAccountCsvCreatePayload';
   accountingCsv: AccountingCsv;
->>>>>>> c42e7ebb5 (chore: adding gql)
+};
+
+/** An edge in a connection. */
+export type LedgerAccountEdge = {
+  __typename?: 'LedgerAccountEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: LedgerAccount;
 };
 
 export type LedgerTransaction = {
