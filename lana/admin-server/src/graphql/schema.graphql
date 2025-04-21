@@ -1269,12 +1269,8 @@ type Mutation {
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
-<<<<<<< HEAD
-	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
-=======
->>>>>>> 92f966a7c (chore: remove cash flow and statement structs)
 }
 
 scalar OneTimeFeeRatePct
