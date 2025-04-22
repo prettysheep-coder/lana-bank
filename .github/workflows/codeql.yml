@@ -33,7 +33,7 @@ jobs:
       security-events: write
     env:
       CODEQL_ENABLE_EXPERIMENTAL_FEATURES: true
-      SQLX_OFFLINE: true # Rust-specific
+      SQLX_OFFLINE: true
 
     steps:
     - uses: actions/checkout@v4
@@ -41,5 +41,5 @@ jobs:
       with:
         languages: rust
     - uses: ./.github/actions/cache-rust
-    - run: cargo build --release --locked
+    - run: make build
     - uses: github/codeql-action/analyze@v3
