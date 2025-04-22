@@ -25,13 +25,7 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - name: Configure Nix for parallelism
-        run: |
-          echo "max-jobs = 0" | sudo tee -a /etc/nix/nix.conf
-          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
-          echo "download-buffer-size = 524288000" | sudo tee -a /etc/nix/nix.conf
-          sudo systemctl restart nix-daemon || true
-      - run: nix develop -c make check-code
+      - run: nix develop --max-jobs 0 -c make check-code
 
   check-code-apps:
     name: Check Code Apps
@@ -39,10 +33,4 @@ jobs:
     steps:
       - uses: DeterminateSystems/nix-installer-action@v12
       - uses: actions/checkout@v4
-      - name: Configure Nix for parallelism
-        run: |
-          echo "max-jobs = 0" | sudo tee -a /etc/nix/nix.conf
-          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
-          echo "download-buffer-size = 524288000" | sudo tee -a /etc/nix/nix.conf
-          sudo systemctl restart nix-daemon || true
-      - run: nix develop -c make check-code-apps
+      - run: nix develop --max-jobs 0 -c make check-code-apps
