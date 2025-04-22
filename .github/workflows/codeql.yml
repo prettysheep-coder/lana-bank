@@ -41,5 +41,5 @@ jobs:
       with:
         languages: rust
     - uses: ./.github/actions/cache-rust
-    - run: make build
+    - run: nix develop -c make build
     - uses: github/codeql-action/analyze@v3
