@@ -4,13 +4,12 @@ description: "Restores and saves Cargo registry, git sources, and target directo
 runs:
   using: "composite"
   steps:
-    - name: Cache Cargo registry and builds
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-gha- 
+  - uses: actions/cache@v4
+    with:
+      path: |
+        ~/.cargo/bin/
+        ~/.cargo/registry/index/
+        ~/.cargo/registry/cache/
+        ~/.cargo/git/db/
+        target/
+      key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
