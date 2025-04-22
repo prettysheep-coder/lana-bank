@@ -25,7 +25,13 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - run: nix develop --max-jobs 4 -c make check-code
+      - name: Configure Nix Settings
+        run: |
+          echo "max-jobs = 8" | sudo tee -a /etc/nix/nix.conf
+          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
+          echo "download-buffer-size = 524288000" | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon || true
+      - run: nix develop -c make check-code
 
   check-code-apps:
     name: Check Code Apps
@@ -33,4 +39,10 @@ jobs:
     steps:
       - uses: DeterminateSystems/nix-installer-action@v12
       - uses: actions/checkout@v4
-      - run: nix develop --max-jobs 4 -c make check-code-apps
+      - name: Configure Nix Settings
+        run: |
+          echo "max-jobs = 8" | sudo tee -a /etc/nix/nix.conf
+          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
+          echo "download-buffer-size = 524288000" | sudo tee -a /etc/nix/nix.conf
+          sudo systemctl restart nix-daemon || true
+      - run: nix develop -c make check-code-apps
