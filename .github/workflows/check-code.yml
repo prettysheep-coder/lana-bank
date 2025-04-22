@@ -29,6 +29,7 @@ jobs:
         run: |
           echo "max-jobs = 0" | sudo tee -a /etc/nix/nix.conf
           echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
+          echo "download-buffer-size = 524288000" | sudo tee -a /etc/nix/nix.conf
           sudo systemctl restart nix-daemon || true
       - run: nix develop -c make check-code
 
@@ -42,5 +43,6 @@ jobs:
         run: |
           echo "max-jobs = 0" | sudo tee -a /etc/nix/nix.conf
           echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
+          echo "download-buffer-size = 524288000" | sudo tee -a /etc/nix/nix.conf
           sudo systemctl restart nix-daemon || true
       - run: nix develop -c make check-code-apps
