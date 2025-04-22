@@ -17,7 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v12
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lana
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
       - uses: actions/cache@v4
         with:
@@ -67,7 +70,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: DeterminateSystems/nix-installer-action@v12
-      - uses: DeterminateSystems/magic-nix-cache-action@v9
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lana
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - uses: actions/checkout@v4
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
