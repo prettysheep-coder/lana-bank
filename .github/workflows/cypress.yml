@@ -16,8 +16,8 @@ jobs:
     runs-on: Lana-Big-Runner
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/nix-installer-action@v12
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
 
       - uses: actions/cache@v4
         with:
@@ -29,11 +29,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: build backend
-        run: nix develop -c make build-for-tests
+      - uses: "google-github-actions/auth@v2"
+        if: secrets.GOOGLE_CREDENTIALS != ''
+        with:
+          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
 
-      - name: keep tilt running
-        run: nix develop -c make tilt-in-ci
+      - run: nix develop -c make build-for-tests
+      - run: nix develop -c make tilt-in-ci
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -42,22 +44,18 @@ jobs:
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
 
-      - name: system info
-        run: |
+      - run: |
           free -h
           df -h
 
-      - name: run cypress tests
-        run: nix develop -c make test-cypress-in-ci-locally
+      - run: nix develop -c make test-cypress-in-ci-locally
 
-      - name: upload cypress screenshots
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots/*
 
-      - name: upload cypress run videos
-        if: always()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: videos
@@ -68,23 +66,21 @@ jobs:
     needs: run-cypress-tests
     runs-on: ubuntu-latest
     steps:
-      - uses: DeterminateSystems/nix-installer-action@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/nix-installer-action@v12
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - uses: actions/checkout@v4
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots
-      - name: generate pdfs
-        run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
+      - run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
       - run: ls -R apps/admin-panel/cypress/manuals
       - uses: actions/upload-artifact@v4
         with:
           name: pdfs
           path: apps/admin-panel/cypress/manuals/results/*
-      - name: generate manual page
-        run: |
+      - run: |
           cd apps/admin-panel/cypress/manuals/results
           cat <<EOF > index.html
           <!DOCTYPE html>
@@ -171,11 +167,7 @@ jobs:
           </html>
           EOF
 
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-
-      - name: Deploy to Netlify (Pull Request)
-        id: netlify_deploy
+      - id: netlify_deploy
         if: github.event_name == 'pull_request'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -195,8 +187,7 @@ jobs:
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      - name: Deploy to Netlify (Push to Main)
-        if: github.event_name == 'push'
+      - if: github.event_name == 'push'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
@@ -212,8 +203,7 @@ jobs:
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      - name: Create or Update Preview Comment
-        if: github.event_name == 'pull_request'
+      - if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |

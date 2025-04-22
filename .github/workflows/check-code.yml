@@ -14,10 +14,8 @@ jobs:
     name: Check Code Backend
     runs-on: ubuntu-latest
     steps:
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/nix-installer-action@v12
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
         with:
@@ -28,17 +26,13 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - name: Run check code
-        run: nix develop -c make check-code
+      - run: nix develop -c make check-code
 
   check-code-apps:
     name: Check Code Apps
     runs-on: ubuntu-latest
     steps:
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: DeterminateSystems/nix-installer-action@v12
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
       - uses: actions/checkout@v4
-      - name: Run check code
-        run: nix develop -c make check-code-apps
+      - run: nix develop -c make check-code-apps

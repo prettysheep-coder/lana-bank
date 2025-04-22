@@ -11,8 +11,8 @@ jobs:
     name: End to End Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v12
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: actions/cache@v4
         with:
@@ -28,8 +28,7 @@ jobs:
         if: secrets.GOOGLE_CREDENTIALS != ''
         with:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
-      - name: Run e2e tests
-        run: nix develop -c make e2e
+      - run: nix develop -c make e2e
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -37,11 +36,9 @@ jobs:
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
-      - name: Rename Tilt log
-        if: always()
+      - if: always()
         run: mv .e2e-logs e2e-logs
-      - name: Upload Tilt log
-        if: always()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Tilt log
