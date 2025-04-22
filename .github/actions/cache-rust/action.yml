@@ -4,7 +4,7 @@ description: "Restores and saves Cargo registry, git sources, and target directo
 runs:
   using: "composite"
   steps:
-  - uses: actions/cache@v4
+  - uses: actions/cache/restore@v4
     with:
       path: |
         ~/.cargo/bin/
