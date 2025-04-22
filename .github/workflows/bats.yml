@@ -11,6 +11,7 @@ jobs:
     name: End to End Test
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
       - name: Run e2e tests
         run: nix develop -c make e2e
