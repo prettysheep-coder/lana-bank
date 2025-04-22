@@ -3,6 +3,8 @@ name: "CodeQL"
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   analyze-javascript:
@@ -33,9 +35,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - uses: ./.github/actions/setup-nix
+      with:
+        cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
     - uses: github/codeql-action/init@v3
       with:
         languages: rust
     - uses: ./.github/actions/cache-rust
-    - run: cargo build --locked --release
+    - run: nix develop -c cargo build --locked
     - uses: github/codeql-action/analyze@v3
