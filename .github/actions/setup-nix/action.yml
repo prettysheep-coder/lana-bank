@@ -2,6 +2,14 @@ name: "setup-nix"
 
 description: "Composite action to install Nix, configure Cachix, cache Cargo dependencies, and optionally authenticate to Google Cloud."
 
+inputs:
+  cachix_auth_token:
+    description: "Cachix authentication token."
+    required: true
+  google_credentials:
+    description: "Google Cloud service account credentials JSON."
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -23,7 +31,7 @@ runs:
       uses: cachix/cachix-action@v15
       with:
         name: lana
-        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        authToken: ${{ inputs.cachix_auth_token }}
 
     - name: Cache Cargo registry and builds
       uses: actions/cache@v4
@@ -38,8 +46,8 @@ runs:
 
     - name: Authenticate to Google Cloud
       env:
-        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-      if: env.GOOGLE_CREDENTIALS != ''
+        GOOGLE_CREDENTIALS: ${{ inputs.google_credentials }}
+      if: inputs.google_credentials != ''
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: ${{ env.GOOGLE_CREDENTIALS }} 
+        credentials_json: ${{ inputs.google_credentials }} 
