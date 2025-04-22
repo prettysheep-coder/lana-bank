@@ -1,4 +1,4 @@
-name: "E2E Tests"
+name: "Bats tests"
 
 on:
   pull_request:
@@ -26,11 +26,10 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - id: "gcp-auth"
-        uses: "google-github-actions/auth@v2"
-        if: ${{ secrets.GOOGLE_CREDENTIALS != '' }}
+      - uses: google-github-actions/auth@v2
+        if: env.GOOGLE_CREDENTIALS != ''
         with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+          credentials_json: ${{ env.GOOGLE_CREDENTIALS }}
       - name: Run e2e tests
         run: nix develop -c make e2e
         env:
