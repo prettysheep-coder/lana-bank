@@ -19,3 +19,4 @@ runs:
           ${{ runner.os }}-pnpm-store- 
 
     - run: nix develop -c pnpm install
+      shell: bash
