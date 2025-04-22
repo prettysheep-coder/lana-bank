@@ -42,5 +42,5 @@ jobs:
         languages: rust
     - run: sudo apt-get update && sudo apt-get install -y build-essential
     - uses: ./.github/actions/cache-rust
-    - run: make build
+    - run: cargo build --release --locked
     - uses: github/codeql-action/analyze@v3
