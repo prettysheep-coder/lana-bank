@@ -172,7 +172,7 @@ jobs:
           GITHUB_SHA="${{ github.sha }}"
           SHORT_SHA="${GITHUB_SHA::7}"
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
-          netlify deploy \
+          nix develop -c netlify deploy \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
@@ -189,7 +189,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
         run: |
-          netlify deploy \
+          nix develop -c netlify deploy \
             --prod \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \

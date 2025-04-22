@@ -33,7 +33,7 @@ jobs:
           GITHUB_SHA="${{ github.sha }}"
           SHORT_SHA="${GITHUB_SHA::7}"
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
-          netlify deploy \
+          nix develop -c netlify deploy \
             --dir=apps/admin-panel/storybook-static \
             --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
@@ -48,7 +48,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
         run: |
-          netlify deploy \
+          nix develop -c netlify deploy \
             --prod \
             --dir=apps/admin-panel/storybook-static \
             --filter=admin-panel \
