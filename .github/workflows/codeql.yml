@@ -37,13 +37,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup-nix
-      with:
-        cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-        google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
     - uses: github/codeql-action/init@v3
       with:
         languages: rust
+    - run: sudo apt-get update && sudo apt-get install -y build-essential
     - uses: ./.github/actions/cache-rust
     - run: make build
     - uses: github/codeql-action/analyze@v3
