@@ -21,7 +21,6 @@ jobs:
         with:
           name: lana
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -32,11 +31,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - uses: "google-github-actions/auth@v2"
-        if: secrets.GOOGLE_CREDENTIALS != ''
-        with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
-
       - run: nix develop -c make build-for-tests
       - run: nix develop -c make tilt-in-ci
         env:
@@ -46,18 +40,11 @@ jobs:
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
-
-      - run: |
-          free -h
-          df -h
-
       - run: nix develop -c make test-cypress-in-ci-locally
-
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots/*
-
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -69,7 +56,7 @@ jobs:
     needs: run-cypress-tests
     runs-on: ubuntu-latest
     steps:
-      - uses: DeterminateSystems/nix-installer-action@v12
+      - uses: DeterminateSystems/nix-installer-action@v4
       - uses: cachix/cachix-action@v15
         with:
           name: lana
@@ -80,13 +67,15 @@ jobs:
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots
-      - run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
+      - name: generate pdfs
+        run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
       - run: ls -R apps/admin-panel/cypress/manuals
       - uses: actions/upload-artifact@v4
         with:
           name: pdfs
           path: apps/admin-panel/cypress/manuals/results/*
-      - run: |
+      - name: generate manual page
+        run: |
           cd apps/admin-panel/cypress/manuals/results
           cat <<EOF > index.html
           <!DOCTYPE html>
@@ -173,7 +162,8 @@ jobs:
           </html>
           EOF
 
-      - id: netlify_deploy
+      - name: Deploy to Netlify (Pull Request)
+        id: netlify_deploy
         if: github.event_name == 'pull_request'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -193,7 +183,8 @@ jobs:
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      - if: github.event_name == 'push'
+      - name: Deploy to Netlify (Push to Main)
+        if: github.event_name == 'push'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
@@ -209,7 +200,8 @@ jobs:
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      - if: github.event_name == 'pull_request'
+      - name: Create or Update Preview Comment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
