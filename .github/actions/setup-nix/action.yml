@@ -2,11 +2,12 @@ name: "setup-nix"
 
 description: "Composite action to install Nix, configure Cachix, cache Cargo dependencies, and optionally authenticate to Google Cloud."
 
-inputs:
-
 runs:
   using: "composite"
   steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Install Nix CLI
       uses: DeterminateSystems/nix-installer-action@v12
 
