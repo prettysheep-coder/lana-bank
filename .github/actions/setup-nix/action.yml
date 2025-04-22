@@ -25,6 +25,9 @@ runs:
         name: lana
         authToken: ${{ inputs.cachix_auth_token }}
 
+    - run: nix flake check
+      shell: bash
+
     - name: Authenticate to Google Cloud
       env:
         GOOGLE_CREDENTIALS: ${{ inputs.google_credentials }}
