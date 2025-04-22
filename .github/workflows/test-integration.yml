@@ -26,11 +26,10 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - id: "gcp-auth"
-        uses: "google-github-actions/auth@v2"
-        if: secrets.GOOGLE_CREDENTIALS != ''
+      - uses: google-github-actions/auth@v2
+        if: ${{ secrets.GOOGLE_CREDENTIALS != '' }}
         with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
       - run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
       - run: nix develop -c make test-in-ci
