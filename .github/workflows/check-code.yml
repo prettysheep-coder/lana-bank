@@ -25,7 +25,7 @@ jobs:
           key: ${{ runner.os }}-cargo-gha-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-gha-
-      - run: nix develop --max-jobs 0 -c make check-code
+      - run: nix develop --max-jobs 4 -c make check-code
 
   check-code-apps:
     name: Check Code Apps
@@ -33,4 +33,4 @@ jobs:
     steps:
       - uses: DeterminateSystems/nix-installer-action@v12
       - uses: actions/checkout@v4
-      - run: nix develop --max-jobs 0 -c make check-code-apps
+      - run: nix develop --max-jobs 4 -c make check-code-apps
