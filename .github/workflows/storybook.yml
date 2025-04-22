@@ -17,7 +17,7 @@ jobs:
     name: Storybook Preview
     runs-on: ubuntu-latest
     steps:
-      - uses: DeterminateSystems/nix-installer-action@v12
+      - uses: DeterminateSystems/nix-installer-action@v16
       - uses: cachix/cachix-action@v15
         with:
           name: lana
