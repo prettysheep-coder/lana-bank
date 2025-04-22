@@ -17,14 +17,12 @@ jobs:
     name: Storybook Preview
     runs-on: ubuntu-latest
     steps:
-      - uses: DeterminateSystems/nix-installer-action@v16
-      - run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-      - uses: cachix/cachix-action@v15
-        with:
-          name: lana
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: ./.github/actions/cache-pnpm
       - run: nix develop -c make build-storybook-admin-panel
       - id: netlify_deploy
         if: github.event_name == 'pull_request'
