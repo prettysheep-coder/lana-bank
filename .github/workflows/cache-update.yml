@@ -39,7 +39,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Build Rust dependencies (Populate Cache)
-        run: nix develop -c cargo build --locked
+        run: nix develop -c make build
 
       - uses: actions/cache/save@v4
         with:
