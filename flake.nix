@@ -58,6 +58,7 @@
           typescript
           google-cloud-sdk
           pnpm
+          vendir
           netlify-cli
           tilt
           pandoc
