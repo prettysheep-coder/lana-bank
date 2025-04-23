@@ -57,7 +57,6 @@
           nodejs
           typescript
           google-cloud-sdk
-          ytt
           pnpm
           netlify-cli
           tilt

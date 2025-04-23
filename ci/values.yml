@@ -15,9 +15,6 @@ git_charts_bot_branch: bot-bump-lana-bank-image
 docker_registry: us.gcr.io/galoyorg
 docker_registry_user: ((docker-creds.username))
 docker_registry_password: ((docker-creds.password))
-osxcross_docker_username: ((osxcross-image.username))
-osxcross_docker_password: ((osxcross-image.password))
-osxcross_repository: ((osxcross-image.repository))
 
 deployments_git_uri: git@github.com:GaloyMoney/galoy-deployments.git
 deployments_git_branch: main
@@ -34,7 +31,3 @@ staging_creds: ((staging-gcp-creds.creds_json))
 git_version_branch: version
 gh_org: GaloyMoney
 gh_repository: lana-bank
-
-slack_channel: lana-bank-github
-slack_username: concourse
-slack_webhook_url: ((addons-slack.api_url))
