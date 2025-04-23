@@ -4,7 +4,10 @@ use lana_app::profit_and_loss::ProfitAndLossStatement as DomainProfitAndLossStat
 
 use crate::{graphql::loader::*, primitives::*};
 
-use super::{LedgerAccount, LedgerAccountBalanceRange};
+use super::{
+    BtcLedgerAccountBalanceRange, LedgerAccount, LedgerAccountBalanceRangeByCurrency,
+    UsdLedgerAccountBalanceRange,
+};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -25,12 +28,11 @@ impl From<DomainProfitAndLossStatement> for ProfitAndLossStatement {
 
 #[ComplexObject]
 impl ProfitAndLossStatement {
-    async fn net(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
-        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
-            Ok(Some(balance).into())
-        } else {
-            Ok(self.entity.usd_balance_range.as_ref().into())
-        }
+    async fn total(&self) -> async_graphql::Result<LedgerAccountBalanceRangeByCurrency> {
+        Ok(LedgerAccountBalanceRangeByCurrency {
+            usd: UsdLedgerAccountBalanceRange::from(self.entity.usd_balance_range.as_ref()),
+            btc: BtcLedgerAccountBalanceRange::from(self.entity.btc_balance_range.as_ref()),
+        })
     }
 
     async fn categories(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
