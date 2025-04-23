@@ -1,4 +1,5 @@
 mod chart_of_accounts_integration;
+mod collateral;
 mod config;
 mod credit_facility;
 mod disbursal;
@@ -32,6 +33,7 @@ use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use collateral::*;
 pub use config::*;
 use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
@@ -73,6 +75,7 @@ where
     cala: CalaLedger,
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
+    collaterals: Collaterals<Perms, E>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -87,6 +90,7 @@ where
             authz: self.authz.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             obligations: self.obligations.clone(),
+            collaterals: self.collaterals.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
@@ -130,6 +134,7 @@ where
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool, &publisher);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
+        let collaterals = Collaterals::new(pool, authz, &publisher);
         let payment_repo = PaymentRepo::new(pool);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
@@ -220,6 +225,7 @@ where
             customer: customer.clone(),
             credit_facility_repo,
             obligations,
+            collaterals,
             disbursal_repo,
             payment_repo,
             payment_allocation_repo,
@@ -235,6 +241,10 @@ where
 
     pub fn obligations(&self) -> &Obligations<Perms, E> {
         &self.obligations
+    }
+
+    pub fn collaterals(&self) -> &Collaterals<Perms, E> {
+        &self.collaterals
     }
 
     pub async fn subject_can_create(
@@ -605,6 +615,78 @@ where
 
         self.ledger
             .update_credit_facility_collateral(db, credit_facility_collateral_update)
+            .await?;
+
+        Ok(credit_facility)
+    }
+
+    pub async fn update_collateral_ng(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: CreditFacilityId,
+        updated_collateral: Satoshis,
+    ) -> Result<CreditFacility, CoreCreditError> {
+        let audit_info = self
+            .subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
+        let mut collateral = self
+            .collaterals()
+            .find_by_id(credit_facility.collateral_id())
+            .await?;
+
+        let collateral_update =
+            match collateral.record_collateral_update(updated_collateral, &audit_info) {
+                Idempotent::Executed(update) => update,
+                Idempotent::Ignored => {
+                    return Ok(credit_facility);
+                }
+            };
+
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+
+        let facility_updated = credit_facility
+            .maybe_update_collateralization(
+                price,
+                self.config.upgrade_buffer_cvl_pct,
+                balances.with_collateral(updated_collateral),
+                &audit_info,
+            )
+            .is_some();
+
+        let mut db = self.credit_facility_repo.begin_op().await?;
+
+        self.collaterals()
+            .update_in_op(&mut db, &mut collateral)
+            .await?;
+
+        if facility_updated {
+            self.credit_facility_repo
+                .update_in_op(&mut db, &mut credit_facility)
+                .await?;
+        }
+
+        self.ledger
+            .update_credit_facility_collateral(
+                db,
+                CreditFacilityCollateralUpdate {
+                    tx_id: collateral_update.tx_id,
+                    abs_diff: collateral_update.abs_diff,
+                    action: collateral_update.action,
+                    credit_facility_account_ids: credit_facility.account_ids,
+                },
+            )
             .await?;
 
         Ok(credit_facility)

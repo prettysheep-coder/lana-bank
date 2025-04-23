@@ -25,6 +25,7 @@ es_entity::entity_id! {
     PaymentId,
     PaymentAllocationId,
     ChartOfAccountsIntegrationConfigId,
+    CollateralId,
     ObligationId,
     InterestAccrualCycleId;
 
