@@ -29,8 +29,18 @@ pub struct TrialBalance {
 impl TrialBalance {
     async fn total(&self) -> async_graphql::Result<LedgerAccountBalanceRangeByCurrency> {
         Ok(LedgerAccountBalanceRangeByCurrency {
-            usd: UsdLedgerAccountBalanceRange::from(self.entity.usd_balance_range.as_ref()),
-            btc: BtcLedgerAccountBalanceRange::from(self.entity.btc_balance_range.as_ref()),
+            usd: self
+                .entity
+                .usd_balance_range
+                .as_ref()
+                .map(UsdLedgerAccountBalanceRange::from)
+                .unwrap_or_default(),
+            btc: self
+                .entity
+                .btc_balance_range
+                .as_ref()
+                .map(BtcLedgerAccountBalanceRange::from)
+                .unwrap_or_default(),
         })
     }
 
