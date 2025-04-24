@@ -9,12 +9,17 @@ inputs:
   google_credentials:
     description: "Google Cloud service account credentials JSON."
     required: false
+  free_disk_space:
+    description: "Whether to run the free-disk-space action."
+    required: false
+    default: 'true'
 
 runs:
   using: "composite"
   steps:
     - uses: DeterminateSystems/nix-installer-action@v16
     - uses: jlumbroso/free-disk-space@main
+      if: inputs.free_disk_space == 'true'
       with:
         tool-cache: false
         android: true
