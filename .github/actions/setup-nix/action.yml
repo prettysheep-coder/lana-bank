@@ -14,12 +14,15 @@ runs:
   using: "composite"
   steps:
     - uses: DeterminateSystems/nix-installer-action@v16
-    - run: |
-        sudo rm -rf /usr/share/dotnet \
-          /usr/local/lib/android \
-          /opt/ghc \
-          /opt/hostedtoolcache/CodeQL
-      shell: bash
+    - uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
     - uses: cachix/cachix-action@v15
       with:
         name: lana
