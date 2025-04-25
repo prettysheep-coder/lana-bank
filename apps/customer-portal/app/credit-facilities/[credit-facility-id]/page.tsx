@@ -148,8 +148,8 @@ gql`
   }
 `
 
-async function page({ params }: { params: { "credit-facility-id": string } }) {
-  const id = params["credit-facility-id"]
+async function page({ params }: { params: Promise<{ "credit-facility-id": string }> }) {
+  const { "credit-facility-id": id } = await params
   const data = await getCreditFacility({
     id,
   })
