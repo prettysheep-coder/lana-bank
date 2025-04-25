@@ -25,6 +25,7 @@ pub enum ObligationEvent {
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
+        defaulted_account_id: CalaAccountId,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
@@ -410,8 +411,10 @@ pub struct NewObligation {
     reference: Option<String>,
     not_yet_due_accounts: ObligationAccounts,
     due_accounts: ObligationAccounts,
-    due_date: DateTime<Utc>,
     overdue_accounts: ObligationAccounts,
+    #[builder(setter(into))]
+    defaulted_account_id: CalaAccountId,
+    due_date: DateTime<Utc>,
     #[builder(setter(strip_option), default)]
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -449,6 +452,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
+                defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 defaulted_date: self.defaulted_date,
@@ -517,6 +521,7 @@ mod test {
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
+            defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
             defaulted_date: None,
