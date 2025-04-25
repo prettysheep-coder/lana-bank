@@ -149,14 +149,9 @@ gql`
 
 async function page({ params }: { params: Promise<{ "credit-facility-id": string }> }) {
   const { "credit-facility-id": id } = await params
-
-  console.log("id", id)
-
   const data = await getCreditFacility({
     id,
   })
-
-  console.log("data", data)
 
   if (!data || data instanceof Error || !data.creditFacility) {
     return <div>Not found</div>
