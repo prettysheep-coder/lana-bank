@@ -7,17 +7,14 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
+    interest_accrual_cycle::*,
+    ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
-    terms::{CVLPct, CollateralizationState, InterestPeriod, TermValues},
+    terms::{CollateralizationState, InterestPeriod, TermValues},
 };
 
-use crate::{interest_accrual_cycle::*, ledger::*};
-
-use super::{
-    balance::CreditFacilityBalanceSummary, cvl::*, error::CreditFacilityError, history,
-    repayment_plan,
-};
+use super::{cvl::*, error::CreditFacilityError, history, repayment_plan};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -572,7 +569,7 @@ impl CreditFacility {
     pub fn facility_cvl_data(&self, balances: CreditFacilityBalanceSummary) -> FacilityCVLData {
         CreditFacilityReceivable::from(balances).facility_cvl_data(
             self.collateral(),
-            self.facility_remaining(balances.disbursed),
+            self.facility_remaining(balances.total_disbursed()),
         )
     }
 
@@ -605,28 +602,30 @@ impl CreditFacility {
         let facility_cvl = self.facility_cvl_data(balances).cvl(price);
         let last_collateralization_state = self.last_collateralization_state();
 
-        let collateralization_update =
-            match self.status() {
-                CreditFacilityStatus::PendingCollateralization
-                | CreditFacilityStatus::PendingApproval => facility_cvl
-                    .total
-                    .collateralization_update(self.terms, last_collateralization_state, None, true),
-                CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
-                    let cvl = if balances.any_disbursed() {
-                        facility_cvl.disbursed
-                    } else {
-                        facility_cvl.total
-                    };
+        let collateralization_update = match self.status() {
+            CreditFacilityStatus::PendingCollateralization
+            | CreditFacilityStatus::PendingApproval => self.terms.collateralization_update(
+                facility_cvl.total,
+                last_collateralization_state,
+                None,
+                true,
+            ),
+            CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
+                let cvl = if balances.any_disbursed() {
+                    facility_cvl.disbursed
+                } else {
+                    facility_cvl.total
+                };
 
-                    cvl.collateralization_update(
-                        self.terms,
-                        last_collateralization_state,
-                        Some(upgrade_buffer_cvl_pct),
-                        false,
-                    )
-                }
-                CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
-            };
+                self.terms.collateralization_update(
+                    cvl,
+                    last_collateralization_state,
+                    Some(upgrade_buffer_cvl_pct),
+                    false,
+                )
+            }
+            CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
+        };
 
         let now = crate::time::now();
         if let Some(calculated_collateralization) = collateralization_update {

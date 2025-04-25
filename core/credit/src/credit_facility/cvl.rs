@@ -1,7 +1,7 @@
 use core_money::{Satoshis, UsdCents};
 use core_price::PriceOfOneBTC;
 
-use crate::terms::{CVLPct, TermValues};
+use crate::{primitives::CVLPct, terms::TermValues};
 
 #[derive(Clone)]
 pub struct CVLData {

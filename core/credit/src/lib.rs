@@ -445,17 +445,20 @@ where
             .get_credit_facility_balance(facility.account_ids)
             .await?;
 
-        let outstanding = CreditFacilityReceivable::from(balance);
-
         let price = self.price.usd_cents_per_btc().await?;
-        if !outstanding
-            .with_added_disbursal_amount(amount)
-            .facility_cvl_data(facility.collateral(), balance.facility_remaining)
-            .cvl(price)
-            .is_disbursal_allowed(facility.terms)
-        {
+        if !facility.terms.is_disbursal_allowed(balance, amount, price) {
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
+
+        let outstanding = CreditFacilityReceivable::from(balance);
+        // if !outstanding
+        //     .with_added_disbursal_amount(amount)
+        //     .facility_cvl_data(facility.collateral(), balance.facility_remaining)
+        //     .cvl(price)
+        //     .is_disbursal_allowed(facility.terms)
+        // {
+        //     return Err(CreditFacilityError::BelowMarginLimit.into());
+        // }
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let disbursal_id = DisbursalId::new();
