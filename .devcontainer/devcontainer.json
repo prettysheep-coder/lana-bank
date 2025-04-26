@@ -1,8 +1,12 @@
 {
-    "name": "Lana Bank Development",
-    "dockerComposeFile": "../docker-compose.yml",
-    "service": "devcontainer",
+    "name": "Lana Bank Development - Nix",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
     "workspaceFolder": "/workspace",
+    "remoteUser": "root",
+    "onCreateCommand": "if ! id vscode > /dev/null 2>&1; then groupadd --gid 1000 vscode && useradd --uid 1000 --gid 1000 -m -s /bin/bash vscode; fi && chown -R vscode:vscode /workspace",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -30,16 +34,8 @@
             }
         }
     },
-    "features": {
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-    },
     "forwardPorts": [
         3000,
         8000
-    ],
-    "initializeCommand": ". /etc/profile.d/nix.sh",
-    "updateContentCommand": ". /etc/profile.d/nix.sh && nix develop",
-    "remoteEnv": {
-        "PATH": "${containerEnv:PATH}:/nix/var/nix/profiles/default/bin:/home/vscode/.nix-profile/bin"
-    }
+    ]
 }
