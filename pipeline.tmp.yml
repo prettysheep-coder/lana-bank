@@ -1,0 +1,863 @@
+groups:
+- name: lana-bank
+  jobs:
+  - nodejs-check-code
+  - rust-check-code
+  - integration-tests
+  - bats-tests
+  - release
+  - release-docker
+  - set-dev-version
+  - bump-image-in-chart
+  - build-admin-panel-edge-image
+  - build-customer-portal-edge-image
+  - build-meltano-edge-image
+  - build-static-binary
+jobs:
+- name: integration-tests
+  serial: true
+  plan:
+  - put: nix-host
+    params:
+      acquire: true
+  - in_parallel:
+    - get: repo
+      trigger: true
+    - get: pipeline-tasks
+  - task: integration-tests
+    attempts: 2
+    timeout: 18m
+    tags:
+    - galoy-staging
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      inputs:
+      - name: pipeline-tasks
+      - name: nix-host
+      - name: repo
+        path: lana-bank
+      params:
+        REPO_PATH: lana-bank
+        GOOGLE_CREDENTIALS: ((staging-gcp-creds.creds_json))
+        SSH_PRIVATE_KEY: ((staging-ssh.ssh_private_key))
+        SSH_PUB_KEY: ((staging-ssh.ssh_public_key))
+        CMD: make test-in-ci
+      run:
+        path: pipeline-tasks/ci/tasks/run-on-nix-host.sh
+    ensure:
+      put: nix-host
+      params:
+        release: nix-host
+- name: bats-tests
+  serial: true
+  plan:
+  - put: nix-host
+    params:
+      acquire: true
+  - in_parallel:
+    - get: repo
+      trigger: true
+    - get: pipeline-tasks
+  - task: bats-tests
+    attempts: 2
+    timeout: 18m
+    tags:
+    - galoy-staging
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      inputs:
+      - name: pipeline-tasks
+      - name: nix-host
+      - name: repo
+        path: lana-bank
+      params:
+        REPO_PATH: lana-bank
+        GOOGLE_CREDENTIALS: ((staging-gcp-creds.creds_json))
+        SSH_PRIVATE_KEY: ((staging-ssh.ssh_private_key))
+        SSH_PUB_KEY: ((staging-ssh.ssh_public_key))
+        CMD: make e2e
+      run:
+        path: pipeline-tasks/ci/tasks/run-on-nix-host.sh
+    ensure:
+      put: nix-host
+      params:
+        release: nix-host
+- name: rust-check-code
+  serial: true
+  plan:
+  - in_parallel:
+    - get: repo
+      trigger: true
+    - get: pipeline-tasks
+  - task: check-code
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      inputs:
+      - name: pipeline-tasks
+      - name: repo
+      caches:
+      - path: cargo-home
+      - path: cargo-target-dir
+      run:
+        path: pipeline-tasks/ci/vendor/tasks/rust-check-code.sh
+- name: nodejs-check-code
+  serial: true
+  plan:
+  - in_parallel:
+    - get: repo
+      trigger: true
+    - get: pipeline-tasks
+  - task: check-code
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/nodejs-concourse
+      inputs:
+      - name: pipeline-tasks
+      - name: repo
+      run:
+        path: pipeline-tasks/ci/tasks/check-code-apps.sh
+- name: build-static-binary
+  serial: true
+  plan:
+  - in_parallel:
+    - get: repo
+      trigger: true
+    - get: pipeline-tasks
+  - task: cargo-build-release
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: clux/muslrust
+          tag: stable
+      inputs:
+      - name: pipeline-tasks
+      - name: repo
+      outputs:
+      - name: bin
+      caches:
+      - path: cargo-target
+      - path: cargo-home
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          export CARGO_HOME="$PWD/cargo-home"
+          export CARGO_TARGET_DIR="$PWD/cargo-target-dir"
+          cd repo
+          SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
+          mkdir -p ../bin
+          cp "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/release/lana-cli" ../bin/
+          cat > ../bin/Dockerfile <<'EOF'
+          FROM scratch
+          COPY lana-cli /lana-cli
+          ENTRYPOINT ["/lana-cli"]
+          EOF
+  - task: build-image-with-kaniko
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: gcr.io/kaniko-project/executor
+          tag: debug
+      inputs:
+      - name: bin
+      outputs:
+      - name: image
+      run:
+        path: /kaniko/executor
+        args:
+        - --dockerfile=Dockerfile
+        - --context=bin
+        - --use-new-run
+        - --single-snapshot
+        - --cache=false
+        - --no-push
+        - --tar-path=image/image.tar
+  - put: static-binary-image
+    params:
+      image: image/image.tar
+      additional_tags: repo/.git/ref
+- name: release
+  serial: true
+  plan:
+  - in_parallel:
+    - get: repo
+      passed:
+      - nodejs-check-code
+      - rust-check-code
+      - integration-tests
+      - bats-tests
+      trigger: true
+    - get: pipeline-tasks
+    - get: version
+    - get: admin-panel-src
+      passed:
+      - build-admin-panel-edge-image
+      trigger: true
+    - get: customer-portal-src
+      passed:
+      - build-customer-portal-edge-image
+      trigger: true
+    - get: meltano-edge-image
+      passed:
+      - build-meltano-edge-image
+  - task: prep-release
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/release-pipeline
+      inputs:
+      - name: pipeline-tasks
+      - name: repo
+      - name: version
+      outputs:
+      - name: version
+      - name: artifacts
+      run:
+        path: pipeline-tasks/ci/vendor/tasks/prep-release-src.sh
+  - task: prep-release-apps
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/release-pipeline
+      inputs:
+      - name: pipeline-tasks
+      - name: version
+      - name: admin-panel-src
+        path: admin-panel-src
+      - name: customer-portal-src
+        path: customer-portal-src
+      outputs:
+      - name: admin-panel-src
+        path: admin-panel-src
+      - name: customer-portal-src
+        path: customer-portal-src
+      run:
+        path: pipeline-tasks/ci/tasks/prep-release-apps.sh
+  - get: static-binary-image
+    passed:
+    - build-static-binary
+    trigger: true
+  - task: unwrap-binary
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: alpine
+          tag: "3.20"
+      inputs:
+      - name: static-binary-image
+      outputs:
+      - name: binaries
+      caches:
+      - path: apk-cache
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          mv static-binary-image/rootfs/* binaries
+  - in_parallel:
+    - do:
+      - task: build-admin-panel-release
+        attempts: 2
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: vito/oci-build-task
+          inputs:
+          - name: admin-panel-src
+          outputs:
+          - name: admin-panel-image
+            path: image
+          params:
+            CONTEXT: admin-panel-src
+            DOCKERFILE: admin-panel-src/apps/admin-panel/Dockerfile
+          run:
+            path: build
+      - put: admin-panel-latest-image
+        params:
+          image: admin-panel-image/image.tar
+          additional_tags: version/version
+    - do:
+      - task: build-customer-portal-release
+        attempts: 2
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: vito/oci-build-task
+          inputs:
+          - name: customer-portal-src
+          outputs:
+          - name: customer-portal-image
+            path: image
+          params:
+            CONTEXT: customer-portal-src
+            DOCKERFILE: customer-portal-src/apps/customer-portal/Dockerfile
+          run:
+            path: build
+      - put: customer-portal-latest-image
+        params:
+          image: customer-portal-image/image.tar
+          additional_tags: version/version
+  - put: repo
+    params:
+      tag: artifacts/gh-release-tag
+      only_tag: true
+      repository: repo
+  - task: github-release
+    config:
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      platform: linux
+      inputs:
+      - name: binaries
+      - name: version
+      - name: pipeline-tasks
+      - name: artifacts
+      outputs:
+      - name: artifacts
+      params:
+        BRANCH: main
+      run:
+        path: pipeline-tasks/ci/tasks/github-release.sh
+  - put: gh-release
+    params:
+      name: artifacts/gh-release-name
+      tag: artifacts/gh-release-tag
+      body: artifacts/gh-release-notes.md
+      globs:
+      - artifacts/binaries/*
+  - put: version
+    params:
+      file: version/version
+- name: release-docker
+  serial: true
+  plan:
+  - in_parallel:
+    - get: repo
+      passed:
+      - release
+    - get: version
+      passed:
+      - release
+      trigger: true
+    - get: pipeline-tasks
+    - get: meltano-edge-image
+      passed:
+      - release
+      params:
+        format: oci
+  - task: prepare-docker-build
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      inputs:
+      - name: pipeline-tasks
+      - name: version
+      - name: repo
+      outputs:
+      - name: repo
+      params:
+        GH_APP_ID: ((github.github_app_id))
+        GH_APP_PRIVATE_KEY: ((github.github_app_private_key))
+      run:
+        path: pipeline-tasks/ci/tasks/prep-docker-build-env.sh
+  - task: build
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: repo
+      outputs:
+      - name: image
+      params:
+        CONTEXT: repo
+        BUILD_ARGS_FILE: repo/.env
+        DOCKERFILE: repo/Dockerfile.release
+      run:
+        path: build
+  - in_parallel:
+    - put: latest-image
+      params:
+        image: image/image.tar
+        additional_tags: version/version
+    - put: meltano-latest-image
+      params:
+        image: meltano-edge-image/image.tar
+        additional_tags: version/version
+- name: set-dev-version
+  plan:
+  - in_parallel:
+    - get: repo
+      passed:
+      - release
+    - get: pipeline-tasks
+    - get: version
+      trigger: true
+      params:
+        bump: patch
+      passed:
+      - release
+  - task: set-dev-version
+    config:
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      platform: linux
+      inputs:
+      - name: version
+      - name: repo
+      - name: pipeline-tasks
+      outputs:
+      - name: repo
+      run:
+        path: pipeline-tasks/ci/tasks/set-dev-version.sh
+      params:
+        BRANCH: main
+  - put: repo-dev-out
+    params:
+      repository: repo
+      rebase: true
+- name: bump-image-in-chart
+  plan:
+  - in_parallel:
+    - get: latest-image
+      passed:
+      - release-docker
+      params:
+        skip_download: true
+    - get: admin-panel-latest-image
+    - get: customer-portal-latest-image
+    - get: meltano-latest-image
+      passed:
+      - release-docker
+      params:
+        skip_download: true
+    - get: repo
+      trigger: true
+      passed:
+      - release-docker
+    - get: version
+      trigger: true
+      passed:
+      - release-docker
+    - get: charts-repo
+      params:
+        skip_download: true
+    - get: pipeline-tasks
+  - task: bump-image-digest-in-values
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      inputs:
+      - name: repo
+      - name: latest-image
+      - name: admin-panel-latest-image
+      - name: customer-portal-latest-image
+      - name: meltano-latest-image
+      - name: pipeline-tasks
+      - name: charts-repo
+      - name: version
+      outputs:
+      - name: charts-repo
+      params:
+        BRANCH: main
+        CHARTS_SUBDIR: lana-bank
+      run:
+        path: pipeline-tasks/ci/tasks/bump-image-digest.sh
+  - put: charts-repo-bot-branch
+    params:
+      repository: charts-repo
+      force: true
+  - task: open-charts-pr
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/rust-concourse
+      inputs:
+      - name: pipeline-tasks
+      - name: latest-image
+      - name: charts-repo
+      - name: repo
+      params:
+        GH_APP_ID: ((github.github_app_id))
+        GH_APP_PRIVATE_KEY: ((github.github_app_private_key))
+        BRANCH: main
+        BOT_BRANCH: bot-bump-lana-bank-image
+        CHARTS_SUBDIR: lana-bank
+      run:
+        path: pipeline-tasks/ci/tasks/chart-open-charts-pr.sh
+- name: build-admin-panel-edge-image
+  serial: true
+  plan:
+  - in_parallel:
+    - get: admin-panel-src
+      trigger: true
+    - get: pipeline-tasks
+  - task: prepare-docker-build
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/galoy-dev
+      inputs:
+      - name: pipeline-tasks
+      - name: admin-panel-src
+        path: repo
+      outputs:
+      - name: repo
+      run:
+        path: pipeline-tasks/ci/tasks/app-prepare-docker-build.sh
+  - task: build
+    attempts: 2
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: repo
+      outputs:
+      - name: image
+      params:
+        CONTEXT: repo
+        DOCKERFILE: repo/apps/admin-panel/Dockerfile
+        BUILD_ARGS_FILE: repo/.build-args
+      run:
+        path: build
+  - put: admin-panel-edge-image
+    params:
+      image: image/image.tar
+- name: build-customer-portal-edge-image
+  serial: true
+  plan:
+  - in_parallel:
+    - get: customer-portal-src
+      trigger: true
+    - get: pipeline-tasks
+  - task: prepare-docker-build
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          username: ((docker-creds.username))
+          password: ((docker-creds.password))
+          repository: us.gcr.io/galoyorg/galoy-dev
+      inputs:
+      - name: pipeline-tasks
+      - name: customer-portal-src
+        path: repo
+      outputs:
+      - name: repo
+      run:
+        path: pipeline-tasks/ci/tasks/app-prepare-docker-build.sh
+  - task: build
+    attempts: 2
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      inputs:
+      - name: repo
+      outputs:
+      - name: image
+      params:
+        CONTEXT: repo
+        DOCKERFILE: repo/apps/customer-portal/Dockerfile
+        BUILD_ARGS_FILE: repo/.build-args
+      run:
+        path: build
+  - put: customer-portal-edge-image
+    params:
+      image: image/image.tar
+- name: build-meltano-edge-image
+  plan:
+  - in_parallel:
+    - get: repo
+      trigger: true
+    - get: pipeline-tasks
+  - task: build
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: gcr.io/kaniko-project/executor
+          tag: debug
+      inputs:
+      - name: repo
+      outputs:
+      - name: image
+      run:
+        path: /kaniko/executor
+        args:
+        - --dockerfile=Dockerfile
+        - --context=repo/meltano
+        - --use-new-run
+        - --single-snapshot
+        - --cache=false
+        - --no-push
+        - --tar-path=image/image.tar
+  - put: meltano-edge-image
+    params:
+      image: image/image.tar
+resources:
+- name: repo
+  type: git
+  source:
+    ignore_paths:
+    - ci/*[^md]
+    - apps/**/*
+    fetch_tags: true
+    uri: git@github.com:GaloyMoney/lana-bank.git
+    branch: ci--discrepency-between-local-cargo-and-deployed-cargo
+    private_key: ((github.private_key))
+  webhook_token: ((webhook.secret))
+- name: repo-dev-out
+  type: git
+  source:
+    fetch_tags: true
+    uri: git@github.com:GaloyMoney/lana-bank.git
+    branch: main
+    private_key: ((github.private_key))
+  webhook_token: ((webhook.secret))
+- name: latest-image
+  type: registry-image
+  source:
+    tag: latest
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: gcr.io/galoyorg/lana-bank
+- name: nix-host
+  type: pool
+  source:
+    uri: git@github.com:GaloyMoney/galoy-concourse-locks.git
+    branch: main
+    pool: docker-hosts
+    private_key: ((github.private_key))
+- name: meltano-edge-image
+  type: registry-image
+  source:
+    tag: edge
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: us.gcr.io/galoyorg/meltano
+- name: meltano-latest-image
+  type: registry-image
+  source:
+    tag: latest
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: us.gcr.io/galoyorg/meltano
+- name: static-binary-image
+  type: registry-image
+  source:
+    tag: latest
+    repository: gcr.io/galoyorg/lana-bank-static
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+- name: pipeline-tasks
+  type: git
+  source:
+    paths:
+    - ci/vendor/*
+    - ci/tasks/*
+    - ci/config/*
+    - Makefile
+    uri: git@github.com:GaloyMoney/lana-bank.git
+    branch: ci--discrepency-between-local-cargo-and-deployed-cargo
+    private_key: ((github.private_key))
+- name: version
+  type: semver
+  source:
+    initial_version: 0.0.0
+    driver: git
+    file: version
+    uri: git@github.com:GaloyMoney/lana-bank.git
+    branch: version
+    private_key: ((github.private_key))
+- name: gh-release
+  type: github-release
+  source:
+    owner: GaloyMoney
+    repository: lana-bank
+    access_token: ((github.api_token))
+- name: charts-repo-bot-branch
+  type: git
+  source:
+    uri: git@github.com:GaloyMoney/galoy-private-charts.git
+    branch: bot-bump-lana-bank-image
+    private_key: ((github.private_key))
+- name: charts-repo
+  type: git
+  source:
+    uri: git@github.com:GaloyMoney/galoy-private-charts.git
+    branch: main
+    private_key: ((github.private_key))
+- name: admin-panel-src
+  type: git
+  source:
+    paths:
+    - apps/admin-panel
+    - apps/admin-panel/*
+    - apps/admin-panel/**/*
+    - flake.nix
+    - flake.lock
+    - pnpm-lock.yaml
+    fetch_tags: true
+    uri: git@github.com:GaloyMoney/lana-bank.git
+    branch: main
+    private_key: ((github.private_key))
+- name: admin-panel-edge-image
+  type: registry-image
+  source:
+    tag: edge
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: gcr.io/galoyorg/lana-bank-admin-panel
+- name: admin-panel-latest-image
+  type: registry-image
+  source:
+    tag: latest
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: gcr.io/galoyorg/lana-bank-admin-panel
+- name: customer-portal-src
+  type: git
+  source:
+    paths:
+    - apps/customer-portal
+    - apps/customer-portal/*
+    - apps/customer-portal/**/*
+    - flake.nix
+    - flake.lock
+    - pnpm-lock.yaml
+    fetch_tags: true
+    uri: git@github.com:GaloyMoney/lana-bank.git
+    branch: main
+    private_key: ((github.private_key))
+- name: customer-portal-edge-image
+  type: registry-image
+  source:
+    tag: edge
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: gcr.io/galoyorg/lana-bank-customer-portal
+- name: customer-portal-latest-image
+  type: registry-image
+  source:
+    tag: latest
+    username: ((docker-creds.username))
+    password: ((docker-creds.password))
+    repository: gcr.io/galoyorg/lana-bank-customer-portal
+---
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: 'ci: fix concourse locks git uri'
+      sha: 0c18d91f1b5bff905eb5e14ee3ba7f1c2db2595b
+    path: .
+  path: vendor
+kind: LockConfig
+---
+apiVersion: vendir.k14s.io/v1alpha1
+kind: Config
+directories:
+- path: ./vendor
+  contents:
+  - path: .
+    git:
+      url: https://github.com/GaloyMoney/galoy-concourse-shared.git
+      ref: 0c18d91f1b5bff905eb5e14ee3ba7f1c2db2595b
+    includePaths:
+    - shared/ci/**/*
+    excludePaths:
+    - shared/ci/**/nodejs-*
+    - shared/ci/**/chart-*
+    newRootPath: shared/ci
+---
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: /
+  schedule:
+    interval: daily
