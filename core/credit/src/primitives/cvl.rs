@@ -80,6 +80,7 @@ impl CVLPct {
     pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
         other > *self + buffer
     }
+
     #[cfg(test)]
     pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
         let target_in_usd = self.0 / dec!(100) * outstanding.to_usd();

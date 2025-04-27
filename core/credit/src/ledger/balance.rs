@@ -116,4 +116,8 @@ impl CreditFacilityBalanceSummary {
     pub fn total_cvl_data(&self) -> CVLData {
         CVLData::new(self.collateral, self.facility_remaining)
     }
+
+    pub fn with_collateral(self, collateral: Satoshis) -> Self {
+        Self { collateral, ..self }
+    }
 }

@@ -844,11 +844,35 @@ mod test {
         }
     }
 
-    //     #[test]
-    //     fn check_approval_allowed() {
-    //         let terms = default_terms();
-    //         let price = PriceOfOneBTC::new(UsdCents::from(dec!(1_000_00)));
-    //         let balance = default_balances(UsdCents::from(dec!(1_000_000)));
-    //         assert!(!terms.is_approval_allowed(price));
-    //     }
+    #[test]
+    fn check_approval_allowed() {
+        let terms = default_terms();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
+        let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
+        let required_collateral =
+            price.cents_to_sats_round_up(terms.margin_call_cvl.scale(principal));
+
+        let mut balance = default_balances(principal);
+        balance.collateral = required_collateral - Satoshis::ONE;
+
+        assert!(!terms.is_approval_allowed(balance, price));
+
+        balance.collateral = required_collateral;
+        assert!(terms.is_approval_allowed(balance, price));
+    }
+
+    #[test]
+    fn check_disbursal_allowed() {
+        let terms = default_terms();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
+        let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
+        let mut balance = default_balances(principal);
+        balance.collateral = price.cents_to_sats_round_up(terms.margin_call_cvl.scale(principal));
+
+        let amount = UsdCents::try_from_usd(dec!(1000)).unwrap();
+        assert!(!terms.is_disbursal_allowed(balance, amount, price));
+
+        balance.collateral = price.cents_to_sats_round_up(terms.initial_cvl.scale(principal));
+        assert!(terms.is_disbursal_allowed(balance, amount, price));
+    }
 }
