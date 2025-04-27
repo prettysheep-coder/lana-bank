@@ -1,4 +1,4 @@
-mod cvl_pct;
+mod cvl;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,7 @@ pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
 
-pub use cvl_pct::*;
+pub use cvl::*;
 
 es_entity::entity_id! {
     CreditFacilityId,

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::primitives::{CVLPct, PriceOfOneBTC};
+use crate::primitives::CVLData;
 
 #[cfg(not(test))]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
@@ -101,13 +101,19 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        // let collateral_value = price.sats_to_cents_round_down(self.collateral);
-        // if collateral_value == UsdCents::ZERO {
-        //     CVLPct::ZERO
-        // } else {
-        //     CVLPct::from_loan_amounts(collateral_value, self.disbursed)
-        // }
-        unimplemented!()
+    pub fn current_cvl_data(&self) -> CVLData {
+        if self.disbursed > UsdCents::ZERO {
+            CVLData::new(self.collateral, self.disbursed)
+        } else {
+            CVLData::new(self.collateral, self.facility_remaining)
+        }
+    }
+
+    pub fn cvl_data_with_hypothetical_disbursal(&self, disbursal: UsdCents) -> CVLData {
+        CVLData::new(self.collateral, self.disbursed + disbursal)
+    }
+
+    pub fn total_cvl_data(&self) -> CVLData {
+        CVLData::new(self.collateral, self.facility_remaining)
     }
 }

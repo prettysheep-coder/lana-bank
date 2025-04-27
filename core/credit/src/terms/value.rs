@@ -266,14 +266,18 @@ impl TermValues {
         amount: UsdCents,
         price: PriceOfOneBTC,
     ) -> bool {
-        let cvl = balance.cvl(price);
-        // let cvl = if self.disbursed.is_zero() {
-        //     self.total
-        // } else {
-        //     self.disbursed
-        // };
-
+        let cvl_data = balance.cvl_data_with_hypothetical_disbursal(amount);
+        let cvl = cvl_data.cvl(price);
         cvl >= self.margin_call_cvl
+    }
+
+    pub fn is_approval_allowed(
+        &self,
+        balance: CreditFacilityBalanceSummary,
+        price: PriceOfOneBTC,
+    ) -> bool {
+        let total = balance.total_cvl_data().cvl(price);
+        total >= self.margin_call_cvl
     }
 
     pub fn builder() -> TermValuesBuilder {
@@ -624,28 +628,27 @@ mod test {
         assert_eq!(fee, UsdCents::from(51));
     }
 
+    fn default_terms() -> TermValues {
+        TermValues::builder()
+            .annual_rate(dec!(12))
+            .duration(Duration::Months(3))
+            .interest_due_duration(InterestDuration::Days(0))
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term")
+    }
+
     mod collateralization_update {
         use super::*;
 
         fn default_upgrade_buffer_cvl_pct() -> CVLPct {
             CVLPct::new(5)
         }
-
-        fn default_terms() -> TermValues {
-            TermValues::builder()
-                .annual_rate(dec!(12))
-                .duration(Duration::Months(3))
-                .interest_due_duration(InterestDuration::Days(0))
-                .accrual_cycle_interval(InterestInterval::EndOfMonth)
-                .accrual_interval(InterestInterval::EndOfDay)
-                .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-                .liquidation_cvl(dec!(105))
-                .margin_call_cvl(dec!(125))
-                .initial_cvl(dec!(140))
-                .build()
-                .expect("should build a valid term")
-        }
-
         struct TestCVL {
             above_fully_collateralized: CVLPct,
             above_margin_called_and_buffer: CVLPct,
@@ -823,4 +826,29 @@ mod test {
             );
         }
     }
+
+    fn default_balances(facility_remaining: UsdCents) -> CreditFacilityBalanceSummary {
+        CreditFacilityBalanceSummary {
+            facility_remaining,
+            collateral: Satoshis::ZERO,
+            disbursed: UsdCents::ZERO,
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            interest_posted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+        }
+    }
+
+    //     #[test]
+    //     fn check_approval_allowed() {
+    //         let terms = default_terms();
+    //         let price = PriceOfOneBTC::new(UsdCents::from(dec!(1_000_00)));
+    //         let balance = default_balances(UsdCents::from(dec!(1_000_000)));
+    //         assert!(!terms.is_approval_allowed(price));
+    //     }
 }

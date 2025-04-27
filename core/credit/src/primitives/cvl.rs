@@ -2,9 +2,38 @@ use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use core_money::UsdCents;
+use core_money::{Satoshis, UsdCents};
 
 use std::fmt;
+
+use super::PriceOfOneBTC;
+
+#[derive(Clone)]
+pub struct CVLData {
+    amount: UsdCents,
+    collateral: Satoshis,
+}
+
+impl CVLData {
+    pub fn new(collateral: Satoshis, amount: UsdCents) -> Self {
+        Self { collateral, amount }
+    }
+
+    pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral);
+        if collateral_value == UsdCents::ZERO {
+            CVLPct::ZERO
+        } else {
+            CVLPct::from_loan_amounts(collateral_value, self.amount)
+        }
+    }
+}
+
+#[cfg_attr(feature = "graphql", derive(async_graphql::SimpleObject))]
+pub struct FacilityCVL {
+    pub total: CVLPct,
+    pub disbursed: CVLPct,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]

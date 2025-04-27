@@ -450,16 +450,6 @@ where
             return Err(CreditFacilityError::BelowMarginLimit.into());
         }
 
-        let outstanding = CreditFacilityReceivable::from(balance);
-        // if !outstanding
-        //     .with_added_disbursal_amount(amount)
-        //     .facility_cvl_data(facility.collateral(), balance.facility_remaining)
-        //     .cvl(price)
-        //     .is_disbursal_allowed(facility.terms)
-        // {
-        //     return Err(CreditFacilityError::BelowMarginLimit.into());
-        // }
-
         let mut db = self.credit_facility_repo.begin_op().await?;
         let disbursal_id = DisbursalId::new();
         let new_disbursal = NewDisbursal::builder()
@@ -1002,7 +992,12 @@ where
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         let price = self.price.usd_cents_per_btc().await?;
-        Ok(entity.facility_cvl_data(balances).cvl(price))
+        Ok(FacilityCVL {
+            total: balances.total_cvl_data().cvl(price),
+            disbursed: balances
+                .cvl_data_with_hypothetical_disbursal(UsdCents::ZERO)
+                .cvl(price),
+        })
     }
 
     pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
