@@ -120,11 +120,4 @@ impl CreditFacilityBalanceSummary {
     pub fn with_collateral(self, collateral: Satoshis) -> Self {
         Self { collateral, ..self }
     }
-
-    pub fn with_amount(self, facility_remaining: UsdCents) -> Self {
-        Self {
-            facility_remaining,
-            ..self
-        }
-    }
 }
