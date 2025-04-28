@@ -289,6 +289,10 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
+    pub fn is_paid(&self) -> bool {
+        self.status() == ObligationStatus::Paid
+    }
+
     pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
         BalanceUpdateData {
             source_id: self.id.into(),
@@ -319,6 +323,10 @@ impl Obligation {
             ObligationEvent::DueRecorded { .. }
         );
 
+        if self.is_paid() {
+            return Idempotent::Ignored;
+        }
+
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
@@ -342,6 +350,10 @@ impl Obligation {
             self.events.iter_all().rev(),
             ObligationEvent::OverdueRecorded { .. }
         );
+
+        if self.is_paid() {
+            return Ok(Idempotent::Ignored);
+        }
 
         if self.status() != ObligationStatus::Due {
             return Err(ObligationError::InvalidStatusTransitionToOverdue);
