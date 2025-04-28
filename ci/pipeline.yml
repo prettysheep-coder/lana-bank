@@ -189,6 +189,7 @@ jobs:
               - rust-check-code
               - integration-tests
               - bats-tests
+              - build-static-binary
             trigger: true
           - get: pipeline-tasks
           - get: version
