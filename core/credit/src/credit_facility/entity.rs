@@ -296,7 +296,10 @@ impl CreditFacility {
             return Err(CreditFacilityError::Denied);
         }
 
-        if !self.terms.is_approval_allowed(balances, price) {
+        if !self
+            .terms
+            .is_approval_allowed(balances.with_amount(self.amount), price)
+        {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
 
@@ -1063,7 +1066,6 @@ mod test {
             },
         ]);
         let mut credit_facility = facility_from(events);
-        dbg!(credit_facility.collateralization_ratio());
 
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = starting_collateral;
@@ -1324,7 +1326,6 @@ mod test {
                 default_balances(credit_facility.amount),
             )
             .unwrap();
-        dbg!(credit_facility.last_collateralization_state());
         assert_eq!(
             credit_facility.status(),
             CreditFacilityStatus::PendingApproval

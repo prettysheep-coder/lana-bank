@@ -868,7 +868,6 @@ mod test {
         let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
         let mut balance = default_balances(principal);
         balance.collateral = Satoshis::try_from_btc(dec!(1)).unwrap();
-        dbg!(balance.collateral);
 
         let amount = UsdCents::try_from_usd(dec!(80_001)).unwrap();
         assert!(!terms.is_disbursal_allowed(balance, amount, price));
