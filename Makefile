@@ -29,7 +29,7 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
-check-code: full-sdl
+check-code: sdl-rust
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
@@ -60,7 +60,7 @@ sdl-js:
 full-sdl: sdl-rust sdl-js
 
 # Frontend Apps
-check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
+check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
