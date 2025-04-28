@@ -550,4 +550,30 @@ mod test {
             Err(ObligationError::InvalidStatusTransitionToOverdue)
         ));
     }
+
+    #[test]
+    fn ignores_due_recorded_if_paid() {
+        let mut events = initial_events();
+        events.push(ObligationEvent::Completed {
+            completed_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
+        let mut obligation = obligation_from(events);
+
+        let res = obligation.record_due(dummy_audit_info());
+        assert!(matches!(res, Idempotent::Ignored));
+    }
+
+    #[test]
+    fn ignores_overdue_recorded_if_paid() {
+        let mut events = initial_events();
+        events.push(ObligationEvent::Completed {
+            completed_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
+        let mut obligation = obligation_from(events);
+
+        let res = obligation.record_overdue(dummy_audit_info()).unwrap();
+        assert!(matches!(res, Idempotent::Ignored));
+    }
 }
