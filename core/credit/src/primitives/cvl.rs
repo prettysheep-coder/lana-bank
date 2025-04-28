@@ -8,7 +8,7 @@ use std::fmt;
 
 use super::PriceOfOneBTC;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CVLData {
     amount: UsdCents,
     collateral: Satoshis,

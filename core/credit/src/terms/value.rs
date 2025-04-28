@@ -867,12 +867,13 @@ mod test {
         let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
         let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
         let mut balance = default_balances(principal);
-        balance.collateral = price.cents_to_sats_round_up(terms.margin_call_cvl.scale(principal));
+        balance.collateral = Satoshis::try_from_btc(dec!(1)).unwrap();
+        dbg!(balance.collateral);
 
-        let amount = UsdCents::try_from_usd(dec!(1000)).unwrap();
+        let amount = UsdCents::try_from_usd(dec!(80_001)).unwrap();
         assert!(!terms.is_disbursal_allowed(balance, amount, price));
 
-        balance.collateral = price.cents_to_sats_round_up(terms.initial_cvl.scale(principal));
+        let amount = UsdCents::try_from_usd(dec!(80_000)).unwrap();
         assert!(terms.is_disbursal_allowed(balance, amount, price));
     }
 }
