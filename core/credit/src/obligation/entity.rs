@@ -52,6 +52,7 @@ pub struct Obligation {
     pub credit_facility_id: CreditFacilityId,
     pub reference: String,
     pub initial_amount: UsdCents,
+    pub obligation_type: ObligationType,
     pub recorded_at: DateTime<Utc>,
     events: EntityEvents<ObligationEvent>,
 }
@@ -61,18 +62,6 @@ impl Obligation {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
-    }
-
-    pub fn obligation_type(&self) -> ObligationType {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized {
-                    obligation_type, ..
-                } => Some(*obligation_type),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
     }
 
     pub fn due_at(&self) -> DateTime<Utc> {
@@ -236,7 +225,7 @@ impl Obligation {
         BalanceUpdateData {
             source_id: self.id.into(),
             ledger_tx_id: self.tx_id,
-            balance_type: self.obligation_type(),
+            balance_type: self.obligation_type,
             amount: self.initial_amount,
             updated_at: self.recorded_at,
         }
@@ -325,6 +314,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                     credit_facility_id,
                     reference,
                     amount,
+                    obligation_type,
                     recorded_at,
                     ..
                 } => {
@@ -334,6 +324,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .credit_facility_id(*credit_facility_id)
                         .reference(reference.clone())
                         .initial_amount(*amount)
+                        .obligation_type(*obligation_type)
                         .recorded_at(*recorded_at)
                 }
                 ObligationEvent::DueRecorded { .. } => (),
@@ -399,7 +390,7 @@ impl From<&Obligation> for ObligationDataForAllocation {
     fn from(obligation: &Obligation) -> Self {
         Self {
             id: obligation.id,
-            obligation_type: obligation.obligation_type(),
+            obligation_type: obligation.obligation_type,
             recorded_at: obligation.recorded_at,
             outstanding: obligation.outstanding(),
             receivable_account_id: obligation
