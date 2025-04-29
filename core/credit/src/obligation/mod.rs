@@ -1,6 +1,7 @@
 mod entity;
 pub mod error;
 mod payment_allocator;
+mod primitives;
 mod repo;
 
 use audit::{AuditInfo, AuditSvc};
