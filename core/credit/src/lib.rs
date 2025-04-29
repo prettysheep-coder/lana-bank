@@ -993,7 +993,7 @@ where
             .await?;
         let price = self.price.usd_cents_per_btc().await?;
         Ok(FacilityCVL {
-            total: balances.total_cvl(price),
+            total: balances.facility_amount_cvl(price),
             disbursed: balances.disbursed_cvl(price),
         })
     }

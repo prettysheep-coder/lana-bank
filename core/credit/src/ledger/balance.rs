@@ -102,8 +102,9 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn total_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        CVLData::new(self.collateral, self.facility_remaining).cvl(price)
+    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        let facility_amount = self.facility_remaining + self.disbursed;
+        CVLData::new(self.collateral, facility_amount).cvl(price)
     }
 
     pub fn disbursed_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
@@ -114,7 +115,7 @@ impl CreditFacilityBalanceSummary {
         if self.disbursed > UsdCents::ZERO {
             self.disbursed_cvl(price)
         } else {
-            self.total_cvl(price)
+            self.facility_amount_cvl(price)
         }
     }
 

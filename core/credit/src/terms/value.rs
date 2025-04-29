@@ -275,7 +275,7 @@ impl TermValues {
         balance: CreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
     ) -> bool {
-        let total = balance.total_cvl(price);
+        let total = balance.facility_amount_cvl(price);
         total >= self.margin_call_cvl
     }
 
