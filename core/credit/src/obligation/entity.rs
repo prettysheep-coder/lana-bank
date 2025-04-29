@@ -1,11 +1,12 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{primitives::*, CreditFacilityId};
+use crate::{payment_allocation::NewPaymentAllocation, primitives::*, CreditFacilityId};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -37,6 +38,12 @@ pub enum ObligationEvent {
     OverdueRecorded {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
+    },
+    PaymentAllocated {
+        tx_id: LedgerTxId,
+        payment_id: PaymentId,
+        payment_allocation_id: PaymentAllocationId,
+        amount: UsdCents,
     },
     Completed {
         completed_at: DateTime<Utc>,
@@ -235,8 +242,14 @@ impl Obligation {
         self.events
             .iter_all()
             .fold(UsdCents::from(0), |mut total_sum, event| {
-                if let ObligationEvent::Initialized { amount, .. } = event {
-                    total_sum += *amount;
+                match event {
+                    ObligationEvent::Initialized { amount, .. } => {
+                        total_sum += *amount;
+                    }
+                    ObligationEvent::PaymentAllocated { amount, .. } => {
+                        total_sum -= *amount;
+                    }
+                    _ => (),
                 }
                 total_sum
             })
@@ -301,6 +314,51 @@ impl Obligation {
 
         Ok(Idempotent::Executed(res))
     }
+
+    pub(crate) fn allocate_payment(
+        &mut self,
+        amount: UsdCents,
+        payment_id: PaymentId,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<Option<NewPaymentAllocation>> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
+        );
+        let outstanding = self.outstanding();
+        if outstanding.is_zero() {
+            return Idempotent::Executed(None);
+        }
+
+        let payment_amount = std::cmp::min(outstanding, amount);
+        let allocation_id = PaymentAllocationId::new();
+        self.events.push(ObligationEvent::PaymentAllocated {
+            tx_id: allocation_id.into(),
+            payment_id,
+            payment_allocation_id: allocation_id,
+            amount: payment_amount,
+        });
+        let allocation = NewPaymentAllocation::builder()
+            .id(allocation_id)
+            .payment_id(payment_id)
+            .credit_facility_id(self.credit_facility_id)
+            .obligation_id(self.id)
+            .obligation_type(self.obligation_type)
+            .receivable_account_id(
+                self.receivable_account_id()
+                    .expect("Obligation was already paid"),
+            )
+            .account_to_be_debited_id(
+                self.account_to_be_credited_id()
+                    .expect("Obligation was already paid"),
+            )
+            .amount(payment_amount)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new payment allocation");
+
+        Idempotent::Executed(Some(allocation))
+    }
 }
 
 impl TryFromEvents<ObligationEvent> for Obligation {
@@ -329,6 +387,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
+                ObligationEvent::PaymentAllocated { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
@@ -376,33 +435,6 @@ impl NewObligation {
     }
 }
 
-#[derive(Clone)]
-pub(super) struct ObligationDataForAllocation {
-    pub(super) id: ObligationId,
-    pub(super) obligation_type: ObligationType,
-    pub(super) recorded_at: DateTime<Utc>,
-    pub(super) outstanding: UsdCents,
-    pub(super) receivable_account_id: CalaAccountId,
-    pub(super) account_to_be_credited_id: CalaAccountId,
-}
-
-impl From<&Obligation> for ObligationDataForAllocation {
-    fn from(obligation: &Obligation) -> Self {
-        Self {
-            id: obligation.id,
-            obligation_type: obligation.obligation_type,
-            recorded_at: obligation.recorded_at,
-            outstanding: obligation.outstanding(),
-            receivable_account_id: obligation
-                .receivable_account_id()
-                .expect("Obligation was already paid"),
-            account_to_be_credited_id: obligation
-                .account_to_be_credited_id()
-                .expect("Obligation was already paid"),
-        }
-    }
-}
-
 impl IntoEvents<ObligationEvent> for NewObligation {
     fn into_events(self) -> EntityEvents<ObligationEvent> {
         EntityEvents::init(
@@ -424,6 +456,27 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+impl Ord for Obligation {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (&self.obligation_type, &other.obligation_type) {
+            (ObligationType::Interest, ObligationType::Disbursal) => Ordering::Less,
+            (ObligationType::Disbursal, ObligationType::Interest) => Ordering::Greater,
+            _ => self.recorded_at.cmp(&other.recorded_at),
+        }
+    }
+}
+impl PartialOrd for Obligation {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Eq for Obligation {}
+impl PartialEq for Obligation {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
     }
 }
 
