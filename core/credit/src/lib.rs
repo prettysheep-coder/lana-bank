@@ -300,6 +300,7 @@ where
         let id = CreditFacilityId::new();
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
+            .ledger_tx_id(LedgerTxId::new())
             .approval_process_id(id)
             .customer_id(customer_id)
             .terms(terms)
@@ -337,7 +338,9 @@ where
             )
             .await?;
 
-        op.commit().await?;
+        self.ledger
+            .create_credit_facility(op, credit_facility.creation_data())
+            .await?;
 
         Ok(credit_facility)
     }

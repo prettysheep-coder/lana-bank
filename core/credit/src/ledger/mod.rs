@@ -183,6 +183,7 @@ pub struct CreditLedger {
 impl CreditLedger {
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
+        templates::CreateCreditFacility::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPaymentAllocation::init(cala).await?;
@@ -1247,6 +1248,35 @@ impl CreditLedger {
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn create_credit_facility(
+        &self,
+        mut op: cala_ledger::LedgerOperation<'_>,
+        CreditFacilityCreation {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            facility_amount,
+        }: CreditFacilityCreation,
+    ) -> Result<(), CreditLedgerError> {
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::CREATE_CREDIT_FACILITY_CODE,
+                templates::CreateCreditFacilityParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    facility_amount: facility_amount.to_usd(),
+                    currency: self.usd,
+                    external_id: tx_ref,
                 },
             )
             .await?;

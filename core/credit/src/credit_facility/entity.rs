@@ -24,6 +24,7 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
+        ledger_tx_id: LedgerTxId,
         terms: TermValues,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
@@ -168,6 +169,26 @@ pub struct CreditFacility {
 }
 
 impl CreditFacility {
+    pub fn creation_data(&self) -> CreditFacilityCreation {
+        self.events
+            .iter_all()
+            .find_map(|event| match event {
+                CreditFacilityEvent::Initialized {
+                    ledger_tx_id,
+                    account_ids,
+                    amount,
+                    ..
+                } => Some(CreditFacilityCreation {
+                    tx_id: *ledger_tx_id,
+                    tx_ref: format!("{}-create", self.id),
+                    credit_facility_account_ids: *account_ids,
+                    facility_amount: *amount,
+                }),
+                _ => None,
+            })
+            .expect("Facility was not Initialized")
+    }
+
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
@@ -815,6 +836,8 @@ pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) id: CreditFacilityId,
     #[builder(setter(into))]
+    pub(super) ledger_tx_id: LedgerTxId,
+    #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
@@ -842,6 +865,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
             self.id,
             [CreditFacilityEvent::Initialized {
                 id: self.id,
+                ledger_tx_id: self.ledger_tx_id,
                 audit_info: self.audit_info.clone(),
                 customer_id: self.customer_id,
                 terms: self.terms,
@@ -929,6 +953,7 @@ mod test {
     fn initial_events() -> Vec<CreditFacilityEvent> {
         vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
+            ledger_tx_id: LedgerTxId::new(),
             audit_info: dummy_audit_info(),
             customer_id: CustomerId::new(),
             amount: default_facility(),
