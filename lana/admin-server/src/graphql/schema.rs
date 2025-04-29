@@ -869,6 +869,21 @@ impl Mutation {
         )
     }
 
+    async fn customer_email_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerEmailUpdateInput,
+    ) -> async_graphql::Result<CustomerEmailUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerEmailUpdatePayload,
+            Customer,
+            ctx,
+            app.customers()
+                .update_email(sub, input.customer_id, input.email)
+        )
+    }
+
     async fn deposit_module_configure(
         &self,
         ctx: &Context<'_>,

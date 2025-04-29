@@ -342,4 +342,29 @@ where
 
         Ok(customer)
     }
+
+    #[instrument(name = "customer.update_email", skip(self), err)]
+    pub async fn update_email(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        new_email: String,
+    ) -> Result<Customer, CustomerError> {
+        let customer_id = customer_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_UPDATE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+        if customer.update_email(new_email, audit_info).did_execute() {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
+    }
 }

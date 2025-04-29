@@ -140,6 +140,13 @@ pub struct CustomerUpdateInput {
 }
 crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
 
+#[derive(InputObject)]
+pub struct CustomerEmailUpdateInput {
+    pub customer_id: UUID,
+    pub email: String,
+}
+crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
+
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustomersSortBy {
     CreatedAt,
