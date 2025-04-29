@@ -8,6 +8,7 @@ use crate::{primitives::CVLData, CVLPct};
 #[cfg(not(test))]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityBalanceSummary {
+    pub(super) facility: UsdCents,
     pub(super) facility_remaining: UsdCents,
     pub(super) collateral: Satoshis,
     pub(super) disbursed: UsdCents,
@@ -26,6 +27,7 @@ pub struct CreditFacilityBalanceSummary {
 #[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityBalanceSummary {
+    pub facility: UsdCents,
     pub facility_remaining: UsdCents,
     pub collateral: Satoshis,
     pub disbursed: UsdCents,
@@ -43,6 +45,10 @@ pub struct CreditFacilityBalanceSummary {
 impl CreditFacilityBalanceSummary {
     pub fn any_disbursed(&self) -> bool {
         !self.disbursed.is_zero()
+    }
+
+    pub fn facility(&self) -> UsdCents {
+        self.facility
     }
 
     pub fn facility_remaining(&self) -> UsdCents {
@@ -103,7 +109,7 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let facility_amount = self.facility_remaining + self.disbursed;
+        let facility_amount = self.facility;
         CVLData::new(self.collateral, facility_amount).cvl(price)
     }
 

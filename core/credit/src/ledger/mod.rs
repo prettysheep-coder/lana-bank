@@ -981,6 +981,11 @@ impl CreditLedger {
             ])
             .await?;
         let facility = if let Some(b) = balances.get(&facility_id) {
+            UsdCents::try_from_usd(b.details.pending.cr_balance)?
+        } else {
+            UsdCents::ZERO
+        };
+        let facility_remaining = if let Some(b) = balances.get(&facility_id) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
@@ -1048,7 +1053,8 @@ impl CreditLedger {
             Satoshis::ZERO
         };
         Ok(CreditFacilityBalanceSummary {
-            facility_remaining: facility,
+            facility,
+            facility_remaining,
             collateral,
 
             disbursed,

@@ -826,9 +826,10 @@ mod test {
         }
     }
 
-    fn default_balances(facility_remaining: UsdCents) -> CreditFacilityBalanceSummary {
+    fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
         CreditFacilityBalanceSummary {
-            facility_remaining,
+            facility,
+            facility_remaining: facility,
             collateral: Satoshis::ZERO,
             disbursed: UsdCents::ZERO,
             not_yet_due_disbursed_outstanding: UsdCents::ZERO,

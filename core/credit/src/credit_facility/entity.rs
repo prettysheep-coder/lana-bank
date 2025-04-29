@@ -928,9 +928,10 @@ mod test {
         CVLPct::new(5)
     }
 
-    fn default_balances(facility_remaining: UsdCents) -> CreditFacilityBalanceSummary {
+    fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
         CreditFacilityBalanceSummary {
-            facility_remaining,
+            facility,
+            facility_remaining: facility,
             collateral: Satoshis::ZERO,
             disbursed: UsdCents::ZERO,
             not_yet_due_disbursed_outstanding: UsdCents::ZERO,
@@ -1533,6 +1534,7 @@ mod test {
                         overdue_interest_outstanding: UsdCents::ZERO,
                         interest_defaulted: UsdCents::ZERO,
 
+                        facility: UsdCents::from(2),
                         facility_remaining: UsdCents::from(1),
                         disbursed: UsdCents::from(1),
                         interest_posted: UsdCents::from(1),
@@ -1563,6 +1565,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1589,6 +1592,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1620,6 +1624,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1646,6 +1651,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1677,6 +1683,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1703,6 +1710,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1734,6 +1742,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     overdue_interest_outstanding: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1760,6 +1769,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     overdue_interest_outstanding: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
