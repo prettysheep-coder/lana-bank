@@ -1,8 +1,9 @@
+use core_price::PriceOfOneBTC;
 use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::primitives::CVLData;
+use crate::{primitives::CVLData, CVLPct};
 
 #[cfg(not(test))]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
@@ -101,23 +102,30 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn current_cvl_data(&self) -> CVLData {
+    pub fn total_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        CVLData::new(self.collateral, self.facility_remaining).cvl(price)
+    }
+
+    pub fn disbursed_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        CVLData::new(self.collateral, self.disbursed).cvl(price)
+    }
+
+    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         if self.disbursed > UsdCents::ZERO {
-            CVLData::new(self.collateral, self.disbursed)
+            self.disbursed_cvl(price)
         } else {
-            CVLData::new(self.collateral, self.facility_remaining)
+            self.total_cvl(price)
         }
-    }
-
-    pub fn cvl_data_with_hypothetical_disbursal(&self, disbursal: UsdCents) -> CVLData {
-        CVLData::new(self.collateral, self.disbursed + disbursal)
-    }
-
-    pub fn total_cvl_data(&self) -> CVLData {
-        CVLData::new(self.collateral, self.facility_remaining)
     }
 
     pub fn with_collateral(self, collateral: Satoshis) -> Self {
         Self { collateral, ..self }
+    }
+
+    pub fn with_added_disbursal(self, disbursal: UsdCents) -> Self {
+        Self {
+            disbursed: self.disbursed + disbursal,
+            ..self
+        }
     }
 }

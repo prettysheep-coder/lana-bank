@@ -112,23 +112,8 @@ impl CreditFacilityReceivable {
         self.interest + self.disbursed
     }
 
-    pub fn disbursed_cvl(&self, collateral: Satoshis) -> CVLData {
-        CVLData::new(collateral, self.total())
-    }
-
-    pub fn total_cvl(&self, collateral: Satoshis, facility_remaining: UsdCents) -> CVLData {
-        CVLData::new(collateral, self.total() + facility_remaining)
-    }
-
     pub fn is_zero(&self) -> bool {
         self.total().is_zero()
-    }
-
-    pub fn with_added_disbursal_amount(&self, amount: UsdCents) -> Self {
-        Self {
-            disbursed: self.disbursed + amount,
-            interest: self.interest,
-        }
     }
 }
 
@@ -574,14 +559,14 @@ impl CreditFacility {
         let collateralization_update = match self.status() {
             CreditFacilityStatus::PendingCollateralization
             | CreditFacilityStatus::PendingApproval => self.terms.collateralization_update(
-                balances.total_cvl_data().cvl(price),
+                balances.total_cvl(price),
                 last_collateralization_state,
                 None,
                 true,
             ),
             CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
                 self.terms.collateralization_update(
-                    balances.current_cvl_data().cvl(price),
+                    balances.current_cvl(price),
                     last_collateralization_state,
                     Some(upgrade_buffer_cvl_pct),
                     false,
