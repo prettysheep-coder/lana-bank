@@ -312,6 +312,7 @@ where
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
             .approval_process_id(id)
+            .collateral_id(CollateralId::new())
             .customer_id(customer_id)
             .terms(terms)
             .amount(amount)

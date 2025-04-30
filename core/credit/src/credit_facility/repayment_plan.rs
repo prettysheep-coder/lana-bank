@@ -33,10 +33,10 @@ pub(super) fn project<'a>(
     let mut terms = None;
     let mut activated_at = None;
 
-    let mut total_disbursed = UsdCents::ZERO;
-    let mut due_and_outstanding_disbursed = UsdCents::ZERO;
+    let mut _total_disbursed = UsdCents::ZERO;
+    let mut _due_and_outstanding_disbursed = UsdCents::ZERO;
 
-    let mut last_interest_accrual_at = None;
+    let mut _last_interest_accrual_at = None;
     let mut interest_accruals: Vec<RepaymentInPlan> = Vec::new();
     let mut due_and_outstanding_interest = UsdCents::ZERO;
 
@@ -110,7 +110,7 @@ pub(super) fn project<'a>(
     }
 
     let due_and_outstanding = CreditFacilityReceivable {
-        disbursed: due_and_outstanding_disbursed,
+        disbursed: _due_and_outstanding_disbursed,
         interest: due_and_outstanding_interest,
     };
     let terms = terms.expect("Initialized event not found");
@@ -126,7 +126,7 @@ pub(super) fn project<'a>(
 
     let maturity_date = terms.duration.maturity_date(activated_at);
 
-    let mut next_interest_period = if let Some(last_interest_payment) = last_interest_accrual_at {
+    let mut next_interest_period = if let Some(last_interest_payment) = _last_interest_accrual_at {
         terms
             .accrual_cycle_interval
             .period_from(last_interest_payment)
@@ -158,13 +158,13 @@ pub(super) fn project<'a>(
     }
 
     res.push(CreditFacilityRepaymentInPlan::Disbursal(RepaymentInPlan {
-        status: if due_and_outstanding_disbursed == UsdCents::ZERO {
+        status: if _due_and_outstanding_disbursed == UsdCents::ZERO {
             RepaymentStatus::Paid
         } else {
             RepaymentStatus::Upcoming
         },
-        initial: total_disbursed,
-        outstanding: due_and_outstanding_disbursed,
+        initial: _total_disbursed,
+        outstanding: _due_and_outstanding_disbursed,
         accrual_at: maturity_date,
         due_at: maturity_date,
     }));

@@ -569,8 +569,8 @@ impl CreditFacility {
     pub(crate) fn complete(
         &mut self,
         audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
+        _price: PriceOfOneBTC,
+        _upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
     ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
         idempotency_guard!(
@@ -610,29 +610,29 @@ impl CreditFacility {
         Ok(Idempotent::Executed(res))
     }
 
-    /// Calculates collateralization ratio for this Credit Facility under the given `balance`.
-    /// Returns None when the ratio cannot be calculated.
-    // TODO(jiri): idempotency?
-    pub(super) fn record_collateralization_ratio(
-        &mut self,
-        balance: &CreditFacilityBalanceSummary,
-    ) {
-        let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
-            || self.status() == CreditFacilityStatus::PendingApproval
-        {
-            self.amount
-        } else {
-            balance.total_outstanding_payable() // TODO(jiri): confirm
-        };
+    // / Calculates collateralization ratio for this Credit Facility under the given `balance`.
+    // / Returns None when the ratio cannot be calculated.
+    // TODO(jiri): idempotency
+    // pub(super) fn record_collateralization_ratio(
+    //     &mut self,
+    //     balance: &CreditFacilityBalanceSummary,
+    // ) {
+    //     let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
+    //         || self.status() == CreditFacilityStatus::PendingApproval
+    //     {
+    //         self.amount
+    //     } else {
+    //         balance.total_outstanding_payable() // TODO(jiri): confirm
+    //     };
 
-        if amount > UsdCents::ZERO {
-            let collateral = rust_decimal::Decimal::from(balance.collateral().into_inner());
-            let amount = Decimal::from(amount.into_inner());
-            let ratio = collateral / amount;
-            self.events
-                .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio });
-        }
-    }
+    //     if amount > UsdCents::ZERO {
+    //         let collateral = rust_decimal::Decimal::from(balance.collateral().into_inner());
+    //         let amount = Decimal::from(amount.into_inner());
+    //         let ratio = collateral / amount;
+    //         self.events
+    //             .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio });
+    //     }
+    // }
 }
 
 impl TryFromEvents<CreditFacilityEvent> for CreditFacility {

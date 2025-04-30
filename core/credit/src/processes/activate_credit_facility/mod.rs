@@ -141,8 +141,8 @@ where
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
-        let obligation = self
-            .obligations
+
+        self.obligations
             .create_with_jobs_in_op(&mut db, new_obligation)
             .await?;
 
