@@ -73,8 +73,17 @@ impl CreditFacility {
         Ok(CreditFacilityBalance::from(balance))
     }
 
-    // TODO("jiri")
-    // async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<Collateral> {}
+    // TODO("Return entity")
+    async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<Satoshis> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let balance = app
+            .credit()
+            .for_subject(sub)?
+            .balance(self.entity.id)
+            .await?;
+
+        Ok(balance.collateral())
+    }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();

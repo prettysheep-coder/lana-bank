@@ -33,7 +33,6 @@ type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
 	facilityAmount: UsdCents!
-	collateral: Satoshis!
 	collateralizationState: CollateralizationState!
 	status: CreditFacilityStatus!
 	createdAt: Timestamp!
@@ -41,6 +40,7 @@ type CreditFacility {
 	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
+	collateral: Satoshis!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
