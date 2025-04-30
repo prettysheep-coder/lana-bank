@@ -614,9 +614,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let price = self.price.usd_cents_per_btc().await?;
-
-        let mut credit_facility = self
+        let credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
@@ -634,31 +632,11 @@ where
                 }
             };
 
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-
-        let facility_updated = credit_facility
-            .update_collateralization(
-                price,
-                self.config.upgrade_buffer_cvl_pct,
-                balances.with_collateral(updated_collateral),
-                &audit_info,
-            )
-            .did_execute();
-
         let mut db = self.credit_facility_repo.begin_op().await?;
 
         self.collaterals()
             .update_in_op(&mut db, &mut collateral)
             .await?;
-
-        if facility_updated {
-            self.credit_facility_repo
-                .update_in_op(&mut db, &mut credit_facility)
-                .await?;
-        }
 
         self.ledger
             .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
