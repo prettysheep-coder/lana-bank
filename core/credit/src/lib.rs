@@ -161,13 +161,11 @@ where
         );
 
         jobs.add_initializer_and_spawn_unique(
-            cvl::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
-                credit_facility_repo.clone(),
-                &ledger,
-                price,
-                authz.audit(),
-            ),
-            cvl::CreditFacilityJobConfig {
+            collateralzation_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
+                Perms,
+                E,
+            >::new(credit_facility_repo.clone(), &ledger, price, authz.audit()),
+            collateralzation_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                 _phantom: std::marker::PhantomData,

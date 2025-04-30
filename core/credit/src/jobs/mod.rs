@@ -1,4 +1,4 @@
-pub mod cvl;
+pub mod collateralzation_from_price;
 pub mod interest_accrual_cycles;
 pub mod interest_accruals;
 pub mod obligation_due;
