@@ -47,6 +47,14 @@ where
         self.repo.find_by_id(id).await
     }
 
+    pub async fn create_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral: NewCollateral,
+    ) -> Result<Collateral, CollateralError> {
+        self.repo.create_in_op(db, collateral).await
+    }
+
     pub async fn update_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,

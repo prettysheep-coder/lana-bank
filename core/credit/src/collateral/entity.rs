@@ -91,6 +91,12 @@ pub struct NewCollateral {
     pub(super) credit_facility_id: CreditFacilityId,
 }
 
+impl NewCollateral {
+    pub fn builder() -> NewCollateralBuilder {
+        NewCollateralBuilder::default()
+    }
+}
+
 impl TryFromEvents<CollateralEvent> for Collateral {
     fn try_from_events(events: EntityEvents<CollateralEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CollateralBuilder::default();

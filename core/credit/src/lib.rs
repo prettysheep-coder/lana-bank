@@ -308,15 +308,17 @@ where
         }
 
         let id = CreditFacilityId::new();
+        let collateral_id = CollateralId::new();
+        let account_ids = CreditFacilityAccountIds::new();
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
             .approval_process_id(id)
-            .collateral_id(CollateralId::new())
+            .collateral_id(collateral_id)
             .customer_id(customer_id)
             .terms(terms)
             .amount(amount)
-            .account_ids(CreditFacilityAccountIds::new())
+            .account_ids(account_ids)
             .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .audit_info(audit_info.clone())
             .build()
@@ -326,6 +328,18 @@ where
         self.governance
             .start_process(&mut db, id, id.to_string(), APPROVE_CREDIT_FACILITY_PROCESS)
             .await?;
+
+        let new_collateral = NewCollateral::builder()
+            .id(collateral_id)
+            .credit_facility_id(id)
+            .account_id(account_ids.collateral_account_id)
+            .build()
+            .expect("all fields for new collateral provided");
+
+        self.collaterals()
+            .create_in_op(&mut db, new_collateral)
+            .await?;
+
         let credit_facility = self
             .credit_facility_repo
             .create_in_op(&mut db, new_credit_facility)
