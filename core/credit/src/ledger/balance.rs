@@ -56,6 +56,10 @@ impl CreditFacilityBalanceSummary {
         self.facility_remaining
     }
 
+    pub fn overdue_disbursed_outstanding(&self) -> UsdCents {
+        self.overdue_disbursed_outstanding
+    }
+
     pub fn disbursed_outstanding_payable(&self) -> UsdCents {
         self.due_disbursed_outstanding + self.overdue_disbursed_outstanding
     }
@@ -64,16 +68,20 @@ impl CreditFacilityBalanceSummary {
         self.not_yet_due_disbursed_outstanding + self.disbursed_outstanding_payable()
     }
 
-    pub fn overdue_disbursed_outstanding(&self) -> UsdCents {
-        self.overdue_disbursed_outstanding
+    pub fn overdue_interest_outstanding(&self) -> UsdCents {
+        self.overdue_interest_outstanding
     }
 
     pub fn interest_outstanding_payable(&self) -> UsdCents {
         self.due_interest_outstanding + self.overdue_interest_outstanding
     }
 
-    pub fn overdue_interest_outstanding(&self) -> UsdCents {
-        self.overdue_interest_outstanding
+    pub fn interest_outstanding(&self) -> UsdCents {
+        self.not_yet_due_interest_outstanding + self.interest_outstanding_payable()
+    }
+
+    pub fn total_outstanding(&self) -> UsdCents {
+        self.disbursed_outstanding() + self.interest_outstanding()
     }
 
     pub fn interest_posted(&self) -> UsdCents {
@@ -114,13 +122,13 @@ impl CreditFacilityBalanceSummary {
         CVLData::new(self.collateral, facility_amount).cvl(price)
     }
 
-    pub fn disbursed_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        CVLData::new(self.collateral, self.disbursed).cvl(price)
+    pub fn outstanding_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        CVLData::new(self.collateral, self.total_outstanding()).cvl(price)
     }
 
     pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         if self.disbursed > UsdCents::ZERO {
-            self.disbursed_cvl(price)
+            self.outstanding_amount_cvl(price)
         } else {
             self.facility_amount_cvl(price)
         }
@@ -133,13 +141,14 @@ impl CreditFacilityBalanceSummary {
     pub fn with_added_disbursal(self, disbursal: UsdCents) -> Self {
         Self {
             disbursed: self.disbursed + disbursal,
+            not_yet_due_disbursed_outstanding: self.not_yet_due_disbursed_outstanding + disbursal,
             ..self
         }
     }
 
     pub fn current_collateralization_ratio(&self) -> Decimal {
         let amount = if self.disbursed > UsdCents::ZERO {
-            self.total_outstanding_payable()
+            self.total_outstanding()
         } else {
             self.facility()
         };
@@ -201,7 +210,10 @@ mod test {
             balances.current_cvl(price),
             balances.facility_amount_cvl(price)
         );
-        assert_ne!(balances.current_cvl(price), balances.disbursed_cvl(price));
+        assert_ne!(
+            balances.current_cvl(price),
+            balances.outstanding_amount_cvl(price)
+        );
     }
 
     #[test]
@@ -225,7 +237,10 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(balances.current_cvl(price), balances.disbursed_cvl(price));
+        assert_eq!(
+            balances.current_cvl(price),
+            balances.outstanding_amount_cvl(price)
+        );
         assert_ne!(
             balances.current_cvl(price),
             balances.facility_amount_cvl(price)
