@@ -176,9 +176,11 @@ where
             collateralization_from_events::CreditFacilityCollateralizationFromEventsInitializer::<
                 Perms,
                 E,
-            >::new(outbox, &credit_facility_repo, &ledger, authz.audit()),
-            collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig::new(
-            ),
+            >::new(outbox, &credit_facility_repo, &ledger, price, authz.audit()),
+            collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
+                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                _phantom: std::marker::PhantomData,
+            },
         )
         .await?;
         jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<

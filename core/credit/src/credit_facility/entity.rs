@@ -64,8 +64,7 @@ pub enum CreditFacilityEvent {
     },
     CollateralizationRatioChanged {
         ratio: Decimal,
-        // add values used to calculate?
-        // add reason (payment received, …)?
+        audit_info: AuditInfo,
     },
     Completed {
         audit_info: AuditInfo,
@@ -501,11 +500,9 @@ impl CreditFacility {
             .unwrap_or(CollateralizationState::NoCollateral)
     }
 
-    /// Returns latest recorded collateralization ratio of this Credit Facility. Collateralization ratio
-    /// is calculated and recorded in an eventually consistent manner.
     pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
         self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::CollateralizationRatioChanged { ratio } => Some(*ratio),
+            CreditFacilityEvent::CollateralizationRatioChanged { ratio, .. } => Some(*ratio),
             _ => None,
         })
     }
@@ -520,7 +517,11 @@ impl CreditFacility {
         upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
         audit_info: &AuditInfo,
-    ) -> Idempotent<CollateralizationState> {
+    ) -> Idempotent<Option<CollateralizationState>> {
+        let ratio_changed = self
+            .update_collateralization_ratio(&balances, audit_info.clone())
+            .did_execute();
+
         let last_collateralization_state = self.last_collateralization_state();
 
         let collateralization_update = match self.status() {
@@ -552,7 +553,9 @@ impl CreditFacility {
                     audit_info: audit_info.clone(),
                 });
 
-            Idempotent::Executed(calculated_collateralization)
+            Idempotent::Executed(Some(calculated_collateralization))
+        } else if ratio_changed {
+            Idempotent::Executed(None)
         } else {
             Idempotent::Ignored
         }
@@ -592,29 +595,27 @@ impl CreditFacility {
         Ok(Idempotent::Executed(res))
     }
 
-    // / Calculates collateralization ratio for this Credit Facility under the given `balance`.
-    // / Returns None when the ratio cannot be calculated.
-    // TODO(jiri): idempotency
-    // pub(super) fn record_collateralization_ratio(
-    //     &mut self,
-    //     balance: &CreditFacilityBalanceSummary,
-    // ) {
-    //     let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
-    //         || self.status() == CreditFacilityStatus::PendingApproval
-    //     {
-    //         self.amount
-    //     } else {
-    //         balance.total_outstanding_payable() // TODO(jiri): confirm
-    //     };
+    fn update_collateralization_ratio(
+        &mut self,
+        balance: &CreditFacilityBalanceSummary,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        let ratio = balance.current_collateralization_ratio();
 
-    //     if amount > UsdCents::ZERO {
-    //         let collateral = rust_decimal::Decimal::from(balance.collateral().into_inner());
-    //         let amount = Decimal::from(amount.into_inner());
-    //         let ratio = collateral / amount;
-    //         self.events
-    //             .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio });
-    //     }
-    // }
+        if let Some(last_ratio) = self.last_collateralization_ratio() {
+            if ratio != last_ratio {
+                self.events
+                    .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
+            } else {
+                return Idempotent::Ignored;
+            }
+        } else {
+            self.events
+                .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
+        }
+
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
