@@ -962,6 +962,7 @@ where
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
+        // TODO(jiri) update collateral to 0
         let completion = if let Idempotent::Executed(completion) = credit_facility.complete(
             audit_info,
             price,
