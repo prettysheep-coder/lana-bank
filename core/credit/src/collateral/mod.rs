@@ -7,7 +7,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
-    primitives::{CollateralAction, CollateralId, LedgerTxId, Satoshis},
+    primitives::{CollateralId, CollateralUpdate},
     CreditFacilityPublisher,
 };
 
@@ -15,12 +15,6 @@ pub use entity::Collateral;
 pub(super) use entity::*;
 use error::CollateralError;
 use repo::CollateralRepo;
-
-pub struct CollateralUpdate {
-    pub tx_id: LedgerTxId,
-    pub abs_diff: Satoshis,
-    pub action: CollateralAction,
-}
 
 pub struct Collaterals<Perms, E>
 where

@@ -652,15 +652,7 @@ where
         }
 
         self.ledger
-            .update_credit_facility_collateral(
-                db,
-                CreditFacilityCollateralUpdate {
-                    tx_id: collateral_update.tx_id,
-                    abs_diff: collateral_update.abs_diff,
-                    action: collateral_update.action,
-                    credit_facility_account_ids: credit_facility.account_ids,
-                },
-            )
+            .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
             .await?;
 
         Ok(credit_facility)

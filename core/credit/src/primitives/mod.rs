@@ -375,6 +375,12 @@ pub enum CollateralAction {
     Remove,
 }
 
+pub struct CollateralUpdate {
+    pub tx_id: LedgerTxId,
+    pub abs_diff: Satoshis,
+    pub action: CollateralAction,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 pub enum DisbursedReceivableAccountType {
     Individual,

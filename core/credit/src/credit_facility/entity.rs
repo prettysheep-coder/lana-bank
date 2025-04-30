@@ -553,10 +553,10 @@ impl CreditFacility {
                     audit_info: audit_info.clone(),
                 });
 
-            return Idempotent::Executed(calculated_collateralization);
+            Idempotent::Executed(calculated_collateralization)
+        } else {
+            Idempotent::Ignored
         }
-
-        Idempotent::Ignored
     }
 
     pub(crate) fn is_completed(&self) -> bool {
