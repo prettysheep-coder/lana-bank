@@ -315,8 +315,8 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "customer.update", skip(self), err)]
-    pub async fn update(
+    #[instrument(name = "customer.update_telegram_id", skip(self), err)]
+    pub async fn update_telegram_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
