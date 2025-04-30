@@ -40,7 +40,6 @@ type CreditFacility {
 	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
-	collateral: Satoshis!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!

@@ -124,7 +124,7 @@ pub(super) fn project<'a>(
                 ));
             }
 
-            CreditFacilityEvent::CollateralizationChanged {
+            CreditFacilityEvent::CollateralizationStateChanged {
                 state,
                 collateral,
                 outstanding,

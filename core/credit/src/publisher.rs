@@ -75,7 +75,7 @@ where
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
-                CollateralizationChanged {
+                CollateralizationStateChanged {
                     state,
                     collateral,
                     outstanding,

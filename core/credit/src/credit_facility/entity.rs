@@ -55,7 +55,7 @@ pub enum CreditFacilityEvent {
         obligation_id: ObligationId,
         audit_info: AuditInfo,
     },
-    CollateralizationChanged {
+    CollateralizationStateChanged {
         state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
@@ -496,7 +496,7 @@ impl CreditFacility {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
+                CreditFacilityEvent::CollateralizationStateChanged { state, .. } => Some(*state),
                 _ => None,
             })
             .unwrap_or(CollateralizationState::NoCollateral)
@@ -545,7 +545,7 @@ impl CreditFacility {
 
         if let Some(calculated_collateralization) = collateralization_update {
             self.events
-                .push(CreditFacilityEvent::CollateralizationChanged {
+                .push(CreditFacilityEvent::CollateralizationStateChanged {
                     state: calculated_collateralization,
                     collateral: balances.collateral(),
                     outstanding: balances.into(),
@@ -680,7 +680,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
-                CreditFacilityEvent::CollateralizationChanged { .. } => (),
+                CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }

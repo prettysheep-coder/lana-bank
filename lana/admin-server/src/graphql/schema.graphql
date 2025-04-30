@@ -394,7 +394,6 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
-	collateral: Satoshis!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
