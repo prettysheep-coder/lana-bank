@@ -77,7 +77,6 @@ where
                 }),
                 CollateralizationChanged {
                     state,
-                    recorded_at,
                     collateral,
                     outstanding,
                     price,
@@ -85,7 +84,7 @@ where
                 } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
                     id: entity.id,
                     state: *state,
-                    recorded_at: *recorded_at,
+                    recorded_at: event.recorded_at,
                     collateral: *collateral,
                     outstanding: *outstanding,
                     price: *price,

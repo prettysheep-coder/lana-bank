@@ -599,7 +599,7 @@ where
 
         let mut collateral = self
             .collaterals()
-            .find_by_id(credit_facility.collateral_id())
+            .find_by_id(credit_facility.collateral_id)
             .await?;
 
         let collateral_update =
@@ -616,13 +616,13 @@ where
             .await?;
 
         let facility_updated = credit_facility
-            .maybe_update_collateralization(
+            .update_collateralization(
                 price,
                 self.config.upgrade_buffer_cvl_pct,
                 balances.with_collateral(updated_collateral),
                 &audit_info,
             )
-            .is_some();
+            .did_execute();
 
         let mut db = self.credit_facility_repo.begin_op().await?;
 

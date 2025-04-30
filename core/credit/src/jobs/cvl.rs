@@ -155,13 +155,13 @@ where
                     .get_credit_facility_balance(facility.account_ids)
                     .await?;
                 if facility
-                    .maybe_update_collateralization(
+                    .update_collateralization(
                         price,
                         self.config.upgrade_buffer_cvl_pct,
                         balances,
                         &audit_info,
                     )
-                    .is_some()
+                    .did_execute()
                 {
                     self.credit_facility_repo
                         .update_in_op(&mut db, facility)
