@@ -71,9 +71,9 @@ where
                     activation_tx_id: *ledger_tx_id,
                     activated_at: *activated_at,
                 }),
-                Completed { completed_at, .. } => Some(CoreCreditEvent::FacilityCompleted {
+                Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,
-                    completed_at: *completed_at,
+                    completed_at: event.recorded_at,
                 }),
                 CollateralizationStateChanged {
                     state,

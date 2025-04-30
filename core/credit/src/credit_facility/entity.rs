@@ -68,7 +68,6 @@ pub enum CreditFacilityEvent {
         // add reason (payment received, …)?
     },
     Completed {
-        completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
@@ -586,8 +585,6 @@ impl CreditFacility {
             collateral: balances.collateral(),
             credit_facility_account_ids: self.account_ids,
         };
-
-        let completed_at = crate::time::now();
         // self.confirm_collateral_update(
         //     CreditFacilityCollateralUpdate {
         //         credit_facility_account_ids: self.account_ids,
@@ -602,10 +599,8 @@ impl CreditFacility {
         //     balances,
         // );
 
-        self.events.push(CreditFacilityEvent::Completed {
-            completed_at,
-            audit_info,
-        });
+        self.events
+            .push(CreditFacilityEvent::Completed { audit_info });
 
         Ok(Idempotent::Executed(res))
     }
