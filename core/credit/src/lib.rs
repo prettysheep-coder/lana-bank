@@ -597,47 +597,6 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        let mut db = self.credit_facility_repo.begin_op().await?;
-        let credit_facility_collateral_update = credit_facility.record_collateral_update(
-            updated_collateral,
-            audit_info,
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-            balances,
-        )?;
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        self.ledger
-            .update_credit_facility_collateral(db, credit_facility_collateral_update)
-            .await?;
-
-        Ok(credit_facility)
-    }
-
-    pub async fn update_collateral_ng(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
-        updated_collateral: Satoshis,
-    ) -> Result<CreditFacility, CoreCreditError> {
-        let audit_info = self
-            .subject_can_update_collateral(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let price = self.price.usd_cents_per_btc().await?;
-
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(credit_facility_id)
-            .await?;
-
         let mut collateral = self
             .collaterals()
             .find_by_id(credit_facility.collateral_id())
@@ -760,12 +719,6 @@ where
             .create_all_in_op(&mut db, res.allocations)
             .await?;
 
-        for allocation in &allocations {
-            let _ = credit_facility.update_balance(
-                allocation.facility_balance_update_data(),
-                audit_info.clone(),
-            );
-        }
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;

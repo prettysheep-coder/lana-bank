@@ -37,7 +37,7 @@ pub(super) fn project<'a>(
     let mut due_and_outstanding_disbursed = UsdCents::ZERO;
 
     let mut last_interest_accrual_at = None;
-    let mut interest_accruals = Vec::new();
+    let mut interest_accruals: Vec<RepaymentInPlan> = Vec::new();
     let mut due_and_outstanding_interest = UsdCents::ZERO;
 
     for event in events {
@@ -51,42 +51,42 @@ pub(super) fn project<'a>(
             } => {
                 activated_at = Some(*recorded_at);
             }
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(_),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount,
-                ..
-            } => {
-                total_disbursed += *amount;
-                due_and_outstanding_disbursed += *amount;
-            }
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(_),
-                balance_type: BalanceUpdatedType::InterestAccrual,
-                amount,
-                updated_at: posted_at,
-                ..
-            } => {
-                last_interest_accrual_at = Some(*posted_at);
-                let due_at = *posted_at;
+            // CreditFacilityEvent::BalanceUpdated {
+            //     source: BalanceUpdatedSource::Obligation(_),
+            //     balance_type: BalanceUpdatedType::Disbursal,
+            //     amount,
+            //     ..
+            // } => {
+            //     total_disbursed += *amount;
+            //     due_and_outstanding_disbursed += *amount;
+            // }
+            // CreditFacilityEvent::BalanceUpdated {
+            //     source: BalanceUpdatedSource::Obligation(_),
+            //     balance_type: BalanceUpdatedType::InterestAccrual,
+            //     amount,
+            //     updated_at: posted_at,
+            //     ..
+            // } => {
+            //     last_interest_accrual_at = Some(*posted_at);
+            //     let due_at = *posted_at;
 
-                interest_accruals.push(RepaymentInPlan {
-                    status: RepaymentStatus::Overdue,
-                    initial: *amount,
-                    outstanding: *amount,
-                    accrual_at: *posted_at,
-                    due_at,
-                });
-            }
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(_),
-                balance_type,
-                amount,
-                ..
-            } => match balance_type {
-                BalanceUpdatedType::Disbursal => due_and_outstanding_disbursed -= *amount,
-                BalanceUpdatedType::InterestAccrual => due_and_outstanding_interest += *amount,
-            },
+            //     interest_accruals.push(RepaymentInPlan {
+            //         status: RepaymentStatus::Overdue,
+            //         initial: *amount,
+            //         outstanding: *amount,
+            //         accrual_at: *posted_at,
+            //         due_at,
+            //     });
+            // }
+            // CreditFacilityEvent::BalanceUpdated {
+            //     source: BalanceUpdatedSource::PaymentAllocation(_),
+            //     balance_type,
+            //     amount,
+            //     ..
+            // } => match balance_type {
+            //     BalanceUpdatedType::Disbursal => due_and_outstanding_disbursed -= *amount,
+            //     BalanceUpdatedType::InterestAccrual => due_and_outstanding_interest += *amount,
+            // },
             _ => {}
         }
     }

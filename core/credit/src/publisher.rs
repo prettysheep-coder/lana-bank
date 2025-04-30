@@ -75,21 +75,6 @@ where
                     id: entity.id,
                     completed_at: *completed_at,
                 }),
-                CollateralUpdated {
-                    total_collateral,
-                    abs_diff,
-                    action,
-                    recorded_in_ledger_at,
-                    tx_id,
-                    ..
-                } => Some(CoreCreditEvent::FacilityCollateralUpdated {
-                    credit_facility_id: entity.id,
-                    ledger_tx_id: *tx_id,
-                    new_amount: *total_collateral,
-                    abs_diff: *abs_diff,
-                    action: *action,
-                    recorded_at: *recorded_in_ledger_at,
-                }),
                 CollateralizationChanged {
                     state,
                     recorded_at,

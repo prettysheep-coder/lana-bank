@@ -72,44 +72,43 @@ pub(super) fn project<'a>(
     for event in events {
         match event {
             CreditFacilityEvent::Initialized { amount, .. } => initial_facility = Some(*amount),
-            CreditFacilityEvent::CollateralUpdated {
-                abs_diff,
-                action,
-                recorded_in_ledger_at,
-                tx_id,
-                ..
-            } => match action {
-                CollateralAction::Add => {
-                    history.push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
-                        satoshis: *abs_diff,
-                        action: *action,
-                        recorded_at: *recorded_in_ledger_at,
-                        tx_id: *tx_id,
-                    }));
-                }
-                CollateralAction::Remove => {
-                    history.push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
-                        satoshis: *abs_diff,
-                        action: *action,
-                        recorded_at: *recorded_in_ledger_at,
-                        tx_id: *tx_id,
-                    }));
-                }
-            },
+            // CreditFacilityEvent::CollateralUpdated {
+            //     abs_diff,
+            //     action,
+            //     recorded_in_ledger_at,
+            //     tx_id,
+            //     ..
+            // } => match action {
+            //     CollateralAction::Add => {
+            //         history.push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
+            //             satoshis: *abs_diff,
+            //             action: *action,
+            //             recorded_at: *recorded_in_ledger_at,
+            //             tx_id: *tx_id,
+            //         }));
+            //     }
+            //     CollateralAction::Remove => {
+            //         history.push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
+            //             satoshis: *abs_diff,
+            //             action: *action,
+            //             recorded_at: *recorded_in_ledger_at,
+            //             tx_id: *tx_id,
+            //         }));
+            //     }
+            // },
 
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(payment_id),
-                amount,
-                updated_at: recorded_in_ledger_at,
-                ..
-            } => {
-                history.push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
-                    cents: *amount,
-                    recorded_at: *recorded_in_ledger_at,
-                    payment_id: *payment_id,
-                }));
-            }
-
+            // CreditFacilityEvent::BalanceUpdated {
+            //     source: BalanceUpdatedSource::PaymentAllocation(payment_id),
+            //     amount,
+            //     updated_at: recorded_in_ledger_at,
+            //     ..
+            // } => {
+            //     history.push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
+            //         cents: *amount,
+            //         recorded_at: *recorded_in_ledger_at,
+            //         payment_id: *payment_id,
+            //     }));
+            // }
             CreditFacilityEvent::Activated {
                 ledger_tx_id,
                 activated_at,
@@ -144,20 +143,20 @@ pub(super) fn project<'a>(
                     },
                 ));
             }
-            CreditFacilityEvent::BalanceUpdated {
-                ledger_tx_id,
-                source: BalanceUpdatedSource::Obligation(_),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount,
-                updated_at,
-                ..
-            } => {
-                history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
-                    cents: *amount,
-                    recorded_at: *updated_at,
-                    tx_id: *ledger_tx_id,
-                }));
-            }
+            // CreditFacilityEvent::BalanceUpdated {
+            //     ledger_tx_id,
+            //     source: BalanceUpdatedSource::Obligation(_),
+            //     balance_type: BalanceUpdatedType::Disbursal,
+            //     amount,
+            //     updated_at,
+            //     ..
+            // } => {
+            //     history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
+            //         cents: *amount,
+            //         recorded_at: *updated_at,
+            //         tx_id: *ledger_tx_id,
+            //     }));
+            // }
             CreditFacilityEvent::InterestAccrualCycleStarted {
                 idx, started_at, ..
             } => {
@@ -174,27 +173,26 @@ pub(super) fn project<'a>(
                     .expect("Accrual not found");
                 interest_accruals.insert(*obligation_id, (started_at, *tx_id));
             }
-            CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(obligation_id),
-                balance_type: BalanceUpdatedType::InterestAccrual,
-                amount,
-                updated_at: posted_at,
-                ..
-            } => {
-                let (started_at, tx_id) = interest_accruals
-                    .remove(obligation_id)
-                    .expect("Accrual must have been initiated");
-                let days = (*posted_at - started_at).num_days();
-                history.push(CreditFacilityHistoryEntry::Interest(
-                    InterestAccrualsPosted {
-                        cents: *amount,
-                        tx_id,
-                        days,
-                        recorded_at: *posted_at,
-                    },
-                ));
-            }
-
+            // CreditFacilityEvent::BalanceUpdated {
+            //     source: BalanceUpdatedSource::Obligation(obligation_id),
+            //     balance_type: BalanceUpdatedType::InterestAccrual,
+            //     amount,
+            //     updated_at: posted_at,
+            //     ..
+            // } => {
+            //     let (started_at, tx_id) = interest_accruals
+            //         .remove(obligation_id)
+            //         .expect("Accrual must have been initiated");
+            //     let days = (*posted_at - started_at).num_days();
+            //     history.push(CreditFacilityHistoryEntry::Interest(
+            //         InterestAccrualsPosted {
+            //             cents: *amount,
+            //             tx_id,
+            //             days,
+            //             recorded_at: *posted_at,
+            //         },
+            //     ));
+            // }
             _ => {}
         }
     }
