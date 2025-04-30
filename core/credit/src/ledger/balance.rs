@@ -1,4 +1,5 @@
 use core_price::PriceOfOneBTC;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
@@ -135,6 +136,18 @@ impl CreditFacilityBalanceSummary {
             ..self
         }
     }
+
+    pub fn current_collateralization_ratio(&self) -> Decimal {
+        let amount = if self.disbursed > UsdCents::ZERO {
+            self.total_outstanding_payable()
+        } else {
+            self.facility()
+        };
+        let amount = Decimal::from(amount.into_inner());
+        let collateral = Decimal::from(self.collateral().into_inner());
+
+        collateral / amount
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -217,5 +230,56 @@ mod test {
             balances.current_cvl(price),
             balances.facility_amount_cvl(price)
         );
+    }
+
+    #[test]
+    fn current_collateralization_ratio_when_no_disbursals() {
+        let balances = CreditFacilityBalanceSummary {
+            collateral: Satoshis::from(100),
+            facility: UsdCents::from(2),
+            disbursed: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+
+            facility_remaining: UsdCents::from(1),
+            interest_posted: UsdCents::from(1),
+        };
+
+        let collateral = Decimal::from(balances.collateral().into_inner());
+        let expected = collateral / Decimal::from(balances.facility().into_inner());
+        assert_eq!(balances.current_collateralization_ratio(), expected);
+    }
+
+    #[test]
+    fn current_collateralization_ratio_when_disbursals() {
+        let balances = CreditFacilityBalanceSummary {
+            collateral: Satoshis::from(100),
+            facility: UsdCents::from(2),
+            disbursed: UsdCents::from(1),
+            due_disbursed_outstanding: UsdCents::from(1),
+
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+
+            facility_remaining: UsdCents::from(1),
+            interest_posted: UsdCents::from(1),
+        };
+
+        let collateral = Decimal::from(balances.collateral().into_inner());
+        let expected =
+            collateral / Decimal::from(balances.total_outstanding_payable().into_inner());
+        assert_eq!(balances.current_collateralization_ratio(), expected);
     }
 }
