@@ -487,10 +487,6 @@ impl CreditFacility {
         }
     }
 
-    pub fn collateral(&self) -> Satoshis {
-        todo!("jiri")
-    }
-
     pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
@@ -551,7 +547,7 @@ impl CreditFacility {
             self.events
                 .push(CreditFacilityEvent::CollateralizationChanged {
                     state: calculated_collateralization,
-                    collateral: self.collateral(),
+                    collateral: balances.collateral(),
                     outstanding: balances.into(),
                     price,
                     audit_info: audit_info.clone(),
@@ -587,7 +583,7 @@ impl CreditFacility {
 
         let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
-            collateral: self.collateral(),
+            collateral: balances.collateral(),
             credit_facility_account_ids: self.account_ids,
         };
 
@@ -846,20 +842,6 @@ mod test {
     }
 
     #[test]
-    fn last_collateralization_ratio() {
-        let events = initial_events();
-        let mut credit_facility = facility_from(events);
-        assert_eq!(
-            credit_facility.last_collateralization_ratio(),
-            Some(Decimal::ZERO)
-        );
-        assert_eq!(
-            credit_facility.last_collateralization_ratio(),
-            Some(dec!(5))
-        );
-    }
-
-    #[test]
     fn next_interest_accrual_cycle_period_handles_first_and_second_periods() {
         let mut events = initial_events();
         events.extend([CreditFacilityEvent::Activated {
@@ -994,6 +976,15 @@ mod test {
             credit_facility.status(),
             CreditFacilityStatus::PendingCollateralization
         );
+
+        credit_facility
+            .update_collateralization(
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+                default_balances(credit_facility.amount).with_collateral(default_full_collateral()),
+                &dummy_audit_info(),
+            )
+            .unwrap();
 
         assert_eq!(
             credit_facility.status(),

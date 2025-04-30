@@ -141,3 +141,5 @@ where
         }))
     }
 }
+
+// TODO: reproduce 'collateralization_ratio' test from old credit facility

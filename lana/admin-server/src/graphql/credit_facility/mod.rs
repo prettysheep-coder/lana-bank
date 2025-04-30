@@ -38,7 +38,6 @@ pub struct CreditFacility {
     created_at: Timestamp,
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
-    collateral: Satoshis,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCreditFacility>,
@@ -57,7 +56,6 @@ impl From<DomainCreditFacility> for CreditFacility {
             matures_at,
             created_at: credit_facility.created_at().into(),
             facility_amount: credit_facility.amount,
-            collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.last_collateralization_state(),
 
             entity: Arc::new(credit_facility),
@@ -85,6 +83,9 @@ impl CreditFacility {
             .map(|cf| cf.status())
             .unwrap_or_else(|| self.entity.status()))
     }
+
+    // TODO("jiri")
+    // async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<Collateral> {}
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
