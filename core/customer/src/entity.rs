@@ -180,7 +180,8 @@ impl Customer {
     pub fn update_email(&mut self, new_email: String, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email
+            CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
+            => CustomerEvent::EmailUpdated { .. }
         );
         self.events.push(CustomerEvent::EmailUpdated {
             email: new_email.clone(),
