@@ -107,7 +107,10 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     credit_facility_id,
                     ..
                 } => {
-                    builder = builder.id(*id).credit_facility_id(*credit_facility_id);
+                    builder = builder
+                        .id(*id)
+                        .amount(Satoshis::ZERO)
+                        .credit_facility_id(*credit_facility_id);
                 }
                 CollateralEvent::Updated { new_value, .. } => {
                     builder = builder.amount(*new_value);
