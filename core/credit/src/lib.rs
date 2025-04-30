@@ -161,15 +161,24 @@ where
         );
 
         jobs.add_initializer_and_spawn_unique(
-            collateralzation_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
+            collateralization_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
                 Perms,
                 E,
             >::new(credit_facility_repo.clone(), &ledger, price, authz.audit()),
-            collateralzation_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
+            collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                 _phantom: std::marker::PhantomData,
             },
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            collateralization_from_events::CreditFacilityCollateralizationFromEventsInitializer::<
+                Perms,
+                E,
+            >::new(outbox, &credit_facility_repo, &ledger, authz.audit()),
+            collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig::new(
+            ),
         )
         .await?;
         jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
