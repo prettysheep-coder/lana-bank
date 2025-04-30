@@ -962,7 +962,17 @@ where
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
-        // TODO(jiri) update collateral to 0
+
+        let mut collateral = self
+            .collaterals()
+            .find_by_id(credit_facility.collateral_id)
+            .await?;
+        let _ = collateral.record_collateral_update(Satoshis::ZERO, &audit_info);
+        let mut db = self.credit_facility_repo.begin_op().await?;
+        self.collaterals()
+            .update_in_op(&mut db, &mut collateral)
+            .await?;
+
         let completion = if let Idempotent::Executed(completion) = credit_facility.complete(
             audit_info,
             price,
@@ -974,7 +984,6 @@ where
             return Ok(credit_facility);
         };
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;

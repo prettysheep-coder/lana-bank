@@ -585,19 +585,6 @@ impl CreditFacility {
             collateral: balances.collateral(),
             credit_facility_account_ids: self.account_ids,
         };
-        // self.confirm_collateral_update(
-        //     CreditFacilityCollateralUpdate {
-        //         credit_facility_account_ids: self.account_ids,
-        //         tx_id: res.tx_id,
-        //         abs_diff: res.collateral,
-        //         action: CollateralAction::Remove,
-        //     },
-        //     completed_at,
-        //     audit_info.clone(),
-        //     price,
-        //     upgrade_buffer_cvl_pct,
-        //     balances,
-        // );
 
         self.events
             .push(CreditFacilityEvent::Completed { audit_info });
