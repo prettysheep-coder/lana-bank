@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 
 use crate::primitives::*;
 
-use super::{CreditFacilityEvent, CreditFacilityReceivable};
+use super::CreditFacilityEvent;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {
@@ -28,148 +28,150 @@ pub enum CreditFacilityRepaymentInPlan {
 }
 
 pub(super) fn project<'a>(
-    events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
+    _events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityRepaymentInPlan> {
-    let mut terms = None;
-    let mut activated_at = None;
+    // let mut terms = None;
+    // let mut activated_at = None;
 
-    let mut _total_disbursed = UsdCents::ZERO;
-    let mut _due_and_outstanding_disbursed = UsdCents::ZERO;
+    // let mut _total_disbursed = UsdCents::ZERO;
+    // let mut _due_and_outstanding_disbursed = UsdCents::ZERO;
 
-    let mut _last_interest_accrual_at = None;
-    let mut interest_accruals: Vec<RepaymentInPlan> = Vec::new();
-    let mut due_and_outstanding_interest = UsdCents::ZERO;
+    // let mut _last_interest_accrual_at = None;
+    // let mut interest_accruals: Vec<RepaymentInPlan> = Vec::new();
+    // let mut due_and_outstanding_interest = UsdCents::ZERO;
 
-    for event in events {
-        match event {
-            CreditFacilityEvent::Initialized { terms: t, .. } => {
-                terms = Some(t);
-            }
-            CreditFacilityEvent::Activated {
-                activated_at: recorded_at,
-                ..
-            } => {
-                activated_at = Some(*recorded_at);
-            }
-            // CreditFacilityEvent::BalanceUpdated {
-            //     source: BalanceUpdatedSource::Obligation(_),
-            //     balance_type: BalanceUpdatedType::Disbursal,
-            //     amount,
-            //     ..
-            // } => {
-            //     total_disbursed += *amount;
-            //     due_and_outstanding_disbursed += *amount;
-            // }
-            // CreditFacilityEvent::BalanceUpdated {
-            //     source: BalanceUpdatedSource::Obligation(_),
-            //     balance_type: BalanceUpdatedType::InterestAccrual,
-            //     amount,
-            //     updated_at: posted_at,
-            //     ..
-            // } => {
-            //     last_interest_accrual_at = Some(*posted_at);
-            //     let due_at = *posted_at;
+    // for event in events {
+    //     match event {
+    //         CreditFacilityEvent::Initialized { terms: t, .. } => {
+    //             terms = Some(t);
+    //         }
+    //         CreditFacilityEvent::Activated {
+    //             activated_at: recorded_at,
+    //             ..
+    //         } => {
+    //             activated_at = Some(*recorded_at);
+    //         }
+    //         CreditFacilityEvent::BalanceUpdated {
+    //             source: BalanceUpdatedSource::Obligation(_),
+    //             balance_type: BalanceUpdatedType::Disbursal,
+    //             amount,
+    //             ..
+    //         } => {
+    //             total_disbursed += *amount;
+    //             due_and_outstanding_disbursed += *amount;
+    //         }
+    //         CreditFacilityEvent::BalanceUpdated {
+    //             source: BalanceUpdatedSource::Obligation(_),
+    //             balance_type: BalanceUpdatedType::InterestAccrual,
+    //             amount,
+    //             updated_at: posted_at,
+    //             ..
+    //         } => {
+    //             last_interest_accrual_at = Some(*posted_at);
+    //             let due_at = *posted_at;
 
-            //     interest_accruals.push(RepaymentInPlan {
-            //         status: RepaymentStatus::Overdue,
-            //         initial: *amount,
-            //         outstanding: *amount,
-            //         accrual_at: *posted_at,
-            //         due_at,
-            //     });
-            // }
-            // CreditFacilityEvent::BalanceUpdated {
-            //     source: BalanceUpdatedSource::PaymentAllocation(_),
-            //     balance_type,
-            //     amount,
-            //     ..
-            // } => match balance_type {
-            //     BalanceUpdatedType::Disbursal => due_and_outstanding_disbursed -= *amount,
-            //     BalanceUpdatedType::InterestAccrual => due_and_outstanding_interest += *amount,
-            // },
-            _ => {}
-        }
-    }
+    //             interest_accruals.push(RepaymentInPlan {
+    //                 status: RepaymentStatus::Overdue,
+    //                 initial: *amount,
+    //                 outstanding: *amount,
+    //                 accrual_at: *posted_at,
+    //                 due_at,
+    //             });
+    //         }
+    //         CreditFacilityEvent::BalanceUpdated {
+    //             source: BalanceUpdatedSource::PaymentAllocation(_),
+    //             balance_type,
+    //             amount,
+    //             ..
+    //         } => match balance_type {
+    //             BalanceUpdatedType::Disbursal => due_and_outstanding_disbursed -= *amount,
+    //             BalanceUpdatedType::InterestAccrual => due_and_outstanding_interest += *amount,
+    //         },
+    //         _ => {}
+    //     }
+    // }
 
-    for payment in interest_accruals.iter_mut() {
-        if due_and_outstanding_interest > UsdCents::ZERO {
-            let applied_payment = payment.outstanding.min(due_and_outstanding_interest);
-            payment.outstanding -= applied_payment;
-            due_and_outstanding_interest -= applied_payment;
-            if payment.outstanding == UsdCents::ZERO {
-                payment.status = RepaymentStatus::Paid;
-            } else if Utc::now() < payment.due_at {
-                payment.status = RepaymentStatus::Due;
-            }
-        } else {
-            if Utc::now() < payment.due_at {
-                payment.status = RepaymentStatus::Due;
-            }
-            break;
-        }
-    }
+    // for payment in interest_accruals.iter_mut() {
+    //     if due_and_outstanding_interest > UsdCents::ZERO {
+    //         let applied_payment = payment.outstanding.min(due_and_outstanding_interest);
+    //         payment.outstanding -= applied_payment;
+    //         due_and_outstanding_interest -= applied_payment;
+    //         if payment.outstanding == UsdCents::ZERO {
+    //             payment.status = RepaymentStatus::Paid;
+    //         } else if Utc::now() < payment.due_at {
+    //             payment.status = RepaymentStatus::Due;
+    //         }
+    //     } else {
+    //         if Utc::now() < payment.due_at {
+    //             payment.status = RepaymentStatus::Due;
+    //         }
+    //         break;
+    //     }
+    // }
 
-    let due_and_outstanding = CreditFacilityReceivable {
-        disbursed: _due_and_outstanding_disbursed,
-        interest: due_and_outstanding_interest,
-    };
-    let terms = terms.expect("Initialized event not found");
-    let activated_at = match activated_at {
-        Some(time) => time,
-        None => return Vec::new(),
-    };
+    // let due_and_outstanding = CreditFacilityReceivable {
+    //     disbursed: _due_and_outstanding_disbursed,
+    //     interest: due_and_outstanding_interest,
+    // };
+    // let terms = terms.expect("Initialized event not found");
+    // let activated_at = match activated_at {
+    //     Some(time) => time,
+    //     None => return Vec::new(),
+    // };
 
-    let mut res: Vec<_> = interest_accruals
-        .into_iter()
-        .map(CreditFacilityRepaymentInPlan::Interest)
-        .collect();
+    // let mut res: Vec<_> = interest_accruals
+    //     .into_iter()
+    //     .map(CreditFacilityRepaymentInPlan::Interest)
+    //     .collect();
 
-    let maturity_date = terms.duration.maturity_date(activated_at);
+    // let maturity_date = terms.duration.maturity_date(activated_at);
 
-    let mut next_interest_period = if let Some(last_interest_payment) = _last_interest_accrual_at {
-        terms
-            .accrual_cycle_interval
-            .period_from(last_interest_payment)
-            .next()
-            .truncate(maturity_date)
-    } else {
-        terms
-            .accrual_cycle_interval
-            .period_from(activated_at)
-            .truncate(maturity_date)
-    };
+    // let mut next_interest_period = if let Some(last_interest_payment) = _last_interest_accrual_at {
+    //     terms
+    //         .accrual_cycle_interval
+    //         .period_from(last_interest_payment)
+    //         .next()
+    //         .truncate(maturity_date)
+    // } else {
+    //     terms
+    //         .accrual_cycle_interval
+    //         .period_from(activated_at)
+    //         .truncate(maturity_date)
+    // };
 
-    if !due_and_outstanding.is_zero() {
-        while let Some(period) = next_interest_period {
-            let interest = terms
-                .annual_rate
-                .interest_for_time_period(due_and_outstanding.total(), period.days());
+    // if !due_and_outstanding.is_zero() {
+    //     while let Some(period) = next_interest_period {
+    //         let interest = terms
+    //             .annual_rate
+    //             .interest_for_time_period(due_and_outstanding.total(), period.days());
 
-            res.push(CreditFacilityRepaymentInPlan::Interest(RepaymentInPlan {
-                status: RepaymentStatus::Upcoming,
-                initial: interest,
-                outstanding: interest,
-                accrual_at: period.end,
-                due_at: period.end,
-            }));
+    //         res.push(CreditFacilityRepaymentInPlan::Interest(RepaymentInPlan {
+    //             status: RepaymentStatus::Upcoming,
+    //             initial: interest,
+    //             outstanding: interest,
+    //             accrual_at: period.end,
+    //             due_at: period.end,
+    //         }));
 
-            next_interest_period = period.next().truncate(maturity_date);
-        }
-    }
+    //         next_interest_period = period.next().truncate(maturity_date);
+    //     }
+    // }
 
-    res.push(CreditFacilityRepaymentInPlan::Disbursal(RepaymentInPlan {
-        status: if _due_and_outstanding_disbursed == UsdCents::ZERO {
-            RepaymentStatus::Paid
-        } else {
-            RepaymentStatus::Upcoming
-        },
-        initial: _total_disbursed,
-        outstanding: _due_and_outstanding_disbursed,
-        accrual_at: maturity_date,
-        due_at: maturity_date,
-    }));
+    // res.push(CreditFacilityRepaymentInPlan::Disbursal(RepaymentInPlan {
+    //     status: if _due_and_outstanding_disbursed == UsdCents::ZERO {
+    //         RepaymentStatus::Paid
+    //     } else {
+    //         RepaymentStatus::Upcoming
+    //     },
+    //     initial: _total_disbursed,
+    //     outstanding: _due_and_outstanding_disbursed,
+    //     accrual_at: maturity_date,
+    //     due_at: maturity_date,
+    // }));
 
-    res
+    // res
+
+    Vec::new()
 }
 
 // #[cfg(test)]
