@@ -389,7 +389,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   value={
                     <>
                       {formValues.durationUnits}{" "}
-                      <PeriodLabel period={formValues.durationPeriod} />
+                      <PeriodLabel period={formValues.durationPeriod as Period} />
                     </>
                   }
                 />
