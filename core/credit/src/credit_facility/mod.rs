@@ -1,7 +1,7 @@
 mod entity;
 pub mod error;
 mod history;
-// mod jobs;
+mod jobs;
 mod repayment_plan;
 mod repo;
 

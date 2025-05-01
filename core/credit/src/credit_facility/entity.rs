@@ -414,9 +414,16 @@ impl CreditFacility {
             let accrual = self
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("accrual not found");
+
+            let started_at = accrual.started_at;
+
             (
                 accrual.idx,
-                match accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()) {
+                match accrual.record_accrual_cycle(
+                    accrual_cycle_data.clone(),
+                    started_at,
+                    audit_info.clone(),
+                ) {
                     Idempotent::Executed(new_obligation) => new_obligation,
                     Idempotent::Ignored => {
                         return Ok(Idempotent::Ignored);

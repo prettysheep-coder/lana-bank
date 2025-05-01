@@ -3,9 +3,7 @@ use uuid::Uuid;
 
 use crate::primitives::CreditFacilityId;
 
-use super::{entry::*, error::*};
-
-// use super::{error::*, values::*};
+use super::{error::*, value::CreditFacilityHistory};
 
 #[derive(Clone)]
 pub struct HistoryRepo {
@@ -27,22 +25,43 @@ impl HistoryRepo {
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         credit_facility_id: CreditFacilityId,
-        entries: Vec<CreditFacilityHistoryEntry>,
+        history: CreditFacilityHistory,
     ) -> Result<(), CreditFacilityHistoryError> {
-        let values = serde_json::to_value(entries).expect("Could not serialize dashboard");
+        let json = serde_json::to_value(history).expect("Could not serialize dashboard");
         let credit_facility_id: Uuid = credit_facility_id.into();
         sqlx::query!(
             r#"
-            INSERT INTO credit_facility_histories (id, history)
+            INSERT INTO core_credit_facility_histories (id, history)
             VALUES ($1, $2)
-            ON CONFLICT (id) DO UPDATE
-              SET history = EXCLUDED.history || $2
+            ON CONFLICT (id) DO UPDATE SET history = $2
             "#,
             credit_facility_id,
-            values
+            json
         )
         .execute(&mut **tx)
         .await?;
         Ok(())
+    }
+
+    pub async fn load(
+        &self,
+        credit_facility_id: CreditFacilityId,
+    ) -> Result<CreditFacilityHistory, CreditFacilityHistoryError> {
+        let credit_facility_id: Uuid = credit_facility_id.into();
+
+        let row = sqlx::query!(
+            "SELECT history FROM core_credit_facility_histories WHERE id = $1",
+            credit_facility_id
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+
+        let history = if let Some(row) = row {
+            serde_json::from_value(row.history).expect("valid json")
+        } else {
+            CreditFacilityHistory::default()
+        };
+
+        Ok(history)
     }
 }
