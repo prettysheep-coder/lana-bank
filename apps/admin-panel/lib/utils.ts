@@ -5,10 +5,7 @@ import {
   ApprovalProcessType,
   ApprovalRules,
   CollateralAction,
-  CollateralizationState,
   GetRealtimePriceUpdatesQuery,
-  InterestInterval,
-  Period,
 } from "./graphql/generated"
 
 import { Satoshis, UsdCents } from "@/types"
@@ -95,28 +92,6 @@ export const formatDirection = (direction: string) => {
 
 export const formatRole = (role: string) => {
   return role
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
-}
-
-export const formatPeriod = (period: Period) => {
-  return period.charAt(0).toUpperCase() + period.slice(1).toLowerCase()
-}
-
-export const formatInterval = (interval: InterestInterval) => {
-  return interval
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
-}
-
-export const formatCollateralizationState = (
-  collateralizationState: CollateralizationState,
-) => {
-  return collateralizationState
     .toLowerCase()
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -216,4 +191,14 @@ export const removeUnderscore = (str: string | undefined) => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
+}
+
+export const formatToCamelCase = (str: string) => {
+  return str
+    .toLowerCase()
+    .split("_")
+    .map((word, index) =>
+      index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1),
+    )
+    .join("")
 }
