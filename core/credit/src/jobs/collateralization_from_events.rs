@@ -144,12 +144,21 @@ where
             .await?;
 
         let price = self.price.usd_cents_per_btc().await?;
-        let _ = credit_facility.update_collateralization(
-            price,
-            self.config.upgrade_buffer_cvl_pct,
-            balances,
-            &audit_info,
-        );
+        if credit_facility
+            .update_collateralization(
+                price,
+                self.config.upgrade_buffer_cvl_pct,
+                balances,
+                &audit_info,
+            )
+            .did_execute()
+        {
+            self.repo
+                .update_in_op(&mut db, &mut credit_facility)
+                .await?;
+        }
+
+        db.commit().await?;
 
         Ok(())
     }
