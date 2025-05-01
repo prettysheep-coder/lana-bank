@@ -8,8 +8,9 @@
       url = "github:oxalica/rust-overlay";
       inputs = { nixpkgs.follows = "nixpkgs"; };
     };
+    crane.url = "github:ipetkov/crane";
   };
-  outputs = { self, nixpkgs, flake-utils, rust-overlay, }:
+  outputs = { self, nixpkgs, flake-utils, rust-overlay, crane }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [
@@ -22,6 +23,33 @@
         rustToolchain =
           rustVersion.override { extensions = [ "rust-analyzer" "rust-src" ]; };
         mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
+
+        craneLib = crane.mkLib pkgs;
+
+        commonArgs = {
+          src = craneLib.cleanCargoSource ./.;
+          strictDeps = true;
+
+          buildInputs = [
+            # Add additional build inputs here
+          ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+            # Additional darwin specific inputs can be set here
+            pkgs.libiconv
+          ];
+
+          SQLX_OFFLINE=true;
+          name = "lana123";
+          version = "0.2.0";
+        };
+
+        my-crate = craneLib.buildPackage (commonArgs // {
+          cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+          # Additional environment variables or build phases/hooks can be set
+          # here *without* rebuilding all dependency crates
+          # MY_CUSTOM_VAR = "some value";
+        });
+
         aliases =
           [ (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'') ];
         nativeBuildInputs = with pkgs;
@@ -64,6 +92,10 @@
           PG_CON = "${DATABASE_URL}";
         };
       in with pkgs; {
+
+        packages.default = my-crate;
+        apps.default = flake-utils.lib.mkApp { drv = my-crate; };
+
         devShells.default =
           mkShell (devEnvVars // { inherit nativeBuildInputs; });
 
