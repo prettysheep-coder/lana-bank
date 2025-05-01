@@ -1474,6 +1474,10 @@
       "direction": "Dirección",
       "amount": "Monto",
       "description": "Descripción"
+    },
+    "debitOrCredit": {
+      "debit": "Debe",
+      "credit": "Haber"
     }
   },
   "LedgerTransaction": {
