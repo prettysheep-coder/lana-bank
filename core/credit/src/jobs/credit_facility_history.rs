@@ -1,17 +1,10 @@
-mod entry;
-mod error;
-mod repo;
-mod value;
-
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
-use crate::CoreCreditEvent;
-
-use repo::*;
+use crate::{event::CoreCreditEvent, history::*};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct HistoryProjectionJobData {

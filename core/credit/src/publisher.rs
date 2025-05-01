@@ -70,6 +70,7 @@ where
                     id: entity.id,
                     activation_tx_id: *ledger_tx_id,
                     activated_at: *activated_at,
+                    amount: entity.amount,
                 }),
                 Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,

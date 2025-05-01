@@ -6,6 +6,7 @@ mod disbursal;
 pub mod error;
 mod event;
 mod for_subject;
+mod history;
 mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
@@ -41,6 +42,7 @@ pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
+pub use history::*;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
@@ -406,6 +408,23 @@ where
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
         }
+    }
+
+    #[instrument(name = "credit_facility.history", skip(self), err)]
+    pub async fn history<T: From<CreditFacilityHistoryEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        unimplemented!()
     }
 
     #[instrument(name = "credit_facility.balance", skip(self), err)]
