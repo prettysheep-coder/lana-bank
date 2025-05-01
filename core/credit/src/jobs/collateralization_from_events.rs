@@ -124,6 +124,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     async fn execute(&self, id: CreditFacilityId) -> Result<(), CoreCreditError> {
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
