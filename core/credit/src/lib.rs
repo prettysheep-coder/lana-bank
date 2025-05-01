@@ -430,7 +430,7 @@ where
             )
             .await?;
         let history = self.history_repo.load(id).await?;
-        Ok(history.entries.into_iter().map(T::from).collect())
+        Ok(history.entries.into_iter().rev().map(T::from).collect())
     }
 
     #[instrument(name = "credit_facility.balance", skip(self), err)]
