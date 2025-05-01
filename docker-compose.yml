@@ -33,7 +33,7 @@ services:
       DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
     volumes: [ "./dev/ory:/home/ory" ]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4436/admin/health/ready"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/admin/health/ready"]
       interval: 1s
       timeout: 1s
       retries: 60
