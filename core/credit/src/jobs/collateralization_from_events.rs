@@ -156,9 +156,9 @@ where
             self.repo
                 .update_in_op(&mut db, &mut credit_facility)
                 .await?;
-        }
 
-        db.commit().await?;
+            db.commit().await?;
+        }
 
         Ok(())
     }
