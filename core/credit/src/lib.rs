@@ -183,6 +183,13 @@ where
             },
         )
         .await?;
+        jobs.add_initializer_and_spawn_unique(
+            credit_facility_history::HistoryProjectionInitializer::<E>::new(outbox, pool),
+            credit_facility_history::HistoryProjectionConfig {
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
         jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
             Perms,
             E,

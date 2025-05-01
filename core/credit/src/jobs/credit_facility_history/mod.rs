@@ -4,26 +4,30 @@ mod repo;
 mod value;
 
 use futures::StreamExt;
+use serde::{Deserialize, Serialize};
 
-use job::{CurrentJob, Job, JobCompletion, JobInitializer, JobRunner, JobType};
-use outbox::{EventSequence, Outbox};
+use job::*;
+use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
 use crate::CoreCreditEvent;
 
 use repo::*;
 
-#[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
+#[derive(Default, Clone, Deserialize, Serialize)]
 struct HistoryProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct HistoryProjectionJobRunner {
-    outbox: Outbox<CoreCreditEvent>,
+pub struct HistoryProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
+    outbox: Outbox<E>,
     repo: HistoryRepo,
 }
 
 #[async_trait::async_trait]
-impl JobRunner for HistoryProjectionJobRunner {
+impl<E> JobRunner for HistoryProjectionJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     async fn run(
         &self,
         mut current_job: CurrentJob,
@@ -38,6 +42,12 @@ impl JobRunner for HistoryProjectionJobRunner {
 
         while let Some(message) = stream.next().await {
             if let Some(event) = &message.payload {
+                let event = if let Some(event) = event.as_event() {
+                    event
+                } else {
+                    continue;
+                };
+
                 let id = match event {
                     FacilityCreated { id, .. }
                     | FacilityApproved { id }
@@ -89,22 +99,28 @@ impl JobRunner for HistoryProjectionJobRunner {
     }
 }
 
-pub struct HistoryProjectionInitializer {
-    outbox: Outbox<CoreCreditEvent>,
+pub struct HistoryProjectionInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
+    outbox: Outbox<E>,
     repo: HistoryRepo,
 }
 
-impl HistoryProjectionInitializer {
-    pub fn new(outbox: &Outbox<CoreCreditEvent>, repo: &HistoryRepo) -> Self {
+impl<E> HistoryProjectionInitializer<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    pub fn new(outbox: &Outbox<E>, pool: &sqlx::PgPool) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo: repo.clone(),
+            repo: HistoryRepo::new(pool),
         }
     }
 }
 
 const HISTORY_PROJECTION: JobType = JobType::new("credit-facility-history-projection");
-impl JobInitializer for HistoryProjectionInitializer {
+impl<E> JobInitializer for HistoryProjectionInitializer<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
     fn job_type() -> JobType
     where
         Self: Sized,
@@ -118,4 +134,15 @@ impl JobInitializer for HistoryProjectionInitializer {
             repo: self.repo.clone(),
         }))
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct HistoryProjectionConfig<E> {
+    pub _phantom: std::marker::PhantomData<E>,
+}
+impl<E> JobConfig for HistoryProjectionConfig<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    type Initializer = HistoryProjectionInitializer<E>;
 }
