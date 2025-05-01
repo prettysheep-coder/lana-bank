@@ -16,6 +16,7 @@ where
     credit_facilities: &'a CreditFacilityRepo<E>,
     disbursals: &'a DisbursalRepo<E>,
     payments: &'a PaymentRepo,
+    histories: &'a HistoryRepo,
     ledger: &'a CreditLedger,
 }
 
@@ -34,6 +35,7 @@ where
         credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo<E>,
         payments: &'a PaymentRepo,
+        history: &'a HistoryRepo,
         ledger: &'a CreditLedger,
     ) -> Self {
         Self {
@@ -43,6 +45,7 @@ where
             credit_facilities,
             disbursals,
             payments,
+            histories: history,
             ledger,
         }
     }
@@ -82,7 +85,8 @@ where
             CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
-        unimplemented!()
+        let history = self.histories.load(id).await?;
+        Ok(history.entries.into_iter().map(T::from).collect())
     }
 
     pub async fn balance(

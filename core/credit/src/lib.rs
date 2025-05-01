@@ -67,6 +67,7 @@ where
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo<E>,
     payment_repo: PaymentRepo,
+    history_repo: HistoryRepo,
     payment_allocation_repo: PaymentAllocationRepo<E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
@@ -95,6 +96,7 @@ where
             collaterals: self.collaterals.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
+            history_repo: self.history_repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
@@ -138,6 +140,7 @@ where
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let payment_repo = PaymentRepo::new(pool);
+        let history_repo = HistoryRepo::new(pool);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
@@ -186,7 +189,7 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            credit_facility_history::HistoryProjectionInitializer::<E>::new(outbox, pool),
+            credit_facility_history::HistoryProjectionInitializer::<E>::new(outbox, &history_repo),
             credit_facility_history::HistoryProjectionConfig {
                 _phantom: std::marker::PhantomData,
             },
@@ -246,6 +249,7 @@ where
             collaterals,
             disbursal_repo,
             payment_repo,
+            history_repo,
             payment_allocation_repo,
             governance: governance.clone(),
             ledger,
@@ -297,6 +301,7 @@ where
             &self.credit_facility_repo,
             &self.disbursal_repo,
             &self.payment_repo,
+            &self.history_repo,
             &self.ledger,
         ))
     }
@@ -424,7 +429,8 @@ where
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
-        unimplemented!()
+        let history = self.history_repo.load(id).await?;
+        Ok(history.entries.into_iter().map(T::from).collect())
     }
 
     #[instrument(name = "credit_facility.balance", skip(self), err)]

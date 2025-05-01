@@ -11,7 +11,7 @@ gql`
   fragment CreditFacilityTransactionsFragment on CreditFacility {
     id
     creditFacilityId
-    transactions {
+    history {
       ... on CreditFacilityIncrementalPayment {
         cents
         recordedAt

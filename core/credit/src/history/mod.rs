@@ -8,7 +8,7 @@ pub use repo::HistoryRepo;
 
 #[derive(Default, serde::Deserialize, serde::Serialize)]
 pub struct CreditFacilityHistory {
-    history: Vec<CreditFacilityHistoryEntry>,
+    pub(super) entries: Vec<CreditFacilityHistoryEntry>,
 }
 
 impl CreditFacilityHistory {
@@ -24,7 +24,7 @@ impl CreditFacilityHistory {
                 amount,
                 ..
             } => {
-                self.history.push(CreditFacilityHistoryEntry::Origination(
+                self.entries.push(CreditFacilityHistoryEntry::Origination(
                     CreditFacilityOrigination {
                         cents: *amount,
                         recorded_at: *activated_at,
@@ -39,7 +39,7 @@ impl CreditFacilityHistory {
                 ledger_tx_id,
                 ..
             } => {
-                self.history
+                self.entries
                     .push(CreditFacilityHistoryEntry::Collateral(CollateralUpdated {
                         satoshis: *abs_diff,
                         recorded_at: *recorded_at,
@@ -55,7 +55,7 @@ impl CreditFacilityHistory {
                 collateral,
                 ..
             } => {
-                self.history
+                self.entries
                     .push(CreditFacilityHistoryEntry::Collateralization(
                         CollateralizationUpdated {
                             state: *state,
@@ -74,7 +74,7 @@ impl CreditFacilityHistory {
                 recorded_at,
                 ..
             } => {
-                self.history
+                self.entries
                     .push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
                         recorded_at: *recorded_at,
                         cents: *disbursal_amount + *interest_amount,
@@ -87,7 +87,7 @@ impl CreditFacilityHistory {
                 ledger_tx_id,
                 ..
             } => {
-                self.history
+                self.entries
                     .push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
                         cents: *amount,
                         recorded_at: *recorded_at,
@@ -101,7 +101,7 @@ impl CreditFacilityHistory {
                 days_in_cycle,
                 ..
             } => {
-                self.history.push(CreditFacilityHistoryEntry::Interest(
+                self.entries.push(CreditFacilityHistoryEntry::Interest(
                     InterestAccrualsPosted {
                         cents: *amount,
                         recorded_at: *posted_at,

@@ -101,10 +101,10 @@ impl<E> HistoryProjectionInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, pool: &sqlx::PgPool) -> Self {
+    pub fn new(outbox: &Outbox<E>, repo: &HistoryRepo) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo: HistoryRepo::new(pool),
+            repo: repo.clone(),
         }
     }
 }
