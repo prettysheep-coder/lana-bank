@@ -2278,7 +2278,7 @@ export type GetCreditFacilityLayoutDetailsQueryVariables = Exact<{
 
 export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } | null };
 
-export type CreditFacilityTransactionsFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> };
+export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> };
 
 export type GetCreditFacilityTransactionsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2971,8 +2971,8 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   subjectCanComplete
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
-export const CreditFacilityTransactionsFragmentFragmentDoc = gql`
-    fragment CreditFacilityTransactionsFragment on CreditFacility {
+export const CreditFacilityHistoryFragmentFragmentDoc = gql`
+    fragment CreditFacilityHistoryFragment on CreditFacility {
   id
   creditFacilityId
   history {
@@ -3838,10 +3838,10 @@ export type GetCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetCr
 export const GetCreditFacilityTransactionsDocument = gql`
     query GetCreditFacilityTransactions($id: UUID!) {
   creditFacility(id: $id) {
-    ...CreditFacilityTransactionsFragment
+    ...CreditFacilityHistoryFragment
   }
 }
-    ${CreditFacilityTransactionsFragmentFragmentDoc}`;
+    ${CreditFacilityHistoryFragmentFragmentDoc}`;
 
 /**
  * __useGetCreditFacilityTransactionsQuery__
@@ -3930,12 +3930,12 @@ export const CreditFacilityCollateralUpdateDocument = gql`
           btcBalance
         }
       }
-      ...CreditFacilityTransactionsFragment
+      ...CreditFacilityHistoryFragment
       ...CreditFacilityLayoutFragment
     }
   }
 }
-    ${CreditFacilityTransactionsFragmentFragmentDoc}
+    ${CreditFacilityHistoryFragmentFragmentDoc}
 ${CreditFacilityLayoutFragmentFragmentDoc}`;
 export type CreditFacilityCollateralUpdateMutationFn = Apollo.MutationFunction<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>;
 
@@ -4096,12 +4096,12 @@ export const CreditFacilityPartialPaymentDocument = gql`
     creditFacility {
       id
       creditFacilityId
-      ...CreditFacilityTransactionsFragment
+      ...CreditFacilityHistoryFragment
       ...CreditFacilityLayoutFragment
     }
   }
 }
-    ${CreditFacilityTransactionsFragmentFragmentDoc}
+    ${CreditFacilityHistoryFragmentFragmentDoc}
 ${CreditFacilityLayoutFragmentFragmentDoc}`;
 export type CreditFacilityPartialPaymentMutationFn = Apollo.MutationFunction<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>;
 
@@ -4989,14 +4989,14 @@ export const CreditFacilityDisbursalInitiateDocument = gql`
         disbursals {
           ...DisbursalOnFacilityPage
         }
-        ...CreditFacilityTransactionsFragment
+        ...CreditFacilityHistoryFragment
         ...CreditFacilityLayoutFragment
       }
     }
   }
 }
     ${DisbursalOnFacilityPageFragmentDoc}
-${CreditFacilityTransactionsFragmentFragmentDoc}
+${CreditFacilityHistoryFragmentFragmentDoc}
 ${CreditFacilityLayoutFragmentFragmentDoc}`;
 export type CreditFacilityDisbursalInitiateMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 
