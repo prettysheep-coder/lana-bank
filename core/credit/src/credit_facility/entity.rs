@@ -46,7 +46,7 @@ pub enum CreditFacilityEvent {
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
         idx: InterestAccrualCycleIdx,
-        started_at: DateTime<Utc>,
+        period: InterestPeriod,
         audit_info: AuditInfo,
     },
     InterestAccrualCycleConcluded {
@@ -327,9 +327,7 @@ impl CreditFacility {
         &self,
     ) -> Result<Option<InterestPeriod>, CreditFacilityError> {
         let last_accrual_start_date = self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::InterestAccrualCycleStarted { started_at, .. } => {
-                Some(*started_at)
-            }
+            CreditFacilityEvent::InterestAccrualCycleStarted { period, .. } => Some(period.start),
             _ => None,
         });
 
@@ -372,7 +370,7 @@ impl CreditFacility {
             .push(CreditFacilityEvent::InterestAccrualCycleStarted {
                 interest_accrual_id: id,
                 idx,
-                started_at: accrual_cycle_period.start,
+                period: accrual_cycle_period,
                 audit_info: audit_info.clone(),
             });
 
@@ -381,7 +379,7 @@ impl CreditFacility {
             .credit_facility_id(self.id)
             .account_ids(self.account_ids.into())
             .idx(idx)
-            .started_at(accrual_cycle_period.start)
+            .period(accrual_cycle_period)
             .facility_matures_at(self.matures_at.expect("Facility is already approved"))
             .terms(self.terms)
             .audit_info(audit_info)
@@ -411,15 +409,9 @@ impl CreditFacility {
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("accrual not found");
 
-            let started_at = accrual.started_at;
-
             (
                 accrual.idx,
-                match accrual.record_accrual_cycle(
-                    accrual_cycle_data.clone(),
-                    started_at,
-                    audit_info.clone(),
-                ) {
+                match accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()) {
                     Idempotent::Executed(new_obligation) => new_obligation,
                     Idempotent::Ignored => {
                         return Ok(Idempotent::Ignored);
@@ -890,14 +882,13 @@ mod test {
                 .next();
             let _ = credit_facility.record_interest_accrual_cycle(dummy_audit_info());
 
-            let accrual_starts_at = next_accrual_period.unwrap().start;
             let id = InterestAccrualCycleId::new();
             credit_facility
                 .events
                 .push(CreditFacilityEvent::InterestAccrualCycleStarted {
                     interest_accrual_id: id,
                     idx: new_idx,
-                    started_at: accrual_starts_at,
+                    period: next_accrual_period.unwrap(),
                     audit_info: dummy_audit_info(),
                 });
             let new_accrual = NewInterestAccrualCycle::builder()
@@ -905,7 +896,7 @@ mod test {
                 .credit_facility_id(credit_facility.id)
                 .account_ids(credit_facility.account_ids.into())
                 .idx(new_idx)
-                .started_at(accrual_starts_at)
+                .period(next_accrual_period.unwrap())
                 .facility_matures_at(
                     credit_facility
                         .matures_at
