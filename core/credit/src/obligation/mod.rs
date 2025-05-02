@@ -112,13 +112,14 @@ where
         self.repo.find_by_id(id).await
     }
 
+    #[es_entity::retry_on_concurrent_modification]
     pub async fn allocate_payment_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
         amount: UsdCents,
-        audit_info: AuditInfo,
+        audit_info: &AuditInfo,
     ) -> Result<PaymentAllocationResult, ObligationError> {
         let mut obligations = self.facility_obligations(credit_facility_id).await?;
 
@@ -128,7 +129,7 @@ where
         let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
             if let es_entity::Idempotent::Executed(Some(new_allocation)) =
-                obligation.allocate_payment(remaining, payment_id, &audit_info)
+                obligation.allocate_payment(remaining, payment_id, audit_info)
             {
                 self.repo.update_in_op(db, obligation).await?;
                 remaining -= new_allocation.amount;

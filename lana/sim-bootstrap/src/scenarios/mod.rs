@@ -58,7 +58,7 @@ async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result
                 amount,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                let _ = app.credit().record_payment(&sub, *id, *amount).await;
+                app.credit().record_payment(&sub, *id, *amount).await?;
                 let facility = app
                     .credit()
                     .find_by_id(&sub, *id)
