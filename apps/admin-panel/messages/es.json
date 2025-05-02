@@ -1157,6 +1157,7 @@
     "table": {
       "headers": {
         "subject": "Sujeto",
+        "auditEntryId": "ID de entrada",
         "object": "Objeto",
         "action": "Acción",
         "recordedAt": "Registrado El"

@@ -1156,6 +1156,7 @@
     "description": "System-wide audit trail showing user and system actions",
     "table": {
       "headers": {
+        "auditEntryId": "Entry ID",
         "subject": "Subject",
         "object": "Object",
         "action": "Action",
