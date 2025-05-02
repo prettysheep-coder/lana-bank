@@ -1156,8 +1156,8 @@
     "description": "Registro de auditoría de todo el sistema que muestra acciones de usuarios y del sistema",
     "table": {
       "headers": {
-        "subject": "Sujeto",
         "auditEntryId": "ID de entrada",
+        "subject": "Sujeto",
         "object": "Objeto",
         "action": "Acción",
         "recordedAt": "Registrado El"
