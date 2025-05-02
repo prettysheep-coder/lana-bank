@@ -21,6 +21,26 @@ pub struct InterestAccrualCycleAccountIds {
     pub interest_income_account_id: CalaAccountId,
 }
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub struct InterestAccrualCyclePeriod {
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
+}
+
+impl InterestAccrualCyclePeriod {
+    pub const fn new(start: DateTime<Utc>, end: DateTime<Utc>) -> Self {
+        Self { start, end }
+    }
+
+    pub fn days(&self) -> u16 {
+        // End of an accrual cycle is set to be one second before the actual end of the day (i. e. 23:59:59)
+        // Period from 00:00:00 to 23:59:59 should be counted as one day. In order to compensate for the
+        // missing second, let us add it to the calculation of number of days in a cycle.
+        let adjusted_period = self.end - self.start + chrono::TimeDelta::seconds(1);
+        adjusted_period.num_days() as u16
+    }
+}
+
 impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
     fn from(credit_facility_account_ids: CreditFacilityAccountIds) -> Self {
         Self {
@@ -63,8 +83,7 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         obligation_id: ObligationId,
         total: UsdCents,
-        cycle_started_at: DateTime<Utc>,
-        posted_at: DateTime<Utc>,
+        cycle_period: InterestAccrualCyclePeriod,
         audit_info: AuditInfo,
     },
 }
@@ -277,8 +296,7 @@ impl InterestAccrualCycle {
                 tx_ref: tx_ref.to_string(),
                 obligation_id,
                 total: interest,
-                cycle_started_at,
-                posted_at,
+                cycle_period: InterestAccrualCyclePeriod::new(cycle_started_at, posted_at),
                 audit_info: audit_info.clone(),
             });
 
