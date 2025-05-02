@@ -112,7 +112,6 @@ where
         self.repo.find_by_id(id).await
     }
 
-    #[es_entity::retry_on_concurrent_modification]
     pub async fn allocate_payment_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,

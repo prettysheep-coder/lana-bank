@@ -702,6 +702,7 @@ where
     }
 
     #[instrument(name = "credit_facility.record_payment", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
