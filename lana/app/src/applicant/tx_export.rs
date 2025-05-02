@@ -140,8 +140,7 @@ impl SumsubExportJobRunner {
         amount: UsdCents,
     ) -> Result<(), ApplicantError> {
         message.inject_trace_parent();
-        let _ = self
-            .sumsub_client
+        self.sumsub_client
             .submit_finance_transaction(
                 customer_id,
                 withdrawal_id.to_string(),
@@ -150,8 +149,7 @@ impl SumsubExportJobRunner {
                 usd_cents_to_dollars(amount),
                 "USD",
             )
-            .await;
-        Ok(())
+            .await
     }
 
     #[instrument(
@@ -167,8 +165,7 @@ impl SumsubExportJobRunner {
         amount: UsdCents,
     ) -> Result<(), ApplicantError> {
         message.inject_trace_parent();
-        let _ = self
-            .sumsub_client
+        self.sumsub_client
             .submit_finance_transaction(
                 customer_id,
                 deposit_id.to_string(),
@@ -177,8 +174,7 @@ impl SumsubExportJobRunner {
                 usd_cents_to_dollars(amount),
                 "USD",
             )
-            .await;
-        Ok(())
+            .await
     }
 }
 
