@@ -12,7 +12,7 @@ clean-deps:
 	docker compose down -t 1
 
 start-deps:
-	docker compose up --wait -d integration-deps
+	docker compose -f docker-compose.yml -f docker-compose.docker.yml  up --wait -d integration-deps 
 
 # Rust backend
 setup-db:
