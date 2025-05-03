@@ -11,6 +11,7 @@
       };
     };
   };
+
   outputs = {
     self,
     nixpkgs,
@@ -62,6 +63,7 @@
           netlify-cli
           tilt
           pandoc
+          podman
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
