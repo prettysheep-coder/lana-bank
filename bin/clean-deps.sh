@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# pick the first engine found in $PATH
-ENGINE=$(command -v podman >/dev/null 2>&1 && echo podman || echo docker)
+# ── Pick container engine ───────────────────────────────────────────────────────
+if [[ -n "${ENGINE_DEFAULT:-}" ]]; then
+  ENGINE="$ENGINE_DEFAULT"
+else
+  ENGINE=docker
+fi
 
-# run the chosen engine
-"$ENGINE" compose -f docker-compose.yml down -t 1
+if ! command -v "$ENGINE" >/dev/null 2>&1; then
+  printf 'Error: requested engine "%s" not found in $PATH\n' "$ENGINE" >&2
+  exit 1
+fi
+
+# ── Down ────────────────────────────────────────────────────────────────────────
+exec "$ENGINE" compose -f docker-compose.yml down -t 1

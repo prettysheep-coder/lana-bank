@@ -65,13 +65,14 @@
           pandoc
           podman
           podman-compose
-          slirp4netns
-          fuse-overlayfs
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           wkhtmltopdf
+
+          slirp4netns
+          fuse-overlayfs
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration

@@ -18,16 +18,16 @@ runs:
   using: "composite"
   steps:
     - uses: DeterminateSystems/nix-installer-action@v16
-    # - uses: jlumbroso/free-disk-space@main
-    #   if: inputs.free_disk_space == 'true'
-    #   with:
-    #     tool-cache: false
-    #     android: true
-    #     dotnet: true
-    #     haskell: true
-    #     large-packages: true
-    #     docker-images: true
-    #     swap-storage: true
+    - uses: jlumbroso/free-disk-space@main
+      if: inputs.free_disk_space == 'true'
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
 
     - uses: cachix/cachix-action@v15
       with:
@@ -36,32 +36,6 @@ runs:
 
     - run: nix flake check
       shell: bash
-
-    - name: Prepare XDG_RUNTIME_DIR for rootless Podman
-      shell: bash
-      run: |
-        export XDG_RUNTIME_DIR="/tmp/xdg-runtime-$UID"
-        mkdir -p "$XDG_RUNTIME_DIR/podman"
-        chmod 700 "$XDG_RUNTIME_DIR"
-        echo "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" >> "$GITHUB_ENV"
-        echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
-
-    - name: Start rootless Podman service
-      shell: bash
-      run: |
-        nohup podman system service --time=0 \
-              unix://$XDG_RUNTIME_DIR/podman/podman.sock \
-              >"$RUNNER_TEMP/podman.log" 2>&1 &
-
-    - name: Smoke-test the socket (optional, but useful!)
-      shell: bash
-      run: |
-        set -e
-        echo "output"
-        echo "$DOCKER_HOST"
-        cat "$RUNNER_TEMP/podman.log" || true
-        echo "output2"
-        podman --url "$DOCKER_HOST" info
 
     - name: Authenticate to Google Cloud
       env:
