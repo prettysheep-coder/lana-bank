@@ -37,14 +37,6 @@ runs:
     - run: nix flake check
       shell: bash
 
-
-    - name: Install modern Podman
-      shell: bash
-      run: |
-        sudo add-apt-repository -y ppa:projectatomic/ppa
-        sudo apt-get update
-        sudo apt-get -y install podman
-
     - name: Start rootless Podman service
       shell: bash
       run: |
