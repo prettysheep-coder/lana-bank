@@ -15,7 +15,8 @@
 #@   "rust_task_image_config",
 #@   "charts_repo_resource",
 #@   "charts_repo_bot_branch",
-#@   "private_docker_registry"
+#@   "private_docker_registry",
+#@   "nix_task_image_config"
 #@ )
 
 #@ load("app-template.lib.yml",
@@ -81,11 +82,41 @@ groups:
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
       - build-static-binary
+      - podman-tests
 
 jobs:
   -  #@ on_nix_host("integration-tests", "make test-in-ci")
   -  #@ on_nix_host("bats-tests", "make e2e")
   -  #@ build_edge_image()
+
+  - name: podman-tests
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repo
+            trigger: true
+          - { get: pipeline-tasks }
+      - task: podman-integration-tests
+        attempts: 1
+        tags: ["galoy-staging"]
+        config:
+          platform: linux
+          image_resource: #@ nix_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: repo
+              path: repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+
+                echo "--- Entering Nix Develop Environment and running script ---"
+                # The script path is relative to the pipeline-tasks input root
+                # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
   - name: rust-check-code
     serial: true
@@ -530,7 +561,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: ci--try-update-on-oathkeeper-proxy
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out

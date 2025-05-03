@@ -65,6 +65,7 @@
           pandoc
           podman
           podman-compose
+          cachix
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
