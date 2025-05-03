@@ -18,16 +18,16 @@ runs:
   using: "composite"
   steps:
     - uses: DeterminateSystems/nix-installer-action@v16
-    - uses: jlumbroso/free-disk-space@main
-      if: inputs.free_disk_space == 'true'
-      with:
-        tool-cache: false
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
+    # - uses: jlumbroso/free-disk-space@main
+    #   if: inputs.free_disk_space == 'true'
+    #   with:
+    #     tool-cache: false
+    #     android: true
+    #     dotnet: true
+    #     haskell: true
+    #     large-packages: true
+    #     docker-images: true
+    #     swap-storage: true
 
     - uses: cachix/cachix-action@v15
       with:
@@ -37,12 +37,16 @@ runs:
     - run: nix flake check
       shell: bash
 
-    - name: Start rootless Podman socket in Nix shell
+    - name: Start Podman socket once
       run: |
-        nohup nix develop -c podman system service \
-              --time=0 unix:///run/user/$UID/podman/podman.sock &
-        echo "DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock" >> "$GITHUB_ENV"
+        nix develop --accept-flake-config -c \
+          nohup podman system service --time=0 \
+               unix://$XDG_RUNTIME_DIR/podman/podman.sock \
+               >${{ runner.temp }}/podman-api.log 2>&1 &
+        echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
+        echo "Started Podman socket: $DOCKER_HOST"
       shell: bash
+
 
     - name: Start rootless Podman socket in Nix shell
       run: podman --url $DOCKER_HOST info
