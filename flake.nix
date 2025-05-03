@@ -53,8 +53,6 @@
           docker-compose
           bats
           jq
-          napi-rs-cli
-          yarn
           nodejs
           typescript
           google-cloud-sdk
