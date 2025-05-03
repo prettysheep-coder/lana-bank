@@ -20,7 +20,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin-pg ]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:4434/health/ready"]
       interval: 2s
       timeout: 1s
       retries: 20
@@ -35,7 +35,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-customer-pg ]
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/health/ready"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:4434/health/ready"]
       interval: 2s
       timeout: 1s
       retries: 20
@@ -56,19 +56,19 @@ services:
     image: postgres:16.4
     ports: [ 5433:5432 ]
     environment: [ POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg ]
-    healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
+    healthcheck: { test: ["CMD", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   kratos-admin-pg:
     image: postgres:16.4
     ports: [ 5434:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
-    healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
+    healthcheck: { test: ["CMD", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   kratos-customer-pg:
     image: postgres:16.4
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
-    healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
+    healthcheck: { test: ["CMD", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   #! Reporting
   meltano:
