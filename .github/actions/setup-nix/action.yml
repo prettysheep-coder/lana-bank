@@ -60,11 +60,8 @@ runs:
       shell: bash
       run: |
         set -e
+        cat "$RUNNER_TEMP/podman.log" || true
         podman --url "$DOCKER_HOST" info
-      # if this fails, show the log file so you know why
-      if: failure()
-      continue-on-error: true
-      run: cat "$RUNNER_TEMP/podman.log" || true
 
     - name: Authenticate to Google Cloud
       env:
