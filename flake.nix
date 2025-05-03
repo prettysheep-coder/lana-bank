@@ -59,8 +59,8 @@
           pnpm
           vendir
           netlify-cli
-          tilt
           pandoc
+          nano
           podman
           podman-compose
           cachix

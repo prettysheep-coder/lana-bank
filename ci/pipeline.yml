@@ -99,6 +99,7 @@ jobs:
       - task: podman-integration-tests
         attempts: 1
         tags: ["galoy-staging"]
+        privileged: true
         config:
           platform: linux
           image_resource: #@ nix_task_image_config()
