@@ -19,11 +19,6 @@ services:
       DSN: postgres://dbuser:secret@kratos-admin-pg:5432/default?sslmode=disable
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin-pg ]
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4434/health/ready"]
-      interval: 2s
-      timeout: 1s
-      retries: 20
 
   kratos-customer:
     image: oryd/kratos:v1.3.1
@@ -34,11 +29,6 @@ services:
       DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-customer-pg ]
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4434/health/ready"]
-      interval: 2s
-      timeout: 1s
-      retries: 20
   
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
@@ -56,19 +46,16 @@ services:
     image: postgres:16.4
     ports: [ 5433:5432 ]
     environment: [ POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg ]
-    healthcheck: { test: ["CMD", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   kratos-admin-pg:
     image: postgres:16.4
     ports: [ 5434:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
-    healthcheck: { test: ["CMD", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   kratos-customer-pg:
     image: postgres:16.4
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
-    healthcheck: { test: ["CMD", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   #! Reporting
   meltano:
