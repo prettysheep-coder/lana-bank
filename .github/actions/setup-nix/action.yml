@@ -45,8 +45,7 @@ runs:
       shell: bash
 
     - name: Start rootless Podman socket in Nix shell
-      run: |
-        podman --url $DOCKER_HOST info
+      run: podman --url $DOCKER_HOST info
       shell: bash
 
     - name: Authenticate to Google Cloud
