@@ -64,6 +64,9 @@
           tilt
           pandoc
           podman
+          podman-compose
+          slirp4netns
+          fuse-overlayfs
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
