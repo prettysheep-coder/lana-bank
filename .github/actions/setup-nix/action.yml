@@ -60,6 +60,8 @@ runs:
       shell: bash
       run: |
         set -e
+        cat "output"
+        cat "$DOCKER_HOST"
         cat "$RUNNER_TEMP/podman.log" || true
         podman --url "$DOCKER_HOST" info
 
