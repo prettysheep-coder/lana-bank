@@ -44,6 +44,11 @@ runs:
         echo "DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock" >> "$GITHUB_ENV"
       shell: bash
 
+    - name: Start rootless Podman socket in Nix shell
+      run: |
+        podman --url $DOCKER_HOST info
+      shell: bash
+
     - name: Authenticate to Google Cloud
       env:
         GOOGLE_CREDENTIALS: ${{ inputs.google_credentials }}
