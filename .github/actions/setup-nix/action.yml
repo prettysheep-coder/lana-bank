@@ -60,9 +60,10 @@ runs:
       shell: bash
       run: |
         set -e
-        cat "output"
-        cat "$DOCKER_HOST"
+        echo "output"
+        echo "$DOCKER_HOST"
         cat "$RUNNER_TEMP/podman.log" || true
+        echo "output2"
         podman --url "$DOCKER_HOST" info
 
     - name: Authenticate to Google Cloud
