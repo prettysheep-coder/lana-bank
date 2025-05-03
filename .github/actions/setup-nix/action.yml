@@ -40,25 +40,31 @@ runs:
     - name: Start root-less Podman socket
       shell: bash
       run: |
+        # single nix develop; everything after --command runs *inside* the dev-shell
         nix develop --accept-flake-config \
-          --command bash -euo pipefail -c '
-            # 1. choose a runtime dir
-            export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/xdg-run-$UID}
-            mkdir -p "$XDG_RUNTIME_DIR/podman"
+          --command bash -euo pipefail -c "
+            # 1) Pick a runtime dir (GitHub runner has none by default)
+            export XDG_RUNTIME_DIR=\${XDG_RUNTIME_DIR:-/tmp/xdg-run-\$UID}
+            mkdir -p \"\$XDG_RUNTIME_DIR/podman\"
 
-            # 2. launch the REST service (ignore SIGHUP, never time out)
+            # 2) Launch the REST API socket; keep it alive; ignore SIGHUP
             nohup podman system service --time=0 \
-                  unix://$XDG_RUNTIME_DIR/podman/podman.sock \
-                  >"$RUNNER_TEMP/podman.log" 2>&1 &
+                  unix://\$XDG_RUNTIME_DIR/podman/podman.sock \
+                  >\"\$RUNNER_TEMP/podman.log\" 2>&1 &
 
-            # 3. expose the socket to later steps (Compose, Docker CLI)
-            echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
-          '
+            # 3) Hand the socket path to all later workflow steps
+            echo \"DOCKER_HOST=unix://\$XDG_RUNTIME_DIR/podman/podman.sock\" >> \"\$GITHUB_ENV\"
+          "
 
-
-    - name: Start rootless Podman socket in Nix shell
+    - name: Smoke-test the socket (optional, but useful!)
       shell: bash
-      run: podman --url $DOCKER_HOST info
+      run: |
+        set -e
+        podman --url "$DOCKER_HOST" info
+      # if this fails, show the log file so you know why
+      if: failure()
+      continue-on-error: true
+      run: cat "$RUNNER_TEMP/podman.log" || true
 
     - name: Authenticate to Google Cloud
       env:
