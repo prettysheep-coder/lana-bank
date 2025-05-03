@@ -37,24 +37,18 @@ runs:
     - run: nix flake check
       shell: bash
 
-    - name: Start root-less Podman socket
-      shell: bash
+
+    - name: Install modern Podman
       run: |
-        # single nix develop; everything after --command runs *inside* the dev-shell
-        nix develop --accept-flake-config \
-          --command bash -euo pipefail -c "
-            # 1) Pick a runtime dir (GitHub runner has none by default)
-            export XDG_RUNTIME_DIR=\${XDG_RUNTIME_DIR:-/tmp/xdg-run-\$UID}
-            mkdir -p \"\$XDG_RUNTIME_DIR/podman\"
+        sudo add-apt-repository -y ppa:projectatomic/ppa
+        sudo apt-get update
+        sudo apt-get -y install podman
 
-            # 2) Launch the REST API socket; keep it alive; ignore SIGHUP
-            nohup podman system service --time=0 \
-                  unix://\$XDG_RUNTIME_DIR/podman/podman.sock \
-                  >\"\$RUNNER_TEMP/podman.log\" 2>&1 &
+    - name: Start rootless Podman service
+      run: |
+        nohup podman system service --time=0 unix:///run/user/$UID/podman/podman.sock &
+        echo "DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock" >> "$GITHUB_ENV"
 
-            # 3) Hand the socket path to all later workflow steps
-            echo \"DOCKER_HOST=unix://\$XDG_RUNTIME_DIR/podman/podman.sock\" >> \"\$GITHUB_ENV\"
-          "
 
     - name: Smoke-test the socket (optional, but useful!)
       shell: bash
