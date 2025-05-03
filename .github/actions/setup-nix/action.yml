@@ -37,23 +37,23 @@ runs:
     - run: nix flake check
       shell: bash
 
-    - name: Start Podman socket once
+    - name: Start root-less Podman socket
       shell: bash
       run: |
-        # enter the flake dev-shell **once** and start the REST service inside it
-        nix develop --accept-flake-config --command bash -euo pipefail -c '
-          # choose a runtime dir if GitHub hasn'\''t set one
-          export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/xdg-run-$UID}"
-          mkdir -p "$XDG_RUNTIME_DIR/podman"
+        nix develop --accept-flake-config \
+          --command bash -euo pipefail -c '
+            # 1. choose a runtime dir
+            export XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp/xdg-run-$UID}
+            mkdir -p "$XDG_RUNTIME_DIR/podman"
 
-          # launch the API socket in background, ignore SIGHUP, never time out
-          nohup podman system service --time=0 \
-                unix://$XDG_RUNTIME_DIR/podman/podman.sock \
-                >"$RUNNER_TEMP/podman.log" 2>&1 &
+            # 2. launch the REST service (ignore SIGHUP, never time out)
+            nohup podman system service --time=0 \
+                  unix://$XDG_RUNTIME_DIR/podman/podman.sock \
+                  >"$RUNNER_TEMP/podman.log" 2>&1 &
 
-          # make the socket visible to later workflow steps (Compose, Docker CLI)
-          echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
-        '
+            # 3. expose the socket to later steps (Compose, Docker CLI)
+            echo "DOCKER_HOST=unix://$XDG_RUNTIME_DIR/podman/podman.sock" >> "$GITHUB_ENV"
+          '
 
 
     - name: Start rootless Podman socket in Nix shell
