@@ -21,7 +21,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin-pg ]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4434/health/ready"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/health/ready"]
       interval: 2s
       timeout: 1s
       retries: 20
@@ -37,7 +37,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-customer-pg ]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4434/health/ready"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/health/ready"]
       interval: 2s
       timeout: 1s
       retries: 20
