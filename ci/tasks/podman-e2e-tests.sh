@@ -49,10 +49,17 @@ echo "--- Wait done ---"
 
 make setup-db
 
-echo "--- Running Integration Tests ---"
+echo "--- Running e2e Tests ---"
 make build-for-tests
+
+echo "--- Running BATS tests ---"
 bats --setup-suite-file bats/ci-setup-suite.bash -t bats
-echo "--- Tests done ---"
+
+BATS_EXIT_CODE=$?
+echo "[DEBUG] BATS command finished at $(date) with exit code $BATS_EXIT_CODE"
+
+
+echo "--- e2e Tests done ---"
 
 echo "--- Cleaning up dependencies ---"
 ENGINE_DEFAULT=podman bin/clean-deps.sh

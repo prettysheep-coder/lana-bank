@@ -66,12 +66,12 @@
           cachix
           ps
           curl
-          uuidgen
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           wkhtmltopdf
+          util-linux
 
           slirp4netns
           fuse-overlayfs
