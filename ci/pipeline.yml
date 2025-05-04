@@ -72,6 +72,7 @@ groups:
       - nodejs-check-code
       - rust-check-code
       - integration-tests
+      - podman-bats-tests
       - bats-tests
       - release
       - build-edge-image
