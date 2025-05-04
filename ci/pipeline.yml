@@ -85,20 +85,18 @@ groups:
       - podman-tests
 
 jobs:
-  -  #@ on_nix_host("integration-tests", "make test-in-ci")
   -  #@ on_nix_host("bats-tests", "make e2e")
   -  #@ build_edge_image()
 
-  - name: podman-tests
+  - name: integration-tests
     serial: true
     plan:
       - in_parallel:
           - get: repo
             trigger: true
           - { get: pipeline-tasks }
-      - task: podman-integration-tests
+      - task: integration-tests
         attempts: 1
-        tags: ["galoy-staging"]
         privileged: true
         config:
           platform: linux
