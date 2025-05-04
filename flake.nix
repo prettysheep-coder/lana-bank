@@ -71,10 +71,12 @@
           xvfb-run
           cypress
           wkhtmltopdf
-          util-linux
 
           slirp4netns
           fuse-overlayfs
+
+          util-linux
+          psmisc
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
