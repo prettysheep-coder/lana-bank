@@ -30,49 +30,12 @@
 #@   "app_edge_image"
 #@ )
 
-#@ def on_nix_host(name, cmd):
-#@ params = {}
-#@ params["REPO_PATH"] = data.values.gh_repository
-#@ params["GOOGLE_CREDENTIALS"] = "((staging-gcp-creds.creds_json))"
-#@ params["SSH_PRIVATE_KEY"] = "((staging-ssh.ssh_private_key))"
-#@ params["SSH_PUB_KEY"] = "((staging-ssh.ssh_public_key))"
-#@ params["CMD"] = cmd
-name: #@ name
-serial: true
-plan:
-  - { put: nix-host, params: { acquire: true } }
-  - in_parallel:
-      - get: repo
-        trigger: true
-      - { get: pipeline-tasks }
-  - task: #@ name
-    attempts: 2
-    timeout: 18m
-    tags: ["galoy-staging"]
-    config:
-      platform: linux
-      image_resource: #@ rust_task_image_config()
-      inputs:
-        - name: pipeline-tasks
-        - name: nix-host
-        - name: repo
-          path: #@ data.values.gh_repository
-      params: #@ params
-      run:
-        path: pipeline-tasks/ci/tasks/run-on-nix-host.sh
-    ensure:
-      put: nix-host
-      params:
-        release: nix-host
-#@ end
-
 groups:
   - name: lana-bank
     jobs:
       - nodejs-check-code
       - rust-check-code
       - integration-tests
-      - podman-bats-tests
       - bats-tests
       - release
       - build-edge-image
@@ -85,7 +48,6 @@ groups:
       - build-static-binary
 
 jobs:
-  -  #@ on_nix_host("bats-tests", "make e2e")
   -  #@ build_edge_image()
 
   - name: integration-tests
@@ -118,7 +80,7 @@ jobs:
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
-  - name: podman-bats-tests
+  - name: bats-tests
     serial: true
     plan:
       - in_parallel:
@@ -610,14 +572,6 @@ resources:
       username: #@ data.values.docker_registry_user
       password: #@ data.values.docker_registry_password
       repository: #@ private_docker_registry() + "/" + data.values.folder_registry_image
-
-  - name: nix-host
-    type: pool
-    source:
-      uri: git@github.com:GaloyMoney/galoy-concourse-locks.git
-      branch: main
-      pool: docker-hosts
-      private_key: #@ data.values.github_private_key
 
   - name: meltano-edge-image
     type: registry-image
