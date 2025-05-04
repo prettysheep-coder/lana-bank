@@ -117,6 +117,36 @@ jobs:
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
+  - name: podman-bats-tests
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repo
+            trigger: true
+          - { get: pipeline-tasks }
+      - task: bats-tests
+        attempts: 1
+        privileged: true
+        config:
+          platform: linux
+          image_resource: #@ nix_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: repo
+              path: repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                pushd repo
+
+                echo "--- Entering Nix Develop Environment and running script ---"
+                # The script path is relative to the pipeline-tasks input root
+                # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh
+
   - name: rust-check-code
     serial: true
     plan:
