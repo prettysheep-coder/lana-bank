@@ -88,6 +88,7 @@ jobs:
             trigger: true
           - { get: pipeline-tasks }
       - task: bats-tests
+        timeout: 25m
         attempts: 1
         privileged: true
         config:

@@ -66,6 +66,7 @@
           cachix
           ps
           curl
+          uuidgen
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
