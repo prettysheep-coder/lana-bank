@@ -82,7 +82,6 @@ groups:
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
       - build-static-binary
-      - podman-tests
 
 jobs:
   -  #@ on_nix_host("bats-tests", "make e2e")
