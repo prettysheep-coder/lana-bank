@@ -64,6 +64,8 @@
           podman
           podman-compose
           cachix
+          ps
+          curl
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
