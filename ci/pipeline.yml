@@ -118,6 +118,9 @@ jobs:
                   echo "--- WARNING: Docker Hub credentials not provided, proceeding unauthenticated ---"
                 fi
 
+                export DOCKERHUB_USERNAME
+                export DOCKERHUB_PASSWORD
+
                 echo "--- Entering Nix Develop Environment and running script ---"
                 # The script path is relative to the pipeline-tasks input root
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo

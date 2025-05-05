@@ -32,6 +32,7 @@ if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_PASSWORD" ]]; then
   echo "--- Docker Hub login attempt finished ---"
 else
   echo "--- WARNING: Docker Hub credentials not provided, proceeding unauthenticated ---"
+  echo "may get rate limited"
 fi
 
 
