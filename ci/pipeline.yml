@@ -98,6 +98,9 @@ jobs:
             - name: pipeline-tasks
             - name: repo
               path: repo
+          params:
+            DOCKERHUB_USERNAME: #@ data.values.docker_registry_user
+            DOCKERHUB_PASSWORD: #@ data.values.docker_registry_password
           run:
             path: sh
             args:

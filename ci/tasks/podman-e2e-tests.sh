@@ -23,6 +23,18 @@ echo "--- Testing Podman basic functionality ---"
 podman info || echo "Warning: 'podman info' failed."
 echo "--- Podman info done ---"
 
+env
+
+# Login to Docker Hub using podman before entering Nix shell
+echo "--- Logging into Docker Hub ---"
+if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_PASSWORD" ]]; then
+  echo "$DOCKERHUB_PASSWORD" | podman login docker.io -u "$DOCKERHUB_USERNAME" --password-stdin
+  echo "--- Docker Hub login attempt finished ---"
+else
+  echo "--- WARNING: Docker Hub credentials not provided, proceeding unauthenticated ---"
+fi
+
+
 echo "--- Starting Podman service ---"
 export DOCKER_HOST=unix:///run/podman/podman.sock
 podman system service --time=0 & # Start service in background
