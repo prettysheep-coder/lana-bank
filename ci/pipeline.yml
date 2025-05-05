@@ -109,6 +109,15 @@ jobs:
                 set -euo pipefail
                 pushd repo
 
+                # Login to Docker Hub using podman before entering Nix shell
+                env
+                echo "--- Logging into Docker Hub ---"
+                if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_PASSWORD" ]]; then
+                  echo "--- Docker Hub login attempt finished ---"
+                else
+                  echo "--- WARNING: Docker Hub credentials not provided, proceeding unauthenticated ---"
+                fi
+
                 echo "--- Entering Nix Develop Environment and running script ---"
                 # The script path is relative to the pipeline-tasks input root
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo
